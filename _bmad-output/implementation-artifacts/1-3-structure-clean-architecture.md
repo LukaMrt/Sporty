@@ -1,6 +1,6 @@
 # Story 1.3 : Structure Clean Architecture
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -16,28 +16,28 @@ so that **le code est organise des le depart avec des frontieres claires entre c
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Creer la structure backend Clean Architecture (AC: #1, #3)
-  - [ ] Creer `app/domain/entities/` avec `.gitkeep`
-  - [ ] Creer `app/domain/value_objects/` avec `.gitkeep`
-  - [ ] Creer `app/domain/errors/` avec `.gitkeep`
-  - [ ] Creer `app/domain/interfaces/` avec `.gitkeep`
-  - [ ] Creer `app/use_cases/` avec `.gitkeep`
-  - [ ] Creer `app/repositories/` avec `.gitkeep`
-  - [ ] Verifier que `app/controllers/`, `app/validators/`, `app/middleware/` existent deja (fournis par le starter)
-- [ ] Task 2 : Creer la structure frontend organisee par feature (AC: #1, #3)
-  - [ ] Creer `inertia/components/ui/` avec `.gitkeep` (futur Shadcn/ui)
-  - [ ] Creer `inertia/components/shared/` avec `.gitkeep`
-  - [ ] Creer `inertia/layouts/` avec `.gitkeep`
-  - [ ] Creer `inertia/hooks/` avec `.gitkeep`
-  - [ ] Creer `inertia/lib/` avec `.gitkeep`
-  - [ ] Verifier que `inertia/pages/` existe deja (fourni par le starter)
-- [ ] Task 3 : Creer la structure de tests (AC: #1, #3)
-  - [ ] Creer `tests/unit/use_cases/` avec `.gitkeep`
-  - [ ] Creer `tests/unit/domain/` avec `.gitkeep`
-  - [ ] Creer `tests/functional/` avec `.gitkeep`
-- [ ] Task 4 : Validation (AC: #2)
-  - [ ] Lancer `pnpm lint` → passe
-  - [ ] Lancer `tsc --noEmit` → passe
+- [x] Task 1 : Creer la structure backend Clean Architecture (AC: #1, #3)
+  - [x] Creer `app/domain/entities/` avec `.gitkeep`
+  - [x] Creer `app/domain/value_objects/` avec `.gitkeep`
+  - [x] Creer `app/domain/errors/` avec `.gitkeep`
+  - [x] Creer `app/domain/interfaces/` avec `.gitkeep`
+  - [x] Creer `app/use_cases/` avec `.gitkeep`
+  - [x] Creer `app/repositories/` avec `.gitkeep`
+  - [x] Verifier que `app/controllers/`, `app/validators/`, `app/middleware/` existent deja (fournis par le starter)
+- [x] Task 2 : Creer la structure frontend organisee par feature (AC: #1, #3)
+  - [x] Creer `inertia/components/ui/` avec `.gitkeep` (futur Shadcn/ui)
+  - [x] Creer `inertia/components/shared/` avec `.gitkeep`
+  - [x] Creer `inertia/layouts/` avec `.gitkeep`
+  - [x] Creer `inertia/hooks/` avec `.gitkeep`
+  - [x] Creer `inertia/lib/` avec `.gitkeep`
+  - [x] Verifier que `inertia/pages/` existe deja (fourni par le starter)
+- [x] Task 3 : Creer la structure de tests (AC: #1, #3)
+  - [x] Creer `tests/unit/use_cases/` avec `.gitkeep`
+  - [x] Creer `tests/unit/domain/` avec `.gitkeep`
+  - [x] Creer `tests/functional/` avec `.gitkeep`
+- [x] Task 4 : Validation (AC: #2)
+  - [x] Lancer `pnpm lint` → passe
+  - [x] Lancer `tsc --noEmit` → passe
 
 ## Dev Notes
 
@@ -127,8 +127,41 @@ Controllers → Use Cases → Domain ← Repositories (interfaces)
 
 ### Agent Model Used
 
+claude-sonnet-4-5-20250929
+
 ### Debug Log References
+
+Aucun blocage rencontré.
 
 ### Completion Notes List
 
+- AC#1 : Tous les dossiers requis créés dans `app/`, `inertia/` et `tests/`
+- AC#2 : `pnpm lint` passe sans warning ; `tsc --noEmit` (via `pnpm typecheck`) passe sans erreur
+- AC#3 : Chaque nouveau dossier contient un fichier `.gitkeep`
+- Note : `app/controllers/` et `app/validators/` n'existaient pas encore dans le starter — créés avec `.gitkeep`
+- Note : `app/middleware/`, `inertia/pages/` existaient déjà (fournis par le starter AdonisJS)
+
 ### File List
+
+- `app/controllers/.gitkeep`
+- `app/domain/entities/.gitkeep`
+- `app/domain/value_objects/.gitkeep`
+- `app/domain/errors/.gitkeep`
+- `app/domain/interfaces/.gitkeep`
+- `app/use_cases/.gitkeep`
+- `app/repositories/.gitkeep`
+- `app/validators/.gitkeep`
+- `inertia/components/ui/.gitkeep`
+- `inertia/components/shared/.gitkeep`
+- `inertia/layouts/.gitkeep`
+- `inertia/hooks/.gitkeep`
+- `inertia/lib/.gitkeep`
+- `tests/unit/use_cases/.gitkeep`
+- `tests/unit/domain/.gitkeep`
+- `tests/functional/.gitkeep`
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (status mis à jour)
+- `_bmad-output/implementation-artifacts/1-3-structure-clean-architecture.md` (story mise à jour)
+
+## Change Log
+
+- 2026-02-14 : Création de la structure Clean Architecture (backend, frontend, tests) — 16 fichiers `.gitkeep` créés
