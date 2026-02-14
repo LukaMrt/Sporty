@@ -1,6 +1,6 @@
 # Story 1.3 : Structure Clean Architecture
 
-Status: review
+Status: done
 
 ## Story
 

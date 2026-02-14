@@ -44,8 +44,8 @@ development_status:
   epic-1: in-progress
   1-1-initialisation-projet-adonisjs: done
   1-2-configuration-qualite-code: done
-  1-3-structure-clean-architecture: review
-  1-4-configuration-tailwind-shadcn-ui: ready-for-dev
+  1-3-structure-clean-architecture: done
+  1-4-configuration-tailwind-shadcn-ui: done
   1-5-docker-compose-app-postgresql: ready-for-dev
   1-6-migrations-initiales-seeders: ready-for-dev
   1-7-ci-cd-github-actions: ready-for-dev

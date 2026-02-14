@@ -45,17 +45,18 @@ so that **tout code non conforme est bloque des le depart, pas de dette techniqu
 
 C'est une decision architecturale fondamentale du projet : **zero tolerance des le jour 1**.
 
-| Outil | Flag | Effet |
-|-------|------|-------|
-| ESLint | `--max-warnings 0` | Tout warning = erreur de build |
-| TypeScript | `strict: true` | Toutes les verifications strictes activees |
-| Prettier | `--check` mode | Tout fichier non formate = erreur |
+| Outil      | Flag               | Effet                                      |
+| ---------- | ------------------ | ------------------------------------------ |
+| ESLint     | `--max-warnings 0` | Tout warning = erreur de build             |
+| TypeScript | `strict: true`     | Toutes les verifications strictes activees |
+| Prettier   | `--check` mode     | Tout fichier non formate = erreur          |
 
 Ces memes flags seront utilises dans la CI/CD (Story 1.7).
 
 ### Config ESLint attendue
 
 Le starter AdonisJS fournit une config ESLint de base. Points a verifier/ajuster :
+
 - Support TypeScript (`@typescript-eslint`)
 - Support React/JSX
 - Pas de conflit avec Prettier → utiliser `eslint-config-prettier`
