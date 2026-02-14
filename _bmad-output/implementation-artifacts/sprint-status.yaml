@@ -42,7 +42,7 @@ story_location: _bmad-output/implementation-artifacts
 development_status:
   # Epic 1 : Squelette Technique & Environnement de Dev
   epic-1: in-progress
-  1-1-initialisation-projet-adonisjs: ready-for-dev
+  1-1-initialisation-projet-adonisjs: done
   1-2-configuration-qualite-code: ready-for-dev
   1-3-structure-clean-architecture: ready-for-dev
   1-4-configuration-tailwind-shadcn-ui: ready-for-dev

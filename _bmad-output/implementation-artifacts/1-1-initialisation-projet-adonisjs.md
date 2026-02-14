@@ -1,6 +1,6 @@
 # Story 1.1 : Initialisation du projet AdonisJS
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -15,15 +15,15 @@ so that **j'ai un projet fonctionnel avec la stack de base prete a developper**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Initialiser le projet AdonisJS (AC: #1)
-  - [ ] Executer `pnpm create adonisjs@latest sporty -- -K=inertia --adapter=react --no-ssr`
-  - [ ] Verifier que les packages suivants sont presents : `@adonisjs/core`, `@adonisjs/lucid`, `@adonisjs/auth`, `@adonisjs/inertia`, `@adonisjs/shield`, `@vinejs/vine`, `@inertiajs/react`
-  - [ ] Verifier que le projet utilise ESM (`"type": "module"` dans package.json)
-  - [ ] Verifier que TypeScript strict est active (`tsconfig.json` avec `strict: true`)
-- [ ] Task 2 : Valider le fonctionnement (AC: #2)
-  - [ ] Lancer `node ace serve --hmr`
-  - [ ] Confirmer que la page d'accueil AdonisJS s'affiche dans le navigateur
-  - [ ] Confirmer que le hot-reload fonctionne (modifier un fichier React → le navigateur se met a jour)
+- [x] Task 1 : Initialiser le projet AdonisJS (AC: #1)
+  - [x] Executer `pnpm create adonisjs@latest sporty -- -K=inertia --adapter=react --no-ssr`
+  - [x] Verifier que les packages suivants sont presents : `@adonisjs/core`, `@adonisjs/lucid`, `@adonisjs/auth`, `@adonisjs/inertia`, `@adonisjs/shield`, `@vinejs/vine`, `@inertiajs/react`
+  - [x] Verifier que le projet utilise ESM (`"type": "module"` dans package.json)
+  - [x] Verifier que TypeScript strict est active (`tsconfig.json` avec `strict: true`)
+- [x] Task 2 : Valider le fonctionnement (AC: #2)
+  - [x] Lancer `node ace serve --hmr`
+  - [x] Confirmer que la page d'accueil AdonisJS s'affiche dans le navigateur
+  - [x] Confirmer que le hot-reload fonctionne (modifier un fichier React → le navigateur se met a jour)
 
 ## Dev Notes
 
@@ -109,8 +109,37 @@ sporty/
 
 ### Agent Model Used
 
+Claude Opus 4.6
+
 ### Debug Log References
+
+- pnpm path issue sur Windows : exécution manuelle par l'utilisateur car le shell bash ne résolvait pas correctement le shim pnpm
+- Projet créé dans `sporty/` puis déplacé à la racine pour éviter le double nesting `Sporty/sporty/`
 
 ### Completion Notes List
 
+- Task 1 : Projet initialisé via `pnpm create adonisjs@latest sporty -- -K=inertia --adapter=react --no-ssr` avec auth session + PostgreSQL. Tous les packages requis présents. ESM activé. TypeScript strict via `@adonisjs/tsconfig` (toutes les options strict individuellement activées).
+- Task 2 : Serveur démarre sans erreur via `pnpm run dev`, page d'accueil Inertia/React affichée, hot-reload fonctionnel. Validé manuellement par l'utilisateur.
+- Fichiers déplacés de `sporty/` vers la racine du projet, `pnpm install` relancé avec succès.
+
 ### File List
+
+- ace.js
+- adonisrc.ts
+- app/ (controllers, middleware, models, validators, exceptions)
+- bin/server.ts, bin/console.ts, bin/test.ts
+- config/ (app.ts, auth.ts, database.ts, hash.ts, inertia.ts, shield.ts, cors.ts, session.ts, static.ts, logger.ts)
+- database/migrations/
+- eslint.config.js
+- inertia/ (app/, pages/, components/, css/)
+- package.json
+- pnpm-lock.yaml
+- resources/views/
+- start/ (routes.ts, kernel.ts, env.ts)
+- tests/
+- tsconfig.json
+- vite.config.ts
+
+### Change Log
+
+- 2026-02-14 : Story 1-1 implémentée — initialisation projet AdonisJS v6 avec Inertia/React, Lucid (PostgreSQL), Auth (session), Shield, VineJS
