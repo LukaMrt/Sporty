@@ -1,0 +1,47 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Service app : AdonisJS + React (Vite build intégré)
+  # Pour le développement quotidien, préférer :
+  #   docker compose up db    (PostgreSQL seul)
+  #   node ace serve --hmr    (AdonisJS avec hot reload)
+  # ---------------------------------------------------------------------------
+  app:
+    build: .
+    ports:
+      - '${PORT:-3333}:${PORT:-3333}'
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: true
+      - path: .env.local
+        required: false
+    environment:
+      # Dans Docker, l'app accède à PostgreSQL via le nom du service (pas localhost)
+      DB_HOST: db
+      # Force le mode production : désactive pino-pretty (devDep absent du container)
+      NODE_ENV: production
+
+  # ---------------------------------------------------------------------------
+  # Service db : PostgreSQL 16
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-sporty}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sporty}
+      POSTGRES_DB: ${DB_DATABASE:-sporty}
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-sporty} -d ${DB_DATABASE:-sporty}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# Volume nommé pour la persistance des données PostgreSQL (NFR15)
+volumes:
+  pgdata:

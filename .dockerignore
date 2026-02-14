@@ -1,0 +1,41 @@
+# Dependencies (re-installed in Docker)
+node_modules
+
+# Build output (rebuilt in Docker)
+build
+
+# Version control
+.git
+.gitignore
+
+# BMAD workflow files
+_bmad*
+_bmad-output
+
+# Environment overrides (ne jamais inclure dans l'image)
+.env.local
+.env.development.local
+.env.production.local
+
+# Editor configs
+.vscode
+.idea
+.fleet
+.editorconfig
+
+# OS files
+.DS_Store
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# Temporary files
+tmp
+
+# Frontend compiled assets (rebuilt in Docker via pnpm build)
+public/assets
+
+# Documentation
+*.md
+README.md
