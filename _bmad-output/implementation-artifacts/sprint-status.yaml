@@ -1,0 +1,96 @@
+# generated: 2026-02-14
+# project: Sporty
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog -> in-progress: Automatically when first story is created (via create-story)
+#   - in-progress -> done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-02-14
+project: Sporty
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1 : Squelette Technique & Environnement de Dev
+  epic-1: in-progress
+  1-1-initialisation-projet-adonisjs: ready-for-dev
+  1-2-configuration-qualite-code: ready-for-dev
+  1-3-structure-clean-architecture: ready-for-dev
+  1-4-configuration-tailwind-shadcn-ui: ready-for-dev
+  1-5-docker-compose-app-postgresql: ready-for-dev
+  1-6-migrations-initiales-seeders: ready-for-dev
+  1-7-ci-cd-github-actions: ready-for-dev
+  epic-1-retrospective: optional
+
+  # Epic 2 : Authentification & Premier Acces
+  epic-2: backlog
+  2-1-inscription-premier-compte-admin: backlog
+  2-2-connexion: backlog
+  2-3-deconnexion: backlog
+  2-4-layout-principal-navigation: backlog
+  2-5-page-accueil-emptystate: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3 : Gestion Utilisateurs & Profils
+  epic-3: backlog
+  3-1-admin-liste-utilisateurs: backlog
+  3-2-admin-creer-compte-utilisateur: backlog
+  3-3-admin-modifier-supprimer-compte: backlog
+  3-4-changement-mot-de-passe: backlog
+  3-5-onboarding-wizard: backlog
+  3-6-page-profil-consultation-modification: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4 : Saisie & Consultation de Seances
+  epic-4: backlog
+  4-1-saisie-seance: backlog
+  4-2-liste-seances: backlog
+  4-3-detail-seance: backlog
+  4-4-modification-seance: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5 : Cycle de Vie des Seances
+  epic-5: backlog
+  5-1-suppression-seance-soft-delete: backlog
+  5-2-corbeille-seances-supprimees: backlog
+  5-3-restauration-seance: backlog
+  5-4-filtrage-tri-consultation-par-sport: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6 : Dashboard & Visualisation de Progression
+  epic-6: backlog
+  6-1-dashboard-herometric: backlog
+  6-2-dashboard-quickstatcards: backlog
+  6-3-graphiques-evolution: backlog
+  6-4-zoom-temporel: backlog
+  6-5-affichage-unites-configurees: backlog
+  epic-6-retrospective: optional
