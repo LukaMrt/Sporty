@@ -1,5 +1,18 @@
 ---
-stepsCompleted: [step-01-init, step-02-discovery, step-03-success, step-04-journeys, step-05-domain, step-06-innovation, step-07-project-type, step-08-scoping, step-09-functional, step-10-nonfunctional, step-11-polish]
+stepsCompleted:
+  [
+    step-01-init,
+    step-02-discovery,
+    step-03-success,
+    step-04-journeys,
+    step-05-domain,
+    step-06-innovation,
+    step-07-project-type,
+    step-08-scoping,
+    step-09-functional,
+    step-10-nonfunctional,
+    step-11-polish,
+  ]
 inputDocuments:
   - product-brief-Sporty-2026-02-13.md
   - brainstorming-session-2026-02-13.md
@@ -186,6 +199,7 @@ N/A — projet personnel. Le succès = l'envie d'utiliser l'app soi-même au quo
 ### Phase 1 — MVP (jalons unitaires)
 
 **MVP 0 — Squelette technique (checkpoint dev)**
+
 - Container Docker fonctionnel (docker-compose.yml + .env)
 - API REST de base
 - Système d'authentification (JWT) + premier compte admin
@@ -194,6 +208,7 @@ N/A — projet personnel. Le succès = l'envie d'utiliser l'app soi-même au quo
 - Interface minimale (preuve que le frontend communique avec l'API)
 
 **MVP 1 — Saisie de séances (premier livrable utilisateur)**
+
 - Saisie manuelle : sport, durée, distance, FC, ressenti
 - Socle commun + métriques spécifiques par sport (course à pied en V1)
 - Liste des séances passées (avec soft-delete + restauration)
@@ -201,6 +216,7 @@ N/A — projet personnel. Le succès = l'envie d'utiliser l'app soi-même au quo
 - Timeline basique
 
 **MVP 2 — Visualisation progression (moment "aha")**
+
 - Dashboard avec métriques clés
 - Graphiques d'évolution (allure, FC, volume)
 - Zoom temporel (semaine/mois)

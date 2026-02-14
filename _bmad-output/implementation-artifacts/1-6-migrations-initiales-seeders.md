@@ -79,18 +79,19 @@ so that **le modele de donnees est en place et pret pour le developpement des fe
 
 ### Conventions de nommage DB (architecture.md)
 
-| Element | Convention | Exemple |
-|---------|-----------|---------|
-| Tables | snake_case, pluriel | `users`, `sessions`, `sports` |
-| Colonnes | snake_case | `user_id`, `sport_type`, `avg_heart_rate` |
-| Cles etrangeres | `<table_singulier>_id` | `user_id` |
-| Index | `idx_<table>_<colonnes>` | `idx_sessions_user_id` |
+| Element         | Convention               | Exemple                                   |
+| --------------- | ------------------------ | ----------------------------------------- |
+| Tables          | snake_case, pluriel      | `users`, `sessions`, `sports`             |
+| Colonnes        | snake_case               | `user_id`, `sport_type`, `avg_heart_rate` |
+| Cles etrangeres | `<table_singulier>_id`   | `user_id`                                 |
+| Index           | `idx_<table>_<colonnes>` | `idx_sessions_user_id`                    |
 
 ### Colonne JSONB sport_metrics
 
 Decision architecturale cle : les metriques specifiques au sport sont stockees en JSONB, PAS dans des colonnes typees. Ca permet l'extensibilite multi-sport sans migration par sport.
 
 Exemple pour une seance de course :
+
 ```json
 {
   "pace_per_km": "5:12",
@@ -111,6 +112,7 @@ La validation des metriques se fait dans la couche domain (use case), PAS en bas
 ### Modele User — hash du password
 
 Le modele User doit utiliser le hook `@beforeSave` pour hasher le password automatiquement :
+
 ```typescript
 @beforeSave()
 public static async hashPassword(user: User) {

@@ -22,7 +22,7 @@ so that **je peux deployer et developper avec un seul `docker compose up`** (FR2
   - [ ] Stage 1 (deps) : `FROM node:lts-alpine`, installer pnpm, copier package.json + pnpm-lock.yaml, `pnpm install --frozen-lockfile`
   - [ ] Stage 2 (build) : copier le code source, `pnpm build` (tsc backend + vite frontend)
   - [ ] Stage 3 (runtime) : image minimale, copier build + node_modules de production, exposer le port, CMD `node bin/server.js`
-  - [ ] Creer `.dockerignore` (node_modules, .git, tests, _bmad*, etc.)
+  - [ ] Creer `.dockerignore` (node_modules, .git, tests, \_bmad\*, etc.)
 - [ ] Task 2 : Creer docker-compose.yml (AC: #1, #3, #5)
   - [ ] Service `app` : build depuis Dockerfile, ports, depends_on `db`, env_file
   - [ ] Service `db` : image `postgres:16-alpine`, variables d'env, volume persistant
@@ -49,24 +49,24 @@ so that **je peux deployer et developper avec un seul `docker compose up`** (FR2
 
 ```yaml
 services:
-  app:    # AdonisJS + React (Vite build integre)
+  app: # AdonisJS + React (Vite build integre)
     build: .
     ports:
-      - "${PORT:-3333}:${PORT:-3333}"
+      - '${PORT:-3333}:${PORT:-3333}'
     depends_on:
       - db
     env_file:
       - .env
-      - .env.local  # optionnel, surcharge
+      - .env.local # optionnel, surcharge
 
-  db:     # PostgreSQL 16
+  db: # PostgreSQL 16
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${DB_USER:-sporty}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-sporty}
       POSTGRES_DB: ${DB_DATABASE:-sporty}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - '${DB_PORT:-5432}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -103,6 +103,7 @@ CMD ["node", "build/bin/server.js"]
 ### Strategie de developpement local
 
 Pour le dev local, on n'utilise PAS le container app — on lance PostgreSQL via Docker et AdonisJS directement :
+
 - `docker compose up db` — lance PostgreSQL seul
 - `node ace serve --hmr` — lance AdonisJS avec hot reload
 
@@ -110,18 +111,18 @@ Le Dockerfile sert pour la CI/CD (build + push image) et le deploiement homelab.
 
 ### Variables d'environnement
 
-| Variable | Defaut dev | Description |
-|----------|-----------|-------------|
-| `PORT` | 3333 | Port de l'app |
-| `HOST` | 0.0.0.0 | Host de l'app |
-| `NODE_ENV` | development | Environnement |
-| `APP_KEY` | (genere) | Cle de chiffrement AdonisJS |
-| `SESSION_DRIVER` | cookie | Driver de session |
-| `DB_HOST` | localhost | Host PostgreSQL |
-| `DB_PORT` | 5432 | Port PostgreSQL |
-| `DB_USER` | sporty | User PostgreSQL |
-| `DB_PASSWORD` | sporty | Password PostgreSQL |
-| `DB_DATABASE` | sporty | Nom de la base |
+| Variable         | Defaut dev  | Description                 |
+| ---------------- | ----------- | --------------------------- |
+| `PORT`           | 3333        | Port de l'app               |
+| `HOST`           | 0.0.0.0     | Host de l'app               |
+| `NODE_ENV`       | development | Environnement               |
+| `APP_KEY`        | (genere)    | Cle de chiffrement AdonisJS |
+| `SESSION_DRIVER` | cookie      | Driver de session           |
+| `DB_HOST`        | localhost   | Host PostgreSQL             |
+| `DB_PORT`        | 5432        | Port PostgreSQL             |
+| `DB_USER`        | sporty      | User PostgreSQL             |
+| `DB_PASSWORD`    | sporty      | Password PostgreSQL         |
+| `DB_DATABASE`    | sporty      | Nom de la base              |
 
 Note : quand l'app tourne dans Docker, `DB_HOST` doit etre `db` (nom du service). Quand elle tourne en local, c'est `localhost`.
 

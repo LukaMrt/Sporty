@@ -102,17 +102,20 @@ N/A — Projet personnel. Le succès se mesure à l'envie de l'utiliser soi-mêm
 ### Core Features (MVP 0 + 1 + 2)
 
 **MVP 0 — Squelette technique**
+
 - Container Docker fonctionnel
 - API de base + système de comptes
 - Modèle de données initial (utilisateur, sports, séances)
 - Interface minimale
 
 **MVP 1 — Enregistrer ses séances**
+
 - Saisie manuelle (sport, durée, distance, FC, ressenti)
 - Liste des séances passées
 - Vue timeline basique
 
 **MVP 2 — Voir sa progression**
+
 - Dashboard avec métriques clés
 - Graphiques d'évolution (vitesse, FC, volume)
 - Zoom temporel (semaine/mois)

@@ -48,10 +48,11 @@ So that **j'ai une vue rapide sur mon volume, ma FC et ma frequence d'entraineme
 **Given** j'ai des seances enregistrees
 **When** j'arrive sur la page d'accueil
 **Then** 3 QuickStatCards s'affichent en ligne sous le HeroMetric :
+
 - Volume hebdomadaire (km)
 - FC moyenne
 - Nombre de seances (cette semaine)
-**And** chaque carte affiche la valeur, l'unite et une tendance
+  **And** chaque carte affiche la valeur, l'unite et une tendance
 
 **Given** je suis sur mobile (< 768px)
 **When** je regarde les QuickStatCards

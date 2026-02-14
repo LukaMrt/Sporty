@@ -91,20 +91,20 @@ jobs:
 
 ### Politique qualite en CI
 
-| Outil | Commande | Echec si |
-|-------|----------|----------|
-| ESLint | `pnpm lint` | Un warning existe (`--max-warnings 0`) |
-| Prettier | `pnpm format:check` | Un fichier n'est pas formate |
-| TypeScript | `pnpm typecheck` | Erreur de compilation |
-| Vite | `pnpm build` | Erreur de build frontend |
+| Outil      | Commande            | Echec si                               |
+| ---------- | ------------------- | -------------------------------------- |
+| ESLint     | `pnpm lint`         | Un warning existe (`--max-warnings 0`) |
+| Prettier   | `pnpm format:check` | Un fichier n'est pas formate           |
+| TypeScript | `pnpm typecheck`    | Erreur de compilation                  |
+| Vite       | `pnpm build`        | Erreur de build frontend               |
 
 C'est la meme politique "warnings as errors" que le dev local (Story 1.2).
 
 ### Secrets GitHub a configurer
 
-| Secret | Description |
-|--------|-------------|
-| `DOCKER_USERNAME` | Username Docker Hub |
+| Secret            | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| `DOCKER_USERNAME` | Username Docker Hub                            |
 | `DOCKER_PASSWORD` | Token d'acces Docker Hub (pas le mot de passe) |
 
 Ces secrets doivent etre configures manuellement dans Settings > Secrets and variables > Actions sur le repo GitHub.
@@ -112,6 +112,7 @@ Ces secrets doivent etre configures manuellement dans Settings > Secrets and var
 ### Workflow de mise a jour homelab (FR26)
 
 La CI push l'image sur Docker Hub. Cote homelab, la mise a jour est manuelle :
+
 ```bash
 docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
 ```
@@ -121,6 +122,7 @@ L'automatisation du deploiement homelab n'est PAS dans le scope de cette story.
 ### Versions des actions GitHub
 
 Toujours utiliser des versions majeures fixees (ex: `@v4`) pour eviter les breaking changes :
+
 - `actions/checkout@v4`
 - `actions/setup-node@v4`
 - `pnpm/action-setup@v4`

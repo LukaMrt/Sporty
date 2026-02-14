@@ -96,11 +96,11 @@ Controllers → Use Cases → Domain ← Repositories (interfaces)
 
 ### Conventions de nommage
 
-| Element | Convention | Exemple |
-|---------|-----------|---------|
-| Fichiers backend | snake_case.ts | `log_session.ts` |
-| Fichiers React | PascalCase.tsx | `SessionForm.tsx` |
-| Dossiers backend | snake_case | `use_cases/` |
+| Element           | Convention               | Exemple              |
+| ----------------- | ------------------------ | -------------------- |
+| Fichiers backend  | snake_case.ts            | `log_session.ts`     |
+| Fichiers React    | PascalCase.tsx           | `SessionForm.tsx`    |
+| Dossiers backend  | snake_case               | `use_cases/`         |
 | Dossiers frontend | kebab-case ou PascalCase | `components/shared/` |
 
 ### Anti-patterns interdits

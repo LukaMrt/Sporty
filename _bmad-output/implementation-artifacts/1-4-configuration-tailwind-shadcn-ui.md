@@ -43,35 +43,37 @@ Extrait du UX Design Specification :
 
 **Palette couleur :**
 
-| Role | Token Tailwind | Valeur approximative |
-|------|---------------|---------------------|
-| Background | `bg-background` | Blanc pur / Gris tres clair |
-| Surface | `bg-surface` | Blanc |
-| Text Primary | `text-foreground` | Gris tres fonce (quasi-noir) |
-| Text Secondary | `text-muted-foreground` | Gris moyen |
-| Primary / Accent | `bg-primary` | Bleu (l'accent unique de Sporty) |
-| Primary Light | `bg-primary/10` | Bleu clair / pastel |
-| Success | `text-success` | Vert doux |
-| Warning | `text-warning` | Orange doux |
-| Border | `border-border` | Gris tres clair |
+| Role             | Token Tailwind          | Valeur approximative             |
+| ---------------- | ----------------------- | -------------------------------- |
+| Background       | `bg-background`         | Blanc pur / Gris tres clair      |
+| Surface          | `bg-surface`            | Blanc                            |
+| Text Primary     | `text-foreground`       | Gris tres fonce (quasi-noir)     |
+| Text Secondary   | `text-muted-foreground` | Gris moyen                       |
+| Primary / Accent | `bg-primary`            | Bleu (l'accent unique de Sporty) |
+| Primary Light    | `bg-primary/10`         | Bleu clair / pastel              |
+| Success          | `text-success`          | Vert doux                        |
+| Warning          | `text-warning`          | Orange doux                      |
+| Border           | `border-border`         | Gris tres clair                  |
 
 **Principes couleur critiques :**
+
 - Pas de rouge pour les "echecs" → gris neutre ou orange doux
 - Le bleu est la seule couleur forte de l'interface
 - Contraste minimum 4.5:1 pour le texte (WCAG AA)
 
 **Espacements (unite de base 4px) :**
 
-| Token | Valeur |
-|-------|--------|
-| xs | 4px (1) |
-| sm | 8px (2) |
-| md | 16px (4) |
-| lg | 24px (6) |
-| xl | 32px (8) |
-| 2xl | 48px (12) |
+| Token | Valeur    |
+| ----- | --------- |
+| xs    | 4px (1)   |
+| sm    | 8px (2)   |
+| md    | 16px (4)  |
+| lg    | 24px (6)  |
+| xl    | 32px (8)  |
+| 2xl   | 48px (12) |
 
 **Police :**
+
 ```
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
              "Helvetica Neue", Arial, sans-serif;
@@ -79,19 +81,20 @@ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 
 **Echelle typographique :**
 
-| Niveau | Mobile | Desktop |
-|--------|--------|---------|
+| Niveau  | Mobile  | Desktop |
+| ------- | ------- | ------- |
 | Display | 32-36px | 40-48px |
-| H1 | 24px | 28-32px |
-| H2 | 20px | 22-24px |
-| Body | 14-16px | 16px |
-| Caption | 12px | 13px |
+| H1      | 24px    | 28-32px |
+| H2      | 20px    | 22-24px |
+| Body    | 14-16px | 16px    |
+| Caption | 12px    | 13px    |
 
 ### Configuration Shadcn/ui
 
 Shadcn/ui copie les composants directement dans le projet (`inertia/components/ui/`). Ce ne sont PAS des imports de package — les fichiers sont owned par le projet et customisables.
 
 Le `components.json` doit pointer vers :
+
 - `aliases.components`: `inertia/components`
 - `aliases.ui`: `inertia/components/ui`
 - `aliases.utils`: `inertia/lib/utils`

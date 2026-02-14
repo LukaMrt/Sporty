@@ -22,6 +22,7 @@ context_file: ''
 **Topic:** Application sportive personnelle de planification, suivi et analyse d'entraînement
 
 **Goals:**
+
 - Générer des plans d'amélioration personnalisés avec objectifs et séances précises
 - Permettre l'import/report de sessions sportives réelles
 - Intégrer les sessions dans les plans pour mesurer la progression
@@ -76,6 +77,7 @@ context_file: ''
 ### Phase 2 : SCAMPER Method (24 idées)
 
 **Substituer :**
+
 - **#1** Import automatique — de "je remplis" à "je confirme"
 - **#2** Plans adaptatifs — recalcul après chaque séance, plan vivant
 - **#3** Story mode — données racontées en narratif compréhensible
@@ -83,32 +85,38 @@ context_file: ''
 - **#5** Moteur multi-sources — croisement de méthodologies et sources de données
 
 **Combiner :**
+
 - **#6** Score readiness — fusion données objectives + subjectives
 - **#7** Calendrier + plan — séances placées selon disponibilités réelles
 - **#8** Charge multi-sport unifiée — fatigue globale, pas par sport en silo
 - **#9** Import + détection auto du type de séance
 
 **Adapter :**
+
 - **#10** Sprint review agile appliqué au sport — bilan régulier prévu/réalisé/ajustement
 - **#11** Modes simple/expert — basculer selon le besoin du moment
 - **#12** Dashboards fintech — visualisation données sportives à la manière finance
 
 **Modifier :**
+
 - **#13** Zoom temporel fluide — séance → semaine → mois → année en un geste
 - **#14** Granularité variable — détail proche, flou lointain
 - **#15** Feedback proactif — l'app alerte et suggère sans attendre
 - **#16** Zéro culpabilité — séance ratée = plan ajusté silencieusement
 
 **Autre usage :**
+
 - **#17** Prédiction de performance — historique comme simulateur de futur
 - **#18** Prévention blessures — détection patterns de surentraînement
 - **#19** Export rapport — PDF/markdown pour coach ou médecin
 
 **Éliminer :**
+
 - **#21** Métriques réduites par défaut — 3-4 clés, le reste en profondeur
 - **#22** Timeline unifiée — plan et historique dans un seul continuum
 
 **Reverser :**
+
 - **#23** Goal-first — l'objectif définit le plan, pas l'inverse
 - **#24** App qui questionne — elle partage ses découvertes proactivement
 - **#25** API-first, UI-second — architecture ouverte
@@ -116,9 +124,11 @@ context_file: ''
 ### Phase 3 : First Principles Thinking
 
 **Vision produit :**
+
 > Un coach sportif intelligent, transparent et personnel — hébergé chez toi — qui planifie, analyse, s'adapte et te fait progresser, tout en te laissant le contrôle total.
 
 **5 Vérités Fondamentales :**
+
 1. Je fais du sport et je veux progresser
 2. L'app travaille pour moi, mais je garde la main pour affiner selon mes envies
 3. Recommandations fiables, scientifiques, vérifiables et contrôlables
@@ -126,16 +136,16 @@ context_file: ''
 5. L'app s'adapte à moi ET elle propose activement des choses
 
 **8 Principes de Design :**
-| #   | Principe                                       | Implication                                                         |
+| # | Principe | Implication |
 | --- | ---------------------------------------------- | ------------------------------------------------------------------- |
-| P1  | Simplicité en surface, puissance en profondeur | Interface minimaliste, moteur sophistiqué accessible en un tap      |
-| P2  | L'app propose, l'utilisateur dispose           | Suggestions, jamais d'impositions. Chaque recommandation modifiable |
-| P3  | Science vérifiable                             | Chaque plan/conseil traçable à une source                           |
-| P4  | Donnée souveraine                              | Self-hosted, export total, API ouverte, aucun lock-in               |
-| P5  | Adaptation continue                            | Plan vivant, recalcul après chaque séance                           |
-| P6  | Zéro culpabilité                               | Séance ratée = plan ajusté. Jamais de punition                      |
-| P7  | Multi-source, multi-sport                      | Croisement données et méthodologies pour recommandations robustes   |
-| P8  | Proactivité intelligente                       | L'app découvre, alerte, prédit — configurable en intensité          |
+| P1 | Simplicité en surface, puissance en profondeur | Interface minimaliste, moteur sophistiqué accessible en un tap |
+| P2 | L'app propose, l'utilisateur dispose | Suggestions, jamais d'impositions. Chaque recommandation modifiable |
+| P3 | Science vérifiable | Chaque plan/conseil traçable à une source |
+| P4 | Donnée souveraine | Self-hosted, export total, API ouverte, aucun lock-in |
+| P5 | Adaptation continue | Plan vivant, recalcul après chaque séance |
+| P6 | Zéro culpabilité | Séance ratée = plan ajusté. Jamais de punition |
+| P7 | Multi-source, multi-sport | Croisement données et méthodologies pour recommandations robustes |
+| P8 | Proactivité intelligente | L'app découvre, alerte, prédit — configurable en intensité |
 
 ### Creative Facilitation Narrative
 
@@ -146,52 +156,58 @@ _Session de brainstorming riche et efficace. Luka a une vision très claire de c
 ### Organisation Thématique
 
 **Thème 1 : Moteur Intelligent & Plans Adaptatifs**
+
 - Plans adaptatifs recalculés après chaque séance (#2)
 - Moteur multi-sources scientifiques (#5)
 - Goal-first design — l'objectif définit le plan (#23)
 - Granularité variable selon l'horizon (#14)
 - Prédiction de performance (#17)
-- *Ce qui connecte ces idées :* Le coeur algorithmique de l'app — l'intelligence qui planifie, adapte et prédit
+- _Ce qui connecte ces idées :_ Le coeur algorithmique de l'app — l'intelligence qui planifie, adapte et prédit
 
 **Thème 2 : Import & Données**
+
 - Import automatique montre/Strava (#1)
 - Détection auto du type de séance (#9)
 - Charge multi-sport unifiée (#8)
 - Score readiness objectif+subjectif (#6)
 - Données manuelles (fatigue, ressenti)
-- *Ce qui connecte ces idées :* Collecter un maximum de données avec un minimum d'effort
+- _Ce qui connecte ces idées :_ Collecter un maximum de données avec un minimum d'effort
 
 **Thème 3 : Analyse & Visualisation**
+
 - Story mode — données narrées (#3)
 - Zoom temporel fluide (#13)
 - Dashboards inspirés fintech (#12)
 - Métriques réduites par défaut (#21)
 - Timeline unifiée plan/historique (#22)
-- *Ce qui connecte ces idées :* Comprendre sa progression d'un coup d'oeil
+- _Ce qui connecte ces idées :_ Comprendre sa progression d'un coup d'oeil
 
 **Thème 4 : Coaching & Proactivité**
+
 - Feedback proactif (#15)
 - App qui questionne et partage ses découvertes (#24)
 - Prévention blessures/surentraînement (#18)
 - Zéro culpabilité (#16)
 - Sprint review périodique (#10)
-- *Ce qui connecte ces idées :* L'app comme partenaire actif, pas un carnet passif
+- _Ce qui connecte ces idées :_ L'app comme partenaire actif, pas un carnet passif
 
 **Thème 5 : Personnalisation & Contrôle**
+
 - Modes simple/expert (#11)
 - Niveau de coaching configurable
 - Difficulté ajustable en cours de route
 - Intensité des rappels paramétrable
 - Chaque recommandation modifiable
-- *Ce qui connecte ces idées :* L'utilisateur garde toujours le volant
+- _Ce qui connecte ces idées :_ L'utilisateur garde toujours le volant
 
 **Thème 6 : Architecture & Souveraineté**
+
 - API-first, UI-second (#25)
 - Self-hosted containerisé (Docker)
 - Export rapport PDF/markdown (#19)
 - Système de comptes
 - Données chiffrées et privées
-- *Ce qui connecte ces idées :* Propriété totale, ouverture technique
+- _Ce qui connecte ces idées :_ Propriété totale, ouverture technique
 
 ### Concepts Breakthrough Transversaux
 
@@ -204,53 +220,60 @@ _Session de brainstorming riche et efficace. Luka a une vision très claire de c
 Toutes les idées sont importantes et interconnectées. L'approche retenue est une **construction par MVPs successifs**, agile, où chaque incrément est déployable et utilisable.
 
 **MVP 0 — Squelette technique**
+
 - Container Docker fonctionnel
 - API de base + système de comptes
 - Modèle de données initial (utilisateur, sports, séances)
 - Interface minimale
-- *Livrable :* L'app tourne, tu peux te connecter
+- _Livrable :_ L'app tourne, tu peux te connecter
 
 **MVP 1 — "Je peux enregistrer mes séances"**
+
 - Saisie manuelle (sport, durée, distance, FC, ressenti)
 - Liste des séances passées
 - Vue timeline basique
-- *Livrable :* Tu remplis tes données au quotidien
+- _Livrable :_ Tu remplis tes données au quotidien
 
 **MVP 2 — "Je peux voir ma progression"**
+
 - Dashboard avec métriques clés
 - Graphiques d'évolution (vitesse, FC, volume)
 - Zoom temporel (semaine/mois)
-- *Livrable :* Tu vois tes tendances
+- _Livrable :_ Tu vois tes tendances
 
 **MVP 3 — "L'app importe mes données"**
+
 - Import Strava via API
 - Import fichiers GPX/FIT
 - Détection auto du type de séance
-- *Livrable :* Plus de saisie manuelle obligatoire
+- _Livrable :_ Plus de saisie manuelle obligatoire
 
 **MVP 4 — "L'app me propose un plan"**
+
 - Définition d'objectifs (goal-first)
 - Moteur de plan adaptatif (règles scientifiques)
 - Timeline unifiée plan + historique
 - Recalcul après chaque séance
-- *Livrable :* Un vrai plan d'entraînement adaptatif
+- _Livrable :_ Un vrai plan d'entraînement adaptatif
 
 **MVP 5 — "L'app me coach"**
+
 - Score readiness (objectif + subjectif)
 - Feedback proactif et alertes
 - Prévention surentraînement
 - Zéro culpabilité — recalcul silencieux
 - Sources scientifiques citées
-- *Livrable :* L'app devient ton coach intelligent
+- _Livrable :_ L'app devient ton coach intelligent
 
 **MVP 6 — "L'app est vraiment à moi"**
+
 - Modes simple/expert
 - Personnalisation du coaching
 - Charge multi-sport unifiée
 - Export rapport
 - API ouverte
 - Intégration calendrier
-- *Livrable :* L'app est mature et totalement personnalisée
+- _Livrable :_ L'app est mature et totalement personnalisée
 
 ### Philosophie de Développement
 
