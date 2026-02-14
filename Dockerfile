@@ -45,7 +45,9 @@ WORKDIR /app/build
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/build .
 COPY package.json ./
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE 3333
 
-CMD ["node", "bin/server.js"]
+ENTRYPOINT ["/entrypoint.sh"]

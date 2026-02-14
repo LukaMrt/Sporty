@@ -1,6 +1,6 @@
 # Story 1.6 : Migrations initiales & seeders
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -19,41 +19,41 @@ so that **le modele de donnees est en place et pret pour le developpement des fe
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Creer la migration users (AC: #1, #2)
-  - [ ] `node ace make:migration create_users_table`
-  - [ ] Colonnes : `id` (increments), `email` (string, unique, not null), `password` (string, not null), `full_name` (string, not null), `role` (enum: 'admin'|'user', default: 'user', not null), `created_at`, `updated_at`
-  - [ ] Index sur `email` (unique)
-- [ ] Task 2 : Creer la migration sessions (AC: #1, #3)
-  - [ ] `node ace make:migration create_sessions_table`
-  - [ ] Colonnes : `id` (increments), `user_id` (FK → users.id, on delete cascade), `sport_type` (string, not null), `date` (date, not null), `duration_minutes` (integer, not null), `distance_km` (decimal(8,2), nullable), `avg_heart_rate` (integer, nullable), `perceived_effort` (integer, nullable), `sport_metrics` (jsonb, default: '{}'), `deleted_at` (timestamp, nullable), `created_at`, `updated_at`
-  - [ ] Index sur `user_id`
-  - [ ] Index sur `sport_type`
-  - [ ] Index sur `deleted_at` (pour filtrer les soft-deletes efficacement)
-- [ ] Task 3 : Creer la migration sports (AC: #1, #4)
-  - [ ] `node ace make:migration create_sports_table`
-  - [ ] Colonnes : `id` (increments), `name` (string, not null), `slug` (string, unique, not null), `default_metrics` (jsonb, default: '{}'), `created_at`, `updated_at`
-  - [ ] Index sur `slug` (unique)
-- [ ] Task 4 : Creer les modeles Lucid (AC: #1-#4)
-  - [ ] Creer/mettre a jour `app/models/user.ts` avec les colonnes et relations
-  - [ ] Creer `app/models/session.ts` avec les colonnes, relation user, scope softDelete
-  - [ ] Creer `app/models/sport.ts` avec les colonnes
-  - [ ] Configurer le hash du password dans le modele User (hook `@beforeSave`)
-- [ ] Task 5 : Creer le seeder sports (AC: #5)
-  - [ ] `node ace make:seeder sport`
-  - [ ] Inserer "Course a pied" avec slug `running` et metriques par defaut :
+- [x] Task 1 : Creer la migration users (AC: #1, #2)
+  - [x] `node ace make:migration create_users_table`
+  - [x] Colonnes : `id` (increments), `email` (string, unique, not null), `password` (string, not null), `full_name` (string, not null), `role` (enum: 'admin'|'user', default: 'user', not null), `created_at`, `updated_at`
+  - [x] Index sur `email` (unique)
+- [x] Task 2 : Creer la migration sessions (AC: #1, #3)
+  - [x] `node ace make:migration create_sessions_table`
+  - [x] Colonnes : `id` (increments), `user_id` (FK → users.id, on delete cascade), `sport_type` (string, not null), `date` (date, not null), `duration_minutes` (integer, not null), `distance_km` (decimal(8,2), nullable), `avg_heart_rate` (integer, nullable), `perceived_effort` (integer, nullable), `sport_metrics` (jsonb, default: '{}'), `deleted_at` (timestamp, nullable), `created_at`, `updated_at`
+  - [x] Index sur `user_id`
+  - [x] Index sur `sport_type`
+  - [x] Index sur `deleted_at` (pour filtrer les soft-deletes efficacement)
+- [x] Task 3 : Creer la migration sports (AC: #1, #4)
+  - [x] `node ace make:migration create_sports_table`
+  - [x] Colonnes : `id` (increments), `name` (string, not null), `slug` (string, unique, not null), `default_metrics` (jsonb, default: '{}'), `created_at`, `updated_at`
+  - [x] Index sur `slug` (unique)
+- [x] Task 4 : Creer les modeles Lucid (AC: #1-#4)
+  - [x] Creer/mettre a jour `app/models/user.ts` avec les colonnes et relations
+  - [x] Creer `app/models/session.ts` avec les colonnes, relation user, scope softDelete
+  - [x] Creer `app/models/sport.ts` avec les colonnes
+  - [x] Configurer le hash du password dans le modele User (hook `@beforeSave`)
+- [x] Task 5 : Creer le seeder sports (AC: #5)
+  - [x] `node ace make:seeder sport`
+  - [x] Inserer "Course a pied" avec slug `running` et metriques par defaut :
     ```json
     {
       "pace_per_km": { "type": "duration", "unit": "min/km", "label": "Allure" },
       "cadence": { "type": "number", "unit": "spm", "label": "Cadence" }
     }
     ```
-- [ ] Task 6 : Validation (AC: #1-#6)
-  - [ ] `node ace migration:run` → 3 tables creees
-  - [ ] `node ace db:seed` → "Course a pied" inseree
-  - [ ] Verifier en base : `SELECT * FROM sports;` → "Course a pied" presente
-  - [ ] `node ace migration:rollback` → tables supprimees proprement
-  - [ ] `node ace migration:run` a nouveau → tout se recree
-  - [ ] `pnpm lint` et `tsc --noEmit` → passent
+- [x] Task 6 : Validation (AC: #1-#6)
+  - [x] `node ace migration:run` → 3 tables creees
+  - [x] `node ace db:seed` → "Course a pied" inseree
+  - [x] Verifier en base : `SELECT * FROM sports;` → "Course a pied" presente
+  - [x] `node ace migration:rollback` → tables supprimees proprement
+  - [x] `node ace migration:run` a nouveau → tout se recree
+  - [x] `pnpm lint` et `tsc --noEmit` → passent
 
 ## Dev Notes
 
@@ -146,8 +146,30 @@ Le champ `role` sur User est un enum simple : `'admin' | 'user'`. Le premier ins
 
 ### Agent Model Used
 
+claude-sonnet-4-5-20250929
+
 ### Debug Log References
+
+- Conflit de nommage `hashPassword` entre `withAuthFinder` mixin et hook `@beforeSave` → renommé en `encryptPassword`
+- Migrations dans container Docker (prod build) non accessibles → run localement contre service `db` Docker
 
 ### Completion Notes List
 
+- Migration `users` : ajout colonne `role` (enu admin|user, default user) + `full_name` NOT NULL
+- Migration `sessions` : création complète avec FK cascade, JSONB sport_metrics, soft-delete `deleted_at`, 3 index
+- Migration `sports` : création avec JSONB default_metrics, index unique sur slug
+- Modèle `User` : ajout `role`, relation `hasMany(Session)`, hook `@beforeSave encryptPassword`
+- Modèle `Session` : scopes `withoutTrashed` / `onlyTrashed`, relation `belongsTo(User)`
+- Modèle `Sport` : colonnes name, slug, defaultMetrics
+- Seeder `SportSeeder` : upsert "Course à pied" / running via `updateOrCreate`
+- Validation complète : migration:run → db:seed → SELECT * FROM sports → migration:rollback → migration:run → lint → tsc
+
 ### File List
+
+- database/migrations/1771088865534_create_users_table.ts (modifié)
+- database/migrations/1771104621147_create_sessions_table.ts (créé)
+- database/migrations/1771104621148_create_sports_table.ts (créé)
+- app/models/user.ts (modifié)
+- app/models/session.ts (créé)
+- app/models/sport.ts (créé)
+- database/seeders/sport_seeder.ts (créé)

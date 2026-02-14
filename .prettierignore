@@ -1,6 +1,8 @@
+_bmad-output/
 build/
 dist/
 node_modules/
 .adonisjs/
 public/assets/
 pnpm-lock.yaml
+docker-compose.yml

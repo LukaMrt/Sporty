@@ -13,7 +13,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "ci": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test"
+    "ci": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test",
+    "db:migrate": "node ace migration:run",
+    "db:migrate:rollback": "node ace migration:rollback",
+    "db:migrate:fresh": "node ace migration:fresh",
+    "db:seed": "node ace db:seed"
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
