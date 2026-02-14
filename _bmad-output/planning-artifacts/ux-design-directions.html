@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sporty — Design Directions</title>
+<style>
+  :root {
+    --blue-50: #eff6ff;
+    --blue-100: #dbeafe;
+    --blue-200: #bfdbfe;
+    --blue-300: #93c5fd;
+    --blue-400: #60a5fa;
+    --blue-500: #3b82f6;
+    --blue-600: #2563eb;
+    --blue-700: #1d4ed8;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --green-400: #4ade80;
+    --green-500: #22c55e;
+    --green-50: #f0fdf4;
+    --orange-400: #fb923c;
+    --orange-50: #fff7ed;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+  }
+
+  /* ===== NAVIGATION HEADER ===== */
+  .nav-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: white; border-bottom: 1px solid var(--gray-200);
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 24px;
+    flex-wrap: wrap;
+  }
+  .nav-header h1 {
+    font-size: 18px; font-weight: 700; color: var(--blue-600);
+    white-space: nowrap;
+  }
+  .nav-header .subtitle {
+    font-size: 13px; color: var(--gray-500);
+  }
+  .nav-tabs {
+    display: flex; gap: 4px; flex-wrap: wrap;
+  }
+  .nav-tab {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    background: var(--gray-100); color: var(--gray-600);
+    transition: all 0.2s;
+  }
+  .nav-tab:hover { background: var(--blue-50); color: var(--blue-600); }
+  .nav-tab.active { background: var(--blue-600); color: white; }
+
+  .view-toggle {
+    margin-left: auto; display: flex; gap: 4px;
+  }
+  .toggle-btn {
+    padding: 8px 14px; border-radius: 8px; border: 1px solid var(--gray-200);
+    font-size: 12px; cursor: pointer; background: white; color: var(--gray-600);
+    transition: all 0.2s;
+  }
+  .toggle-btn.active { background: var(--gray-800); color: white; border-color: var(--gray-800); }
+
+  /* ===== CONTENT ===== */
+  .content { padding-top: 80px; }
+
+  .direction-section {
+    display: none; padding: 24px;
+  }
+  .direction-section.active { display: block; }
+
+  .direction-title {
+    text-align: center; margin-bottom: 8px;
+  }
+  .direction-title h2 {
+    font-size: 22px; font-weight: 700; color: var(--gray-900);
+  }
+  .direction-title p {
+    font-size: 14px; color: var(--gray-500); max-width: 600px; margin: 8px auto 0;
+  }
+
+  .direction-tags {
+    display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .tag {
+    padding: 4px 12px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    background: var(--blue-50); color: var(--blue-600);
+  }
+
+  /* ===== PHONE FRAME ===== */
+  .phone-container {
+    display: flex; justify-content: center; gap: 32px; flex-wrap: wrap;
+  }
+  .phone-frame {
+    width: 375px; height: 812px;
+    background: white; border-radius: 40px;
+    border: 8px solid var(--gray-800);
+    overflow: hidden; position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .phone-frame.desktop-mode {
+    width: 900px; height: 650px; border-radius: 12px; border-width: 4px;
+  }
+
+  .phone-status-bar {
+    height: 44px; background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: var(--gray-900);
+    padding: 0 24px; position: relative;
+  }
+  .phone-status-bar::before {
+    content: '9:41'; position: absolute; left: 24px;
+  }
+  .phone-status-bar .notch {
+    width: 120px; height: 28px; background: var(--gray-800);
+    border-radius: 0 0 16px 16px; position: absolute; top: 0;
+  }
+
+  .phone-content {
+    height: calc(100% - 44px - 64px);
+    overflow-y: auto; padding: 0;
+  }
+  .phone-content::-webkit-scrollbar { width: 0; }
+
+  /* Bottom Tab Bar */
+  .tab-bar {
+    height: 64px; background: white;
+    border-top: 1px solid var(--gray-200);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 8px 8px;
+    position: absolute; bottom: 0; left: 0; right: 0;
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10px; color: var(--gray-400);
+  }
+  .tab-item.active { color: var(--blue-600); }
+  .tab-item .tab-icon { font-size: 20px; }
+
+  /* ===== COMPARISON VIEW ===== */
+  .comparison-section {
+    display: none; padding: 24px;
+  }
+  .comparison-section.active { display: block; }
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px; max-width: 1400px; margin: 0 auto;
+  }
+  .comparison-card {
+    background: white; border-radius: 16px; padding: 20px;
+    border: 2px solid var(--gray-200); cursor: pointer;
+    transition: all 0.2s;
+  }
+  .comparison-card:hover { border-color: var(--blue-400); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+  .comparison-card h3 { font-size: 16px; margin-bottom: 4px; }
+  .comparison-card p { font-size: 12px; color: var(--gray-500); margin-bottom: 12px; }
+  .comparison-mini {
+    background: var(--gray-50); border-radius: 8px; padding: 12px;
+    font-size: 11px; color: var(--gray-600); line-height: 1.6;
+  }
+
+  /* ===== DIRECTION 1: Minimal Focus ===== */
+  .d1-header { padding: 16px 20px 8px; }
+  .d1-header h3 { font-size: 15px; font-weight: 600; color: var(--gray-500); }
+  .d1-greeting { font-size: 20px; font-weight: 700; color: var(--gray-900); margin-top: 2px; }
+
+  .d1-hero {
+    padding: 24px 20px; text-align: center;
+  }
+  .d1-hero-label { font-size: 12px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .d1-hero-value { font-size: 48px; font-weight: 800; color: var(--gray-900); line-height: 1; }
+  .d1-hero-unit { font-size: 16px; color: var(--gray-500); font-weight: 400; }
+  .d1-hero-trend {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 14px; color: var(--green-500); font-weight: 600;
+    margin-top: 8px; background: var(--green-50); padding: 4px 12px; border-radius: 100px;
+  }
+
+  .d1-chart {
+    margin: 0 20px; padding: 20px;
+    background: var(--gray-50); border-radius: 16px;
+  }
+  .d1-chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .d1-chart-title { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+  .d1-chart-period { font-size: 11px; color: var(--gray-400); }
+  .d1-sparkline {
+    height: 80px; display: flex; align-items: flex-end; gap: 6px;
+  }
+  .d1-bar {
+    flex: 1; background: var(--blue-200); border-radius: 4px 4px 0 0;
+    transition: all 0.3s;
+  }
+  .d1-bar:hover { background: var(--blue-500); }
+  .d1-bar:last-child { background: var(--blue-500); }
+
+  .d1-schedule {
+    padding: 20px;
+  }
+  .d1-schedule-title { font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 12px; }
+  .d1-session {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; background: white; border-radius: 12px;
+    border: 1px solid var(--gray-100); margin-bottom: 8px;
+  }
+  .d1-session-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--blue-500); flex-shrink: 0;
+  }
+  .d1-session-info { flex: 1; }
+  .d1-session-name { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+  .d1-session-meta { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .d1-session-day { font-size: 12px; font-weight: 600; color: var(--gray-500); text-align: right; }
+
+  /* ===== DIRECTION 2: Card Stack ===== */
+  .d2-header {
+    padding: 16px 20px 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .d2-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--blue-500); display: flex; align-items: center;
+    justify-content: center; color: white; font-weight: 700; font-size: 14px;
+  }
+  .d2-logo { font-size: 18px; font-weight: 800; color: var(--blue-600); }
+
+  .d2-card {
+    margin: 0 16px 12px; padding: 20px;
+    background: white; border-radius: 16px;
+    border: 1px solid var(--gray-100);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .d2-card-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .d2-card-value { font-size: 36px; font-weight: 800; color: var(--gray-900); }
+  .d2-card-sub { font-size: 13px; color: var(--gray-500); margin-top: 4px; }
+  .d2-trend-up { color: var(--green-500); font-weight: 600; }
+
+  .d2-mini-chart {
+    display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-top: 12px;
+  }
+  .d2-mini-bar {
+    flex: 1; background: var(--blue-100); border-radius: 3px 3px 0 0;
+    min-height: 4px;
+  }
+  .d2-mini-bar:nth-last-child(-n+3) { background: var(--blue-400); }
+
+  .d2-session-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .d2-session-row:last-child { border: none; }
+  .d2-session-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--blue-50); display: flex; align-items: center;
+    justify-content: center; font-size: 18px;
+  }
+  .d2-session-title { font-size: 14px; font-weight: 600; }
+  .d2-session-detail { font-size: 12px; color: var(--gray-400); }
+  .d2-session-date { font-size: 12px; color: var(--gray-500); margin-left: auto; font-weight: 500; }
+
+  /* ===== DIRECTION 3: Compact Dashboard ===== */
+  .d3-header {
+    padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .d3-logo { font-size: 16px; font-weight: 800; color: var(--blue-600); }
+  .d3-period-toggle {
+    display: flex; gap: 2px; background: var(--gray-100); border-radius: 8px; padding: 2px;
+  }
+  .d3-period-btn {
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    color: var(--gray-500); background: transparent;
+  }
+  .d3-period-btn.active { background: white; color: var(--gray-900); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+  .d3-metrics {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    padding: 12px 16px;
+  }
+  .d3-metric {
+    padding: 14px; background: var(--gray-50); border-radius: 12px;
+  }
+  .d3-metric-label { font-size: 10px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; }
+  .d3-metric-value { font-size: 22px; font-weight: 800; color: var(--gray-900); margin-top: 4px; }
+  .d3-metric-trend { font-size: 11px; color: var(--green-500); font-weight: 600; }
+  .d3-metric.primary {
+    grid-column: 1 / -1; background: var(--blue-50);
+    text-align: center; padding: 20px;
+  }
+  .d3-metric.primary .d3-metric-value { font-size: 40px; color: var(--blue-700); }
+
+  .d3-chart-section { padding: 4px 16px 12px; }
+  .d3-chart-box {
+    background: white; border: 1px solid var(--gray-100); border-radius: 12px; padding: 16px;
+  }
+  .d3-line-chart {
+    height: 100px; position: relative; margin-top: 8px;
+  }
+  .d3-line {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 100%; display: flex; align-items: flex-end;
+  }
+  .d3-line svg { width: 100%; height: 100%; }
+
+  .d3-schedule { padding: 0 16px 16px; }
+  .d3-schedule-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .d3-schedule-title { font-size: 13px; font-weight: 700; color: var(--gray-800); }
+  .d3-schedule-link { font-size: 12px; color: var(--blue-500); font-weight: 600; }
+  .d3-session-compact {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: white; border: 1px solid var(--gray-100);
+    border-radius: 10px; margin-bottom: 6px;
+  }
+  .d3-session-when {
+    width: 44px; text-align: center;
+  }
+  .d3-session-when-day { font-size: 10px; color: var(--gray-400); text-transform: uppercase; }
+  .d3-session-when-num { font-size: 16px; font-weight: 800; color: var(--gray-900); }
+  .d3-session-divider { width: 1px; height: 28px; background: var(--gray-200); }
+  .d3-session-what { flex: 1; }
+  .d3-session-what-name { font-size: 13px; font-weight: 600; }
+  .d3-session-what-desc { font-size: 11px; color: var(--gray-400); }
+
+  /* ===== DIRECTION 4: Story Mode ===== */
+  .d4-header {
+    padding: 20px 20px 8px;
+  }
+  .d4-greeting { font-size: 14px; color: var(--gray-400); }
+  .d4-headline { font-size: 22px; font-weight: 700; color: var(--gray-900); margin-top: 4px; line-height: 1.3; }
+  .d4-headline em { color: var(--blue-600); font-style: normal; }
+
+  .d4-insight {
+    margin: 16px 20px; padding: 16px 20px;
+    background: linear-gradient(135deg, var(--blue-50), white);
+    border-radius: 16px; border-left: 3px solid var(--blue-500);
+  }
+  .d4-insight-text { font-size: 15px; color: var(--gray-700); line-height: 1.5; }
+  .d4-insight-text strong { color: var(--blue-600); }
+
+  .d4-chart-area {
+    margin: 0 20px; background: white; border-radius: 16px;
+    border: 1px solid var(--gray-100); padding: 20px; margin-bottom: 16px;
+  }
+  .d4-chart-label { font-size: 12px; color: var(--gray-400); margin-bottom: 12px; }
+  .d4-area-chart { height: 100px; position: relative; overflow: hidden; border-radius: 8px; }
+  .d4-area-fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--blue-100), transparent);
+    height: 70%;
+  }
+  .d4-area-line {
+    position: absolute; bottom: 30%; left: 0; right: 0; height: 2px;
+    background: var(--blue-500);
+    transform: rotate(-3deg);
+  }
+
+  .d4-next { padding: 0 20px 16px; }
+  .d4-next-label { font-size: 12px; color: var(--gray-400); margin-bottom: 10px; }
+  .d4-next-card {
+    padding: 16px; background: white; border-radius: 14px;
+    border: 1px solid var(--gray-100); display: flex; align-items: center; gap: 14px;
+    margin-bottom: 8px;
+  }
+  .d4-next-emoji { font-size: 28px; }
+  .d4-next-info { flex: 1; }
+  .d4-next-name { font-size: 15px; font-weight: 600; }
+  .d4-next-when { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+  .d4-next-arrow { color: var(--gray-300); font-size: 18px; }
+
+  /* ===== DIRECTION 5: Timeline Unified ===== */
+  .d5-header {
+    padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .d5-logo { font-size: 17px; font-weight: 800; color: var(--blue-600); letter-spacing: -0.5px; }
+  .d5-add-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--blue-600); color: white; display: flex;
+    align-items: center; justify-content: center; font-size: 22px; font-weight: 300;
+  }
+
+  .d5-summary {
+    margin: 0 20px 16px; padding: 20px;
+    background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+    border-radius: 16px; color: white;
+  }
+  .d5-summary-label { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+  .d5-summary-value { font-size: 36px; font-weight: 800; margin: 6px 0 4px; }
+  .d5-summary-sub { font-size: 13px; opacity: 0.8; }
+  .d5-summary-row {
+    display: flex; gap: 16px; margin-top: 16px; padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+  }
+  .d5-summary-stat { flex: 1; }
+  .d5-summary-stat-val { font-size: 18px; font-weight: 700; }
+  .d5-summary-stat-label { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+
+  .d5-timeline { padding: 0 20px; }
+  .d5-tl-label {
+    font-size: 11px; color: var(--gray-400); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 12px; font-weight: 600;
+  }
+  .d5-tl-item {
+    display: flex; gap: 12px; margin-bottom: 4px; position: relative;
+  }
+  .d5-tl-line {
+    width: 2px; background: var(--gray-200); position: absolute;
+    top: 24px; bottom: -4px; left: 11px;
+  }
+  .d5-tl-dot {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; z-index: 1;
+  }
+  .d5-tl-dot.future { background: var(--blue-100); color: var(--blue-600); border: 2px dashed var(--blue-300); }
+  .d5-tl-dot.past { background: var(--green-500); color: white; }
+  .d5-tl-dot.today { background: var(--blue-600); color: white; }
+  .d5-tl-content {
+    flex: 1; padding: 2px 0 16px;
+  }
+  .d5-tl-date { font-size: 10px; color: var(--gray-400); font-weight: 600; }
+  .d5-tl-title { font-size: 14px; font-weight: 600; color: var(--gray-900); margin-top: 2px; }
+  .d5-tl-meta { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+  .d5-tl-content.future-item { opacity: 0.65; }
+
+  /* ===== DIRECTION 6: Data Dense ===== */
+  .d6-header {
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    background: var(--gray-900); color: white;
+  }
+  .d6-logo { font-size: 15px; font-weight: 800; letter-spacing: -0.5px; }
+  .d6-header-right { display: flex; gap: 8px; align-items: center; }
+  .d6-header-period { font-size: 11px; color: var(--gray-400); }
+
+  .d6-top-metrics {
+    display: flex; background: var(--gray-900); padding: 0 16px 16px; gap: 8px;
+  }
+  .d6-top-metric {
+    flex: 1; padding: 12px; background: rgba(255,255,255,0.06); border-radius: 10px;
+  }
+  .d6-top-metric-label { font-size: 9px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px; }
+  .d6-top-metric-val { font-size: 20px; font-weight: 800; color: white; margin-top: 4px; }
+  .d6-top-metric-trend { font-size: 10px; color: var(--green-400); margin-top: 2px; }
+
+  .d6-main-chart {
+    margin: 12px 16px; background: white; border-radius: 12px;
+    border: 1px solid var(--gray-200); padding: 16px;
+  }
+  .d6-chart-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+  .d6-chart-title { font-size: 12px; font-weight: 700; color: var(--gray-800); }
+  .d6-chart-tabs { display: flex; gap: 4px; }
+  .d6-chart-tab {
+    padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
+    color: var(--gray-400);
+  }
+  .d6-chart-tab.active { background: var(--blue-50); color: var(--blue-600); }
+  .d6-detailed-chart {
+    height: 120px; display: flex; align-items: flex-end; gap: 2px;
+  }
+  .d6-dbar {
+    flex: 1; border-radius: 2px 2px 0 0; min-height: 2px;
+    transition: all 0.2s;
+  }
+  .d6-dbar.vol { background: var(--blue-200); }
+  .d6-dbar.vol:hover { background: var(--blue-500); }
+  .d6-chart-xaxis {
+    display: flex; justify-content: space-between; margin-top: 4px;
+    font-size: 9px; color: var(--gray-400);
+  }
+
+  .d6-schedule { padding: 0 16px 12px; }
+  .d6-schedule-title { font-size: 12px; font-weight: 700; color: var(--gray-800); margin-bottom: 8px; }
+  .d6-session-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px; border-bottom: 1px solid var(--gray-100);
+    font-size: 12px;
+  }
+  .d6-session-day { width: 36px; font-weight: 700; color: var(--gray-500); font-size: 11px; }
+  .d6-session-name { flex: 1; font-weight: 600; color: var(--gray-800); }
+  .d6-session-stats { color: var(--gray-400); font-size: 11px; }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .nav-header { padding: 12px 16px; gap: 12px; }
+    .view-toggle { display: none; }
+    .phone-frame.desktop-mode { width: 100%; height: auto; min-height: 650px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-header">
+  <div>
+    <h1>Sporty — Design Directions</h1>
+    <div class="subtitle">6 variations de l'écran d'accueil mobile</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showDirection(1)">D1</button>
+    <button class="nav-tab" onclick="showDirection(2)">D2</button>
+    <button class="nav-tab" onclick="showDirection(3)">D3</button>
+    <button class="nav-tab" onclick="showDirection(4)">D4</button>
+    <button class="nav-tab" onclick="showDirection(5)">D5</button>
+    <button class="nav-tab" onclick="showDirection(6)">D6</button>
+    <button class="nav-tab" onclick="showComparison()" style="background:var(--blue-50);color:var(--blue-600);">Comparer</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ===== COMPARISON VIEW ===== -->
+  <div class="comparison-section" id="comparison">
+    <div class="direction-title" style="margin-bottom:24px;">
+      <h2>Vue comparative</h2>
+      <p>Clique sur une carte pour voir la direction en détail</p>
+    </div>
+    <div class="comparison-grid">
+      <div class="comparison-card" onclick="showDirection(1)">
+        <h3>D1 — Minimal Focus</h3>
+        <p>Ultra-épuré. Un chiffre, un graphe, un planning. Respiration maximale.</p>
+        <div class="comparison-mini">
+          <strong>Mots clés :</strong> Minimaliste, aéré, zen<br>
+          <strong>Force :</strong> Clarté absolue, zéro distraction<br>
+          <strong>Risque :</strong> Peut sembler "vide" au début
+        </div>
+      </div>
+      <div class="comparison-card" onclick="showDirection(2)">
+        <h3>D2 — Card Stack</h3>
+        <p>Cartes empilées, chacune avec son rôle. Structuré et lisible.</p>
+        <div class="comparison-mini">
+          <strong>Mots clés :</strong> Structuré, modulaire, Apple Health<br>
+          <strong>Force :</strong> Chaque info dans sa "boîte", expandable<br>
+          <strong>Risque :</strong> Plus de scroll vertical
+        </div>
+      </div>
+      <div class="comparison-card" onclick="showDirection(3)">
+        <h3>D3 — Compact Dashboard</h3>
+        <p>Dense mais organisé. Grille de métriques + graphe + planning compact.</p>
+        <div class="comparison-mini">
+          <strong>Mots clés :</strong> Dense, efficace, analytique<br>
+          <strong>Force :</strong> Beaucoup d'info visible sans scroll<br>
+          <strong>Risque :</strong> Moins "aéré" que les autres
+        </div>
+      </div>
+      <div class="comparison-card" onclick="showDirection(4)">
+        <h3>D4 — Story Mode</h3>
+        <p>L'app raconte ta progression. Narrative, chaleureuse, humaine.</p>
+        <div class="comparison-mini">
+          <strong>Mots clés :</strong> Narratif, chaleureux, copain discret<br>
+          <strong>Force :</strong> Connexion émotionnelle forte<br>
+          <strong>Risque :</strong> Moins "technique" au premier regard
+        </div>
+      </div>
+      <div class="comparison-card" onclick="showDirection(5)">
+        <h3>D5 — Timeline Unified</h3>
+        <p>Passé et futur dans un flux unique. Le plan vit avec l'historique.</p>
+        <div class="comparison-mini">
+          <strong>Mots clés :</strong> Continu, unifié, chronologique<br>
+          <strong>Force :</strong> Vision passé/futur d'un coup d'oeil<br>
+          <strong>Risque :</strong> Pattern moins habituel
+        </div>
+      </div>
+      <div class="comparison-card" onclick="showDirection(6)">
+        <h3>D6 — Data Dense</h3>
+        <p>Approche "fintech sport". Header sombre, métriques denses, graphe détaillé.</p>
+        <div class="comparison-mini">
+          <strong>Mots clés :</strong> Technique, précis, pro<br>
+          <strong>Force :</strong> Maximum de données, look premium<br>
+          <strong>Risque :</strong> Moins accessible pour débutants
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 1: Minimal Focus ===== -->
+  <div class="direction-section active" id="dir1">
+    <div class="direction-title">
+      <h2>Direction 1 — Minimal Focus</h2>
+      <p>Ultra-épuré. L'essentiel et rien d'autre. Chaque pixel a sa raison d'être.</p>
+    </div>
+    <div class="direction-tags">
+      <span class="tag">Minimaliste</span><span class="tag">Aéré</span><span class="tag">Zen</span>
+    </div>
+    <div class="phone-container">
+      <div class="phone-frame">
+        <div class="phone-status-bar"><div class="notch"></div></div>
+        <div class="phone-content">
+          <div class="d1-header">
+            <h3>Bonjour,</h3>
+            <div class="d1-greeting">Luka</div>
+          </div>
+          <div class="d1-hero">
+            <div class="d1-hero-label">Allure moyenne</div>
+            <div class="d1-hero-value">5'12<span class="d1-hero-unit">/km</span></div>
+            <div class="d1-hero-trend">↓ 18s ce mois</div>
+          </div>
+          <div class="d1-chart">
+            <div class="d1-chart-header">
+              <span class="d1-chart-title">Volume hebdo</span>
+              <span class="d1-chart-period">4 dernières semaines</span>
+            </div>
+            <div class="d1-sparkline">
+              <div class="d1-bar" style="height:45%"></div>
+              <div class="d1-bar" style="height:62%"></div>
+              <div class="d1-bar" style="height:55%"></div>
+              <div class="d1-bar" style="height:78%"></div>
+              <div class="d1-bar" style="height:50%"></div>
+              <div class="d1-bar" style="height:85%"></div>
+              <div class="d1-bar" style="height:70%"></div>
+              <div class="d1-bar" style="height:92%"></div>
+            </div>
+          </div>
+          <div class="d1-schedule">
+            <div class="d1-schedule-title">Prochaines séances</div>
+            <div class="d1-session">
+              <div class="d1-session-dot"></div>
+              <div class="d1-session-info">
+                <div class="d1-session-name">Footing récupération</div>
+                <div class="d1-session-meta">6 km · allure libre</div>
+              </div>
+              <div class="d1-session-day">Demain</div>
+            </div>
+            <div class="d1-session">
+              <div class="d1-session-dot" style="background:var(--blue-300)"></div>
+              <div class="d1-session-info">
+                <div class="d1-session-name">Fractionné 30/30</div>
+                <div class="d1-session-meta">8 km · 10x 30s rapide</div>
+              </div>
+              <div class="d1-session-day">Jeudi</div>
+            </div>
+            <div class="d1-session">
+              <div class="d1-session-dot" style="background:var(--blue-200)"></div>
+              <div class="d1-session-info">
+                <div class="d1-session-name">Sortie longue</div>
+                <div class="d1-session-meta">14 km · endurance</div>
+              </div>
+              <div class="d1-session-day">Dimanche</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 2: Card Stack ===== -->
+  <div class="direction-section" id="dir2">
+    <div class="direction-title">
+      <h2>Direction 2 — Card Stack</h2>
+      <p>Chaque information dans sa carte. Modulaire, lisible, expansible.</p>
+    </div>
+    <div class="direction-tags">
+      <span class="tag">Structuré</span><span class="tag">Modulaire</span><span class="tag">Apple Health</span>
+    </div>
+    <div class="phone-container">
+      <div class="phone-frame">
+        <div class="phone-status-bar"><div class="notch"></div></div>
+        <div class="phone-content">
+          <div class="d2-header">
+            <span class="d2-logo">Sporty</span>
+            <div class="d2-avatar">L</div>
+          </div>
+
+          <div class="d2-card">
+            <div class="d2-card-label">Ta métrique du moment</div>
+            <div class="d2-card-value">5'12<span style="font-size:16px;color:var(--gray-400);font-weight:400">/km</span></div>
+            <div class="d2-card-sub">Allure moyenne · <span class="d2-trend-up">↓ 18s vs mois dernier</span></div>
+            <div class="d2-mini-chart">
+              <div class="d2-mini-bar" style="height:40%"></div>
+              <div class="d2-mini-bar" style="height:55%"></div>
+              <div class="d2-mini-bar" style="height:50%"></div>
+              <div class="d2-mini-bar" style="height:65%"></div>
+              <div class="d2-mini-bar" style="height:60%"></div>
+              <div class="d2-mini-bar" style="height:72%"></div>
+              <div class="d2-mini-bar" style="height:80%"></div>
+              <div class="d2-mini-bar" style="height:75%"></div>
+              <div class="d2-mini-bar" style="height:85%"></div>
+              <div class="d2-mini-bar" style="height:90%"></div>
+            </div>
+          </div>
+
+          <div class="d2-card">
+            <div class="d2-card-label">Évolution récente</div>
+            <div style="display:flex;gap:16px;margin-top:8px;">
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:22px;font-weight:800;color:var(--gray-900)">32<span style="font-size:12px;color:var(--gray-400)"> km</span></div>
+                <div style="font-size:10px;color:var(--gray-400)">Cette semaine</div>
+              </div>
+              <div style="width:1px;background:var(--gray-200)"></div>
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:22px;font-weight:800;color:var(--gray-900)">148<span style="font-size:12px;color:var(--gray-400)"> bpm</span></div>
+                <div style="font-size:10px;color:var(--gray-400)">FC moyenne</div>
+              </div>
+              <div style="width:1px;background:var(--gray-200)"></div>
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:22px;font-weight:800;color:var(--green-500)">+12%</div>
+                <div style="font-size:10px;color:var(--gray-400)">Volume / sem-1</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d2-card">
+            <div class="d2-card-label">Prochaines séances</div>
+            <div class="d2-session-row">
+              <div class="d2-session-icon">🏃</div>
+              <div>
+                <div class="d2-session-title">Footing récupération</div>
+                <div class="d2-session-detail">6 km · allure libre</div>
+              </div>
+              <div class="d2-session-date">Demain</div>
+            </div>
+            <div class="d2-session-row">
+              <div class="d2-session-icon">⚡</div>
+              <div>
+                <div class="d2-session-title">Fractionné 30/30</div>
+                <div class="d2-session-detail">8 km · 10x 30s rapide</div>
+              </div>
+              <div class="d2-session-date">Jeu.</div>
+            </div>
+            <div class="d2-session-row">
+              <div class="d2-session-icon">🏔️</div>
+              <div>
+                <div class="d2-session-title">Sortie longue</div>
+                <div class="d2-session-detail">14 km · endurance</div>
+              </div>
+              <div class="d2-session-date">Dim.</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 3: Compact Dashboard ===== -->
+  <div class="direction-section" id="dir3">
+    <div class="direction-title">
+      <h2>Direction 3 — Compact Dashboard</h2>
+      <p>Maximum d'informations, minimum d'espace. Pour ceux qui veulent tout voir d'un coup.</p>
+    </div>
+    <div class="direction-tags">
+      <span class="tag">Dense</span><span class="tag">Efficace</span><span class="tag">Analytique</span>
+    </div>
+    <div class="phone-container">
+      <div class="phone-frame">
+        <div class="phone-status-bar"><div class="notch"></div></div>
+        <div class="phone-content">
+          <div class="d3-header">
+            <span class="d3-logo">Sporty</span>
+            <div class="d3-period-toggle">
+              <span class="d3-period-btn">S</span>
+              <span class="d3-period-btn active">M</span>
+              <span class="d3-period-btn">3M</span>
+            </div>
+          </div>
+          <div class="d3-metrics">
+            <div class="d3-metric primary">
+              <div class="d3-metric-label">Allure moyenne</div>
+              <div class="d3-metric-value">5'12<span style="font-size:18px;color:var(--blue-400)">/km</span></div>
+              <div class="d3-metric-trend">↓ 18s vs mois dernier</div>
+            </div>
+            <div class="d3-metric">
+              <div class="d3-metric-label">Volume</div>
+              <div class="d3-metric-value">32<span style="font-size:12px;color:var(--gray-400)">km</span></div>
+              <div class="d3-metric-trend">+12%</div>
+            </div>
+            <div class="d3-metric">
+              <div class="d3-metric-label">FC moy.</div>
+              <div class="d3-metric-value">148</div>
+              <div class="d3-metric-trend">↓ 5 bpm</div>
+            </div>
+            <div class="d3-metric">
+              <div class="d3-metric-label">Séances</div>
+              <div class="d3-metric-value">4</div>
+              <div style="font-size:11px;color:var(--gray-400)">cette sem.</div>
+            </div>
+            <div class="d3-metric">
+              <div class="d3-metric-label">Ressenti</div>
+              <div class="d3-metric-value">😊</div>
+              <div style="font-size:11px;color:var(--gray-400)">moyen</div>
+            </div>
+          </div>
+          <div class="d3-chart-section">
+            <div class="d3-chart-box">
+              <div class="d1-chart-header">
+                <span class="d1-chart-title">Allure — 4 semaines</span>
+              </div>
+              <div class="d1-sparkline" style="height:70px">
+                <div class="d1-bar" style="height:90%"></div>
+                <div class="d1-bar" style="height:85%"></div>
+                <div class="d1-bar" style="height:80%"></div>
+                <div class="d1-bar" style="height:82%"></div>
+                <div class="d1-bar" style="height:75%"></div>
+                <div class="d1-bar" style="height:70%"></div>
+                <div class="d1-bar" style="height:72%"></div>
+                <div class="d1-bar" style="height:65%"></div>
+                <div class="d1-bar" style="height:60%"></div>
+                <div class="d1-bar" style="height:55%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="d3-schedule">
+            <div class="d3-schedule-header">
+              <span class="d3-schedule-title">Planning</span>
+              <span class="d3-schedule-link">Tout voir →</span>
+            </div>
+            <div class="d3-session-compact">
+              <div class="d3-session-when">
+                <div class="d3-session-when-day">Sam</div>
+                <div class="d3-session-when-num">15</div>
+              </div>
+              <div class="d3-session-divider"></div>
+              <div class="d3-session-what">
+                <div class="d3-session-what-name">Footing récupération</div>
+                <div class="d3-session-what-desc">6 km · allure libre</div>
+              </div>
+            </div>
+            <div class="d3-session-compact">
+              <div class="d3-session-when">
+                <div class="d3-session-when-day">Jeu</div>
+                <div class="d3-session-when-num">20</div>
+              </div>
+              <div class="d3-session-divider"></div>
+              <div class="d3-session-what">
+                <div class="d3-session-what-name">Fractionné 30/30</div>
+                <div class="d3-session-what-desc">8 km · 10x 30s</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 4: Story Mode ===== -->
+  <div class="direction-section" id="dir4">
+    <div class="direction-title">
+      <h2>Direction 4 — Story Mode</h2>
+      <p>L'app raconte ta progression. Narrative, humaine, le "copain discret" en action.</p>
+    </div>
+    <div class="direction-tags">
+      <span class="tag">Narratif</span><span class="tag">Chaleureux</span><span class="tag">Copain discret</span>
+    </div>
+    <div class="phone-container">
+      <div class="phone-frame">
+        <div class="phone-status-bar"><div class="notch"></div></div>
+        <div class="phone-content">
+          <div class="d4-header">
+            <div class="d4-greeting">Salut Luka,</div>
+            <div class="d4-headline">Tu cours <em>18 secondes plus vite</em> qu'il y a un mois</div>
+          </div>
+          <div class="d4-insight">
+            <div class="d4-insight-text">
+              Ta FC moyenne a baissé de <strong>5 bpm</strong> sur les 3 dernières semaines pour la même allure. Ton corps s'adapte bien.
+            </div>
+          </div>
+          <div class="d4-chart-area">
+            <div class="d4-chart-label">Allure moyenne — 4 dernières semaines</div>
+            <div class="d4-area-chart">
+              <div class="d4-area-fill"></div>
+              <svg viewBox="0 0 300 100" preserveAspectRatio="none" style="position:absolute;bottom:0;left:0;width:100%;height:100%;">
+                <polyline fill="none" stroke="#3b82f6" stroke-width="2.5"
+                  points="0,70 30,65 60,60 90,62 120,55 150,50 180,48 210,42 240,38 270,35 300,30" />
+                <circle cx="300" cy="30" r="4" fill="#3b82f6" />
+              </svg>
+            </div>
+          </div>
+          <div class="d4-next">
+            <div class="d4-next-label">Tes prochaines séances</div>
+            <div class="d4-next-card">
+              <div class="d4-next-emoji">🏃</div>
+              <div class="d4-next-info">
+                <div class="d4-next-name">Footing récupération</div>
+                <div class="d4-next-when">Demain · 6 km · allure libre</div>
+              </div>
+              <div class="d4-next-arrow">›</div>
+            </div>
+            <div class="d4-next-card">
+              <div class="d4-next-emoji">⚡</div>
+              <div class="d4-next-info">
+                <div class="d4-next-name">Fractionné 30/30</div>
+                <div class="d4-next-when">Jeudi · 8 km · 10x 30s rapide</div>
+              </div>
+              <div class="d4-next-arrow">›</div>
+            </div>
+            <div class="d4-next-card">
+              <div class="d4-next-emoji">🏔️</div>
+              <div class="d4-next-info">
+                <div class="d4-next-name">Sortie longue</div>
+                <div class="d4-next-when">Dimanche · 14 km · endurance</div>
+              </div>
+              <div class="d4-next-arrow">›</div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 5: Timeline Unified ===== -->
+  <div class="direction-section" id="dir5">
+    <div class="direction-title">
+      <h2>Direction 5 — Timeline Unified</h2>
+      <p>Passé et futur dans un seul flux. Le plan vit avec l'historique.</p>
+    </div>
+    <div class="direction-tags">
+      <span class="tag">Continu</span><span class="tag">Unifié</span><span class="tag">Chronologique</span>
+    </div>
+    <div class="phone-container">
+      <div class="phone-frame">
+        <div class="phone-status-bar"><div class="notch"></div></div>
+        <div class="phone-content">
+          <div class="d5-header">
+            <span class="d5-logo">Sporty</span>
+            <div class="d5-add-btn">+</div>
+          </div>
+          <div class="d5-summary">
+            <div class="d5-summary-label">Allure moyenne</div>
+            <div class="d5-summary-value">5'12<span style="font-size:16px;opacity:0.7">/km</span></div>
+            <div class="d5-summary-sub">↓ 18s vs mois dernier</div>
+            <div class="d5-summary-row">
+              <div class="d5-summary-stat">
+                <div class="d5-summary-stat-val">32 km</div>
+                <div class="d5-summary-stat-label">Volume sem.</div>
+              </div>
+              <div class="d5-summary-stat">
+                <div class="d5-summary-stat-val">148 bpm</div>
+                <div class="d5-summary-stat-label">FC moyenne</div>
+              </div>
+              <div class="d5-summary-stat">
+                <div class="d5-summary-stat-val">4</div>
+                <div class="d5-summary-stat-label">Séances</div>
+              </div>
+            </div>
+          </div>
+          <div class="d5-timeline">
+            <div class="d5-tl-label">À venir</div>
+            <div class="d5-tl-item">
+              <div class="d5-tl-line"></div>
+              <div class="d5-tl-dot future">☀</div>
+              <div class="d5-tl-content future-item">
+                <div class="d5-tl-date">Dimanche 16 fév.</div>
+                <div class="d5-tl-title">Sortie longue</div>
+                <div class="d5-tl-meta">14 km · endurance</div>
+              </div>
+            </div>
+            <div class="d5-tl-item">
+              <div class="d5-tl-line"></div>
+              <div class="d5-tl-dot future">⚡</div>
+              <div class="d5-tl-content future-item">
+                <div class="d5-tl-date">Jeudi 20 fév.</div>
+                <div class="d5-tl-title">Fractionné 30/30</div>
+                <div class="d5-tl-meta">8 km · 10x 30s rapide</div>
+              </div>
+            </div>
+            <div class="d5-tl-item">
+              <div class="d5-tl-line"></div>
+              <div class="d5-tl-dot today">→</div>
+              <div class="d5-tl-content">
+                <div class="d5-tl-date" style="color:var(--blue-600);font-weight:700">Demain</div>
+                <div class="d5-tl-title">Footing récupération</div>
+                <div class="d5-tl-meta">6 km · allure libre</div>
+              </div>
+            </div>
+
+            <div class="d5-tl-label" style="margin-top:8px;">Passé</div>
+            <div class="d5-tl-item">
+              <div class="d5-tl-line"></div>
+              <div class="d5-tl-dot past">✓</div>
+              <div class="d5-tl-content">
+                <div class="d5-tl-date">Aujourd'hui</div>
+                <div class="d5-tl-title">Footing endurance</div>
+                <div class="d5-tl-meta">10 km · 5'08/km · FC 152 · 😊</div>
+              </div>
+            </div>
+            <div class="d5-tl-item">
+              <div class="d5-tl-line"></div>
+              <div class="d5-tl-dot past">✓</div>
+              <div class="d5-tl-content">
+                <div class="d5-tl-date">Lundi 10 fév.</div>
+                <div class="d5-tl-title">Fractionné côtes</div>
+                <div class="d5-tl-meta">7 km · 5'22/km · FC 165 · 😅</div>
+              </div>
+            </div>
+            <div class="d5-tl-item">
+              <div class="d5-tl-dot past">✓</div>
+              <div class="d5-tl-content">
+                <div class="d5-tl-date">Samedi 8 fév.</div>
+                <div class="d5-tl-title">Sortie longue</div>
+                <div class="d5-tl-meta">15 km · 5'30/km · FC 145 · 😊</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DIRECTION 6: Data Dense ===== -->
+  <div class="direction-section" id="dir6">
+    <div class="direction-title">
+      <h2>Direction 6 — Data Dense</h2>
+      <p>Approche "fintech sport". Header sombre, métriques concentrées, graphes détaillés.</p>
+    </div>
+    <div class="direction-tags">
+      <span class="tag">Technique</span><span class="tag">Précis</span><span class="tag">Pro</span>
+    </div>
+    <div class="phone-container">
+      <div class="phone-frame">
+        <div class="phone-status-bar" style="background:var(--gray-900);color:white;"><div class="notch"></div></div>
+        <div class="phone-content" style="background:var(--gray-50);">
+          <div class="d6-header">
+            <span class="d6-logo">Sporty</span>
+            <div class="d6-header-right">
+              <span class="d6-header-period">Février 2026</span>
+              <div class="d2-avatar" style="width:28px;height:28px;font-size:11px;">L</div>
+            </div>
+          </div>
+          <div class="d6-top-metrics">
+            <div class="d6-top-metric">
+              <div class="d6-top-metric-label">Allure</div>
+              <div class="d6-top-metric-val">5'12</div>
+              <div class="d6-top-metric-trend">↓ 18s</div>
+            </div>
+            <div class="d6-top-metric">
+              <div class="d6-top-metric-label">Volume</div>
+              <div class="d6-top-metric-val">32km</div>
+              <div class="d6-top-metric-trend">+12%</div>
+            </div>
+            <div class="d6-top-metric">
+              <div class="d6-top-metric-label">FC moy.</div>
+              <div class="d6-top-metric-val">148</div>
+              <div class="d6-top-metric-trend">↓ 5</div>
+            </div>
+          </div>
+          <div class="d6-main-chart">
+            <div class="d6-chart-header">
+              <span class="d6-chart-title">Volume & Allure</span>
+              <div class="d6-chart-tabs">
+                <span class="d6-chart-tab active">Sem.</span>
+                <span class="d6-chart-tab">Mois</span>
+                <span class="d6-chart-tab">3M</span>
+              </div>
+            </div>
+            <div class="d6-detailed-chart">
+              <div class="d6-dbar vol" style="height:35%"></div>
+              <div class="d6-dbar vol" style="height:42%"></div>
+              <div class="d6-dbar vol" style="height:50%"></div>
+              <div class="d6-dbar vol" style="height:45%"></div>
+              <div class="d6-dbar vol" style="height:55%"></div>
+              <div class="d6-dbar vol" style="height:60%"></div>
+              <div class="d6-dbar vol" style="height:52%"></div>
+              <div class="d6-dbar vol" style="height:68%"></div>
+              <div class="d6-dbar vol" style="height:72%"></div>
+              <div class="d6-dbar vol" style="height:65%"></div>
+              <div class="d6-dbar vol" style="height:78%"></div>
+              <div class="d6-dbar vol" style="height:82%"></div>
+              <div class="d6-dbar vol" style="height:75%"></div>
+              <div class="d6-dbar vol" style="height:88%"></div>
+              <div class="d6-dbar vol" style="height:92%"></div>
+              <div class="d6-dbar vol" style="height:85%"></div>
+            </div>
+            <div class="d6-chart-xaxis">
+              <span>S-4</span><span>S-3</span><span>S-2</span><span>S-1</span>
+            </div>
+          </div>
+          <div class="d6-schedule">
+            <div class="d6-schedule-title">Planning</div>
+            <div class="d6-session-row">
+              <span class="d6-session-day">SAM</span>
+              <span class="d6-session-name">Footing récupération</span>
+              <span class="d6-session-stats">6km · libre</span>
+            </div>
+            <div class="d6-session-row">
+              <span class="d6-session-day">JEU</span>
+              <span class="d6-session-name">Fractionné 30/30</span>
+              <span class="d6-session-stats">8km · 10x30s</span>
+            </div>
+            <div class="d6-session-row">
+              <span class="d6-session-day">DIM</span>
+              <span class="d6-session-name">Sortie longue</span>
+              <span class="d6-session-stats">14km · endu.</span>
+            </div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showDirection(n) {
+    document.querySelectorAll('.direction-section, .comparison-section').forEach(el => el.classList.remove('active'));
+    document.getElementById('dir' + n).classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach((tab, i) => {
+      tab.classList.toggle('active', i === n - 1);
+    });
+  }
+
+  function showComparison() {
+    document.querySelectorAll('.direction-section').forEach(el => el.classList.remove('active'));
+    document.getElementById('comparison').classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      if (tab.textContent === 'Comparer') tab.classList.add('active');
+    });
+  }
+</script>
+</body>
+</html>

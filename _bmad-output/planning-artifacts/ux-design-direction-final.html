@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sporty — Direction Finale</title>
+<style>
+  :root {
+    --blue-50: #eff6ff;
+    --blue-100: #dbeafe;
+    --blue-200: #bfdbfe;
+    --blue-300: #93c5fd;
+    --blue-400: #60a5fa;
+    --blue-500: #3b82f6;
+    --blue-600: #2563eb;
+    --blue-700: #1d4ed8;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --green-50: #f0fdf4;
+    --green-400: #4ade80;
+    --green-500: #22c55e;
+    --orange-50: #fff7ed;
+    --orange-400: #fb923c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+    min-height: 100vh;
+  }
+
+  .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    max-width: 1200px;
+    width: 100%;
+  }
+
+  .page-header {
+    text-align: center;
+  }
+  .page-header h1 {
+    font-size: 24px; font-weight: 800; color: var(--blue-600);
+  }
+  .page-header p {
+    font-size: 14px; color: var(--gray-500); margin-top: 4px;
+  }
+  .page-tags {
+    display: flex; gap: 8px; justify-content: center; margin-top: 12px;
+  }
+  .tag {
+    padding: 4px 14px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    background: var(--blue-50); color: var(--blue-600);
+  }
+
+  .phones-row {
+    display: flex; gap: 40px; flex-wrap: wrap; justify-content: center;
+  }
+
+  .phone-label {
+    text-align: center; margin-bottom: 12px;
+    font-size: 13px; font-weight: 700; color: var(--gray-700);
+  }
+  .phone-sublabel {
+    font-size: 11px; color: var(--gray-400); font-weight: 400;
+  }
+
+  /* ===== PHONE FRAME ===== */
+  .phone-frame {
+    width: 375px; height: 812px;
+    background: white; border-radius: 40px;
+    border: 8px solid var(--gray-800);
+    overflow: hidden; position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .phone-status-bar {
+    height: 44px; background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: var(--gray-900);
+    position: relative;
+  }
+  .phone-status-bar::before {
+    content: '9:41'; position: absolute; left: 24px; font-size: 14px; font-weight: 600;
+  }
+  .notch {
+    width: 120px; height: 28px; background: var(--gray-800);
+    border-radius: 0 0 16px 16px; position: absolute; top: 0;
+  }
+  .phone-content {
+    height: calc(100% - 44px - 64px);
+    overflow-y: auto; padding: 0;
+    background: var(--gray-50);
+  }
+  .phone-content::-webkit-scrollbar { width: 0; }
+
+  .tab-bar {
+    height: 64px; background: white;
+    border-top: 1px solid var(--gray-200);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 8px 8px;
+    position: absolute; bottom: 0; left: 0; right: 0;
+  }
+  .tab-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10px; color: var(--gray-400); cursor: pointer;
+    transition: color 0.2s;
+  }
+  .tab-item.active { color: var(--blue-600); }
+  .tab-item:hover { color: var(--blue-500); }
+  .tab-icon { font-size: 20px; }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    padding: 12px 20px;
+    background: white;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .app-logo {
+    font-size: 18px; font-weight: 800; color: var(--blue-600); letter-spacing: -0.5px;
+  }
+  .app-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--blue-500); display: flex; align-items: center;
+    justify-content: center; color: white; font-weight: 700; font-size: 13px;
+  }
+
+  /* ===== HERO METRIC (D1 style) ===== */
+  .hero-section {
+    padding: 24px 20px 20px;
+    background: white;
+    text-align: center;
+  }
+  .hero-greeting {
+    font-size: 14px; color: var(--gray-400); margin-bottom: 16px;
+  }
+  .hero-label {
+    font-size: 11px; color: var(--gray-400); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .hero-value {
+    font-size: 52px; font-weight: 800; color: var(--gray-900); line-height: 1;
+  }
+  .hero-unit {
+    font-size: 18px; color: var(--gray-400); font-weight: 400;
+  }
+  .hero-trend {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 13px; color: var(--green-500); font-weight: 600;
+    margin-top: 10px; background: var(--green-50); padding: 5px 14px;
+    border-radius: 100px;
+  }
+
+  /* ===== CARD (D2 style) ===== */
+  .card {
+    margin: 12px 16px;
+    padding: 18px;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--gray-100);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .card-label {
+    font-size: 11px; color: var(--gray-400); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 12px; font-weight: 600;
+  }
+
+  /* ===== MINI CHART ===== */
+  .sparkline {
+    height: 64px; display: flex; align-items: flex-end; gap: 5px;
+  }
+  .spark-bar {
+    flex: 1; background: var(--blue-100); border-radius: 4px 4px 0 0;
+    transition: all 0.3s; min-height: 4px; cursor: pointer;
+  }
+  .spark-bar:hover { background: var(--blue-400); }
+  .spark-bar:last-child { background: var(--blue-500); }
+  .spark-bar:nth-last-child(2) { background: var(--blue-300); }
+  .chart-footer {
+    display: flex; justify-content: space-between; margin-top: 8px;
+    font-size: 10px; color: var(--gray-400);
+  }
+
+  /* ===== TIMELINE (D5 style) ===== */
+  .timeline-section {
+    padding: 0 16px 16px;
+  }
+  .timeline-label {
+    font-size: 11px; color: var(--gray-400); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 10px; font-weight: 600;
+    padding: 0 4px;
+  }
+  .tl-item {
+    display: flex; gap: 12px; position: relative;
+    cursor: pointer;
+  }
+  .tl-item:hover .tl-card { border-color: var(--blue-200); }
+  .tl-rail {
+    display: flex; flex-direction: column; align-items: center;
+    width: 24px; flex-shrink: 0; padding-top: 2px;
+  }
+  .tl-dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; z-index: 1; flex-shrink: 0;
+  }
+  .tl-dot.future {
+    background: var(--blue-50); color: var(--blue-500);
+    border: 2px dashed var(--blue-300);
+  }
+  .tl-dot.today {
+    background: var(--blue-600); color: white;
+    box-shadow: 0 0 0 4px var(--blue-100);
+  }
+  .tl-dot.past {
+    background: var(--green-500); color: white;
+  }
+  .tl-line {
+    width: 2px; flex: 1; min-height: 8px;
+  }
+  .tl-line.future-line { background: var(--blue-100); }
+  .tl-line.past-line { background: var(--green-100); }
+  .tl-line.today-line {
+    background: linear-gradient(to bottom, var(--blue-200), var(--green-100));
+  }
+
+  .tl-card {
+    flex: 1;
+    background: white; border-radius: 12px;
+    border: 1px solid var(--gray-100);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+  .tl-card.future-card { opacity: 0.7; }
+  .tl-card.today-card {
+    border-color: var(--blue-200);
+    background: var(--blue-50);
+  }
+
+  .tl-date {
+    font-size: 10px; color: var(--gray-400); font-weight: 600;
+  }
+  .tl-date.today-date { color: var(--blue-600); }
+  .tl-title {
+    font-size: 14px; font-weight: 600; color: var(--gray-900); margin-top: 2px;
+  }
+  .tl-meta {
+    font-size: 12px; color: var(--gray-400); margin-top: 3px;
+  }
+  .tl-results {
+    display: flex; gap: 12px; margin-top: 6px;
+    font-size: 11px;
+  }
+  .tl-result-item {
+    display: flex; align-items: center; gap: 4px;
+    color: var(--gray-500);
+  }
+  .tl-result-val { font-weight: 700; color: var(--gray-700); }
+
+  .tl-divider {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 0 6px 36px;
+  }
+  .tl-divider-line { flex: 1; height: 1px; background: var(--gray-200); }
+  .tl-divider-text {
+    font-size: 10px; color: var(--gray-400); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ===== VARIANT B: Slightly different layout ===== */
+  .hero-section-b {
+    padding: 16px 20px 20px;
+    background: white;
+  }
+  .hero-row-b {
+    display: flex; align-items: flex-end; gap: 16px;
+  }
+  .hero-main-b { flex: 1; }
+  .hero-greeting-b {
+    font-size: 14px; color: var(--gray-400); margin-bottom: 12px;
+  }
+  .hero-label-b {
+    font-size: 11px; color: var(--gray-400); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .hero-value-b {
+    font-size: 44px; font-weight: 800; color: var(--gray-900); line-height: 1;
+  }
+  .hero-unit-b { font-size: 16px; color: var(--gray-400); font-weight: 400; }
+  .hero-trend-b {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; color: var(--green-500); font-weight: 600;
+    margin-top: 8px;
+  }
+  .hero-mini-chart-b {
+    width: 100px; height: 48px; display: flex; align-items: flex-end; gap: 3px;
+  }
+  .hero-mini-bar {
+    flex: 1; background: var(--blue-100); border-radius: 2px 2px 0 0; min-height: 3px;
+  }
+  .hero-mini-bar:nth-last-child(-n+2) { background: var(--blue-400); }
+
+  /* Quick stats row */
+  .quick-stats {
+    display: flex; gap: 8px; margin: 0 16px 4px;
+  }
+  .quick-stat {
+    flex: 1; background: white; border-radius: 12px;
+    border: 1px solid var(--gray-100); padding: 12px;
+    text-align: center;
+  }
+  .quick-stat-val {
+    font-size: 18px; font-weight: 800; color: var(--gray-900);
+  }
+  .quick-stat-label {
+    font-size: 10px; color: var(--gray-400); margin-top: 2px;
+  }
+  .quick-stat-trend {
+    font-size: 10px; color: var(--green-500); font-weight: 600;
+  }
+
+  /* ===== ADD BUTTON ===== */
+  .fab {
+    position: absolute; bottom: 80px; right: 20px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--blue-600); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 300; z-index: 10;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .fab:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45); }
+
+  /* ===== DESKTOP FRAME ===== */
+  .desktop-wrapper { margin-top: 16px; }
+  .desktop-frame {
+    width: 960px; max-width: 100%;
+    background: white; border-radius: 12px;
+    border: 3px solid var(--gray-300);
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.12);
+  }
+  .desktop-topbar {
+    height: 36px; background: var(--gray-100); border-bottom: 1px solid var(--gray-200);
+    display: flex; align-items: center; padding: 0 12px; gap: 6px;
+  }
+  .desktop-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .desktop-dot.r { background: #ef4444; }
+  .desktop-dot.y { background: #eab308; }
+  .desktop-dot.g { background: #22c55e; }
+  .desktop-content {
+    display: flex; min-height: 560px;
+  }
+  .desktop-sidebar {
+    width: 200px; background: var(--gray-50);
+    border-right: 1px solid var(--gray-200);
+    padding: 20px 0;
+  }
+  .sidebar-logo {
+    font-size: 18px; font-weight: 800; color: var(--blue-600);
+    padding: 0 20px; margin-bottom: 24px;
+  }
+  .sidebar-item {
+    padding: 10px 20px; font-size: 13px; color: var(--gray-500);
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sidebar-item:hover { background: var(--gray-100); color: var(--gray-700); }
+  .sidebar-item.active {
+    background: var(--blue-50); color: var(--blue-600); font-weight: 600;
+    border-right: 3px solid var(--blue-600);
+  }
+  .sidebar-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .desktop-main {
+    flex: 1; padding: 24px; background: var(--gray-50);
+    overflow-y: auto;
+  }
+  .desktop-header-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  .desktop-greeting { font-size: 13px; color: var(--gray-400); }
+  .desktop-title { font-size: 20px; font-weight: 700; color: var(--gray-900); }
+  .desktop-add-btn {
+    padding: 8px 20px; border-radius: 10px; border: none;
+    background: var(--blue-600); color: white; font-size: 13px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .desktop-add-btn:hover { background: var(--blue-700); }
+
+  .desktop-grid {
+    display: grid; grid-template-columns: 1fr 1fr 300px;
+    gap: 16px;
+  }
+  .desktop-card {
+    background: white; border-radius: 14px;
+    border: 1px solid var(--gray-100); padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .desktop-card.hero-card {
+    grid-column: 1 / 3;
+    display: flex; align-items: center; gap: 32px;
+  }
+  .desktop-card.timeline-card {
+    grid-row: 1 / 3;
+    grid-column: 3;
+    overflow-y: auto; max-height: 480px;
+  }
+  .desktop-card.chart-card {
+    grid-column: 1 / 3;
+  }
+
+  .desktop-hero-value {
+    font-size: 56px; font-weight: 800; color: var(--gray-900); line-height: 1;
+  }
+  .desktop-hero-unit { font-size: 20px; color: var(--gray-400); font-weight: 400; }
+  .desktop-hero-trend {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 14px; color: var(--green-500); font-weight: 600;
+    margin-top: 8px; background: var(--green-50); padding: 5px 14px;
+    border-radius: 100px;
+  }
+  .desktop-quick-stats {
+    display: flex; gap: 24px;
+  }
+  .desktop-quick-stat { text-align: center; }
+  .desktop-quick-val { font-size: 24px; font-weight: 800; color: var(--gray-900); }
+  .desktop-quick-label { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+  .desktop-sparkline {
+    height: 120px; display: flex; align-items: flex-end; gap: 6px;
+    margin-top: 12px;
+  }
+  .desktop-spark-bar {
+    flex: 1; background: var(--blue-100); border-radius: 4px 4px 0 0;
+    transition: all 0.3s; min-height: 4px; cursor: pointer;
+  }
+  .desktop-spark-bar:hover { background: var(--blue-400); }
+  .desktop-spark-bar:last-child { background: var(--blue-500); }
+  .desktop-spark-bar:nth-last-child(2) { background: var(--blue-300); }
+  .desktop-spark-bar:nth-last-child(3) { background: var(--blue-200); }
+
+  /* Desktop timeline */
+  .dtl-item {
+    display: flex; gap: 10px; margin-bottom: 4px;
+  }
+  .dtl-rail { display: flex; flex-direction: column; align-items: center; width: 20px; }
+  .dtl-dot {
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; font-weight: 700; flex-shrink: 0;
+  }
+  .dtl-dot.future { background: var(--blue-50); color: var(--blue-500); border: 2px dashed var(--blue-300); }
+  .dtl-dot.today { background: var(--blue-600); color: white; box-shadow: 0 0 0 3px var(--blue-100); }
+  .dtl-dot.past { background: var(--green-500); color: white; }
+  .dtl-line { width: 2px; flex: 1; min-height: 6px; }
+  .dtl-line.future-line { background: var(--blue-100); }
+  .dtl-line.past-line { background: var(--green-100); }
+  .dtl-line.today-line { background: linear-gradient(var(--blue-200), var(--green-100)); }
+
+  .dtl-content {
+    flex: 1; padding-bottom: 12px;
+  }
+  .dtl-date { font-size: 10px; color: var(--gray-400); font-weight: 600; }
+  .dtl-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-top: 1px; }
+  .dtl-meta { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
+  @media (max-width: 1000px) {
+    .desktop-frame { display: none; }
+  }
+  @media (max-width: 500px) {
+    .phones-row { gap: 24px; }
+    .phone-frame { width: 340px; height: 740px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <div class="page-header">
+    <h1>Sporty — Direction Finale</h1>
+    <p>Combinaison D1 (aéré, héros) + D2 (cartes) + D5 (timeline unifiée)</p>
+    <div class="page-tags">
+      <span class="tag">Aéré</span>
+      <span class="tag">Cartes modulaires</span>
+      <span class="tag">Timeline unifiée</span>
+      <span class="tag">Mobile-first</span>
+    </div>
+  </div>
+
+  <!-- ===== MOBILE MOCKUPS ===== -->
+  <div class="phones-row">
+
+    <!-- VARIANTE A: Hero centré -->
+    <div>
+      <div class="phone-label">Variante A <span class="phone-sublabel">— Hero centré, timeline en scroll</span></div>
+      <div class="phone-frame">
+        <div class="phone-status-bar"><div class="notch"></div></div>
+        <div class="phone-content">
+          <div class="app-header">
+            <span class="app-logo">Sporty</span>
+            <div class="app-avatar">L</div>
+          </div>
+
+          <div class="hero-section">
+            <div class="hero-greeting">Salut Luka</div>
+            <div class="hero-label">Allure moyenne</div>
+            <div class="hero-value">5'12<span class="hero-unit">/km</span></div>
+            <div class="hero-trend">↓ 18s ce mois</div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Évolution — 4 semaines</div>
+            <div class="sparkline">
+              <div class="spark-bar" style="height:40%"></div>
+              <div class="spark-bar" style="height:55%"></div>
+              <div class="spark-bar" style="height:48%"></div>
+              <div class="spark-bar" style="height:62%"></div>
+              <div class="spark-bar" style="height:58%"></div>
+              <div class="spark-bar" style="height:70%"></div>
+              <div class="spark-bar" style="height:65%"></div>
+              <div class="spark-bar" style="height:78%"></div>
+              <div class="spark-bar" style="height:74%"></div>
+              <div class="spark-bar" style="height:85%"></div>
+              <div class="spark-bar" style="height:80%"></div>
+              <div class="spark-bar" style="height:92%"></div>
+            </div>
+            <div class="chart-footer">
+              <span>S-4</span><span>S-3</span><span>S-2</span><span>Cette sem.</span>
+            </div>
+          </div>
+
+          <div class="timeline-section">
+            <div class="timeline-label">À venir</div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot future" style="font-size:10px">☀</div>
+                <div class="tl-line future-line"></div>
+              </div>
+              <div class="tl-card future-card">
+                <div class="tl-date">Dimanche 16 fév.</div>
+                <div class="tl-title">Sortie longue</div>
+                <div class="tl-meta">14 km · endurance</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot future" style="font-size:10px">⚡</div>
+                <div class="tl-line future-line"></div>
+              </div>
+              <div class="tl-card future-card">
+                <div class="tl-date">Jeudi 20 fév.</div>
+                <div class="tl-title">Fractionné 30/30</div>
+                <div class="tl-meta">8 km · 10x 30s rapide</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot today">→</div>
+                <div class="tl-line today-line"></div>
+              </div>
+              <div class="tl-card today-card">
+                <div class="tl-date today-date">Demain</div>
+                <div class="tl-title">Footing récupération</div>
+                <div class="tl-meta">6 km · allure libre</div>
+              </div>
+            </div>
+
+            <div class="tl-divider">
+              <span class="tl-divider-text">Passé</span>
+              <div class="tl-divider-line"></div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot past">✓</div>
+                <div class="tl-line past-line"></div>
+              </div>
+              <div class="tl-card">
+                <div class="tl-date">Aujourd'hui</div>
+                <div class="tl-title">Footing endurance</div>
+                <div class="tl-meta">10 km · 5'08/km</div>
+                <div class="tl-results">
+                  <div class="tl-result-item"><span class="tl-result-val">152</span> bpm</div>
+                  <div class="tl-result-item">😊</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot past">✓</div>
+                <div class="tl-line past-line"></div>
+              </div>
+              <div class="tl-card">
+                <div class="tl-date">Lundi 10 fév.</div>
+                <div class="tl-title">Fractionné côtes</div>
+                <div class="tl-meta">7 km · 5'22/km</div>
+                <div class="tl-results">
+                  <div class="tl-result-item"><span class="tl-result-val">165</span> bpm</div>
+                  <div class="tl-result-item">😅</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot past">✓</div>
+              </div>
+              <div class="tl-card">
+                <div class="tl-date">Samedi 8 fév.</div>
+                <div class="tl-title">Sortie longue</div>
+                <div class="tl-meta">15 km · 5'30/km</div>
+                <div class="tl-results">
+                  <div class="tl-result-item"><span class="tl-result-val">145</span> bpm</div>
+                  <div class="tl-result-item">😊</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fab">+</div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANTE B: Hero compact + quick stats -->
+    <div>
+      <div class="phone-label">Variante B <span class="phone-sublabel">— Hero compact, stats rapides, plus de timeline visible</span></div>
+      <div class="phone-frame">
+        <div class="phone-status-bar"><div class="notch"></div></div>
+        <div class="phone-content">
+          <div class="app-header">
+            <span class="app-logo">Sporty</span>
+            <div class="app-avatar">L</div>
+          </div>
+
+          <div class="hero-section-b">
+            <div class="hero-greeting-b">Salut Luka</div>
+            <div class="hero-row-b">
+              <div class="hero-main-b">
+                <div class="hero-label-b">Allure moyenne</div>
+                <div class="hero-value-b">5'12<span class="hero-unit-b">/km</span></div>
+                <div class="hero-trend-b">↓ 18s ce mois</div>
+              </div>
+              <div class="hero-mini-chart-b">
+                <div class="hero-mini-bar" style="height:40%"></div>
+                <div class="hero-mini-bar" style="height:55%"></div>
+                <div class="hero-mini-bar" style="height:50%"></div>
+                <div class="hero-mini-bar" style="height:65%"></div>
+                <div class="hero-mini-bar" style="height:60%"></div>
+                <div class="hero-mini-bar" style="height:75%"></div>
+                <div class="hero-mini-bar" style="height:70%"></div>
+                <div class="hero-mini-bar" style="height:85%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-stats">
+            <div class="quick-stat">
+              <div class="quick-stat-val">32<span style="font-size:11px;color:var(--gray-400)">km</span></div>
+              <div class="quick-stat-label">Volume</div>
+              <div class="quick-stat-trend">+12%</div>
+            </div>
+            <div class="quick-stat">
+              <div class="quick-stat-val">148<span style="font-size:11px;color:var(--gray-400)">bpm</span></div>
+              <div class="quick-stat-label">FC moy.</div>
+              <div class="quick-stat-trend">↓ 5</div>
+            </div>
+            <div class="quick-stat">
+              <div class="quick-stat-val">4</div>
+              <div class="quick-stat-label">Séances</div>
+              <div class="quick-stat-trend" style="color:var(--gray-400)">cette sem.</div>
+            </div>
+          </div>
+
+          <div class="timeline-section" style="margin-top:16px;">
+            <div class="timeline-label">À venir</div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot future" style="font-size:10px">☀</div>
+                <div class="tl-line future-line"></div>
+              </div>
+              <div class="tl-card future-card">
+                <div class="tl-date">Dimanche 16 fév.</div>
+                <div class="tl-title">Sortie longue</div>
+                <div class="tl-meta">14 km · endurance</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot future" style="font-size:10px">⚡</div>
+                <div class="tl-line future-line"></div>
+              </div>
+              <div class="tl-card future-card">
+                <div class="tl-date">Jeudi 20 fév.</div>
+                <div class="tl-title">Fractionné 30/30</div>
+                <div class="tl-meta">8 km · 10x 30s rapide</div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot today">→</div>
+                <div class="tl-line today-line"></div>
+              </div>
+              <div class="tl-card today-card">
+                <div class="tl-date today-date">Demain</div>
+                <div class="tl-title">Footing récupération</div>
+                <div class="tl-meta">6 km · allure libre</div>
+              </div>
+            </div>
+
+            <div class="tl-divider">
+              <span class="tl-divider-text">Passé</span>
+              <div class="tl-divider-line"></div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot past">✓</div>
+                <div class="tl-line past-line"></div>
+              </div>
+              <div class="tl-card">
+                <div class="tl-date">Aujourd'hui</div>
+                <div class="tl-title">Footing endurance</div>
+                <div class="tl-meta">10 km · 5'08/km</div>
+                <div class="tl-results">
+                  <div class="tl-result-item"><span class="tl-result-val">152</span> bpm</div>
+                  <div class="tl-result-item">😊</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot past">✓</div>
+                <div class="tl-line past-line"></div>
+              </div>
+              <div class="tl-card">
+                <div class="tl-date">Lundi 10 fév.</div>
+                <div class="tl-title">Fractionné côtes</div>
+                <div class="tl-meta">7 km · 5'22/km</div>
+                <div class="tl-results">
+                  <div class="tl-result-item"><span class="tl-result-val">165</span> bpm</div>
+                  <div class="tl-result-item">😅</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tl-item">
+              <div class="tl-rail">
+                <div class="tl-dot past">✓</div>
+              </div>
+              <div class="tl-card">
+                <div class="tl-date">Samedi 8 fév.</div>
+                <div class="tl-title">Sortie longue</div>
+                <div class="tl-meta">15 km · 5'30/km</div>
+                <div class="tl-results">
+                  <div class="tl-result-item"><span class="tl-result-val">145</span> bpm</div>
+                  <div class="tl-result-item">😊</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fab">+</div>
+        <div class="tab-bar">
+          <div class="tab-item active"><span class="tab-icon">📊</span>Accueil</div>
+          <div class="tab-item"><span class="tab-icon">🏃</span>Séances</div>
+          <div class="tab-item"><span class="tab-icon">📅</span>Planning</div>
+          <div class="tab-item"><span class="tab-icon">👤</span>Profil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DESKTOP MOCKUP ===== -->
+  <div class="desktop-wrapper">
+    <div class="phone-label">Version Desktop <span class="phone-sublabel">— Même contenu, layout enrichi avec sidebar + grille</span></div>
+    <div class="desktop-frame">
+      <div class="desktop-topbar">
+        <div class="desktop-dot r"></div>
+        <div class="desktop-dot y"></div>
+        <div class="desktop-dot g"></div>
+      </div>
+      <div class="desktop-content">
+        <div class="desktop-sidebar">
+          <div class="sidebar-logo">Sporty</div>
+          <div class="sidebar-item active"><span class="sidebar-icon">📊</span> Accueil</div>
+          <div class="sidebar-item"><span class="sidebar-icon">🏃</span> Séances</div>
+          <div class="sidebar-item"><span class="sidebar-icon">📅</span> Planning</div>
+          <div class="sidebar-item"><span class="sidebar-icon">📈</span> Statistiques</div>
+          <div class="sidebar-item" style="margin-top:auto;border-top:1px solid var(--gray-200);padding-top:16px;"><span class="sidebar-icon">👤</span> Profil</div>
+        </div>
+        <div class="desktop-main">
+          <div class="desktop-header-row">
+            <div>
+              <div class="desktop-greeting">Salut Luka</div>
+              <div class="desktop-title">Ton tableau de bord</div>
+            </div>
+            <button class="desktop-add-btn">+ Nouvelle séance</button>
+          </div>
+
+          <div class="desktop-grid">
+            <!-- Hero + stats -->
+            <div class="desktop-card hero-card">
+              <div>
+                <div style="font-size:11px;color:var(--gray-400);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Allure moyenne</div>
+                <div class="desktop-hero-value">5'12<span class="desktop-hero-unit">/km</span></div>
+                <div class="desktop-hero-trend">↓ 18s ce mois</div>
+              </div>
+              <div style="width:1px;height:60px;background:var(--gray-200);"></div>
+              <div class="desktop-quick-stats">
+                <div class="desktop-quick-stat">
+                  <div class="desktop-quick-val">32<span style="font-size:12px;color:var(--gray-400)">km</span></div>
+                  <div class="desktop-quick-label">Volume sem.</div>
+                </div>
+                <div class="desktop-quick-stat">
+                  <div class="desktop-quick-val">148<span style="font-size:12px;color:var(--gray-400)">bpm</span></div>
+                  <div class="desktop-quick-label">FC moyenne</div>
+                </div>
+                <div class="desktop-quick-stat">
+                  <div class="desktop-quick-val">4</div>
+                  <div class="desktop-quick-label">Séances</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="desktop-card timeline-card">
+              <div class="card-label">Timeline</div>
+
+              <div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-weight:600;">À venir</div>
+
+              <div class="dtl-item">
+                <div class="dtl-rail"><div class="dtl-dot future" style="font-size:8px">☀</div><div class="dtl-line future-line"></div></div>
+                <div class="dtl-content" style="opacity:0.65"><div class="dtl-date">Dim. 16 fév.</div><div class="dtl-title">Sortie longue</div><div class="dtl-meta">14 km · endurance</div></div>
+              </div>
+              <div class="dtl-item">
+                <div class="dtl-rail"><div class="dtl-dot future" style="font-size:8px">⚡</div><div class="dtl-line future-line"></div></div>
+                <div class="dtl-content" style="opacity:0.65"><div class="dtl-date">Jeu. 20 fév.</div><div class="dtl-title">Fractionné 30/30</div><div class="dtl-meta">8 km · 10x 30s</div></div>
+              </div>
+              <div class="dtl-item">
+                <div class="dtl-rail"><div class="dtl-dot today">→</div><div class="dtl-line today-line"></div></div>
+                <div class="dtl-content"><div class="dtl-date" style="color:var(--blue-600);font-weight:700">Demain</div><div class="dtl-title">Footing récup.</div><div class="dtl-meta">6 km · libre</div></div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 0;">
+                <span style="font-size:9px;color:var(--gray-400);text-transform:uppercase;font-weight:600;">Passé</span>
+                <div style="flex:1;height:1px;background:var(--gray-200);"></div>
+              </div>
+
+              <div class="dtl-item">
+                <div class="dtl-rail"><div class="dtl-dot past">✓</div><div class="dtl-line past-line"></div></div>
+                <div class="dtl-content"><div class="dtl-date">Aujourd'hui</div><div class="dtl-title">Footing endurance</div><div class="dtl-meta">10 km · 5'08 · 152 bpm · 😊</div></div>
+              </div>
+              <div class="dtl-item">
+                <div class="dtl-rail"><div class="dtl-dot past">✓</div><div class="dtl-line past-line"></div></div>
+                <div class="dtl-content"><div class="dtl-date">Lun. 10 fév.</div><div class="dtl-title">Fractionné côtes</div><div class="dtl-meta">7 km · 5'22 · 165 bpm · 😅</div></div>
+              </div>
+              <div class="dtl-item">
+                <div class="dtl-rail"><div class="dtl-dot past">✓</div></div>
+                <div class="dtl-content"><div class="dtl-date">Sam. 8 fév.</div><div class="dtl-title">Sortie longue</div><div class="dtl-meta">15 km · 5'30 · 145 bpm · 😊</div></div>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="desktop-card chart-card">
+              <div class="card-label">Volume hebdomadaire — 4 semaines</div>
+              <div class="desktop-sparkline">
+                <div class="desktop-spark-bar" style="height:35%"></div>
+                <div class="desktop-spark-bar" style="height:42%"></div>
+                <div class="desktop-spark-bar" style="height:50%"></div>
+                <div class="desktop-spark-bar" style="height:45%"></div>
+                <div class="desktop-spark-bar" style="height:55%"></div>
+                <div class="desktop-spark-bar" style="height:60%"></div>
+                <div class="desktop-spark-bar" style="height:52%"></div>
+                <div class="desktop-spark-bar" style="height:68%"></div>
+                <div class="desktop-spark-bar" style="height:72%"></div>
+                <div class="desktop-spark-bar" style="height:65%"></div>
+                <div class="desktop-spark-bar" style="height:78%"></div>
+                <div class="desktop-spark-bar" style="height:82%"></div>
+                <div class="desktop-spark-bar" style="height:75%"></div>
+                <div class="desktop-spark-bar" style="height:88%"></div>
+                <div class="desktop-spark-bar" style="height:92%"></div>
+                <div class="desktop-spark-bar" style="height:85%"></div>
+              </div>
+              <div class="chart-footer" style="margin-top:8px;">
+                <span>S-4</span><span>S-3</span><span>S-2</span><span>S-1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
