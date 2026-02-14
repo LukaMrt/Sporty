@@ -1,6 +1,6 @@
 # Story 1.2 : Configuration qualite de code
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -16,28 +16,28 @@ so that **tout code non conforme est bloque des le depart, pas de dette techniqu
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Configurer ESLint (AC: #1)
-  - [ ] Verifier la config ESLint fournie par le starter AdonisJS
-  - [ ] S'assurer que le script `lint` dans package.json utilise `--max-warnings 0`
-  - [ ] Ajouter le script `"lint": "eslint . --max-warnings 0"` si absent ou le modifier
-  - [ ] Verifier que les regles couvrent TypeScript et React (JSX)
-  - [ ] Lancer `pnpm lint` et corriger toute erreur ou warning existant
-- [ ] Task 2 : Configurer Prettier (AC: #2)
-  - [ ] Verifier si Prettier est deja installe par le starter
-  - [ ] Si absent, installer : `pnpm add -D prettier`
-  - [ ] Creer ou verifier `.prettierrc` avec les regles du projet
-  - [ ] Ajouter le script `"format:check": "prettier --check ."` dans package.json
-  - [ ] Ajouter le script `"format": "prettier --write ."` dans package.json
-  - [ ] Creer `.prettierignore` (build/, dist/, node_modules/, .adonisjs/)
-  - [ ] Lancer `pnpm format` pour formater tout le code existant
-  - [ ] Verifier qu'il n'y a pas de conflit ESLint/Prettier (installer `eslint-config-prettier` si necessaire)
-- [ ] Task 3 : Valider TypeScript strict (AC: #3)
-  - [ ] Verifier que `tsconfig.json` contient `"strict": true`
-  - [ ] Lancer `tsc --noEmit` et corriger toute erreur
-  - [ ] Ajouter le script `"typecheck": "tsc --noEmit"` si absent
-- [ ] Task 4 : Validation croisee
-  - [ ] Lancer successivement `pnpm lint`, `pnpm format:check`, `pnpm typecheck` — les 3 passent
-  - [ ] Ajouter volontairement un `console.log` inutile → `pnpm lint` echoue. Le retirer → ca passe
+- [x] Task 1 : Configurer ESLint (AC: #1)
+  - [x] Verifier la config ESLint fournie par le starter AdonisJS
+  - [x] S'assurer que le script `lint` dans package.json utilise `--max-warnings 0`
+  - [x] Ajouter le script `"lint": "eslint . --max-warnings 0"` si absent ou le modifier
+  - [x] Verifier que les regles couvrent TypeScript et React (JSX)
+  - [x] Lancer `pnpm lint` et corriger toute erreur ou warning existant
+- [x] Task 2 : Configurer Prettier (AC: #2)
+  - [x] Verifier si Prettier est deja installe par le starter
+  - [x] Si absent, installer : `pnpm add -D prettier`
+  - [x] Creer ou verifier `.prettierrc` avec les regles du projet
+  - [x] Ajouter le script `"format:check": "prettier --check ."` dans package.json
+  - [x] Ajouter le script `"format": "prettier --write ."` dans package.json
+  - [x] Creer `.prettierignore` (build/, dist/, node_modules/, .adonisjs/)
+  - [x] Lancer `pnpm format` pour formater tout le code existant
+  - [x] Verifier qu'il n'y a pas de conflit ESLint/Prettier (installer `eslint-config-prettier` si necessaire)
+- [x] Task 3 : Valider TypeScript strict (AC: #3)
+  - [x] Verifier que `tsconfig.json` contient `"strict": true`
+  - [x] Lancer `tsc --noEmit` et corriger toute erreur
+  - [x] Ajouter le script `"typecheck": "tsc --noEmit"` si absent
+- [x] Task 4 : Validation croisee
+  - [x] Lancer successivement `pnpm lint`, `pnpm format:check`, `pnpm typecheck` — les 3 passent
+  - [x] Ajouter volontairement un `console.log` inutile → `pnpm lint` echoue. Le retirer → ca passe
 
 ## Dev Notes
 
@@ -100,8 +100,30 @@ Note : verifier les conventions par defaut du starter AdonisJS et s'y conformer 
 
 ### Agent Model Used
 
+claude-sonnet-4-5-20250929
+
 ### Debug Log References
+
+- Crash Bun durant l'edition de eslint.config.js — reprise manuelle
+- `not_found.tsx` et `server_error.tsx` renommes en `NotFound.tsx` et `ServerError.tsx` (convention PascalCase React) avec mise a jour handler.ts et routes.ts
+- `no-console` ajoute manuellement (absent de RULES_LIST AdonisJS par defaut)
 
 ### Completion Notes List
 
+- `@adonisjs/tsconfig/tsconfig.base.json` contient deja tous les flags strict individuellement — `strict: true` ajoute explicitement dans tsconfig.json pour conformite AC
+- Prettier config heritee de `@adonisjs/prettier-config` via package.json (deja presente, pas de .prettierrc separe)
+- `eslint-config-prettier` deja integre dans `@adonisjs/eslint-config` (via `eslint-plugin-prettier/recommended`)
+- Fichiers TSX couverts avec override filename-case (`pascalCase | camelCase`) pour compatibilite pages Inertia et composants React
+
 ### File List
+
+- `package.json` — scripts lint, format:check
+- `eslint.config.js` — support TSX + no-console + filename-case override
+- `tsconfig.json` — strict: true
+- `.prettierignore` — cree
+- `inertia/pages/Home.tsx` — renomme depuis home.tsx
+- `inertia/pages/errors/NotFound.tsx` — renomme depuis not_found.tsx
+- `inertia/pages/errors/ServerError.tsx` — renomme depuis server_error.tsx
+- `start/routes.ts` — reference mise a jour (Home)
+- `app/exceptions/handler.ts` — references mises a jour (NotFound, ServerError)
+- Tous les fichiers TS/TSX — formates par Prettier
