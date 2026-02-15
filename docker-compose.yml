@@ -20,8 +20,6 @@ services:
     environment:
       # Dans Docker, l'app accède à PostgreSQL via le nom du service (pas localhost)
       DB_HOST: db
-      # Force le mode production : désactive pino-pretty (devDep absent du container)
-      NODE_ENV: production
 
   # ---------------------------------------------------------------------------
   # Service db : PostgreSQL 16
