@@ -1,6 +1,7 @@
 import { configApp, RULES_LIST } from '@adonisjs/eslint-config'
 
 export default configApp(
+  { ignores: ['coverage/**'] },
   // Enforce no-console in all TS files (not in RULES_LIST by default)
   {
     files: ['**/*.ts'],

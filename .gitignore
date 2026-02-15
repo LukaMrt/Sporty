@@ -7,6 +7,9 @@ node_modules
 build
 tmp
 
+# Test coverage
+coverage
+
 # Local env overrides (non tracked)
 .env.local
 .env.production.local
