@@ -44,7 +44,8 @@ WORKDIR /app/build
 
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
-    PORT=3333
+    PORT=3333 \
+    LOG_LEVEL=error
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/build .
