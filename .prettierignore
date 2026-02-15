@@ -6,3 +6,4 @@ node_modules/
 public/assets/
 pnpm-lock.yaml
 docker-compose.yml
+.github/
