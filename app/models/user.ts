@@ -5,6 +5,7 @@ import { BaseModel, beforeSave, column, hasMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Session from '#models/session'
+import type { UserRole } from '#domain/value_objects/user_role'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -25,7 +26,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare fullName: string
 
   @column()
-  declare role: 'admin' | 'user'
+  declare role: UserRole
 
   @hasMany(() => Session)
   declare sessions: HasMany<typeof Session>
