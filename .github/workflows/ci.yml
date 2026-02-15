@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        check: [lint, 'format:check', typecheck, build]
+        check: [lint, 'format:check', typecheck, build, depcruise]
     steps:
       - uses: actions/checkout@v4
 
