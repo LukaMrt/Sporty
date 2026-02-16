@@ -1,5 +1,4 @@
 import { inject } from '@adonisjs/core'
-import hash from '@adonisjs/core/services/hash'
 import { HttpContext } from '@adonisjs/core/http'
 import { AuthService } from '#domain/interfaces/auth_service'
 import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_error'
@@ -21,10 +20,19 @@ export class AdonisAuthService extends AuthService {
   }
 
   async attempt(email: string, password: string): Promise<void> {
-    const user = await UserModel.findBy('email', email)
-    if (!user || !(await hash.verify(user.password, password))) {
+    try {
+      const user = await UserModel.verifyCredentials(email, password)
+      await this.ctx.auth.use('web').login(user)
+    } catch {
       throw new InvalidCredentialsError()
     }
-    await this.ctx.auth.use('web').login(user)
+  }
+
+  async logout(): Promise<void> {
+    await this.ctx.auth.use('web').logout()
+  }
+
+  async isAuthenticated(): Promise<boolean> {
+    return this.ctx.auth.use('web').check()
   }
 }
