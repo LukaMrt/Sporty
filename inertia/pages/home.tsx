@@ -1,14 +1,23 @@
-import { Head } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { Button } from '~/components/ui/button'
+import logo from '~/assets/logo.png'
 
 export default function Home() {
+  function toggleDark() {
+    document.documentElement.classList.toggle('dark')
+  }
+
   return (
     <>
       <Head title="Homepage" />
 
-      {/* Shadcn/ui Button test — story 1.4 validation */}
-      <div className="fixed top-4 right-4 z-50">
-        <Button className="bg-primary p-4 text-white">Test</Button>
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <Button variant="outline" onClick={toggleDark}>
+          Dark / Light
+        </Button>
+        <Button className="bg-primary text-white" onClick={() => router.post('/logout')}>
+          Déconnexion
+        </Button>
       </div>
 
       <div className="fixed top-0 right-8 bottom-0 left-8 mx-auto max-w-screen-xl before:absolute before:top-0 before:left-0 before:h-full before:w-px before:content-[''] before:[background:repeating-linear-gradient(0deg,var(--sand-5)_0_4px,transparent_0_8px)] after:absolute after:top-0 after:right-0 after:h-full after:w-px after:content-[''] after:[background:repeating-linear-gradient(0deg,var(--sand-5)_0_4px,transparent_0_8px)] xl:absolute xl:inset-0"></div>
@@ -16,15 +25,7 @@ export default function Home() {
       <div className="flex h-full flex-col pt-4">
         {/* Header */}
         <div className="from-sand-1 to-sand-2 flex grow items-center justify-center bg-gradient-to-b pb-4">
-          <a href="https://adonisjs.com" target="_blank" className="isolate">
-            <svg className="fill-primary h-16 w-16" viewBox="0 0 33 33">
-              <path
-                fillRule="evenodd"
-                d="M0 16.333c0 13.173 3.16 16.333 16.333 16.333 13.173 0 16.333-3.16 16.333-16.333C32.666 3.16 29.506 0 16.333 0 3.16 0 0 3.16 0 16.333Zm6.586 3.393L11.71 8.083c.865-1.962 2.528-3.027 4.624-3.027 2.096 0 3.759 1.065 4.624 3.027l5.123 11.643c.233.566.432 1.297.432 1.93 0 2.893-2.029 4.923-4.923 4.923-.986 0-1.769-.252-2.561-.506-.812-.261-1.634-.526-2.695-.526-1.048 0-1.89.267-2.718.529-.801.253-1.59.503-2.538.503-2.894 0-4.923-2.03-4.923-4.924 0-.632.2-1.363.432-1.929Zm9.747-9.613-5.056 11.443c1.497-.699 3.227-1.032 5.056-1.032 1.763 0 3.56.333 4.99 1.032l-4.99-11.444Z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </a>
+          <img src={logo} alt="Sporty" className="h-32 w-32" />
         </div>
 
         {/* Bento with documentation, Adocasts, packages and Discord */}
