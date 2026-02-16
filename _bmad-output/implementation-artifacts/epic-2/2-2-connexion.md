@@ -156,25 +156,30 @@ claude-opus-4-6
 
 ### Debug Log References
 
-- AdonisJS v6 n'a pas `attempt()` sur le session guard → implémenté via `UserModel.findBy()` + `hash.verify()` + `auth.login()`
+- AdonisJS v6 n'a pas `attempt()` sur le session guard → utilisation de `UserModel.verifyCredentials()` (mixin `AuthFinder`)
 - `response.redirect().back().withErrors()` n'existe pas en AdonisJS v6 → `session.flashErrors()` + `response.redirect().back()`
 - DB de test nécessitait `NODE_ENV=test node ace migration:run`
+- Double hash du password : le modèle avait `@beforeSave encryptPassword` ET le mixin `AuthFinder` → supprimé le `@beforeSave` manuel
+- `vine.compile()` deprecated → migré vers `vine.create()`
 
 ### Completion Notes List
 
-- Ajout de `attempt(email, password)` au port `AuthService` et implémentation dans `AdonisAuthService`
+- Ajout de `attempt(email, password)`, `logout()`, `isAuthenticated()` au port `AuthService`
 - Création de `InvalidCredentialsError` dans le domain
 - Erreur générique unique pour email inexistant ET mauvais mot de passe (AC #2)
 - Route `/` protégée par middleware auth → redirect `/login` si non authentifié (AC #3)
-- Mise à jour du mock `AuthService` dans `register_user.spec.ts` pour inclure `attempt`
-- Formatage de `.dependency-cruiser.cjs` (pré-existant, non formaté)
+- Use case `LogoutUser` pour la déconnexion
+- Controller ne touche jamais `auth.use('web')` directement — tout passe par les use cases
+- Migration du CDN Tailwind vers config locale (`inertia/css/app.css`)
+- Suppression du `@beforeSave` dupliqué sur le modèle User (double hash)
 
 ### File List
 
 | Action   | Fichier                                          |
 |----------|--------------------------------------------------|
-| Créé     | `app/validators/auth/login_validator.ts`         |
-| Créé     | `app/use_cases/auth/login_user.ts`               |
+| Créé     | `app/validators/auth/login_validator.ts`          |
+| Créé     | `app/use_cases/auth/login_user.ts`                |
+| Créé     | `app/use_cases/auth/logout_user.ts`               |
 | Créé     | `app/controllers/auth/login_controller.ts`       |
 | Créé     | `app/domain/errors/invalid_credentials_error.ts` |
 | Créé     | `inertia/pages/Auth/Login.tsx`                   |
