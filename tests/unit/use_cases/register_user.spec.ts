@@ -23,6 +23,7 @@ function makeUserRepository(overrides: Partial<UserRepository> = {}): UserReposi
 function makeAuthService(): AuthService {
   class MockAuthService extends AuthService {
     async login(_user: User): Promise<void> {}
+    async attempt(_email: string, _password: string): Promise<void> {}
   }
   return new MockAuthService()
 }

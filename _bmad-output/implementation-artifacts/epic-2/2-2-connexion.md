@@ -1,6 +1,6 @@
 # Story 2.2 : Connexion
 
-Status: ready-for-dev
+Status: dev-complete
 
 ## Story
 
@@ -16,39 +16,39 @@ so that **j'accède à mon espace personnel** (FR4).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Validator VineJS (AC: #1, #2)
-  - [ ] Créer `app/validators/auth/login_validator.ts`
-  - [ ] Champs : `email` (email, normalizeEmail), `password` (string, minLength 1)
-  - [ ] Validation légère côté serveur — la vérification des credentials est dans le use case
+- [x] Task 1 : Validator VineJS (AC: #1, #2)
+  - [x] Créer `app/validators/auth/login_validator.ts`
+  - [x] Champs : `email` (email, normalizeEmail), `password` (string, minLength 1)
+  - [x] Validation légère côté serveur — la vérification des credentials est dans le use case
 
-- [ ] Task 2 : Use Case LoginUser (AC: #1, #2)
-  - [ ] Créer `app/use_cases/auth/login_user.ts`
-  - [ ] Utiliser `auth.use('web').attempt(email, password)` — vérifie les credentials + crée la session
-  - [ ] En cas d'échec (`InvalidCredentialsException`) → lancer une erreur domain neutre
-  - [ ] NE JAMAIS différencier "email inexistant" de "mauvais mot de passe" dans le message
+- [x] Task 2 : Use Case LoginUser (AC: #1, #2)
+  - [x] Créer `app/use_cases/auth/login_user.ts`
+  - [x] Utiliser `auth.use('web').attempt(email, password)` — vérifie les credentials + crée la session
+  - [x] En cas d'échec (`InvalidCredentialsException`) → lancer une erreur domain neutre
+  - [x] NE JAMAIS différencier "email inexistant" de "mauvais mot de passe" dans le message
 
-- [ ] Task 3 : Middleware auth (AC: #3)
-  - [ ] Vérifier/créer `app/middleware/auth_middleware.ts`
-  - [ ] Appliquer le middleware sur toutes les routes protégées (groupe dans `start/routes.ts`)
-  - [ ] Si non authentifié → redirect vers `/login`
+- [x] Task 3 : Middleware auth (AC: #3)
+  - [x] Vérifier/créer `app/middleware/auth_middleware.ts`
+  - [x] Appliquer le middleware sur toutes les routes protégées (groupe dans `start/routes.ts`)
+  - [x] Si non authentifié → redirect vers `/login`
 
-- [ ] Task 4 : Routes + Controller (AC: #1, #2)
-  - [ ] Dans `start/routes.ts` : `GET /login`, `POST /login` (non protégées)
-  - [ ] Groupe de routes protégées wrappé par le middleware auth
-  - [ ] Créer `app/controllers/auth/login_controller.ts`
-  - [ ] GET : si déjà authentifié → redirect `/` | sinon → `inertia.render('Auth/Login')`
-  - [ ] POST : valider, appeler `LoginUser`, redirect `/`
+- [x] Task 4 : Routes + Controller (AC: #1, #2)
+  - [x] Dans `start/routes.ts` : `GET /login`, `POST /login` (non protégées)
+  - [x] Groupe de routes protégées wrappé par le middleware auth
+  - [x] Créer `app/controllers/auth/login_controller.ts`
+  - [x] GET : si déjà authentifié → redirect `/` | sinon → `inertia.render('Auth/Login')`
+  - [x] POST : valider, appeler `LoginUser`, redirect `/`
 
-- [ ] Task 5 : Page React Login (AC: #1, #2)
-  - [ ] Créer `inertia/pages/Auth/Login.tsx` wrappée dans `AuthLayout`
-  - [ ] Formulaire : champs `email`, `password`
-  - [ ] `useForm()` d'Inertia pour `processing` et erreurs
-  - [ ] Afficher l'erreur générique sur le formulaire (pas sur un champ spécifique)
-  - [ ] Lien vers `/register` si aucun compte (uniquement si `canRegister` prop passée par le controller)
+- [x] Task 5 : Page React Login (AC: #1, #2)
+  - [x] Créer `inertia/pages/Auth/Login.tsx` wrappée dans `AuthLayout`
+  - [x] Formulaire : champs `email`, `password`
+  - [x] `useForm()` d'Inertia pour `processing` et erreurs
+  - [x] Afficher l'erreur générique sur le formulaire (pas sur un champ spécifique)
+  - [x] Lien vers `/register` si aucun compte (uniquement si `canRegister` prop passée par le controller)
 
-- [ ] Task 6 : Tests (AC: #1, #2, #3)
-  - [ ] `tests/unit/use_cases/login_user.spec.ts` : credentials valides → session, credentials invalides → erreur neutre
-  - [ ] `tests/functional/auth/login.spec.ts` : POST valide → 302 redirect `/`, POST invalide → erreur générique, route protégée sans session → redirect `/login`
+- [x] Task 6 : Tests (AC: #1, #2, #3)
+  - [x] `tests/unit/use_cases/login_user.spec.ts` : credentials valides → session, credentials invalides → erreur neutre
+  - [x] `tests/functional/auth/login.spec.ts` : POST valide → 302 redirect `/`, POST invalide → erreur générique, route protégée sans session → redirect `/login`
 
 ## Dev Notes
 
@@ -152,10 +152,36 @@ Login.layout = (page: React.ReactNode) => <AuthLayout>{page}</AuthLayout>
 
 ### Agent Model Used
 
-claude-sonnet-4-5-20250929
+claude-opus-4-6
 
 ### Debug Log References
 
+- AdonisJS v6 n'a pas `attempt()` sur le session guard → implémenté via `UserModel.findBy()` + `hash.verify()` + `auth.login()`
+- `response.redirect().back().withErrors()` n'existe pas en AdonisJS v6 → `session.flashErrors()` + `response.redirect().back()`
+- DB de test nécessitait `NODE_ENV=test node ace migration:run`
+
 ### Completion Notes List
 
+- Ajout de `attempt(email, password)` au port `AuthService` et implémentation dans `AdonisAuthService`
+- Création de `InvalidCredentialsError` dans le domain
+- Erreur générique unique pour email inexistant ET mauvais mot de passe (AC #2)
+- Route `/` protégée par middleware auth → redirect `/login` si non authentifié (AC #3)
+- Mise à jour du mock `AuthService` dans `register_user.spec.ts` pour inclure `attempt`
+- Formatage de `.dependency-cruiser.cjs` (pré-existant, non formaté)
+
 ### File List
+
+| Action   | Fichier                                          |
+|----------|--------------------------------------------------|
+| Créé     | `app/validators/auth/login_validator.ts`         |
+| Créé     | `app/use_cases/auth/login_user.ts`               |
+| Créé     | `app/controllers/auth/login_controller.ts`       |
+| Créé     | `app/domain/errors/invalid_credentials_error.ts` |
+| Créé     | `inertia/pages/Auth/Login.tsx`                   |
+| Créé     | `tests/unit/use_cases/login_user.spec.ts`        |
+| Créé     | `tests/functional/auth/login.spec.ts`            |
+| Modifié  | `app/domain/interfaces/auth_service.ts`          |
+| Modifié  | `app/services/adonis_auth_service.ts`            |
+| Modifié  | `start/routes.ts`                                |
+| Modifié  | `tests/unit/use_cases/register_user.spec.ts`     |
+| Formaté  | `.dependency-cruiser.cjs`                        |
