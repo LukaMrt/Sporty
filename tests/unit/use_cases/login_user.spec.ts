@@ -8,6 +8,10 @@ function makeAuthService(overrides: Partial<AuthService> = {}): AuthService {
   class MockAuthService extends AuthService {
     async login(_user: User): Promise<void> {}
     async attempt(_email: string, _password: string): Promise<void> {}
+    async logout(): Promise<void> {}
+    async isAuthenticated(): Promise<boolean> {
+      return false
+    }
   }
   return Object.assign(new MockAuthService(), overrides)
 }

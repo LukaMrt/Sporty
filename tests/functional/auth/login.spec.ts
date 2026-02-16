@@ -69,4 +69,35 @@ test.group('Auth / Login', (group) => {
     response.assertStatus(302)
     response.assertHeader('location', '/login')
   })
+
+  test('POST /logout — utilisateur connecté → redirect /login', async ({ client }) => {
+    const { default: User } = await import('#models/user')
+    await User.create({
+      fullName: 'Test User',
+      email: 'user@example.com',
+      password: 'password123',
+      role: 'admin',
+    })
+
+    const loginResponse = await client
+      .post('/login')
+      .form({ email: 'user@example.com', password: 'password123' })
+      .redirects(0)
+
+    const cookies = loginResponse.cookies()
+
+    const response = await client.post('/logout').cookies(cookies).redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/login')
+  })
+
+  test('POST /logout — non connecté → redirect /login (via auth middleware)', async ({
+    client,
+  }) => {
+    const response = await client.post('/logout').redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/login')
+  })
 })

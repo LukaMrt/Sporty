@@ -22,5 +22,6 @@ router.post('/login', [LoginController, 'login'])
 router
   .group(() => {
     router.on('/').renderInertia('home')
+    router.post('/logout', [LoginController, 'logout'])
   })
   .use(middleware.auth())

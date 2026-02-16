@@ -8,4 +8,8 @@ export default class LoginUser {
   async execute(email: string, password: string): Promise<void> {
     await this.authService.attempt(email, password)
   }
+
+  async isAuthenticated(): Promise<boolean> {
+    return this.authService.isAuthenticated()
+  }
 }
