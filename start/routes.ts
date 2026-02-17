@@ -23,6 +23,9 @@ router.post('/login', [LoginController, 'login'])
 router
   .group(() => {
     router.on('/').renderInertia('home')
+    router.on('/sessions').renderInertia('Sessions/Index')
+    router.on('/planning').renderInertia('Planning/Index')
+    router.on('/profile').renderInertia('Profile/Edit')
     router.post('/logout', [LogoutController, 'logout'])
   })
   .use(middleware.auth())

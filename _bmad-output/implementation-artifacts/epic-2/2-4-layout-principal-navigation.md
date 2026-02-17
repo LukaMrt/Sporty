@@ -1,6 +1,6 @@
 # Story 2.4 : Layout principal & navigation
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -15,45 +15,45 @@ so that **je peux me repérer et naviguer entre les sections**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : AuthLayout (AC: #1)
-  - [ ] Créer/compléter `inertia/layouts/AuthLayout.tsx`
-  - [ ] Layout centré verticalement et horizontalement, fond neutre
-  - [ ] Sans header, sans navigation — uniquement le contenu de la page
-  - [ ] Utilisé par `Login.tsx` et `Register.tsx`
+- [x] Task 1 : AuthLayout (AC: #1)
+  - [x] Créer/compléter `inertia/layouts/AuthLayout.tsx`
+  - [x] Layout centré verticalement et horizontalement, fond neutre
+  - [x] Sans header, sans navigation — uniquement le contenu de la page
+  - [x] Utilisé par `Login.tsx` et `Register.tsx`
 
-- [ ] Task 2 : MainLayout — Header (AC: #1, #2)
-  - [ ] Créer/compléter `inertia/layouts/MainLayout.tsx`
-  - [ ] Header fixe en haut : logo texte "Sporty" à gauche + Avatar (initiales utilisateur) à droite
-  - [ ] Avatar : composant Shadcn `Avatar` avec `AvatarFallback` (initiale du `full_name`)
-  - [ ] Le header reçoit `currentUser` via les shared props Inertia (`usePage().props.auth.user`)
+- [x] Task 2 : MainLayout — Header (AC: #1, #2)
+  - [x] Créer/compléter `inertia/layouts/MainLayout.tsx`
+  - [x] Header fixe en haut : logo texte "Sporty" à gauche + Avatar (initiales utilisateur) à droite
+  - [x] Avatar : composant Shadcn `Avatar` avec `AvatarFallback` (initiale du `full_name`)
+  - [x] Le header reçoit `currentUser` via les shared props Inertia (`usePage().props.auth.user`)
 
-- [ ] Task 3 : MainLayout — Bottom Tab Bar mobile (AC: #1, #2)
-  - [ ] Bottom tab bar fixe (`position: fixed`, `bottom: 0`, `z-index: 50`)
-  - [ ] 4 onglets : Accueil (`/`), Séances (`/sessions`), Planning (`/planning`), Profil (`/profile`)
-  - [ ] Chaque onglet : icône + label court
-  - [ ] Onglet actif : couleur `primary` (bleu), onglets inactifs : `muted-foreground`
-  - [ ] Utiliser `usePage().url` d'Inertia pour détecter la route active
-  - [ ] Icônes : Lucide React (`Home`, `Dumbbell` ou `Activity`, `Calendar`, `User`)
-  - [ ] Visible uniquement sur mobile (`flex md:hidden`)
+- [x] Task 3 : MainLayout — Bottom Tab Bar mobile (AC: #1, #2)
+  - [x] Bottom tab bar fixe (`position: fixed`, `bottom: 0`, `z-index: 50`)
+  - [x] 4 onglets : Accueil (`/`), Séances (`/sessions`), Planning (`/planning`), Profil (`/profile`)
+  - [x] Chaque onglet : icône + label court
+  - [x] Onglet actif : couleur `primary` (bleu), onglets inactifs : `muted-foreground`
+  - [x] Utiliser `usePage().url` d'Inertia pour détecter la route active
+  - [x] Icônes : Lucide React (`Home`, `Dumbbell` ou `Activity`, `Calendar`, `User`)
+  - [x] Visible uniquement sur mobile (`flex md:hidden`)
 
-- [ ] Task 4 : MainLayout — Sidebar desktop (AC: #1, #2)
-  - [ ] Sidebar gauche, largeur fixe (~240px), `hidden md:flex flex-col`
-  - [ ] Mêmes 4 liens que la tab bar
-  - [ ] Lien actif visuellement distingué (background primaire léger ou texte en `primary`)
-  - [ ] Bouton "Se déconnecter" en bas de la sidebar
+- [x] Task 4 : MainLayout — Sidebar desktop (AC: #1, #2)
+  - [x] Sidebar gauche, largeur fixe (~240px), `hidden md:flex flex-col`
+  - [x] Mêmes 4 liens que la tab bar
+  - [x] Lien actif visuellement distingué (background primaire léger ou texte en `primary`)
+  - [x] Bouton "Se déconnecter" en bas de la sidebar
 
-- [ ] Task 5 : Intégration Inertia layouts (AC: #1)
-  - [ ] Chaque page protégée déclare `PageName.layout = (page) => <MainLayout>{page}</MainLayout>`
-  - [ ] Pages Auth déclarent `PageName.layout = (page) => <AuthLayout>{page}</AuthLayout>`
-  - [ ] S'assurer que `inertia/app/app.tsx` ne wrap pas toutes les pages dans un layout global conflictant
+- [x] Task 5 : Intégration Inertia layouts (AC: #1)
+  - [x] Chaque page protégée déclare `PageName.layout = (page) => <MainLayout>{page}</MainLayout>`
+  - [x] Pages Auth déclarent `PageName.layout = (page) => <AuthLayout>{page}</AuthLayout>`
+  - [x] S'assurer que `inertia/app/app.tsx` ne wrap pas toutes les pages dans un layout global conflictant
 
-- [ ] Task 6 : Shared props Inertia (AC: #1)
-  - [ ] Dans `start/kernel.ts` ou un middleware Inertia, partager `auth.user` en shared props
-  - [ ] `router.on('before')` ou `sharedData` Inertia pour passer `currentUser` à toutes les pages
+- [x] Task 6 : Shared props Inertia (AC: #1)
+  - [x] Dans `start/kernel.ts` ou un middleware Inertia, partager `auth.user` en shared props
+  - [x] `router.on('before')` ou `sharedData` Inertia pour passer `currentUser` à toutes les pages
 
-- [ ] Task 7 : Tests (AC: #1, #2)
-  - [ ] Vérifier manuellement : mobile → tab bar visible, desktop (> 768px) → sidebar visible
-  - [ ] `tests/functional/navigation.spec.ts` : navigation entre routes → pas de rechargement complet (header Inertia present `X-Inertia: true`)
+- [x] Task 7 : Tests (AC: #1, #2)
+  - [x] Vérifier manuellement : mobile → tab bar visible, desktop (> 768px) → sidebar visible
+  - [x] `tests/functional/navigation.spec.ts` : navigation entre routes → pas de rechargement complet (header Inertia present `X-Inertia: true`)
 
 ## Dev Notes
 
@@ -205,10 +205,29 @@ Tailwind tokens définis en Story 1.4 :
 
 ### Agent Model Used
 
-claude-sonnet-4-5-20250929
+claude-opus-4-6
 
 ### Debug Log References
 
 ### Completion Notes List
 
+- AuthLayout existait déjà (Story 2.2), inchangé
+- MainLayout réécrit avec header fixe + avatar Shadcn + sidebar desktop + bottom tab bar mobile
+- Shared props `auth.user` configurées dans `config/inertia.ts` via `sharedData`
+- Pages placeholder créées pour `/sessions`, `/planning`, `/profile`
+- Toutes les pages utilisent le pattern `.layout` persistant Inertia
+- Composant Avatar Shadcn installé (`@radix-ui/react-avatar`)
+- Navigation SPA via `<Link>` Inertia, onglet actif détecté via `usePage().url`
+- 6 tests fonctionnels navigation : routes protégées, redirections, protocole Inertia
+
 ### File List
+
+- `config/inertia.ts` — shared props auth.user
+- `inertia/layouts/MainLayout.tsx` — header + sidebar + tab bar
+- `inertia/components/ui/avatar.tsx` — composant Shadcn Avatar
+- `inertia/pages/home.tsx` — migré vers layout persistant
+- `inertia/pages/Sessions/Index.tsx` — placeholder
+- `inertia/pages/Planning/Index.tsx` — placeholder
+- `inertia/pages/Profile/Edit.tsx` — placeholder
+- `start/routes.ts` — routes placeholder ajoutées
+- `tests/functional/navigation.spec.ts` — tests navigation
