@@ -1,26 +1,13 @@
-import { Head, router } from '@inertiajs/react'
-import { Button } from '~/components/ui/button'
+import { Head } from '@inertiajs/react'
+import MainLayout from '~/layouts/MainLayout'
 import logo from '~/assets/logo.png'
 
 export default function Home() {
-  function toggleDark() {
-    document.documentElement.classList.toggle('dark')
-  }
-
   return (
-    <>
+    <MainLayout>
       <Head title="Homepage" />
 
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
-        <Button variant="outline" onClick={toggleDark}>
-          Dark / Light
-        </Button>
-        <Button className="bg-primary text-white" onClick={() => router.post('/logout')}>
-          Déconnexion
-        </Button>
-      </div>
-
-      <div className="fixed top-0 right-8 bottom-0 left-8 mx-auto max-w-screen-xl before:absolute before:top-0 before:left-0 before:h-full before:w-px before:content-[''] before:[background:repeating-linear-gradient(0deg,var(--sand-5)_0_4px,transparent_0_8px)] after:absolute after:top-0 after:right-0 after:h-full after:w-px after:content-[''] after:[background:repeating-linear-gradient(0deg,var(--sand-5)_0_4px,transparent_0_8px)] xl:absolute xl:inset-0"></div>
+      <div className="pointer-events-none fixed top-0 right-8 bottom-0 left-8 mx-auto max-w-screen-xl before:absolute before:top-0 before:left-0 before:h-full before:w-px before:content-[''] before:[background:repeating-linear-gradient(0deg,var(--sand-5)_0_4px,transparent_0_8px)] after:absolute after:top-0 after:right-0 after:h-full after:w-px after:content-[''] after:[background:repeating-linear-gradient(0deg,var(--sand-5)_0_4px,transparent_0_8px)] xl:absolute xl:inset-0"></div>
 
       <div className="flex h-full flex-col pt-4">
         {/* Header */}
@@ -348,6 +335,6 @@ export default function Home() {
           <code>inertia/pages/home.tsx</code> template
         </div>
       </div>
-    </>
+    </MainLayout>
   )
 }

@@ -1,6 +1,6 @@
 # Story 2.3 : Déconnexion
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -15,24 +15,24 @@ so that **ma session est fermée et mes données sont protégées** (FR5).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Use Case LogoutUser (AC: #1, #2)
-  - [ ] Créer `app/use_cases/auth/logout_user.ts`
-  - [ ] Appeler `auth.use('web').logout()` pour invalider la session côté serveur
-  - [ ] Simple : pas de logique supplémentaire
+- [x] Task 1 : Use Case LogoutUser (AC: #1, #2)
+  - [x] Créer `app/use_cases/auth/logout_user.ts`
+  - [x] Appeler `auth.use('web').logout()` pour invalider la session côté serveur
+  - [x] Simple : pas de logique supplémentaire
 
-- [ ] Task 2 : Route + Controller (AC: #1, #2)
-  - [ ] Dans `start/routes.ts` : `POST /logout` (protégée, dans le groupe auth)
-  - [ ] Créer `app/controllers/auth/logout_controller.ts`
-  - [ ] Appeler `LogoutUser`, redirect vers `/login`
-  - [ ] **JAMAIS utiliser GET /logout** — vulnérabilité CSRF
+- [x] Task 2 : Route + Controller (AC: #1, #2)
+  - [x] Dans `start/routes.ts` : `POST /logout` (protégée, dans le groupe auth)
+  - [x] Créer `app/controllers/auth/logout_controller.ts`
+  - [x] Appeler `LogoutUser`, redirect vers `/login`
+  - [x] **JAMAIS utiliser GET /logout** — vulnérabilité CSRF
 
-- [ ] Task 3 : Bouton déconnexion dans le layout (AC: #1)
-  - [ ] Dans `inertia/layouts/MainLayout.tsx` : ajouter un bouton/lien "Se déconnecter"
-  - [ ] Utiliser `useForm()` ou `router.post('/logout')` d'Inertia (POST, pas href)
-  - [ ] Emplacement : header (avatar menu dropdown) ou profil
+- [x] Task 3 : Bouton déconnexion dans le layout (AC: #1)
+  - [x] Dans `inertia/layouts/MainLayout.tsx` : ajouter un bouton/lien "Se déconnecter"
+  - [x] Utiliser `useForm()` ou `router.post('/logout')` d'Inertia (POST, pas href)
+  - [x] Emplacement : header (avatar menu dropdown) ou profil
 
-- [ ] Task 4 : Tests (AC: #1, #2)
-  - [ ] `tests/functional/auth/logout.spec.ts` : POST /logout → session invalidée → redirect /login, accès route protégée après logout → redirect /login
+- [x] Task 4 : Tests (AC: #1, #2)
+  - [x] `tests/functional/auth/logout.spec.ts` : POST /logout → session invalidée → redirect /login, accès route protégée après logout → redirect /login
 
 ## Dev Notes
 
@@ -117,10 +117,26 @@ Selon l'UX spec, le header affiche le logo + avatar de l'utilisateur. Le bouton 
 
 ### Agent Model Used
 
-claude-sonnet-4-5-20250929
+claude-opus-4-6
 
 ### Debug Log References
 
 ### Completion Notes List
 
+- LogoutController dédié créé (séparé du LoginController) — controller mince, appel use case + redirect
+- MainLayout.tsx créé avec header (logo + bouton déconnexion) — `router.post('/logout')` d'Inertia
+- home.tsx wrappé dans MainLayout, bouton inline retiré
+- 3 tests fonctionnels dans `logout.spec.ts` couvrant AC#1 (session invalidée → redirect) et AC#2 (accès post-logout → redirect)
+- Div décorative de home.tsx corrigée avec `pointer-events-none`
+
 ### File List
+
+| Action   | Fichier                                            |
+|----------|----------------------------------------------------|
+| Créé     | `app/controllers/auth/logout_controller.ts`        |
+| Créé     | `inertia/layouts/MainLayout.tsx`                   |
+| Créé     | `tests/functional/auth/logout.spec.ts`             |
+| Modifié  | `start/routes.ts`                                  |
+| Modifié  | `app/controllers/auth/login_controller.ts`         |
+| Modifié  | `inertia/pages/home.tsx`                           |
+| Modifié  | `tests/functional/auth/login.spec.ts`              |

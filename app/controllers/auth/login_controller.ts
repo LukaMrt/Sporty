@@ -2,15 +2,11 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { loginValidator } from '#validators/auth/login_validator'
 import LoginUser from '#use_cases/auth/login_user'
-import LogoutUser from '#use_cases/auth/logout_user'
 import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_error'
 
 @inject()
 export default class LoginController {
-  constructor(
-    private loginUser: LoginUser,
-    private logoutUser: LogoutUser
-  ) {}
+  constructor(private loginUser: LoginUser) {}
 
   async show({ inertia, response }: HttpContext) {
     if (await this.loginUser.isAuthenticated()) {
@@ -31,10 +27,5 @@ export default class LoginController {
       }
       throw error
     }
-  }
-
-  async logout({ response }: HttpContext) {
-    await this.logoutUser.execute()
-    return response.redirect('/login')
   }
 }

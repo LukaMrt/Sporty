@@ -12,6 +12,7 @@ import { middleware } from '#start/kernel'
 
 const RegisterController = () => import('#controllers/auth/register_controller')
 const LoginController = () => import('#controllers/auth/login_controller')
+const LogoutController = () => import('#controllers/auth/logout_controller')
 
 router.get('/register', [RegisterController, 'show'])
 router.post('/register', [RegisterController, 'register'])
@@ -22,6 +23,6 @@ router.post('/login', [LoginController, 'login'])
 router
   .group(() => {
     router.on('/').renderInertia('home')
-    router.post('/logout', [LoginController, 'logout'])
+    router.post('/logout', [LogoutController, 'logout'])
   })
   .use(middleware.auth())
