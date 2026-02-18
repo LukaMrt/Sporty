@@ -64,7 +64,7 @@ test.group('RegisterUser — use case', () => {
     assert.instanceOf(thrownError, UserAlreadyExistsError)
   })
 
-  test('mot de passe transmis tel quel au repository (hashé par @beforeSave du modèle)', async ({
+  test('mot de passe transmis tel quel au repository (hashé par le mixin withAuthFinder)', async ({
     assert,
   }) => {
     const captured: Omit<User, 'id'>[] = []
