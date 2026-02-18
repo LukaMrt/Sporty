@@ -52,7 +52,7 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2 : Authentification & Premier Acces
-  epic-2: in-progress
+  epic-2: done
   2-1-inscription-premier-compte-admin: done
   2-2-connexion: done
   2-3-deconnexion: done
