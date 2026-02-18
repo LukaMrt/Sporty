@@ -1,6 +1,6 @@
 # Story 2.2 : Connexion
 
-Status: dev-complete
+Status: done
 
 ## Story
 

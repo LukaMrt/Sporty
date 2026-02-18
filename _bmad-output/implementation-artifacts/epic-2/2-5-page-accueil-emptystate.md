@@ -1,6 +1,6 @@
 # Story 2.5 : Page d'accueil (EmptyState)
 
-Status: completed
+Status: done
 
 ## Story
 
