@@ -60,17 +60,10 @@ module.exports = {
     {
       name: 'infra-no-http-nor-usecases',
       severity: 'error',
-      comment:
-        "L'infrastructure ne doit pas dépendre des use cases ou de la couche HTTP.",
+      comment: "L'infrastructure ne doit pas dépendre des use cases ou de la couche HTTP.",
       from: { path: '^app/(repositories|services)/' },
       to: {
-        path: layerPattern([
-          'use_cases',
-          'controllers',
-          'middleware',
-          'validators',
-          'exceptions',
-        ]),
+        path: layerPattern(['use_cases', 'controllers', 'middleware', 'validators', 'exceptions']),
       },
     },
 
@@ -108,8 +101,7 @@ module.exports = {
     {
       name: 'validators-isolated',
       severity: 'error',
-      comment:
-        'Les validators ne doivent pas dépendre des autres couches internes.',
+      comment: 'Les validators ne doivent pas dépendre des autres couches internes.',
       from: { path: '^app/validators/' },
       to: {
         path: layerPattern([
@@ -127,8 +119,7 @@ module.exports = {
     {
       name: 'middleware-no-infra',
       severity: 'error',
-      comment:
-        "Les middleware HTTP ne doivent pas accéder directement à l'infrastructure.",
+      comment: "Les middleware HTTP ne doivent pas accéder directement à l'infrastructure.",
       from: { path: '^app/middleware/' },
       to: {
         path: layerPattern(['repositories', 'services', 'models']),

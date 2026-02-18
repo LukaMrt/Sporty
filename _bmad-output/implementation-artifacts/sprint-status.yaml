@@ -52,12 +52,12 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2 : Authentification & Premier Acces
-  epic-2: in-progress
-  2-1-inscription-premier-compte-admin: ready-for-dev
-  2-2-connexion: ready-for-dev
-  2-3-deconnexion: ready-for-dev
-  2-4-layout-principal-navigation: ready-for-dev
-  2-5-page-accueil-emptystate: ready-for-dev
+  epic-2: done
+  2-1-inscription-premier-compte-admin: done
+  2-2-connexion: done
+  2-3-deconnexion: done
+  2-4-layout-principal-navigation: done
+  2-5-page-accueil-emptystate: done
   epic-2-retrospective: optional
 
   # Epic 3 : Gestion Utilisateurs & Profils
