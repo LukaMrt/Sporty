@@ -13,7 +13,7 @@ const inertiaConfig = defineConfig({
   sharedData: {
     auth: (ctx) =>
       ctx.inertia.always(() => ({
-        user: ctx.auth.user
+        user: ctx.auth?.user
           ? { id: ctx.auth.user.id, fullName: ctx.auth.user.fullName, role: ctx.auth.user.role }
           : null,
       })),

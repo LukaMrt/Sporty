@@ -11,7 +11,7 @@ interface AuthUser {
 }
 
 interface SharedProps {
-  auth: { user: AuthUser | null }
+  auth?: { user: AuthUser | null }
 }
 
 const navItems = [
@@ -71,7 +71,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <span className="text-lg font-semibold">Sporty</span>
         </div>
         <Avatar>
-          <AvatarFallback>{auth.user?.fullName?.charAt(0)?.toUpperCase()}</AvatarFallback>
+          <AvatarFallback>{auth?.user?.fullName?.charAt(0)?.toUpperCase()}</AvatarFallback>
         </Avatar>
       </header>
 
@@ -81,7 +81,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           {navItems.map((item) => (
             <SidebarLink key={item.href} {...item} />
           ))}
-          {auth.user?.role === 'admin' && (
+          {auth?.user?.role === 'admin' && (
             <SidebarLink href="/admin/users" label="Administration" icon={ShieldCheck} />
           )}
         </nav>
