@@ -7,6 +7,9 @@ import type { User } from '#domain/entities/user'
 
 function makeUserRepository(overrides: Partial<UserRepository> = {}): UserRepository {
   class MockRepository extends UserRepository {
+    findAll(): Promise<User[]> {
+      return Promise.resolve([])
+    }
     async countAll() {
       return 0
     }

@@ -24,6 +24,8 @@ export default class RegisterUser {
     const user = await this.userRepository.create({
       ...input,
       role: UserRole.Admin,
+      onboardingCompleted: false,
+      createdAt: new Date().toISOString(),
     })
 
     await this.authService.login(user)

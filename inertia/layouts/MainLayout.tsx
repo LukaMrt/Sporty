@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
-import { Home, Activity, Calendar, User, LogOut } from 'lucide-react'
+import { Home, Activity, Calendar, User, LogOut, ShieldCheck } from 'lucide-react'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import logo from '~/assets/logo.png'
 
@@ -81,6 +81,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           {navItems.map((item) => (
             <SidebarLink key={item.href} {...item} />
           ))}
+          {auth.user?.role === 'admin' && (
+            <SidebarLink href="/admin/users" label="Administration" icon={ShieldCheck} />
+          )}
         </nav>
         <button
           onClick={() => router.post('/logout')}

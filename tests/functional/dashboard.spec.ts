@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+import { createUser } from '#tests/helpers'
 
 test.group('Dashboard', (group) => {
   group.each.setup(async () => testUtils.db().withGlobalTransaction())
@@ -14,20 +15,9 @@ test.group('Dashboard', (group) => {
   test('GET / connecté sans séances → 200 Dashboard avec EmptyState (AC#1, #2)', async ({
     client,
   }) => {
-    const { default: User } = await import('#models/user')
-    await User.create({
-      fullName: 'Luka Test',
-      email: 'luka@example.com',
-      password: 'password123',
-      role: 'admin',
-    })
+    const user = await createUser()
 
-    await client
-      .post('/login')
-      .form({ email: 'luka@example.com', password: 'password123' })
-      .redirects(0)
-
-    const response = await client.get('/')
+    const response = await client.get('/').loginAs(user)
 
     response.assertStatus(200)
   })

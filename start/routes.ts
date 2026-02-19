@@ -14,6 +14,7 @@ const RegisterController = () => import('#controllers/auth/register_controller')
 const LoginController = () => import('#controllers/auth/login_controller')
 const LogoutController = () => import('#controllers/auth/logout_controller')
 const DashboardController = () => import('#controllers/dashboard/dashboard_controller')
+const AdminUsersController = () => import('#controllers/admin/users_controller')
 
 router.get('/register', [RegisterController, 'show'])
 router.post('/register', [RegisterController, 'register'])
@@ -30,3 +31,10 @@ router
     router.post('/logout', [LogoutController, 'logout'])
   })
   .use(middleware.auth())
+
+router
+  .group(() => {
+    router.get('/users', [AdminUsersController, 'index'])
+  })
+  .prefix('/admin')
+  .use([middleware.auth(), middleware.admin()])

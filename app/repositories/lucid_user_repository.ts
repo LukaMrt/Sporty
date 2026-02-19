@@ -23,6 +23,11 @@ export default class LucidUserRepository extends UserRepository {
     return model ? this.#toEntity(model) : null
   }
 
+  async findAll(): Promise<User[]> {
+    const models = await UserModel.query().orderBy('created_at', 'asc')
+    return models.map((model) => this.#toEntity(model))
+  }
+
   #toEntity(model: UserModel): User {
     return {
       id: model.id,
@@ -30,6 +35,8 @@ export default class LucidUserRepository extends UserRepository {
       fullName: model.fullName,
       password: model.password,
       role: model.role,
+      onboardingCompleted: model.onboardingCompleted,
+      createdAt: model.createdAt.toISO() ?? '',
     }
   }
 }

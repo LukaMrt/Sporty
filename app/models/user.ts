@@ -28,6 +28,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare role: UserRole
 
+  @column()
+  declare onboardingCompleted: boolean
+
   @hasMany(() => Session)
   declare sessions: HasMany<typeof Session>
 

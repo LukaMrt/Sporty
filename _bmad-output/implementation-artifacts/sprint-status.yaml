@@ -62,7 +62,7 @@ development_status:
 
   # Epic 3 : Gestion Utilisateurs & Profils
   epic-3: in-progress
-  3-1-admin-liste-utilisateurs: ready-for-dev
+  3-1-admin-liste-utilisateurs: done
   3-2-admin-creer-compte-utilisateur: ready-for-dev
   3-3-admin-modifier-supprimer-compte: ready-for-dev
   3-4-changement-mot-de-passe: ready-for-dev
