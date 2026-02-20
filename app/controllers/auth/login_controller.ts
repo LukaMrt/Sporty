@@ -3,6 +3,7 @@ import { inject } from '@adonisjs/core'
 import { loginValidator } from '#validators/auth/login_validator'
 import LoginUser from '#use_cases/auth/login_user'
 import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_error'
+import { NoRegisteredUserError } from '#domain/errors/no_registered_user_error'
 
 @inject()
 export default class LoginController {
@@ -11,6 +12,14 @@ export default class LoginController {
   async show({ inertia, response }: HttpContext) {
     if (await this.loginUser.isAuthenticated()) {
       return response.redirect('/')
+    }
+    try {
+      await this.loginUser.ensureUsersExist()
+    } catch (error) {
+      if (error instanceof NoRegisteredUserError) {
+        return response.redirect('/register')
+      }
+      throw error
     }
     return inertia.render('Auth/Login')
   }

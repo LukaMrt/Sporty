@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+import User from '#models/user'
 import { SEEDED_USER_EMAIL, SEEDED_PASSWORD } from '#tests/helpers'
 
 test.group('Auth / Login', (group) => {
@@ -46,6 +47,15 @@ test.group('Auth / Login', (group) => {
 
     responseBadEmail.assertStatus(302)
     responseBadPassword.assertStatus(302)
+  })
+
+  test('GET /login — aucun user en base → redirect /register', async ({ client }) => {
+    await User.query().delete()
+
+    const response = await client.get('/login').redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/register')
   })
 
   test('route protégée sans session → redirect /login', async ({ client }) => {
