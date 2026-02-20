@@ -1,0 +1,85 @@
+import React, { useEffect, useState } from 'react'
+import { usePage } from '@inertiajs/react'
+import { CheckCircle, AlertCircle, X } from 'lucide-react'
+
+interface Toast {
+  id: number
+  type: 'success' | 'error'
+  message: string
+  visible: boolean
+}
+
+interface FlashProps {
+  flash: Record<string, string>
+}
+
+let nextId = 0
+
+const DISMISS_DELAY = 5000
+const TRANSITION_DURATION = 300
+
+export default function FlashMessages() {
+  const { flash } = usePage<FlashProps>().props
+  const [toasts, setToasts] = useState<Toast[]>([])
+
+  useEffect(() => {
+    const incoming: Toast[] = []
+    if (flash?.success)
+      incoming.push({ id: nextId++, type: 'success', message: flash.success, visible: false })
+    if (flash?.error)
+      incoming.push({ id: nextId++, type: 'error', message: flash.error, visible: false })
+    if (incoming.length === 0) return
+
+    setToasts((prev) => [...prev, ...incoming])
+
+    requestAnimationFrame(() => {
+      setToasts((prev) =>
+        prev.map((t) => (incoming.find((i) => i.id === t.id) ? { ...t, visible: true } : t))
+      )
+    })
+
+    const timer = setTimeout(() => dismiss(incoming.map((i) => i.id)), DISMISS_DELAY)
+    return () => clearTimeout(timer)
+  }, [flash])
+
+  function dismiss(ids: number[]) {
+    setToasts((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, visible: false } : t)))
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => !ids.includes(t.id)))
+    }, TRANSITION_DURATION)
+  }
+
+  if (toasts.length === 0) return null
+
+  return (
+    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          style={{ transitionDuration: `${TRANSITION_DURATION}ms` }}
+          className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg transition-all ${
+            toast.visible ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+          } ${
+            toast.type === 'success'
+              ? 'border-green-200 bg-green-50 text-green-800'
+              : 'border-red-200 bg-red-50 text-red-800'
+          }`}
+        >
+          {toast.type === 'success' ? (
+            <CheckCircle className="h-4 w-4 shrink-0" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0" />
+          )}
+          <span>{toast.message}</span>
+          <button
+            onClick={() => dismiss([toast.id])}
+            className="ml-2 cursor-pointer opacity-60 transition hover:opacity-100"
+            aria-label="Fermer"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}

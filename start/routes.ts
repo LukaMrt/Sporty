@@ -35,6 +35,8 @@ router
 router
   .group(() => {
     router.get('/users', [AdminUsersController, 'index'])
+    router.get('/users/create', [AdminUsersController, 'create'])
+    router.post('/users', [AdminUsersController, 'store'])
   })
   .prefix('/admin')
   .use([middleware.auth(), middleware.admin()])

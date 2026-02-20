@@ -17,6 +17,8 @@ const inertiaConfig = defineConfig({
           ? { id: ctx.auth.user.id, fullName: ctx.auth.user.fullName, role: ctx.auth.user.role }
           : null,
       })),
+    flash: (ctx) =>
+      ctx.inertia.always(() => (ctx.session?.flashMessages.all() ?? {}) as Record<string, string>),
   },
 
   /**

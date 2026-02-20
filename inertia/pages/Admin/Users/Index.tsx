@@ -1,5 +1,5 @@
 import React from 'react'
-import { Head } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 
 interface User {
@@ -27,7 +27,15 @@ export default function AdminUsersIndex({ users }: AdminUsersIndexProps) {
     <>
       <Head title="Administration — Utilisateurs" />
       <div className="p-6">
-        <h1 className="mb-6 text-2xl font-semibold">Utilisateurs</h1>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Utilisateurs</h1>
+          <Link
+            href="/admin/users/create"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Ajouter un utilisateur
+          </Link>
+        </div>
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
             <thead className="bg-muted text-muted-foreground">

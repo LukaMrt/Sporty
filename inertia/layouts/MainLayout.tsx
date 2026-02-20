@@ -2,6 +2,7 @@ import React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import { Home, Activity, Calendar, User, LogOut, ShieldCheck } from 'lucide-react'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
+import FlashMessages from '~/components/shared/FlashMessages'
 import logo from '~/assets/logo.png'
 
 interface AuthUser {
@@ -64,6 +65,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen bg-background">
+      <FlashMessages />
       {/* Header */}
       <header className="fixed top-0 right-0 left-0 z-40 flex h-14 items-center justify-between border-b bg-background px-4">
         <div className="flex items-center gap-2">
