@@ -1,11 +1,16 @@
 import User from '#models/user'
-import { UserRole } from '#domain/value_objects/user_role'
+import { SEEDED_USER_EMAIL, SEEDED_ADMIN_EMAIL } from '#database/seeders/user_seeder'
 
-export async function createUser(role: UserRole = UserRole.User) {
-  return User.create({
-    fullName: `Test ${role}`,
-    email: `${role}@example.com`,
-    password: 'password123',
-    role,
-  })
+export {
+  SEEDED_USER_EMAIL,
+  SEEDED_ADMIN_EMAIL,
+  SEEDED_PASSWORD,
+} from '#database/seeders/user_seeder'
+
+export async function getUser() {
+  return User.findByOrFail('email', SEEDED_USER_EMAIL)
+}
+
+export async function getAdmin() {
+  return User.findByOrFail('email', SEEDED_ADMIN_EMAIL)
 }

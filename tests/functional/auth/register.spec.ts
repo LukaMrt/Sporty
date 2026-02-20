@@ -1,15 +1,20 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+import User from '#models/user'
 
 test.group('Auth / Register', (group) => {
-  group.each.setup(async () => testUtils.db().withGlobalTransaction())
+  group.each.setup(async () => {
+    const cleanup = await testUtils.db().withGlobalTransaction()
+    await User.query().delete()
+    return cleanup
+  })
+
   test('GET /register — aucun user → affiche la page inscription', async ({ client }) => {
     const response = await client.get('/register')
     response.assertStatus(200)
   })
 
   test('GET /register — user existant → redirect /login', async ({ client }) => {
-    const { default: User } = await import('#models/user')
     await User.create({
       fullName: 'Existing Admin',
       email: 'admin@example.com',
@@ -65,7 +70,6 @@ test.group('Auth / Register', (group) => {
   })
 
   test('POST /register — user existant → 403', async ({ client }) => {
-    const { default: User } = await import('#models/user')
     await User.create({
       fullName: 'Existing Admin',
       email: 'admin@example.com',
