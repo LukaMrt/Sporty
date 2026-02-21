@@ -32,6 +32,13 @@ function makeUserRepository(overrides: Partial<UserRepository> = {}): UserReposi
     async findAll(): Promise<User[]> {
       return []
     }
+    async findById(): Promise<null> {
+      return null
+    }
+    async update(_id: number, _data: Partial<Omit<User, 'id'>>): Promise<User> {
+      throw new Error('Not implemented')
+    }
+    async delete(): Promise<void> {}
   }
   return Object.assign(new MockUserRepository(), overrides)
 }

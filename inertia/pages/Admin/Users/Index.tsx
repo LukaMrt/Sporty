@@ -1,5 +1,5 @@
 import React from 'react'
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 
 interface User {
@@ -48,7 +48,11 @@ export default function AdminUsersIndex({ users }: AdminUsersIndexProps) {
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user.id} className="border-t transition hover:bg-muted/50">
+                <tr
+                  key={user.id}
+                  className="cursor-pointer border-t transition hover:bg-muted/50"
+                  onClick={() => router.get(`/admin/users/${user.id}/edit`)}
+                >
                   <td className="px-4 py-3">{user.fullName}</td>
                   <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
                   <td className="px-4 py-3">

@@ -64,7 +64,7 @@ development_status:
   epic-3: in-progress
   3-1-admin-liste-utilisateurs: done
   3-2-admin-creer-compte-utilisateur: done
-  3-3-admin-modifier-supprimer-compte: ready-for-dev
+  3-3-admin-modifier-supprimer-compte: done
   3-4-changement-mot-de-passe: ready-for-dev
   3-5-onboarding-wizard: ready-for-dev
   3-6-page-profil-consultation-modification: ready-for-dev

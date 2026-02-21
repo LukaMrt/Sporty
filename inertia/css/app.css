@@ -90,7 +90,7 @@ textarea {
     --secondary-foreground: hsl(222 47% 11%);
     --accent: hsl(210 40% 96%);
     --accent-foreground: hsl(222 47% 11%);
-    --destructive: hsl(32 95% 44%);
+    --destructive: hsl(0 72% 51%);
     --destructive-foreground: hsl(0 0% 100%);
 
     /* Border & Input */
@@ -134,7 +134,7 @@ textarea {
     --secondary-foreground: hsl(210 40% 98%);
     --accent: hsl(217 33% 17%);
     --accent-foreground: hsl(210 40% 98%);
-    --destructive: hsl(32 95% 50%);
+    --destructive: hsl(0 72% 57%);
     --destructive-foreground: hsl(0 0% 100%);
     --border: hsl(217 33% 17%);
     --input: hsl(217 33% 17%);

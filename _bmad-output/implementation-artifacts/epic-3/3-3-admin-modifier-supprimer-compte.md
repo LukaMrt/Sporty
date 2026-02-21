@@ -1,6 +1,6 @@
 # Story 3.3 : Admin — Modifier et supprimer un compte
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -19,53 +19,53 @@ so that **je garde le contrôle sur les comptes de mon instance** (FR3).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Domain — étendre le port UserRepository (AC: #1, #2, #5)
-  - [ ] Ajouter `findById(id: number): Promise<User | null>` au port `UserRepository`
-  - [ ] Ajouter `update(id: number, data: Partial<Omit<User, 'id'>>): Promise<User>` au port
-  - [ ] Ajouter `delete(id: number): Promise<void>` au port
+- [x] Task 1 : Domain — étendre le port UserRepository (AC: #1, #2, #5)
+  - [x] Ajouter `findById(id: number): Promise<User | null>` au port `UserRepository`
+  - [x] Ajouter `update(id: number, data: Partial<Omit<User, 'id'>>): Promise<User>` au port
+  - [x] Ajouter `delete(id: number): Promise<void>` au port
 
-- [ ] Task 2 : Repository — implémenter les nouvelles méthodes (AC: #1, #2, #5)
-  - [ ] `findById()` dans `LucidUserRepository`
-  - [ ] `update()` dans `LucidUserRepository` — met à jour uniquement les champs fournis
-  - [ ] `delete()` dans `LucidUserRepository` — hard delete
+- [x] Task 2 : Repository — implémenter les nouvelles méthodes (AC: #1, #2, #5)
+  - [x] `findById()` dans `LucidUserRepository`
+  - [x] `update()` dans `LucidUserRepository` — met à jour uniquement les champs fournis
+  - [x] `delete()` dans `LucidUserRepository` — hard delete
 
-- [ ] Task 3 : Validators (AC: #2, #3, #4)
-  - [ ] Créer `app/validators/admin/update_user_validator.ts` : `full_name` (optional string minLength 2), `email` (optional email, unique sauf l'user courant)
-  - [ ] Créer `app/validators/admin/reset_password_validator.ts` : `password` (string, minLength 8)
+- [x] Task 3 : Validators (AC: #2, #3, #4)
+  - [x] Créer `app/validators/admin/update_user_validator.ts` : `full_name` (optional string minLength 2), `email` (optional email, unique sauf l'user courant)
+  - [x] Créer `app/validators/admin/reset_password_validator.ts` : `password` (string, minLength 8)
 
-- [ ] Task 4 : Use Cases (AC: #2, #3, #5, #6)
-  - [ ] Créer `app/use_cases/admin/update_user.ts` : met à jour nom/email
-  - [ ] Créer `app/use_cases/admin/reset_user_password.ts` : met à jour le password (le hash est automatique via le modèle)
-  - [ ] Créer `app/use_cases/admin/delete_user.ts` : vérifie que l'admin ne se supprime pas lui-même → sinon throw `CannotDeleteSelfError` → puis supprime
+- [x] Task 4 : Use Cases (AC: #2, #3, #5, #6)
+  - [x] Créer `app/use_cases/admin/update_user.ts` : met à jour nom/email
+  - [x] Créer `app/use_cases/admin/reset_user_password.ts` : met à jour le password (le hash est automatique via le modèle)
+  - [x] Créer `app/use_cases/admin/delete_user.ts` : vérifie que l'admin ne se supprime pas lui-même → sinon throw `CannotDeleteSelfError` → puis supprime
 
-- [ ] Task 5 : Domain error (AC: #6)
-  - [ ] Créer `app/domain/errors/cannot_delete_self_error.ts`
+- [x] Task 5 : Domain error (AC: #6)
+  - [x] Créer `app/domain/errors/cannot_delete_self_error.ts`
 
-- [ ] Task 6 : Routes + Controller (AC: #1-#6)
-  - [ ] Ajouter dans le groupe admin :
+- [x] Task 6 : Routes + Controller (AC: #1-#6)
+  - [x] Ajouter dans le groupe admin :
     - `GET /admin/users/:id/edit` → `UsersController.edit`
     - `PUT /admin/users/:id` → `UsersController.update`
     - `PUT /admin/users/:id/password` → `UsersController.resetPassword`
     - `DELETE /admin/users/:id` → `UsersController.destroy`
-  - [ ] `edit` : charger le user par ID, render `Admin/Users/Edit`
-  - [ ] `update` : valider → use case → redirect avec succès
-  - [ ] `resetPassword` : valider → use case → redirect avec succès
-  - [ ] `destroy` : use case → redirect (ou 403 si self-delete)
+  - [x] `edit` : charger le user par ID, render `Admin/Users/Edit`
+  - [x] `update` : valider → use case → redirect avec succès
+  - [x] `resetPassword` : valider → use case → redirect avec succès
+  - [x] `destroy` : use case → redirect (ou 403 si self-delete)
 
-- [ ] Task 7 : Page React Admin/Users/Edit (AC: #1, #2, #3, #6)
-  - [ ] Créer `inertia/pages/Admin/Users/Edit.tsx`
-  - [ ] Formulaire édition : `full_name`, `email` (pré-remplis)
-  - [ ] Section séparée : "Réinitialiser le mot de passe" avec champ `password`
-  - [ ] Bouton "Supprimer le compte" avec confirmation (dialog ou confirm natif)
-  - [ ] Désactiver le bouton supprimer si c'est le user connecté (comparer `user.id` avec `auth.user.id`)
+- [x] Task 7 : Page React Admin/Users/Edit (AC: #1, #2, #3, #6)
+  - [x] Créer `inertia/pages/Admin/Users/Edit.tsx`
+  - [x] Formulaire édition : `full_name`, `email` (pré-remplis)
+  - [x] Section séparée : "Réinitialiser le mot de passe" avec champ `password`
+  - [x] Bouton "Supprimer le compte" avec confirmation (dialog ou confirm natif)
+  - [x] Désactiver le bouton supprimer si c'est le user connecté (comparer `user.id` avec `auth.user.id`)
 
-- [ ] Task 8 : Lien depuis la liste (AC: #1)
-  - [ ] Modifier `Admin/Users/Index.tsx` : chaque ligne de la liste est cliquable → lien vers `/admin/users/:id/edit`
+- [x] Task 8 : Lien depuis la liste (AC: #1)
+  - [x] Modifier `Admin/Users/Index.tsx` : chaque ligne de la liste est cliquable → lien vers `/admin/users/:id/edit`
 
-- [ ] Task 9 : Tests (AC: #1-#6)
-  - [ ] `tests/unit/use_cases/admin/update_user.spec.ts`
-  - [ ] `tests/unit/use_cases/admin/delete_user.spec.ts` : suppression OK + self-delete bloqué
-  - [ ] `tests/functional/admin/manage_user.spec.ts` :
+- [x] Task 9 : Tests (AC: #1-#6)
+  - [x] `tests/unit/use_cases/admin/update_user.spec.ts`
+  - [x] `tests/unit/use_cases/admin/delete_user.spec.ts` : suppression OK + self-delete bloqué
+  - [x] `tests/functional/admin/manage_user.spec.ts` :
     - PUT valide → user modifié en DB
     - PUT email dupliqué → erreur
     - PUT password → password mis à jour (vérifiable via `verifyCredentials`)
@@ -103,6 +103,7 @@ Utiliser un composant Dialog de Shadcn/Radix ou `window.confirm()` en première 
 | Créer    | `app/use_cases/admin/update_user.ts`             |
 | Créer    | `app/use_cases/admin/reset_user_password.ts`     |
 | Créer    | `app/use_cases/admin/delete_user.ts`             |
+| Créer    | `app/use_cases/admin/get_user.ts` (implicite task 6 edit) |
 | Créer    | `app/domain/errors/cannot_delete_self_error.ts`  |
 | Créer    | `inertia/pages/Admin/Users/Edit.tsx`             |
 | Modifier | `app/controllers/admin/users_controller.ts` (edit, update, resetPassword, destroy) |
@@ -113,8 +114,32 @@ Utiliser un composant Dialog de Shadcn/Radix ou `window.confirm()` en première 
 | Créer    | `tests/unit/use_cases/admin/update_user.spec.ts` |
 | Créer    | `tests/unit/use_cases/admin/delete_user.spec.ts` |
 | Créer    | `tests/functional/admin/manage_user.spec.ts`     |
+| Modifier | `tests/unit/use_cases/admin/create_user.spec.ts` (mock UserRepository étendu) |
+| Modifier | `tests/unit/use_cases/admin/list_users.spec.ts` (mock UserRepository étendu) |
+| Modifier | `tests/unit/use_cases/login_user.spec.ts` (mock UserRepository étendu) |
+| Modifier | `tests/unit/use_cases/register_user.spec.ts` (mock UserRepository étendu) |
 
 ### References
 
 - [Source: _bmad-output/epics/epic-3-gestion-utilisateurs.md#Story 3.3]
 - [Source: Story 3.1, 3.2 — pré-requis admin middleware + routes + controller]
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- **GetUser use case** : ajouté implicitement (nécessaire pour `edit` — architecture interdit accès direct au repo depuis controller)
+- **update_user_validator** : utilise callback async VineJS avec `field.meta.userId` pour l'exclusion de l'utilisateur courant du check d'unicité (plus flexible que `whereNot` statique)
+- **reset_user_password** : passe le mot de passe en clair au repository ; le hook `@beforeSave` de Lucid (via `withAuthFinder`) gère le hash automatiquement — double hash évité
+- **destroy** : retourne un flash + redirect (pas un 403 HTTP) quand self-delete ; l'erreur `CannotDeleteSelfError` est catchée dans le controller
+- **Zone dangereuse** : bouton désactivé côté frontend si `auth.user.id === user.id`, et protégé côté serveur par `CannotDeleteSelfError`
+- **Mocks existants** : les 4 fichiers de test unitaires existants ont été mis à jour pour implémenter les nouvelles méthodes abstraites `findById`, `update`, `delete`
+
+### Tests
+
+- **65 tests** passent (0 régression)
+- `pnpm run ci` : format ✅ lint ✅ typecheck ✅ depcruise ✅ test ✅
+
+### Change Log
+
+- 2026-02-21 : Implémentation story 3.3 complète (Amelia / Dev Agent)
