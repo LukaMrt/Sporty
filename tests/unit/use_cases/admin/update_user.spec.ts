@@ -32,6 +32,9 @@ function makeUserRepository(overrides: Partial<UserRepository> = {}): UserReposi
       }
     }
     async delete(): Promise<void> {}
+    async verifyPassword(): Promise<boolean> {
+      return false
+    }
   }
   return Object.assign(new MockRepository(), overrides)
 }

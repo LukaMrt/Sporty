@@ -2,6 +2,7 @@ import type { User } from '#domain/entities/user'
 import { UserRepository } from '#domain/interfaces/user_repository'
 import { UserNotFoundError } from '#domain/errors/user_not_found_error'
 import UserModel from '#models/user'
+import hash from '@adonisjs/core/services/hash'
 
 export default class LucidUserRepository extends UserRepository {
   async countAll(): Promise<number> {
@@ -44,6 +45,12 @@ export default class LucidUserRepository extends UserRepository {
     if (data.onboardingCompleted !== undefined) model.onboardingCompleted = data.onboardingCompleted
     await model.save()
     return this.#toEntity(model)
+  }
+
+  async verifyPassword(userId: number, password: string): Promise<boolean> {
+    const model = await UserModel.find(userId)
+    if (!model) throw new UserNotFoundError(userId)
+    return hash.verify(model.password, password)
   }
 
   async delete(id: number): Promise<void> {

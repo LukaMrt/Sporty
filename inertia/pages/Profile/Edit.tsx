@@ -1,14 +1,19 @@
 import React from 'react'
 import { Head } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
+import ChangePasswordForm from '~/components/Profile/ChangePasswordForm'
 
 export default function ProfileEdit() {
   return (
     <>
-      <Head title="Profil" />
-      <div className="p-4">
-        <h1 className="text-2xl font-bold text-foreground">Profil</h1>
-        <p className="mt-2 text-muted-foreground">Gérez votre profil ici.</p>
+      <Head title="Mon profil" />
+      <div className="flex flex-col items-center p-6 pt-16">
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold">Mon profil</h1>
+        </div>
+        <div className="w-full max-w-md space-y-6">
+          <ChangePasswordForm />
+        </div>
       </div>
     </>
   )

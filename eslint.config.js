@@ -89,6 +89,8 @@ export default configApp(
     rules: {
       ...RULES_LIST,
       '@unicorn/filename-case': ['error', { cases: { pascalCase: true, camelCase: true } }],
+      // Désactivé : @adonisjs/inertia n'exporte pas /react dans la version installée
+      '@adonisjs/prefer-adonisjs-inertia-link': 'off',
     },
   },
 

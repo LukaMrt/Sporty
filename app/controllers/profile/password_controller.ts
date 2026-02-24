@@ -1,0 +1,25 @@
+import { inject } from '@adonisjs/core'
+import type { HttpContext } from '@adonisjs/core/http'
+import ChangePassword from '#use_cases/profile/change_password'
+import { changePasswordValidator } from '#validators/profile/change_password_validator'
+import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_error'
+
+@inject()
+export default class PasswordController {
+  constructor(private changePassword: ChangePassword) {}
+
+  async update({ request, response, session, auth }: HttpContext) {
+    const data = await request.validateUsing(changePasswordValidator)
+    try {
+      await this.changePassword.execute(auth.user!.id, data.current_password, data.new_password)
+      session.flash('success', 'Mot de passe modifié')
+      return response.redirect().back()
+    } catch (error) {
+      if (error instanceof InvalidCredentialsError) {
+        session.flashErrors({ current_password: 'Mot de passe actuel incorrect' })
+        return response.redirect().back()
+      }
+      throw error
+    }
+  }
+}
