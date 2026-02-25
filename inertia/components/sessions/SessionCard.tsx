@@ -1,4 +1,3 @@
-import React from 'react'
 import { router } from '@inertiajs/react'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { formatDate, formatDuration } from '~/lib/format'
