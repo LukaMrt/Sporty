@@ -35,12 +35,12 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
     password: '',
   })
 
-  function handleEditSubmit(e: React.FormEvent) {
+  function handleEditSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     editForm.put(`/admin/users/${user.id}`)
   }
 
-  function handlePasswordSubmit(e: React.FormEvent) {
+  function handlePasswordSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     passwordForm.put(`/admin/users/${user.id}/password`)
   }

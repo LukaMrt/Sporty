@@ -12,7 +12,7 @@ export default function ChangePasswordForm() {
     new_password_confirmation: '',
   })
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     form.put('/profile/password', {
       onSuccess: () => form.reset(),

@@ -66,7 +66,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     date_format: profile?.preferences.dateFormat ?? ('DD/MM/YYYY' as 'DD/MM/YYYY' | 'MM/DD/YYYY'),
   })
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
     form.put('/profile')
   }

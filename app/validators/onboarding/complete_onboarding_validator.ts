@@ -1,6 +1,6 @@
 import vine from '@vinejs/vine'
 
-export const completeOnboardingValidator = vine.compile(
+export const completeOnboardingValidator = vine.create(
   vine.object({
     sport_id: vine.number().positive().exists({ table: 'sports', column: 'id' }),
     level: vine.enum(['beginner', 'intermediate', 'advanced'] as const),

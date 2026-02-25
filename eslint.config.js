@@ -41,6 +41,9 @@ export default configApp(
 
       // Désactivé : les configs AdonisJS générées utilisent des interfaces vides
       '@typescript-eslint/no-empty-object-type': 'off',
+
+      // Interdit l'usage de symboles marqués @deprecated
+      '@typescript-eslint/no-deprecated': 'error',
     },
   },
 

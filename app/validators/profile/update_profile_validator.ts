@@ -1,6 +1,6 @@
 import vine, { SimpleMessagesProvider } from '@vinejs/vine'
 
-export const updateProfileValidator = vine.compile(
+export const updateProfileValidator = vine.create(
   vine.object({
     full_name: vine.string().trim().minLength(2).optional(),
     email: vine
