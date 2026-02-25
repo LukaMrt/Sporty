@@ -72,7 +72,7 @@ development_status:
 
   # Epic 4 : Saisie & Consultation de Seances
   epic-4: in-progress
-  4-1-saisie-seance: ready-for-dev
+  4-1-saisie-seance: done
   4-2-liste-seances: ready-for-dev
   4-3-detail-seance: ready-for-dev
   4-4-modification-seance: ready-for-dev

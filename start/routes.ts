@@ -11,6 +11,7 @@ import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
 
 const OnboardingController = () => import('#controllers/onboarding/onboarding_controller')
+const SessionsController = () => import('#controllers/sessions/sessions_controller')
 const RegisterController = () => import('#controllers/auth/register_controller')
 const LoginController = () => import('#controllers/auth/login_controller')
 const LogoutController = () => import('#controllers/auth/logout_controller')
@@ -35,7 +36,9 @@ router
 router
   .group(() => {
     router.get('/', [DashboardController, 'index'])
-    router.on('/sessions').renderInertia('Sessions/Index')
+    router.get('/sessions', [SessionsController, 'index'])
+    router.get('/sessions/create', [SessionsController, 'create'])
+    router.post('/sessions', [SessionsController, 'store'])
     router.on('/planning').renderInertia('Planning/Index')
     router.get('/profile', [ProfileController, 'show'])
     router.put('/profile', [ProfileController, 'update'])

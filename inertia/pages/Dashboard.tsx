@@ -1,5 +1,5 @@
 import React from 'react'
-import { Head } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import EmptyState from '~/components/shared/EmptyState'
 
@@ -16,6 +16,7 @@ export default function Dashboard({ sessionCount }: DashboardProps) {
           title="Saisis ta première séance pour commencer"
           description="Suis tes entraînements et vois ta progression au fil du temps."
           ctaLabel="Saisir ma première séance"
+          onCtaClick={() => router.visit('/sessions/create')}
         />
       ) : (
         <p className="text-muted-foreground">Tableau de bord — à venir</p>

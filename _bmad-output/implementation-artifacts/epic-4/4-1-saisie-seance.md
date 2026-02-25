@@ -1,6 +1,6 @@
 # Story 4.1 : Saisie d'une séance
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -19,6 +19,11 @@ so that **mes données sont enregistrées et je construis mon historique** (FR10
 7. **Given** la page d'accueil affiche l'EmptyState (story 2.5) **When** je clique sur le CTA **Then** le formulaire de saisie s'ouvre (le bouton CTA désactivé est remplacé par un vrai lien vers le formulaire)
 
 ## Tasks / Subtasks
+
+- [ ] Task 0 : Migration — ajout colonne `notes` (AC: #3, #4)
+  - [ ] Créer `database/migrations/TIMESTAMP_add_notes_to_sessions.ts`
+  - [ ] `table.text('notes').nullable()` dans `up()`, `table.dropColumn('notes')` dans `down()`
+  - [ ] Relancer `node ace migration:run` (et `NODE_ENV=test node ace migration:run` pour les tests)
 
 - [ ] Task 1 : Domain — entité TrainingSession + port SessionRepository (AC: #4)
   - [ ] Créer `app/domain/entities/training_session.ts` — interface `TrainingSession { id, userId, sportType, date, durationMinutes, distanceKm, avgHeartRate, perceivedEffort, sportMetrics, notes, createdAt }`
@@ -136,10 +141,13 @@ sessions:
   avg_heart_rate  INTEGER NULLABLE
   perceived_effort INTEGER NULLABLE
   sport_metrics   JSONB NOT NULL DEFAULT '{}'
+  notes           TEXT NULLABLE
   deleted_at      TIMESTAMP NULLABLE, indexed
   created_at      TIMESTAMP NOT NULL
   updated_at      TIMESTAMP NULLABLE
 ```
+
+La colonne `notes` est ajoutée via la migration de Task 0 (elle n'existe pas dans la migration initiale).
 
 Le modèle Lucid `Session` existe déjà avec les scopes `withoutTrashed` et `onlyTrashed`.
 
@@ -184,16 +192,13 @@ const pace = durationMinutes && distanceKm
 
 ### Notes campo `notes`
 
-Le champ `notes` n'existe PAS encore dans la migration `sessions`. Il faudra soit :
-- Stocker dans `sport_metrics` JSONB (approach pragmatique)
-- OU créer une migration pour ajouter la colonne `notes TEXT NULLABLE`
-
-**Recommandation :** stocker dans `sport_metrics.notes` pour éviter une migration. Le champ JSONB est fait pour l'extensibilité.
+Le champ `notes` est une colonne SQL dédiée (`TEXT NULLABLE`), ajoutée via la migration de Task 0. **Ne pas stocker dans `sport_metrics`** — `sport_metrics` JSONB est réservé aux métriques spécifiques au sport (ex: `elevation_gain`, `avg_cadence`, `avg_power`). Mélanger du texte libre dans ce champ serait une dette technique : perte de queryabilité SQL, couplage de deux préoccupations distinctes.
 
 ### Fichiers à créer / modifier
 
 | Action   | Fichier                                                  |
 |----------|----------------------------------------------------------|
+| Créer    | `database/migrations/TIMESTAMP_add_notes_to_sessions.ts` |
 | Créer    | `app/domain/entities/training_session.ts`                |
 | Créer    | `app/domain/interfaces/session_repository.ts`            |
 | Créer    | `app/domain/errors/session_not_found_error.ts`           |

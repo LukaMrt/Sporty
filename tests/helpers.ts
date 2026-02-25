@@ -1,9 +1,14 @@
 import User from '#models/user'
-import { SEEDED_USER_EMAIL, SEEDED_ADMIN_EMAIL } from '#database/seeders/user_seeder'
+import {
+  SEEDED_USER_EMAIL,
+  SEEDED_ADMIN_EMAIL,
+  SEEDED_ONBOARDED_USER_EMAIL,
+} from '#database/seeders/user_seeder'
 
 export {
   SEEDED_USER_EMAIL,
   SEEDED_ADMIN_EMAIL,
+  SEEDED_ONBOARDED_USER_EMAIL,
   SEEDED_PASSWORD,
 } from '#database/seeders/user_seeder'
 
@@ -13,4 +18,8 @@ export async function getUser() {
 
 export async function getAdmin() {
   return User.findByOrFail('email', SEEDED_ADMIN_EMAIL)
+}
+
+export async function getOnboardedUser() {
+  return User.findByOrFail('email', SEEDED_ONBOARDED_USER_EMAIL)
 }
