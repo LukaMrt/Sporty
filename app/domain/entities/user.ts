@@ -6,4 +6,6 @@ export interface User {
   fullName: string
   password: string
   role: UserRole
+  onboardingCompleted: boolean
+  createdAt: string
 }

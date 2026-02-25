@@ -41,6 +41,9 @@ export default configApp(
 
       // Désactivé : les configs AdonisJS générées utilisent des interfaces vides
       '@typescript-eslint/no-empty-object-type': 'off',
+
+      // Interdit l'usage de symboles marqués @deprecated
+      '@typescript-eslint/no-deprecated': 'error',
     },
   },
 
@@ -89,6 +92,8 @@ export default configApp(
     rules: {
       ...RULES_LIST,
       '@unicorn/filename-case': ['error', { cases: { pascalCase: true, camelCase: true } }],
+      // Désactivé : @adonisjs/inertia n'exporte pas /react dans la version installée
+      '@adonisjs/prefer-adonisjs-inertia-link': 'off',
     },
   },
 

@@ -1,6 +1,8 @@
 import type { User } from '#domain/entities/user'
 import { UserRepository } from '#domain/interfaces/user_repository'
+import { UserNotFoundError } from '#domain/errors/user_not_found_error'
 import UserModel from '#models/user'
+import hash from '@adonisjs/core/services/hash'
 
 export default class LucidUserRepository extends UserRepository {
   async countAll(): Promise<number> {
@@ -23,6 +25,47 @@ export default class LucidUserRepository extends UserRepository {
     return model ? this.#toEntity(model) : null
   }
 
+  async findAll(): Promise<User[]> {
+    const models = await UserModel.query().orderBy('created_at', 'asc')
+    return models.map((model) => this.#toEntity(model))
+  }
+
+  async findById(id: number): Promise<User | null> {
+    const model = await UserModel.find(id)
+    return model ? this.#toEntity(model) : null
+  }
+
+  async update(id: number, data: Partial<Omit<User, 'id'>>): Promise<User> {
+    const model = await UserModel.find(id)
+    if (!model) throw new UserNotFoundError(id)
+    if (data.fullName !== undefined) model.fullName = data.fullName
+    if (data.email !== undefined) model.email = data.email
+    if (data.password !== undefined) model.password = data.password
+    if (data.role !== undefined) model.role = data.role
+    if (data.onboardingCompleted !== undefined) model.onboardingCompleted = data.onboardingCompleted
+    await model.save()
+    return this.#toEntity(model)
+  }
+
+  async verifyPassword(userId: number, password: string): Promise<boolean> {
+    const model = await UserModel.find(userId)
+    if (!model) throw new UserNotFoundError(userId)
+    return hash.verify(model.password, password)
+  }
+
+  async delete(id: number): Promise<void> {
+    const model = await UserModel.find(id)
+    if (!model) throw new UserNotFoundError(id)
+    await model.delete()
+  }
+
+  async markOnboardingCompleted(userId: number): Promise<void> {
+    const model = await UserModel.find(userId)
+    if (!model) throw new UserNotFoundError(userId)
+    model.onboardingCompleted = true
+    await model.save()
+  }
+
   #toEntity(model: UserModel): User {
     return {
       id: model.id,
@@ -30,6 +73,8 @@ export default class LucidUserRepository extends UserRepository {
       fullName: model.fullName,
       password: model.password,
       role: model.role,
+      onboardingCompleted: model.onboardingCompleted,
+      createdAt: model.createdAt.toISO() ?? '',
     }
   }
 }

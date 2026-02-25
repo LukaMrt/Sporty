@@ -1,5 +1,7 @@
 import type { ApplicationService } from '@adonisjs/core/types'
 import { UserRepository } from '#domain/interfaces/user_repository'
+import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import { SportRepository } from '#domain/interfaces/sport_repository'
 import { AuthService } from '#domain/interfaces/auth_service'
 
 export default class AppProvider {
@@ -9,6 +11,17 @@ export default class AppProvider {
     this.app.container.bind(UserRepository, async () => {
       const { default: LucidUserRepository } = await import('#repositories/lucid_user_repository')
       return new LucidUserRepository()
+    })
+
+    this.app.container.bind(UserProfileRepository, async () => {
+      const { default: LucidUserProfileRepository } =
+        await import('#repositories/lucid_user_profile_repository')
+      return new LucidUserProfileRepository()
+    })
+
+    this.app.container.bind(SportRepository, async () => {
+      const { default: LucidSportRepository } = await import('#repositories/lucid_sport_repository')
+      return new LucidSportRepository()
     })
 
     this.app.container.bind(AuthService, async (resolver) => {

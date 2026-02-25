@@ -2,6 +2,8 @@ import { test } from '@japa/runner'
 import LoginUser from '#use_cases/auth/login_user'
 import { AuthService } from '#domain/interfaces/auth_service'
 import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_error'
+import { NoRegisteredUserError } from '#domain/errors/no_registered_user_error'
+import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 import type { User } from '#domain/entities/user'
 
 function makeAuthService(overrides: Partial<AuthService> = {}): AuthService {
@@ -24,7 +26,7 @@ test.group('LoginUser — use case', () => {
         attemptCalled = true
       },
     })
-    const useCase = new LoginUser(authService)
+    const useCase = new LoginUser(authService, makeMockUserRepository())
 
     await useCase.execute('user@example.com', 'validpassword')
 
@@ -37,7 +39,7 @@ test.group('LoginUser — use case', () => {
         throw new InvalidCredentialsError()
       },
     })
-    const useCase = new LoginUser(authService)
+    const useCase = new LoginUser(authService, makeMockUserRepository())
 
     let thrownError: unknown
     try {
@@ -47,5 +49,26 @@ test.group('LoginUser — use case', () => {
     }
 
     assert.instanceOf(thrownError, InvalidCredentialsError)
+  })
+
+  test("ensureUsersExist — des users existent → pas d'erreur", async () => {
+    const userRepository = makeMockUserRepository({ countAll: async () => 1 })
+    const useCase = new LoginUser(makeAuthService(), userRepository)
+
+    await useCase.ensureUsersExist()
+  })
+
+  test('ensureUsersExist — aucun user → lance NoRegisteredUserError', async ({ assert }) => {
+    const userRepository = makeMockUserRepository({ countAll: async () => 0 })
+    const useCase = new LoginUser(makeAuthService(), userRepository)
+
+    let thrownError: unknown
+    try {
+      await useCase.ensureUsersExist()
+    } catch (e) {
+      thrownError = e
+    }
+
+    assert.instanceOf(thrownError, NoRegisteredUserError)
   })
 })

@@ -1,0 +1,118 @@
+import React from 'react'
+import { Head, Link, useForm } from '@inertiajs/react'
+import { ArrowLeft, UserPlus, User, Mail, Info } from 'lucide-react'
+import MainLayout from '~/layouts/MainLayout'
+import { Button } from '~/components/ui/button'
+import FormField from '~/components/forms/FormField'
+import IconInput from '~/components/forms/IconInput'
+import PasswordInput from '~/components/forms/PasswordInput'
+import RoleSelector from '~/components/admin/RoleSelector'
+export default function AdminUsersCreate() {
+  const { data, setData, post, processing, errors } = useForm({
+    full_name: '',
+    email: '',
+    password: '',
+    role: 'user',
+  })
+
+  function handleSubmit(e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) {
+    e.preventDefault()
+    post('/admin/users')
+  }
+
+  return (
+    <>
+      <Head title="Administration — Ajouter un utilisateur" />
+      <div className="relative flex flex-col items-center p-6 pt-16">
+        <Link
+          href="/admin/users"
+          className="absolute top-6 left-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Retour à la liste
+        </Link>
+
+        {/* Page header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <UserPlus className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold">Ajouter un utilisateur</h1>
+              <p className="text-sm text-muted-foreground">
+                Créer un compte et définir son niveau d'accès.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form card */}
+
+        <div className="max-w-md rounded-xl border bg-card p-6 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <FormField label="Nom complet" htmlFor="full_name" error={errors.full_name}>
+              <IconInput
+                id="full_name"
+                type="text"
+                autoComplete="name"
+                placeholder="ex. Marie Dupont"
+                icon={<User className="h-4 w-4" />}
+                value={data.full_name}
+                onChange={(e) => setData('full_name', e.target.value)}
+              />
+            </FormField>
+
+            <FormField label="Adresse e-mail" htmlFor="email" error={errors.email}>
+              <IconInput
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="marie@exemple.com"
+                icon={<Mail className="h-4 w-4" />}
+                value={data.email}
+                onChange={(e) => setData('email', e.target.value)}
+              />
+            </FormField>
+
+            <FormField label="Mot de passe temporaire" htmlFor="password" error={errors.password}>
+              <PasswordInput
+                id="password"
+                value={data.password}
+                onChange={(e) => setData('password', e.target.value)}
+              />
+            </FormField>
+
+            <RoleSelector
+              value={data.role}
+              onChange={(role) => setData('role', role)}
+              error={errors.role}
+            />
+
+            <div className="flex items-start gap-2 rounded-lg bg-muted px-3 py-2.5 text-xs text-muted-foreground">
+              <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                L'utilisateur pourra modifier son mot de passe lors de sa première connexion.
+              </span>
+            </div>
+
+            <div className="flex items-center gap-6 pt-1">
+              <Button type="submit" disabled={processing} className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                {processing ? 'Création...' : "Créer l'utilisateur"}
+              </Button>
+              <Link
+                href="/admin/users"
+                className="text-sm text-muted-foreground transition hover:text-foreground"
+              >
+                Annuler
+              </Link>
+            </div>
+          </form>
+        </div>
+      </div>
+    </>
+  )
+}
+
+AdminUsersCreate.layout = (page: React.ReactNode) => <MainLayout>{page}</MainLayout>

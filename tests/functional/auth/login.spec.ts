@@ -1,8 +1,10 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+import User from '#models/user'
+import { SEEDED_USER_EMAIL, SEEDED_PASSWORD } from '#tests/helpers'
 
 test.group('Auth / Login', (group) => {
-  group.each.setup(async () => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
 
   test('GET /login — affiche la page connexion', async ({ client }) => {
     const response = await client.get('/login')
@@ -10,17 +12,9 @@ test.group('Auth / Login', (group) => {
   })
 
   test('POST /login — credentials valides → 302 redirect vers /', async ({ client }) => {
-    const { default: User } = await import('#models/user')
-    await User.create({
-      fullName: 'Test User',
-      email: 'user@example.com',
-      password: 'password123',
-      role: 'admin',
-    })
-
     const response = await client
       .post('/login')
-      .form({ email: 'user@example.com', password: 'password123' })
+      .form({ email: SEEDED_USER_EMAIL, password: SEEDED_PASSWORD })
       .redirects(0)
 
     response.assertStatus(302)
@@ -41,26 +35,27 @@ test.group('Auth / Login', (group) => {
   test('POST /login — email inexistant → même erreur que mauvais mot de passe', async ({
     client,
   }) => {
-    const { default: User } = await import('#models/user')
-    await User.create({
-      fullName: 'Test User',
-      email: 'user@example.com',
-      password: 'password123',
-      role: 'admin',
-    })
-
     const responseBadEmail = await client
       .post('/login')
-      .form({ email: 'wrong@example.com', password: 'password123' })
+      .form({ email: 'wrong@example.com', password: SEEDED_PASSWORD })
       .redirects(0)
 
     const responseBadPassword = await client
       .post('/login')
-      .form({ email: 'user@example.com', password: 'wrongpassword' })
+      .form({ email: SEEDED_USER_EMAIL, password: 'wrongpassword' })
       .redirects(0)
 
     responseBadEmail.assertStatus(302)
     responseBadPassword.assertStatus(302)
+  })
+
+  test('GET /login — aucun user en base → redirect /register', async ({ client }) => {
+    await User.query().delete()
+
+    const response = await client.get('/login').redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/register')
   })
 
   test('route protégée sans session → redirect /login', async ({ client }) => {
