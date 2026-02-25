@@ -1,42 +1,14 @@
 import { test } from '@japa/runner'
 import CreateUser from '#use_cases/admin/create_user'
-import { UserRepository } from '#domain/interfaces/user_repository'
+import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 import type { User } from '#domain/entities/user'
-
-function makeUserRepository(overrides: Partial<UserRepository> = {}): UserRepository {
-  class MockRepository extends UserRepository {
-    async countAll() {
-      return 0
-    }
-    async create(data: Omit<User, 'id'>): Promise<User> {
-      return { id: 1, ...data }
-    }
-    async findByEmail(): Promise<null> {
-      return null
-    }
-    async findAll(): Promise<User[]> {
-      return []
-    }
-    async findById(): Promise<null> {
-      return null
-    }
-    async update(_id: number, _data: Partial<Omit<User, 'id'>>): Promise<User> {
-      throw new Error('Not implemented')
-    }
-    async delete(): Promise<void> {}
-    async verifyPassword(): Promise<boolean> {
-      return false
-    }
-  }
-  return Object.assign(new MockRepository(), overrides)
-}
 
 test.group('CreateUser — use case', () => {
   test('crée un utilisateur avec le rôle fourni et onboardingCompleted false', async ({
     assert,
   }) => {
     let capturedData: Omit<User, 'id'> | null = null
-    const repo = makeUserRepository({
+    const repo = makeMockUserRepository({
       create: async (data) => {
         capturedData = data
         return { id: 42, ...data }
@@ -63,7 +35,7 @@ test.group('CreateUser — use case', () => {
 
   test('crée un utilisateur avec le rôle admin si spécifié', async ({ assert }) => {
     let capturedRole = ''
-    const repo = makeUserRepository({
+    const repo = makeMockUserRepository({
       create: async (data) => {
         capturedRole = data.role
         return { id: 1, ...data }
@@ -85,7 +57,7 @@ test.group('CreateUser — use case', () => {
     assert,
   }) => {
     let capturedPassword = ''
-    const repo = makeUserRepository({
+    const repo = makeMockUserRepository({
       create: async (data) => {
         capturedPassword = data.password
         return { id: 1, ...data }

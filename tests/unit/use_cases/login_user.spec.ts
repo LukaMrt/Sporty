@@ -1,9 +1,9 @@
 import { test } from '@japa/runner'
 import LoginUser from '#use_cases/auth/login_user'
 import { AuthService } from '#domain/interfaces/auth_service'
-import { UserRepository } from '#domain/interfaces/user_repository'
 import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_error'
 import { NoRegisteredUserError } from '#domain/errors/no_registered_user_error'
+import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 import type { User } from '#domain/entities/user'
 
 function makeAuthService(overrides: Partial<AuthService> = {}): AuthService {
@@ -18,34 +18,6 @@ function makeAuthService(overrides: Partial<AuthService> = {}): AuthService {
   return Object.assign(new MockAuthService(), overrides)
 }
 
-function makeUserRepository(overrides: Partial<UserRepository> = {}): UserRepository {
-  class MockUserRepository extends UserRepository {
-    async countAll(): Promise<number> {
-      return 0
-    }
-    async create(_user: Omit<User, 'id'>): Promise<User> {
-      throw new Error('Not implemented')
-    }
-    async findByEmail(_email: string): Promise<User | null> {
-      return null
-    }
-    async findAll(): Promise<User[]> {
-      return []
-    }
-    async findById(): Promise<null> {
-      return null
-    }
-    async update(_id: number, _data: Partial<Omit<User, 'id'>>): Promise<User> {
-      throw new Error('Not implemented')
-    }
-    async delete(): Promise<void> {}
-    async verifyPassword(): Promise<boolean> {
-      return false
-    }
-  }
-  return Object.assign(new MockUserRepository(), overrides)
-}
-
 test.group('LoginUser — use case', () => {
   test("credentials valides → session créée (pas d'erreur)", async ({ assert }) => {
     let attemptCalled = false
@@ -54,7 +26,7 @@ test.group('LoginUser — use case', () => {
         attemptCalled = true
       },
     })
-    const useCase = new LoginUser(authService, makeUserRepository())
+    const useCase = new LoginUser(authService, makeMockUserRepository())
 
     await useCase.execute('user@example.com', 'validpassword')
 
@@ -67,7 +39,7 @@ test.group('LoginUser — use case', () => {
         throw new InvalidCredentialsError()
       },
     })
-    const useCase = new LoginUser(authService, makeUserRepository())
+    const useCase = new LoginUser(authService, makeMockUserRepository())
 
     let thrownError: unknown
     try {
@@ -80,14 +52,14 @@ test.group('LoginUser — use case', () => {
   })
 
   test("ensureUsersExist — des users existent → pas d'erreur", async () => {
-    const userRepository = makeUserRepository({ countAll: async () => 1 })
+    const userRepository = makeMockUserRepository({ countAll: async () => 1 })
     const useCase = new LoginUser(makeAuthService(), userRepository)
 
     await useCase.ensureUsersExist()
   })
 
   test('ensureUsersExist — aucun user → lance NoRegisteredUserError', async ({ assert }) => {
-    const userRepository = makeUserRepository({ countAll: async () => 0 })
+    const userRepository = makeMockUserRepository({ countAll: async () => 0 })
     const useCase = new LoginUser(makeAuthService(), userRepository)
 
     let thrownError: unknown

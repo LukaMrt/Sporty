@@ -59,6 +59,13 @@ export default class LucidUserRepository extends UserRepository {
     await model.delete()
   }
 
+  async markOnboardingCompleted(userId: number): Promise<void> {
+    const model = await UserModel.find(userId)
+    if (!model) throw new UserNotFoundError(userId)
+    model.onboardingCompleted = true
+    await model.save()
+  }
+
   #toEntity(model: UserModel): User {
     return {
       id: model.id,

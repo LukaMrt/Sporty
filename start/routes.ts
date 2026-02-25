@@ -10,6 +10,7 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
 
+const OnboardingController = () => import('#controllers/onboarding/onboarding_controller')
 const RegisterController = () => import('#controllers/auth/register_controller')
 const LoginController = () => import('#controllers/auth/login_controller')
 const LogoutController = () => import('#controllers/auth/logout_controller')
@@ -25,6 +26,13 @@ router.post('/login', [LoginController, 'login'])
 
 router
   .group(() => {
+    router.get('/onboarding', [OnboardingController, 'show'])
+    router.post('/onboarding', [OnboardingController, 'complete'])
+  })
+  .use(middleware.auth())
+
+router
+  .group(() => {
     router.get('/', [DashboardController, 'index'])
     router.on('/sessions').renderInertia('Sessions/Index')
     router.on('/planning').renderInertia('Planning/Index')
@@ -32,7 +40,7 @@ router
     router.put('/profile/password', [PasswordController, 'update'])
     router.post('/logout', [LogoutController, 'logout'])
   })
-  .use(middleware.auth())
+  .use([middleware.auth(), middleware.onboarding()])
 
 router
   .group(() => {

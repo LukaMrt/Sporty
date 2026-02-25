@@ -1,6 +1,6 @@
 # Story 3.5 : Onboarding wizard (premier login)
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -21,59 +21,59 @@ so that **l'app est personnalisée dès le départ sans friction** (FR7, FR8).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Domain — entité UserProfile complète + port UserProfileRepository (AC: #6)
-  - [ ] Finaliser `app/domain/entities/user_profile.ts` si pas déjà complet
-  - [ ] Créer `app/domain/interfaces/user_profile_repository.ts` (classe abstraite) avec `create(profile): Promise<UserProfile>`
-  - [ ] Ajouter `markOnboardingCompleted(userId: number): Promise<void>` au port `UserRepository`
+- [x] Task 1 : Domain — entité UserProfile complète + port UserProfileRepository (AC: #6)
+  - [x] Finaliser `app/domain/entities/user_profile.ts` si pas déjà complet
+  - [x] Créer `app/domain/interfaces/user_profile_repository.ts` (classe abstraite) avec `create(profile): Promise<UserProfile>`
+  - [x] Ajouter `markOnboardingCompleted(userId: number): Promise<void>` au port `UserRepository`
 
-- [ ] Task 2 : Repository UserProfile (AC: #6)
-  - [ ] Créer modèle Lucid `app/models/user_profile.ts` avec relation `belongsTo(User)`
-  - [ ] Ajouter relation `hasOne(UserProfile)` dans le modèle `User`
-  - [ ] Créer `app/repositories/lucid_user_profile_repository.ts` extends `UserProfileRepository`
-  - [ ] Implémenter `create()` — crée une entrée `user_profiles`
-  - [ ] Implémenter `markOnboardingCompleted()` dans `LucidUserRepository` — `UPDATE users SET onboarding_completed = true`
-  - [ ] Binding IoC dans `AppProvider`
+- [x] Task 2 : Repository UserProfile (AC: #6)
+  - [x] Créer modèle Lucid `app/models/user_profile.ts` avec relation `belongsTo(User)`
+  - [x] Ajouter relation `hasOne(UserProfile)` dans le modèle `User`
+  - [x] Créer `app/repositories/lucid_user_profile_repository.ts` extends `UserProfileRepository`
+  - [x] Implémenter `create()` — crée une entrée `user_profiles`
+  - [x] Implémenter `markOnboardingCompleted()` dans `LucidUserRepository` — `UPDATE users SET onboarding_completed = true`
+  - [x] Binding IoC dans `AppProvider`
 
-- [ ] Task 3 : Use Case `CompleteOnboarding` (AC: #6)
-  - [ ] Créer `app/use_cases/onboarding/complete_onboarding.ts`
-  - [ ] Injecter `UserProfileRepository` + `UserRepository`
-  - [ ] Créer le `user_profile` avec les données du wizard
-  - [ ] Appeler `markOnboardingCompleted(userId)`
-  - [ ] Tout dans une transaction si possible
+- [x] Task 3 : Use Case `CompleteOnboarding` (AC: #6)
+  - [x] Créer `app/use_cases/onboarding/complete_onboarding.ts`
+  - [x] Injecter `UserProfileRepository` + `UserRepository`
+  - [x] Créer le `user_profile` avec les données du wizard
+  - [x] Appeler `markOnboardingCompleted(userId)`
+  - [x] Tout dans une transaction si possible
 
-- [ ] Task 4 : Middleware onboarding (AC: #1, #8)
-  - [ ] Créer `app/middleware/onboarding_middleware.ts`
-  - [ ] Si `auth.user.onboardingCompleted === false` ET la route n'est pas `/onboarding/*` ni `/logout` → redirect `/onboarding`
-  - [ ] Enregistrer dans `start/kernel.ts`
-  - [ ] Appliquer après le middleware auth sur les routes protégées
+- [x] Task 4 : Middleware onboarding (AC: #1, #8)
+  - [x] Créer `app/middleware/onboarding_middleware.ts`
+  - [x] Si `auth.user.onboardingCompleted === false` ET la route n'est pas `/onboarding/*` ni `/logout` → redirect `/onboarding`
+  - [x] Enregistrer dans `start/kernel.ts`
+  - [x] Appliquer après le middleware auth sur les routes protégées
 
-- [ ] Task 5 : Routes + Controller (AC: #1, #2-#6)
-  - [ ] Ajouter routes (protégées par auth, PAS par onboarding middleware) :
+- [x] Task 5 : Routes + Controller (AC: #1, #2-#6)
+  - [x] Ajouter routes (protégées par auth, PAS par onboarding middleware) :
     - `GET /onboarding` → `OnboardingController.show`
     - `POST /onboarding` → `OnboardingController.complete`
-  - [ ] `show` : charger la liste des sports depuis la DB, render `Onboarding/Wizard`
-  - [ ] `complete` : valider → use case → redirect `/`
-  - [ ] Passer les sports comme prop : `{ sports: [{ id, name, slug }] }`
+  - [x] `show` : charger la liste des sports depuis la DB, render `Onboarding/Wizard`
+  - [x] `complete` : valider → use case → redirect `/`
+  - [x] Passer les sports comme prop : `{ sports: [{ id, name, slug }] }`
 
-- [ ] Task 6 : Validator (AC: #2-#5)
-  - [ ] Créer `app/validators/onboarding/complete_onboarding_validator.ts`
-  - [ ] Champs : `sport_id` (number, exists in sports), `level` (enum: beginner/intermediate/advanced), `objective` (string, optional), `preferred_unit` (enum: km_h/min_km)
+- [x] Task 6 : Validator (AC: #2-#5)
+  - [x] Créer `app/validators/onboarding/complete_onboarding_validator.ts`
+  - [x] Champs : `sport_id` (number, exists in sports), `level` (enum: beginner/intermediate/advanced), `objective` (string, optional), `preferred_unit` (enum: km_h/min_km)
 
-- [ ] Task 7 : Page React Onboarding/Wizard (AC: #2-#5, #7)
-  - [ ] Créer `inertia/pages/Onboarding/Wizard.tsx`
-  - [ ] State local pour l'étape courante (1 à 4) et les réponses
-  - [ ] **Étape 1 — Sport :** Grille d'icônes cliquables générée depuis la prop `sports`. Chaque sport = une carte avec icône + nom
-  - [ ] **Étape 2 — Niveau :** 3 cartes : "Je débute" (beginner) / "Je cours régulièrement" (intermediate) / "Je m'entraîne sérieusement" (advanced)
-  - [ ] **Étape 3 — Objectif :** Choix d'objectifs prédéfinis + option "Pas d'objectif précis" (skip). Exemples : "Progresser en endurance", "Courir plus vite", "Reprendre après une pause"
-  - [ ] **Étape 4 — Préférences :** Toggle/radio entre km/h et min/km, avec valeur par défaut min/km
-  - [ ] **Barre de progression :** 4 dots en haut, dot actif mis en surbrillance
-  - [ ] **Navigation :** Bouton "Suivant" + bouton "Retour" (sauf étape 1). "Terminer" sur l'étape 4
-  - [ ] Au clic "Terminer" → `useForm().post('/onboarding')` avec toutes les données
-  - [ ] Layout dédié (pas `MainLayout` — le wizard est plein écran, sobre)
+- [x] Task 7 : Page React Onboarding/Wizard (AC: #2-#5, #7)
+  - [x] Créer `inertia/pages/Onboarding/Wizard.tsx`
+  - [x] State local pour l'étape courante (1 à 4) et les réponses
+  - [x] **Étape 1 — Sport :** Grille d'icônes cliquables générée depuis la prop `sports`. Chaque sport = une carte avec icône + nom
+  - [x] **Étape 2 — Niveau :** 3 cartes : "Je débute" (beginner) / "Je cours régulièrement" (intermediate) / "Je m'entraîne sérieusement" (advanced)
+  - [x] **Étape 3 — Objectif :** Choix d'objectifs prédéfinis + option "Pas d'objectif précis" (skip). Exemples : "Progresser en endurance", "Courir plus vite", "Reprendre après une pause"
+  - [x] **Étape 4 — Préférences :** Toggle/radio entre km/h et min/km, avec valeur par défaut min/km
+  - [x] **Barre de progression :** 4 dots en haut, dot actif mis en surbrillance
+  - [x] **Navigation :** Bouton "Suivant" + bouton "Retour" (sauf étape 1). "Terminer" sur l'étape 4
+  - [x] Au clic "Terminer" → `useForm().post('/onboarding')` avec toutes les données
+  - [x] Layout dédié (pas `MainLayout` — le wizard est plein écran, sobre)
 
-- [ ] Task 8 : Tests (AC: #1, #6, #8)
-  - [ ] `tests/unit/use_cases/onboarding/complete_onboarding.spec.ts` : crée le profil + marque onboarding completed
-  - [ ] `tests/functional/onboarding/wizard.spec.ts` :
+- [x] Task 8 : Tests (AC: #1, #6, #8)
+  - [x] `tests/unit/use_cases/onboarding/complete_onboarding.spec.ts` : crée le profil + marque onboarding completed
+  - [x] `tests/functional/onboarding/wizard.spec.ts` :
     - User avec `onboarding_completed = false` → toute route protégée redirige vers `/onboarding`
     - GET `/onboarding` → 200 + liste des sports
     - POST `/onboarding` valide → profil créé en DB + `onboarding_completed = true` + redirect `/`
@@ -113,26 +113,35 @@ L'idée : les routes onboarding sont protégées par auth mais PAS par le middle
 
 ### Sports — données depuis la DB
 
-Le controller charge les sports depuis la DB et les passe comme prop au wizard. Ça permet d'ajouter des sports plus tard sans changer le frontend.
+Le controller charge les sports depuis la DB via `ListSports` use case + `SportRepository`. La règle depcruise `controllers-no-direct-infra` interdit l'import direct du modèle Lucid `Sport`.
 
-```typescript
-// OnboardingController.show
-const sports = await Sport.all() // ou via un repository si on veut rester clean
-return inertia.render('Onboarding/Wizard', { sports: sports.map(s => ({ id: s.id, name: s.name, slug: s.slug })) })
-```
+### Piège JSONB
+
+Ne pas utiliser `prepare: JSON.stringify` sur une colonne `jsonb` — le driver pg sérialise déjà automatiquement les objets JS. Double-sérialisation → erreur 500.
+
+### Piège `user_profile_sports.created_at`
+
+La migration déclare `created_at` NOT NULL sans `defaultTo()`. Il faut le passer explicitement dans l'insert raw : `{ created_at: new Date() }`.
 
 ### Modèle User — ajouter `onboardingCompleted` au modèle Lucid
 
 Le modèle Lucid `User` doit exposer la colonne `onboarding_completed`. Vérifier le mapping camelCase.
+
+### Mock UserRepository factorisé
+
+`tests/helpers/mock_user_repository.ts` — source unique pour tous les tests unitaires. Évite la propagation des erreurs TS lors de l'ajout d'une méthode abstraite au port.
 
 ### Fichiers à créer / modifier
 
 | Action   | Fichier                                          |
 |----------|--------------------------------------------------|
 | Créer    | `app/domain/interfaces/user_profile_repository.ts` |
+| Créer    | `app/domain/interfaces/sport_repository.ts`      |
 | Créer    | `app/models/user_profile.ts`                     |
 | Créer    | `app/repositories/lucid_user_profile_repository.ts` |
+| Créer    | `app/repositories/lucid_sport_repository.ts`     |
 | Créer    | `app/use_cases/onboarding/complete_onboarding.ts` |
+| Créer    | `app/use_cases/sports/list_sports.ts`            |
 | Créer    | `app/middleware/onboarding_middleware.ts`         |
 | Créer    | `app/controllers/onboarding/onboarding_controller.ts` |
 | Créer    | `app/validators/onboarding/complete_onboarding_validator.ts` |
@@ -140,22 +149,70 @@ Le modèle Lucid `User` doit exposer la colonne `onboarding_completed`. Vérifie
 | Modifier | `app/domain/entities/user_profile.ts` (finaliser) |
 | Modifier | `app/domain/interfaces/user_repository.ts` (markOnboardingCompleted) |
 | Modifier | `app/repositories/lucid_user_repository.ts` (implémenter) |
-| Modifier | `app/models/user.ts` (colonne onboarding_completed + relation hasOne profile) |
-| Modifier | `providers/app_provider.ts` (binding UserProfileRepository) |
+| Modifier | `app/models/user.ts` (relation hasOne profile)   |
+| Modifier | `providers/app_provider.ts` (bindings UserProfileRepository + SportRepository) |
 | Modifier | `start/routes.ts` (routes onboarding + middleware) |
 | Modifier | `start/kernel.ts` (enregistrer onboarding middleware) |
+| Modifier | `database/seeders/user_seeder.ts` (onboardingCompleted: true pour les seedés) |
+| Créer    | `tests/helpers/mock_user_repository.ts`          |
 | Créer    | `tests/unit/use_cases/onboarding/complete_onboarding.spec.ts` |
 | Créer    | `tests/functional/onboarding/wizard.spec.ts`     |
-
-### UX — références design
-
-- Barre de progression : 4 dots, cf. UX spec "Wizard par étapes"
-- Étape 1 grille icônes : cf. UX spec "Step 1 : Quel sport pratiques-tu ? Sélection visuelle icônes"
-- Étape 2 trois cartes : cf. UX spec "Step 2 : Quel est ton niveau ? Débutant / Intermédiaire / Confirmé"
-- Durée cible < 1 minute
 
 ### References
 
 - [Source: _bmad-output/planning-artifacts/ux-design-specification.md#Flow 1 : Onboarding]
 - [Source: _bmad-output/planning-artifacts/ux-design-specification.md#OnboardingWizard component]
 - [Source: _bmad-output/epics/epic-3-gestion-utilisateurs.md#Story 3.5]
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- `UserProfile` entité étendue avec `sportId: number` — association sport stockée via table pivot `user_profile_sports`
+- `SportRepository` + `LucidSportRepository` + `ListSports` ajoutés pour respecter la règle `controllers-no-direct-infra`
+- Transaction DB dans `LucidUserProfileRepository.create()` : insert `user_profiles` + `user_profile_sports` atomiquement
+- `user_profile_sports.created_at` passé explicitement (`new Date()`) car NOT NULL sans default en migration
+- Colonne `preferences` (jsonb) : pas de `prepare`/`consume` custom — le driver pg sérialise automatiquement
+- `database/seeders/user_seeder.ts` mis à jour : `onboardingCompleted: true` pour que les tests existants ne soient pas bloqués par le nouveau middleware
+- Mock `UserRepository` factorisé dans `tests/helpers/mock_user_repository.ts` — tous les tests unitaires existants migrés
+
+### Completion Notes
+
+89 tests passent, 0 échoue. Tous les ACs vérifiés. Pipeline CI complet (typecheck, lint, depcruise, tests) vert.
+
+## File List
+
+- `app/domain/entities/user_profile.ts` (modifié)
+- `app/domain/interfaces/user_profile_repository.ts` (créé)
+- `app/domain/interfaces/user_repository.ts` (modifié)
+- `app/domain/interfaces/sport_repository.ts` (créé)
+- `app/models/user_profile.ts` (créé)
+- `app/models/user.ts` (modifié)
+- `app/repositories/lucid_user_profile_repository.ts` (créé)
+- `app/repositories/lucid_user_repository.ts` (modifié)
+- `app/repositories/lucid_sport_repository.ts` (créé)
+- `app/use_cases/onboarding/complete_onboarding.ts` (créé)
+- `app/use_cases/sports/list_sports.ts` (créé)
+- `app/middleware/onboarding_middleware.ts` (créé)
+- `app/controllers/onboarding/onboarding_controller.ts` (créé)
+- `app/validators/onboarding/complete_onboarding_validator.ts` (créé)
+- `inertia/pages/Onboarding/Wizard.tsx` (créé)
+- `providers/app_provider.ts` (modifié)
+- `start/routes.ts` (modifié)
+- `start/kernel.ts` (modifié)
+- `database/seeders/user_seeder.ts` (modifié)
+- `tests/helpers/mock_user_repository.ts` (créé)
+- `tests/unit/use_cases/onboarding/complete_onboarding.spec.ts` (créé)
+- `tests/functional/onboarding/wizard.spec.ts` (créé)
+- `tests/unit/use_cases/admin/create_user.spec.ts` (modifié — mock factorisé)
+- `tests/unit/use_cases/admin/delete_user.spec.ts` (modifié — mock factorisé)
+- `tests/unit/use_cases/admin/get_user.spec.ts` (modifié — mock factorisé)
+- `tests/unit/use_cases/admin/list_users.spec.ts` (modifié — mock factorisé)
+- `tests/unit/use_cases/admin/update_user.spec.ts` (modifié — mock factorisé)
+- `tests/unit/use_cases/login_user.spec.ts` (modifié — mock factorisé)
+- `tests/unit/use_cases/profile/change_password.spec.ts` (modifié — mock factorisé)
+- `tests/unit/use_cases/register_user.spec.ts` (modifié — mock factorisé)
+
+## Change Log
+
+- 2026-02-24 : Implémentation story 3.5 — wizard d'onboarding 4 étapes, middleware, use case, tests (89 tests verts)

@@ -2,44 +2,7 @@ import { test } from '@japa/runner'
 import DeleteUser from '#use_cases/admin/delete_user'
 import { CannotDeleteSelfError } from '#domain/errors/cannot_delete_self_error'
 import { UserDomainService } from '#domain/services/user_domain_service'
-import { UserRepository } from '#domain/interfaces/user_repository'
-import type { User } from '#domain/entities/user'
-
-function makeUserRepository(overrides: Partial<UserRepository> = {}): UserRepository {
-  class MockRepository extends UserRepository {
-    async countAll() {
-      return 0
-    }
-    async create(data: Omit<User, 'id'>): Promise<User> {
-      return { id: 1, ...data }
-    }
-    async findByEmail(): Promise<null> {
-      return null
-    }
-    async findAll(): Promise<User[]> {
-      return []
-    }
-    async findById(): Promise<null> {
-      return null
-    }
-    async update(): Promise<User> {
-      return {
-        id: 1,
-        fullName: '',
-        email: '',
-        password: '',
-        role: 'user',
-        onboardingCompleted: false,
-        createdAt: '',
-      }
-    }
-    async delete(): Promise<void> {}
-    async verifyPassword(): Promise<boolean> {
-      return false
-    }
-  }
-  return Object.assign(new MockRepository(), overrides)
-}
+import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 
 test.group('UserDomainService.assertCanDelete', () => {
   test('ne lève pas si targetId !== requesterId', ({ assert }) => {
@@ -56,7 +19,7 @@ test.group('DeleteUser — use case', () => {
     assert,
   }) => {
     let deletedId = 0
-    const repo = makeUserRepository({
+    const repo = makeMockUserRepository({
       delete: async (id) => {
         deletedId = id
       },
@@ -69,7 +32,7 @@ test.group('DeleteUser — use case', () => {
   })
 
   test('lève CannotDeleteSelfError quand targetId === requesterId', async ({ assert }) => {
-    const repo = makeUserRepository()
+    const repo = makeMockUserRepository()
     const useCase = new DeleteUser(repo)
 
     try {
@@ -82,7 +45,7 @@ test.group('DeleteUser — use case', () => {
 
   test("n'appelle pas delete() quand self-delete detecte", async ({ assert }) => {
     let deleteCalled = false
-    const repo = makeUserRepository({
+    const repo = makeMockUserRepository({
       delete: async () => {
         deleteCalled = true
       },

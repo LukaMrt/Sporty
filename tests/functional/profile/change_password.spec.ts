@@ -1,7 +1,7 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import User from '#models/user'
-import { getUser, SEEDED_PASSWORD, SEEDED_USER_EMAIL } from '#tests/helpers'
+import { getAdmin, SEEDED_ADMIN_EMAIL, SEEDED_PASSWORD } from '#tests/helpers'
 
 test.group('Profile / Changement de mot de passe', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -20,7 +20,7 @@ test.group('Profile / Changement de mot de passe', (group) => {
   })
 
   test('PUT /profile/password valide → mot de passe changé', async ({ client }) => {
-    const user = await getUser()
+    const user = await getAdmin()
     const newPassword = 'mynewpassword'
 
     const response = await client
@@ -36,11 +36,11 @@ test.group('Profile / Changement de mot de passe', (group) => {
     response.assertStatus(302)
 
     // Vérifier que le nouveau mot de passe fonctionne
-    await User.verifyCredentials(SEEDED_USER_EMAIL, newPassword)
+    await User.verifyCredentials(SEEDED_ADMIN_EMAIL, newPassword)
   })
 
   test('PUT /profile/password ancien mdp incorrect → erreur', async ({ client }) => {
-    const user = await getUser()
+    const user = await getAdmin()
 
     const response = await client
       .put('/profile/password')
@@ -61,7 +61,7 @@ test.group('Profile / Changement de mot de passe', (group) => {
   test('PUT /profile/password confirmation ne match pas → erreur validation', async ({
     client,
   }) => {
-    const user = await getUser()
+    const user = await getAdmin()
 
     const response = await client
       .put('/profile/password')
@@ -80,7 +80,7 @@ test.group('Profile / Changement de mot de passe', (group) => {
   })
 
   test('PUT /profile/password nouveau mdp < 8 chars → erreur validation', async ({ client }) => {
-    const user = await getUser()
+    const user = await getAdmin()
 
     const response = await client
       .put('/profile/password')

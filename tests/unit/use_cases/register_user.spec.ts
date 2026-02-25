@@ -1,37 +1,9 @@
 import { test } from '@japa/runner'
 import RegisterUser from '#use_cases/auth/register_user'
 import { UserAlreadyExistsError } from '#domain/errors/user_already_exists_error'
-import { UserRepository } from '#domain/interfaces/user_repository'
+import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 import { AuthService } from '#domain/interfaces/auth_service'
 import type { User } from '#domain/entities/user'
-
-function makeUserRepository(overrides: Partial<UserRepository> = {}): UserRepository {
-  class MockRepository extends UserRepository {
-    findAll(): Promise<User[]> {
-      return Promise.resolve([])
-    }
-    async countAll() {
-      return 0
-    }
-    async create(data: Omit<User, 'id'>): Promise<User> {
-      return { id: 1, ...data }
-    }
-    async findByEmail(): Promise<null> {
-      return null
-    }
-    async findById(): Promise<null> {
-      return null
-    }
-    async update(_id: number, _data: Partial<Omit<User, 'id'>>): Promise<User> {
-      throw new Error('Not implemented')
-    }
-    async delete(): Promise<void> {}
-    async verifyPassword(): Promise<boolean> {
-      return false
-    }
-  }
-  return Object.assign(new MockRepository(), overrides)
-}
 
 function makeAuthService(): AuthService {
   class MockAuthService extends AuthService {
@@ -47,7 +19,7 @@ function makeAuthService(): AuthService {
 
 test.group('RegisterUser — use case', () => {
   test('premier utilisateur → rôle admin créé', async ({ assert }) => {
-    const repo = makeUserRepository()
+    const repo = makeMockUserRepository()
     const useCase = new RegisterUser(repo, makeAuthService())
 
     const user = await useCase.registerUser({
@@ -60,7 +32,7 @@ test.group('RegisterUser — use case', () => {
   })
 
   test('utilisateur déjà existant → lance UserAlreadyExistsError', async ({ assert }) => {
-    const repo = makeUserRepository({ countAll: async () => 1 })
+    const repo = makeMockUserRepository({ countAll: async () => 1 })
     const useCase = new RegisterUser(repo, makeAuthService())
 
     let thrownError: unknown
@@ -81,7 +53,7 @@ test.group('RegisterUser — use case', () => {
     assert,
   }) => {
     const captured: Omit<User, 'id'>[] = []
-    const repo = makeUserRepository({
+    const repo = makeMockUserRepository({
       create: async (data) => {
         captured.push(data)
         return { id: 1, ...data }

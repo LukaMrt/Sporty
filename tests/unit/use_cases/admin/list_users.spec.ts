@@ -1,35 +1,7 @@
 import { test } from '@japa/runner'
 import ListUsers from '#use_cases/admin/list_users'
-import { UserRepository } from '#domain/interfaces/user_repository'
+import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 import type { User } from '#domain/entities/user'
-
-function makeUserRepository(overrides: Partial<UserRepository> = {}): UserRepository {
-  class MockRepository extends UserRepository {
-    async countAll() {
-      return 0
-    }
-    async create(data: Omit<User, 'id'>): Promise<User> {
-      return { id: 1, ...data }
-    }
-    async findByEmail(): Promise<null> {
-      return null
-    }
-    async findAll(): Promise<User[]> {
-      return []
-    }
-    async findById(): Promise<null> {
-      return null
-    }
-    async update(_id: number, _data: Partial<Omit<User, 'id'>>): Promise<User> {
-      throw new Error('Not implemented')
-    }
-    async delete(): Promise<void> {}
-    async verifyPassword(): Promise<boolean> {
-      return false
-    }
-  }
-  return Object.assign(new MockRepository(), overrides)
-}
 
 test.group('ListUsers — use case', () => {
   test('retourne la liste des utilisateurs fournie par le repository', async ({ assert }) => {
@@ -54,7 +26,7 @@ test.group('ListUsers — use case', () => {
       },
     ]
 
-    const repo = makeUserRepository({ findAll: async () => users })
+    const repo = makeMockUserRepository({ findAll: async () => users })
     const useCase = new ListUsers(repo)
 
     const result = await useCase.listAllUsers()
@@ -63,7 +35,7 @@ test.group('ListUsers — use case', () => {
   })
 
   test('retourne un tableau vide si aucun utilisateur', async ({ assert }) => {
-    const repo = makeUserRepository({ findAll: async () => [] })
+    const repo = makeMockUserRepository({ findAll: async () => [] })
     const useCase = new ListUsers(repo)
 
     const result = await useCase.listAllUsers()

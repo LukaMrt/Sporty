@@ -9,4 +9,5 @@ export abstract class UserRepository {
   abstract update(id: number, data: Partial<Omit<User, 'id'>>): Promise<User>
   abstract delete(id: number): Promise<void>
   abstract verifyPassword(userId: number, password: string): Promise<boolean>
+  abstract markOnboardingCompleted(userId: number): Promise<void>
 }

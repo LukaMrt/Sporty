@@ -14,6 +14,7 @@ export default class UserSeeder extends BaseSeeder {
         email: SEEDED_ADMIN_EMAIL,
         password: SEEDED_PASSWORD,
         role: 'admin',
+        onboardingCompleted: true,
       }
     )
 
@@ -24,6 +25,7 @@ export default class UserSeeder extends BaseSeeder {
         email: SEEDED_USER_EMAIL,
         password: SEEDED_PASSWORD,
         role: 'user',
+        onboardingCompleted: false,
       }
     )
   }
