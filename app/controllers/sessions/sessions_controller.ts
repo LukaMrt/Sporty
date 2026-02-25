@@ -16,10 +16,24 @@ export default class SessionsController {
     private getProfile: GetProfile
   ) {}
 
-  async index({ inertia, auth }: HttpContext) {
+  async index({ inertia, auth, request }: HttpContext) {
     const user = auth.user!
-    const sessions = await this.listSessions.execute(user.id)
-    return inertia.render('Sessions/Index', { sessions })
+    const page = Number(request.input('page', 1))
+    const sessions = await this.listSessions.execute(user.id, page)
+    return inertia.render('Sessions/Index', {
+      sessions: {
+        data: sessions.data.map((s) => ({
+          id: s.id,
+          sportType: s.sportId,
+          sportName: s.sportName,
+          date: s.date,
+          durationMinutes: s.durationMinutes,
+          distanceKm: s.distanceKm,
+          perceivedEffort: s.perceivedEffort,
+        })),
+        meta: sessions.meta,
+      },
+    })
   }
 
   async create({ inertia, auth }: HttpContext) {
@@ -30,7 +44,7 @@ export default class SessionsController {
       this.getProfile.execute(user.id),
     ])
 
-    const defaultSportId = sessions[0]?.sportId ?? sports[0]?.id
+    const defaultSportId = sessions.data[0]?.sportId ?? sports[0]?.id
     const speedUnit = profile?.preferences.speedUnit ?? DEFAULT_USER_PREFERENCES.speedUnit
 
     return inertia.render('Sessions/Create', {

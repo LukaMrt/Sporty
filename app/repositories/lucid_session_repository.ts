@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import type { TrainingSession } from '#domain/entities/training_session'
+import type { PaginatedResult } from '#domain/entities/pagination'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import SessionModel from '#models/session'
@@ -25,19 +26,25 @@ export default class LucidSessionRepository extends SessionRepository {
 
   async findAllByUserId(
     userId: number,
-    opts?: { limit?: number; offset?: number }
-  ): Promise<TrainingSession[]> {
-    let query = SessionModel.query()
+    opts?: { page?: number; perPage?: number }
+  ): Promise<PaginatedResult<TrainingSession>> {
+    const page = opts?.page ?? 1
+    const perPage = opts?.perPage ?? 20
+    const result = await SessionModel.query()
       .preload('sport')
       .withScopes((s) => s.withoutTrashed())
       .where('userId', userId)
       .orderBy('date', 'desc')
-
-    if (opts?.limit !== undefined) query = query.limit(opts.limit)
-    if (opts?.offset !== undefined) query = query.offset(opts.offset)
-
-    const models = await query
-    return models.map((m) => this.#toEntity(m))
+      .paginate(page, perPage)
+    return {
+      data: result.all().map((m) => this.#toEntity(m)),
+      meta: {
+        total: result.total,
+        page: result.currentPage,
+        perPage: result.perPage,
+        lastPage: result.lastPage,
+      },
+    }
   }
 
   async findById(id: number): Promise<TrainingSession | null> {

@@ -1,4 +1,5 @@
 import type { TrainingSession } from '#domain/entities/training_session'
+import type { PaginatedResult } from '#domain/entities/pagination'
 
 export abstract class SessionRepository {
   abstract create(
@@ -6,8 +7,8 @@ export abstract class SessionRepository {
   ): Promise<TrainingSession>
   abstract findAllByUserId(
     userId: number,
-    opts?: { limit?: number; offset?: number }
-  ): Promise<TrainingSession[]>
+    opts?: { page?: number; perPage?: number }
+  ): Promise<PaginatedResult<TrainingSession>>
   abstract findById(id: number): Promise<TrainingSession | null>
   abstract update(
     id: number,

@@ -1,5 +1,6 @@
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
+import type { PaginatedResult } from '#domain/entities/pagination'
 
 export function makeMockSessionRepository(
   overrides: Partial<SessionRepository> = {}
@@ -16,8 +17,8 @@ export function makeMockSessionRepository(
       }
     }
 
-    async findAllByUserId(): Promise<TrainingSession[]> {
-      return []
+    async findAllByUserId(): Promise<PaginatedResult<TrainingSession>> {
+      return { data: [], meta: { total: 0, page: 1, perPage: 20, lastPage: 1 } }
     }
 
     async findById(): Promise<null> {

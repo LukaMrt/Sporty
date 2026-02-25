@@ -6,6 +6,7 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
 import FormField from '~/components/forms/FormField'
+import { EFFORT_EMOJIS } from '~/lib/effort'
 
 interface Sport {
   id: number
@@ -32,8 +33,6 @@ interface SessionFormProps {
   mode: 'create' | 'edit'
   session?: TrainingSession
 }
-
-const EFFORT_EMOJIS = ['😴', '🙂', '😤', '💪', '🔥'] as const
 
 function todayIso() {
   return new Date().toISOString().split('T')[0]
