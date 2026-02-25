@@ -61,13 +61,13 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3 : Gestion Utilisateurs & Profils
-  epic-3: in-progress
+  epic-3: done
   3-1-admin-liste-utilisateurs: done
   3-2-admin-creer-compte-utilisateur: done
   3-3-admin-modifier-supprimer-compte: done
   3-4-changement-mot-de-passe: done
-  3-5-onboarding-wizard: review
-  3-6-page-profil-consultation-modification: ready-for-dev
+  3-5-onboarding-wizard: done
+  3-6-page-profil-consultation-modification: done
   epic-3-retrospective: optional
 
   # Epic 4 : Saisie & Consultation de Seances

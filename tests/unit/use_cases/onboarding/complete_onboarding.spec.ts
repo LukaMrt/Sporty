@@ -12,6 +12,25 @@ function makeUserProfileRepository(
     async create(profile: Omit<UserProfile, 'id'>): Promise<UserProfile> {
       return { id: 1, ...profile }
     }
+    async findByUserId(): Promise<null> {
+      return null
+    }
+    async update(): Promise<UserProfile> {
+      return {
+        id: 1,
+        userId: 1,
+        sportId: 1,
+        level: null,
+        objective: null,
+        preferences: {
+          speedUnit: 'min_km',
+          distanceUnit: 'km',
+          weightUnit: 'kg',
+          weekStartsOn: 'monday',
+          dateFormat: 'DD/MM/YYYY',
+        },
+      }
+    }
   }
   return Object.assign(new MockProfileRepository(), overrides)
 }

@@ -1,6 +1,6 @@
 # Story 3.6 : Page profil — Consultation et modification
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -18,43 +18,43 @@ so that **je peux ajuster mes réglages sans repasser par le wizard** (FR7, FR8,
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Domain — étendre UserProfileRepository (AC: #1, #2)
-  - [ ] Ajouter `findByUserId(userId: number): Promise<UserProfile | null>` au port `UserProfileRepository`
-  - [ ] Ajouter `update(userId: number, data: Partial<UserProfile>): Promise<UserProfile>` au port
+- [x] Task 1 : Domain — étendre UserProfileRepository (AC: #1, #2)
+  - [x] Ajouter `findByUserId(userId: number): Promise<UserProfile | null>` au port `UserProfileRepository`
+  - [x] Ajouter `update(userId: number, data: Partial<UserProfile>): Promise<UserProfile>` au port
 
-- [ ] Task 2 : Repository — implémenter (AC: #1, #2)
-  - [ ] `findByUserId()` dans `LucidUserProfileRepository`
-  - [ ] `update()` dans `LucidUserProfileRepository`
+- [x] Task 2 : Repository — implémenter (AC: #1, #2)
+  - [x] `findByUserId()` dans `LucidUserProfileRepository`
+  - [x] `update()` dans `LucidUserProfileRepository`
 
-- [ ] Task 3 : Use Cases (AC: #1, #2, #3)
-  - [ ] Créer `app/use_cases/profile/get_profile.ts` : charge le user + son profil sportif
-  - [ ] Créer `app/use_cases/profile/update_profile.ts` : met à jour les infos perso (nom, email) + le profil sportif (sport, niveau, objectif, unités)
+- [x] Task 3 : Use Cases (AC: #1, #2, #3)
+  - [x] Créer `app/use_cases/profile/get_profile.ts` : charge le user + son profil sportif
+  - [x] Créer `app/use_cases/profile/update_profile.ts` : met à jour les infos perso (nom, email) + le profil sportif (sport, niveau, objectif, unités)
 
-- [ ] Task 4 : Validators (AC: #2, #3, #4)
-  - [ ] Créer `app/validators/profile/update_profile_validator.ts`
-  - [ ] Champs user : `full_name` (string, optional, minLength 2), `email` (email, optional, unique sauf soi-même)
-  - [ ] Champs profil : `sport_id` (number, optional, exists in sports), `level` (enum, optional), `objective` (string, optional, nullable), `preferred_unit` (enum, optional)
+- [x] Task 4 : Validators (AC: #2, #3, #4)
+  - [x] Créer `app/validators/profile/update_profile_validator.ts`
+  - [x] Champs user : `full_name` (string, optional, minLength 2), `email` (email, optional, unique sauf soi-même)
+  - [x] Champs profil : `sport_id` (number, optional, exists in sports), `level` (enum, optional), `objective` (string, optional, nullable), `preferred_unit` (enum, optional)
 
-- [ ] Task 5 : Routes + Controller (AC: #1, #2, #3)
-  - [ ] Modifier la route `/profile` existante : `GET /profile` → `ProfileController.show`
-  - [ ] Ajouter `PUT /profile` → `ProfileController.update`
-  - [ ] Créer `app/controllers/profile/profile_controller.ts`
-  - [ ] `show` : charger user + profil + sports → render `Profile/Edit`
-  - [ ] `update` : valider → use case → flash success → redirect back
+- [x] Task 5 : Routes + Controller (AC: #1, #2, #3)
+  - [x] Modifier la route `/profile` existante : `GET /profile` → `ProfileController.show`
+  - [x] Ajouter `PUT /profile` → `ProfileController.update`
+  - [x] Créer `app/controllers/profile/profile_controller.ts`
+  - [x] `show` : charger user + profil + sports → render `Profile/Edit`
+  - [x] `update` : valider → use case → flash success → redirect back
 
-- [ ] Task 6 : Page React Profile/Edit complète (AC: #1, #2, #3)
-  - [ ] Remplacer/compléter `inertia/pages/Profile/Edit.tsx` (déjà amorcée en Story 3.4)
-  - [ ] **Section "Informations personnelles" :** nom, email (formulaire)
-  - [ ] **Section "Profil sportif" :** sport (select depuis la liste), niveau (3 options), objectif (texte libre ou prédéfini), unités (toggle km/h ou min/km)
-  - [ ] **Section "Mot de passe" :** le composant `ChangePasswordForm` de la Story 3.4
-  - [ ] **Section "Administration" (conditionnel) :** lien vers `/admin/users` si `auth.user.role === 'admin'`
-  - [ ] Bouton "Enregistrer" pour les infos perso + profil sportif (un seul formulaire)
-  - [ ] Passer les `sports` comme prop pour le select
+- [x] Task 6 : Page React Profile/Edit complète (AC: #1, #2, #3)
+  - [x] Remplacer/compléter `inertia/pages/Profile/Edit.tsx` (déjà amorcée en Story 3.4)
+  - [x] **Section "Informations personnelles" :** nom, email (formulaire)
+  - [x] **Section "Profil sportif" :** sport (select depuis la liste), niveau (3 options), objectif (texte libre ou prédéfini), unités (toggle km/h ou min/km)
+  - [x] **Section "Mot de passe" :** le composant `ChangePasswordForm` de la Story 3.4
+  - [x] **Section "Administration" (conditionnel) :** lien vers `/admin/users` si `auth.user.role === 'admin'`
+  - [x] Bouton "Enregistrer" pour les infos perso + profil sportif (un seul formulaire)
+  - [x] Passer les `sports` comme prop pour le select
 
-- [ ] Task 7 : Tests (AC: #1, #2, #3, #4)
-  - [ ] `tests/unit/use_cases/profile/get_profile.spec.ts`
-  - [ ] `tests/unit/use_cases/profile/update_profile.spec.ts`
-  - [ ] `tests/functional/profile/profile.spec.ts` :
+- [x] Task 7 : Tests (AC: #1, #2, #3, #4)
+  - [x] `tests/unit/use_cases/profile/get_profile.spec.ts`
+  - [x] `tests/unit/use_cases/profile/update_profile.spec.ts`
+  - [x] `tests/functional/profile/profile.spec.ts` :
     - GET `/profile` → 200 + données user + profil
     - PUT `/profile` valide → données mises à jour en DB
     - PUT `/profile` email dupliqué → erreur
@@ -111,3 +111,34 @@ Le use case `UpdateProfile` met à jour les deux en une seule opération. Le con
 - [Source: _bmad-output/epics/epic-3-gestion-utilisateurs.md#Story 3.6]
 - [Source: Story 3.4 — ChangePasswordForm déjà créé]
 - [Source: Story 3.5 — UserProfileRepository déjà créé]
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- `UserProfileRepository` étendu avec `findByUserId` et `update` (abstract class, pas interface)
+- `LucidUserProfileRepository` : `update()` utilise `Model.query({ client: trx })` et `trx.from()` pour les raw queries (pattern recommandé, `useTransaction()` déprécié)
+- `UpdateProfile` use case : sépare les champs user / profil, n'appelle `update` que si des champs concernés sont fournis
+- `ProfileController` injecte `ListSports` (use case existant) pour respecter `controllers-no-direct-infra`
+- Page `Profile/Edit.tsx` : un seul formulaire Inertia pour infos perso + profil sportif ; `ChangePasswordForm` reste isolé avec son propre `put('/profile/password')`
+- Toutes les préférences (vitesse, distance, poids, semaine, format date) exposées dans la page
+
+### File List
+
+- `app/domain/interfaces/user_profile_repository.ts` — modifié
+- `app/repositories/lucid_user_profile_repository.ts` — modifié
+- `app/use_cases/profile/get_profile.ts` — créé
+- `app/use_cases/profile/update_profile.ts` — créé
+- `app/validators/profile/update_profile_validator.ts` — créé
+- `app/controllers/profile/profile_controller.ts` — créé
+- `inertia/pages/Profile/Edit.tsx` — modifié
+- `start/routes.ts` — modifié
+- `tests/unit/use_cases/profile/get_profile.spec.ts` — créé
+- `tests/unit/use_cases/profile/update_profile.spec.ts` — créé
+- `tests/functional/profile/profile.spec.ts` — créé
+- `tests/unit/use_cases/onboarding/complete_onboarding.spec.ts` — modifié (mock mis à jour)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — modifié
+
+### Change Log
+
+- 2026-02-25 : Implémentation complète story 3.6 — page profil consultation/modification (107 tests verts)
