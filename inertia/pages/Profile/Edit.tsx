@@ -311,16 +311,21 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
           {/* Mot de passe */}
           <ChangePasswordForm />
 
+          {/* Corbeille */}
+          <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <h2 className="mb-3 text-sm font-semibold">Séances supprimées</h2>
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/sessions/trash">Voir la corbeille</Link>
+            </Button>
+          </div>
+
           {/* Administration */}
           {user.role === 'admin' && (
             <div className="rounded-xl border bg-card p-6 shadow-sm">
               <h2 className="mb-3 text-sm font-semibold">Administration</h2>
-              <Link
-                href="/admin/users"
-                className="text-sm text-sand-11 underline underline-offset-2 hover:text-sand-12"
-              >
-                Gérer les utilisateurs
-              </Link>
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/admin/users">Gérer les utilisateurs</Link>
+              </Button>
             </div>
           )}
         </div>

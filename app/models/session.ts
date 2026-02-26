@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column, scope } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
+import Sport from '#models/sport'
 
 export default class Session extends BaseModel {
   @column({ isPrimary: true })
@@ -11,7 +12,7 @@ export default class Session extends BaseModel {
   declare userId: number
 
   @column()
-  declare sportType: string
+  declare sportId: number
 
   @column.date()
   declare date: DateTime
@@ -31,11 +32,17 @@ export default class Session extends BaseModel {
   @column()
   declare sportMetrics: Record<string, unknown>
 
+  @column()
+  declare notes: string | null
+
   @column.dateTime()
   declare deletedAt: DateTime | null
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
+
+  @belongsTo(() => Sport)
+  declare sport: BelongsTo<typeof Sport>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

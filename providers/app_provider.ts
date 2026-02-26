@@ -3,6 +3,7 @@ import { UserRepository } from '#domain/interfaces/user_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { AuthService } from '#domain/interfaces/auth_service'
+import { SessionRepository } from '#domain/interfaces/session_repository'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -27,6 +28,12 @@ export default class AppProvider {
     this.app.container.bind(AuthService, async (resolver) => {
       const { AdonisAuthService } = await import('#services/adonis_auth_service')
       return resolver.make(AdonisAuthService)
+    })
+
+    this.app.container.bind(SessionRepository, async () => {
+      const { default: LucidSessionRepository } =
+        await import('#repositories/lucid_session_repository')
+      return new LucidSessionRepository()
     })
   }
 }

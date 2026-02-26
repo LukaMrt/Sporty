@@ -71,19 +71,19 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4 : Saisie & Consultation de Seances
-  epic-4: backlog
-  4-1-saisie-seance: backlog
-  4-2-liste-seances: backlog
-  4-3-detail-seance: backlog
-  4-4-modification-seance: backlog
+  epic-4: done
+  4-1-saisie-seance: done
+  4-2-liste-seances: done
+  4-3-detail-seance: done
+  4-4-modification-seance: done
   epic-4-retrospective: optional
 
   # Epic 5 : Cycle de Vie des Seances
-  epic-5: backlog
-  5-1-suppression-seance-soft-delete: backlog
-  5-2-corbeille-seances-supprimees: backlog
-  5-3-restauration-seance: backlog
-  5-4-filtrage-tri-consultation-par-sport: backlog
+  epic-5: done
+  5-1-suppression-seance-soft-delete: done
+  5-2-corbeille-seances-supprimees: done
+  5-3-restauration-seance: done
+  5-4-filtrage-tri-consultation-par-sport: done
   epic-5-retrospective: optional
 
   # Epic 6 : Dashboard & Visualisation de Progression
