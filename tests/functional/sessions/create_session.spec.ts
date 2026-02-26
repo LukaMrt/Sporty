@@ -2,7 +2,7 @@ import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import Sport from '#models/sport'
 import Session from '#models/session'
-import { getOnboardedUser } from '#tests/helpers'
+import { getUser } from '#tests/helpers'
 
 test.group('Sessions', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
@@ -17,7 +17,7 @@ test.group('Sessions', (group) => {
   })
 
   test('GET /sessions connecté → 200 (AC#1)', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
 
     const response = await client.get('/sessions').loginAs(user)
 
@@ -42,7 +42,7 @@ test.group('Sessions', (group) => {
     client,
     assert,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const response = await client
@@ -67,7 +67,7 @@ test.group('Sessions', (group) => {
     client,
     assert,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     await client
@@ -92,7 +92,7 @@ test.group('Sessions', (group) => {
   })
 
   test('POST /sessions données invalides → redirect back + errors (AC#4)', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
 
     const response = await client
       .post('/sessions')
@@ -107,7 +107,7 @@ test.group('Sessions', (group) => {
   })
 
   test('POST /sessions sport_id inexistant → redirect back + errors', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
 
     const response = await client
       .post('/sessions')

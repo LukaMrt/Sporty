@@ -3,7 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { DateTime } from 'luxon'
 import Sport from '#models/sport'
 import Session from '#models/session'
-import { getOnboardedUser } from '#tests/helpers'
+import { getUser } from '#tests/helpers'
 import User from '#models/user'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 
@@ -14,7 +14,7 @@ test.group('GET /sessions/:id — detail seance', (group) => {
     client,
     assert,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const dbSession = await Session.create({
@@ -37,7 +37,7 @@ test.group('GET /sessions/:id — detail seance', (group) => {
   test('connecte + pas proprietaire -> redirect /sessions avec flash error (AC#1)', async ({
     client,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const otherUser = await User.create({
@@ -69,7 +69,7 @@ test.group('GET /sessions/:id — detail seance', (group) => {
   })
 
   test('seance inexistante -> redirect /sessions avec flash error (AC#1)', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
 
     const response = await client.get('/sessions/999999').loginAs(user).redirects(0)
     response.assertStatus(302)
@@ -90,7 +90,7 @@ test.group('PUT /sessions/:id — modification seance', (group) => {
     client,
     assert,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const dbSession = await Session.create({
@@ -127,7 +127,7 @@ test.group('PUT /sessions/:id — modification seance', (group) => {
     client,
     assert,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const dbSession = await Session.create({
@@ -160,7 +160,7 @@ test.group('PUT /sessions/:id — modification seance', (group) => {
   })
 
   test('non propriétaire -> redirect /sessions avec error (AC#2)', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const otherUser = await User.create({
@@ -201,7 +201,7 @@ test.group('PUT /sessions/:id — modification seance', (group) => {
   })
 
   test('séance inexistante -> redirect /sessions (AC#2)', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const response = await client
@@ -221,7 +221,7 @@ test.group('PUT /sessions/:id — modification seance', (group) => {
   test('données invalides -> redirect back avec erreurs de validation (AC#2)', async ({
     client,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const dbSession = await Session.create({
@@ -268,7 +268,7 @@ test.group('GET /sessions — liste des seances', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
   test('connecte avec seances -> 200 (AC#1)', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     await Session.create({
@@ -288,7 +288,7 @@ test.group('GET /sessions — liste des seances', (group) => {
   })
 
   test('connecte sans seances -> 200 (AC#2)', async ({ client }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
 
     const response = await client.get('/sessions').loginAs(user)
     response.assertStatus(200)
@@ -301,7 +301,7 @@ test.group('GET /sessions — liste des seances', (group) => {
   })
 
   test('GET /sessions?page=1 -> 200 avec pagination (AC#3)', async ({ client, assert }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     for (let i = 0; i < 3; i++) {
@@ -330,7 +330,7 @@ test.group('GET /sessions — liste des seances', (group) => {
     client,
     assert,
   }) => {
-    const user = await getOnboardedUser()
+    const user = await getUser()
     const sport = await Sport.firstOrFail()
 
     const otherUser = await User.create({

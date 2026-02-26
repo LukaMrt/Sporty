@@ -10,6 +10,7 @@ export abstract class SessionRepository {
     opts?: { page?: number; perPage?: number }
   ): Promise<PaginatedResult<TrainingSession>>
   abstract findById(id: number): Promise<TrainingSession | null>
+  abstract findByIdIncludingTrashed(id: number): Promise<TrainingSession | null>
   abstract update(
     id: number,
     data: Partial<Omit<TrainingSession, 'id' | 'userId' | 'createdAt' | 'sportName'>>

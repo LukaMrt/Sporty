@@ -3,7 +3,8 @@ import User from '#models/user'
 
 export const SEEDED_ADMIN_EMAIL = 'admin@example.com'
 export const SEEDED_USER_EMAIL = 'user@example.com'
-export const SEEDED_ONBOARDED_USER_EMAIL = 'onboarded@example.com'
+export const SEEDED_USER_2_EMAIL = 'user2@example.com'
+export const SEEDED_NON_ONBOARDED_USER_EMAIL = 'non-onboarded@example.com'
 export const SEEDED_PASSWORD = 'password123'
 
 export default class UserSeeder extends BaseSeeder {
@@ -26,18 +27,29 @@ export default class UserSeeder extends BaseSeeder {
         email: SEEDED_USER_EMAIL,
         password: SEEDED_PASSWORD,
         role: 'user',
-        onboardingCompleted: false,
+        onboardingCompleted: true,
       }
     )
 
     await User.updateOrCreate(
-      { email: SEEDED_ONBOARDED_USER_EMAIL },
+      { email: SEEDED_USER_2_EMAIL },
       {
-        fullName: 'Onboarded User',
-        email: SEEDED_ONBOARDED_USER_EMAIL,
+        fullName: 'Test User 2',
+        email: SEEDED_USER_2_EMAIL,
         password: SEEDED_PASSWORD,
         role: 'user',
         onboardingCompleted: true,
+      }
+    )
+
+    await User.updateOrCreate(
+      { email: SEEDED_NON_ONBOARDED_USER_EMAIL },
+      {
+        fullName: 'Non Onboarded User',
+        email: SEEDED_NON_ONBOARDED_USER_EMAIL,
+        password: SEEDED_PASSWORD,
+        role: 'user',
+        onboardingCompleted: false,
       }
     )
   }

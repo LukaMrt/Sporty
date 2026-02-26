@@ -2,6 +2,8 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateSession from '#use_cases/sessions/create_session'
 import UpdateSession from '#use_cases/sessions/update_session'
+import DeleteSession from '#use_cases/sessions/delete_session'
+import RestoreSession from '#use_cases/sessions/restore_session'
 import ListSessions from '#use_cases/sessions/list_sessions'
 import GetSession from '#use_cases/sessions/get_session'
 import ListSports from '#use_cases/sports/list_sports'
@@ -17,6 +19,8 @@ export default class SessionsController {
   constructor(
     private createSession: CreateSession,
     private updateSession: UpdateSession,
+    private deleteSession: DeleteSession,
+    private restoreSession: RestoreSession,
     private listSessions: ListSessions,
     private getSession: GetSession,
     private listSports: ListSports,
@@ -105,6 +109,33 @@ export default class SessionsController {
         notes: data.notes,
       })
       session.flash('success', 'Séance modifiée')
+      return response.redirect(`/sessions/${params.id}`)
+    } catch (error) {
+      if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
+        session.flash('error', 'Séance introuvable ou accès refusé')
+        return response.redirect('/sessions')
+      }
+      throw error
+    }
+  }
+
+  async destroy({ params, response, session, auth }: HttpContext) {
+    try {
+      await this.deleteSession.execute(Number(params.id), auth.user!.id)
+      session.flash('deleted_session_id', String(params.id))
+      return response.redirect('/sessions')
+    } catch (error) {
+      if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
+        session.flash('error', 'Séance introuvable ou accès refusé')
+        return response.redirect('/sessions')
+      }
+      throw error
+    }
+  }
+
+  async restore({ params, response, session, auth }: HttpContext) {
+    try {
+      await this.restoreSession.execute(Number(params.id), auth.user!.id)
       return response.redirect(`/sessions/${params.id}`)
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {

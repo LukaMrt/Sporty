@@ -25,6 +25,10 @@ export function makeMockSessionRepository(
       return null
     }
 
+    async findByIdIncludingTrashed(): Promise<null> {
+      return null
+    }
+
     async update(): Promise<TrainingSession> {
       return {
         id: 1,

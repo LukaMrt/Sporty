@@ -1,9 +1,19 @@
-import React from 'react'
-import { Head, Link } from '@inertiajs/react'
-import { ChevronLeft, Pencil } from 'lucide-react'
+import React, { useState } from 'react'
+import { Head, Link, router } from '@inertiajs/react'
+import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { formatDate, formatDuration, formatMetricKey, formatPace } from '~/lib/format'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '~/components/ui/dialog'
+import { Button } from '~/components/ui/button'
 
 interface TrainingSessionProps {
   id: number
@@ -25,8 +35,13 @@ interface ShowProps {
 }
 
 export default function SessionShow({ session }: ShowProps) {
+  const [open, setOpen] = useState(false)
   const pace = formatPace(session.durationMinutes, session.distanceKm)
   const hasSportMetrics = Object.keys(session.sportMetrics).length > 0
+
+  function handleDelete() {
+    router.delete(`/sessions/${session.id}`)
+  }
 
   return (
     <>
@@ -43,13 +58,22 @@ export default function SessionShow({ session }: ShowProps) {
           <span className="text-sm font-medium">Retour</span>
         </Link>
         <h1 className="text-lg font-bold text-foreground">{session.sportName}</h1>
-        <Link
-          href={`/sessions/${session.id}/edit`}
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Modifier la séance"
-        >
-          <Pencil size={18} />
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-1 cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
+            aria-label="Supprimer la séance"
+          >
+            <Trash2 size={18} />
+          </button>
+          <Link
+            href={`/sessions/${session.id}/edit`}
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Modifier la séance"
+          >
+            <Pencil size={18} />
+          </Link>
+        </div>
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
@@ -147,6 +171,26 @@ export default function SessionShow({ session }: ShowProps) {
           </div>
         )}
       </div>
+
+      {/* Modale de confirmation de suppression */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer cette séance ?</DialogTitle>
+            <DialogDescription>
+              Cette action peut être annulée dans les 5 secondes après la suppression.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Annuler</Button>
+            </DialogClose>
+            <Button variant="destructive" onClick={handleDelete}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

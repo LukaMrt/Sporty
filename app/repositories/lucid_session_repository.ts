@@ -56,6 +56,11 @@ export default class LucidSessionRepository extends SessionRepository {
     return model ? this.#toEntity(model) : null
   }
 
+  async findByIdIncludingTrashed(id: number): Promise<TrainingSession | null> {
+    const model = await SessionModel.query().preload('sport').where('id', id).first()
+    return model ? this.#toEntity(model) : null
+  }
+
   async update(
     id: number,
     data: Partial<Omit<TrainingSession, 'id' | 'userId' | 'createdAt' | 'sportName'>>
