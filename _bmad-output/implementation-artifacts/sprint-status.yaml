@@ -79,11 +79,11 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5 : Cycle de Vie des Seances
-  epic-5: in-progress
+  epic-5: done
   5-1-suppression-seance-soft-delete: done
-  5-2-corbeille-seances-supprimees: review
-  5-3-restauration-seance: ready-for-dev
-  5-4-filtrage-tri-consultation-par-sport: ready-for-dev
+  5-2-corbeille-seances-supprimees: done
+  5-3-restauration-seance: done
+  5-4-filtrage-tri-consultation-par-sport: done
   epic-5-retrospective: optional
 
   # Epic 6 : Dashboard & Visualisation de Progression

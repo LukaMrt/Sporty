@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { SessionRepository } from '#domain/interfaces/session_repository'
+import type { ListSessionsOptions } from '#domain/interfaces/session_repository'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import SessionModel from '#models/session'
 
@@ -26,16 +27,19 @@ export default class LucidSessionRepository extends SessionRepository {
 
   async findAllByUserId(
     userId: number,
-    opts?: { page?: number; perPage?: number }
+    opts?: ListSessionsOptions
   ): Promise<PaginatedResult<TrainingSession>> {
     const page = opts?.page ?? 1
     const perPage = opts?.perPage ?? 20
-    const result = await SessionModel.query()
+    const sortBy = opts?.sortBy ?? 'date'
+    const sortOrder = opts?.sortOrder ?? 'desc'
+    const query = SessionModel.query()
       .preload('sport')
       .withScopes((s) => s.withoutTrashed())
       .where('userId', userId)
-      .orderBy('date', 'desc')
-      .paginate(page, perPage)
+      .if(opts?.sportId !== undefined, (q) => q.where('sportId', opts!.sportId!))
+      .orderBy(sortBy, sortOrder)
+    const result = await query.paginate(page, perPage)
     return {
       data: result.all().map((m) => this.#toEntity(m)),
       meta: {

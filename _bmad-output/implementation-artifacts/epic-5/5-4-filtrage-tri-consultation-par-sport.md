@@ -1,6 +1,6 @@
 # Story 5.4: Filtrage, tri et consultation par sport
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

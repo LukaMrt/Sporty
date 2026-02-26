@@ -1,6 +1,6 @@
 # Story 5.1: Suppression d'une séance (soft-delete)
 
-Status: review
+Status: done
 
 ## Story
 

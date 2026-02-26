@@ -1,5 +1,6 @@
 import { inject } from '@adonisjs/core'
 import { SessionRepository } from '#domain/interfaces/session_repository'
+import type { ListSessionsOptions } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 
@@ -9,9 +10,8 @@ export default class ListSessions {
 
   async execute(
     userId: number,
-    page?: number,
-    perPage?: number
+    opts?: ListSessionsOptions
   ): Promise<PaginatedResult<TrainingSession>> {
-    return this.sessionRepository.findAllByUserId(userId, { page, perPage })
+    return this.sessionRepository.findAllByUserId(userId, opts)
   }
 }

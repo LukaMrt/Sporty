@@ -1,6 +1,6 @@
 # Story 5.3: Restauration d'une séance
 
-Status: review
+Status: done
 
 ## Story
 

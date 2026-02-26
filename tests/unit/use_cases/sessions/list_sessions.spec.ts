@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import ListSessions from '#use_cases/sessions/list_sessions'
 import { makeMockSessionRepository } from '#tests/helpers/mock_session_repository'
+import type { ListSessionsOptions } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 
@@ -18,7 +19,15 @@ function makeSession(overrides: Partial<TrainingSession> = {}): TrainingSession 
     sportMetrics: {},
     notes: null,
     createdAt: new Date().toISOString(),
+    deletedAt: null,
     ...overrides,
+  }
+}
+
+function makeEmptyResult(opts?: ListSessionsOptions): PaginatedResult<TrainingSession> {
+  return {
+    data: [],
+    meta: { total: 0, page: opts?.page ?? 1, perPage: opts?.perPage ?? 20, lastPage: 1 },
   }
 }
 
@@ -60,25 +69,20 @@ test.group('ListSessions — use case', () => {
   })
 
   test('transmet les parametres de pagination au repository', async ({ assert }) => {
-    let capturedPage: number | undefined
-    let capturedPerPage: number | undefined
+    let capturedOpts: ListSessionsOptions | undefined
 
     const repo = makeMockSessionRepository({
       async findAllByUserId(_userId, opts) {
-        capturedPage = opts?.page
-        capturedPerPage = opts?.perPage
-        return {
-          data: [],
-          meta: { total: 0, page: opts?.page ?? 1, perPage: opts?.perPage ?? 20, lastPage: 1 },
-        }
+        capturedOpts = opts
+        return makeEmptyResult(opts)
       },
     })
 
     const useCase = new ListSessions(repo)
-    await useCase.execute(1, 3, 10)
+    await useCase.execute(1, { page: 3, perPage: 10 })
 
-    assert.equal(capturedPage, 3)
-    assert.equal(capturedPerPage, 10)
+    assert.equal(capturedOpts?.page, 3)
+    assert.equal(capturedOpts?.perPage, 10)
   })
 
   test("n'expose que les seances de l'utilisateur demande", async ({ assert }) => {
@@ -87,7 +91,7 @@ test.group('ListSessions — use case', () => {
     const repo = makeMockSessionRepository({
       async findAllByUserId(userId) {
         capturedUserId = userId
-        return { data: [], meta: { total: 0, page: 1, perPage: 20, lastPage: 1 } }
+        return makeEmptyResult()
       },
     })
 
@@ -95,5 +99,38 @@ test.group('ListSessions — use case', () => {
     await useCase.execute(7)
 
     assert.equal(capturedUserId, 7)
+  })
+
+  test('transmet le filtre sportId au repository', async ({ assert }) => {
+    let capturedOpts: ListSessionsOptions | undefined
+
+    const repo = makeMockSessionRepository({
+      async findAllByUserId(_userId, opts) {
+        capturedOpts = opts
+        return makeEmptyResult(opts)
+      },
+    })
+
+    const useCase = new ListSessions(repo)
+    await useCase.execute(1, { sportId: 3 })
+
+    assert.equal(capturedOpts?.sportId, 3)
+  })
+
+  test('transmet les options de tri au repository', async ({ assert }) => {
+    let capturedOpts: ListSessionsOptions | undefined
+
+    const repo = makeMockSessionRepository({
+      async findAllByUserId(_userId, opts) {
+        capturedOpts = opts
+        return makeEmptyResult(opts)
+      },
+    })
+
+    const useCase = new ListSessions(repo)
+    await useCase.execute(1, { sortBy: 'duration_minutes', sortOrder: 'asc' })
+
+    assert.equal(capturedOpts?.sortBy, 'duration_minutes')
+    assert.equal(capturedOpts?.sortOrder, 'asc')
   })
 })

@@ -11,6 +11,7 @@ import ListSports from '#use_cases/sports/list_sports'
 import GetProfile from '#use_cases/profile/get_profile'
 import { createSessionValidator } from '#validators/sessions/create_session_validator'
 import { updateSessionValidator } from '#validators/sessions/update_session_validator'
+import { listSessionsValidator } from '#validators/sessions/list_sessions_validator'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
@@ -46,8 +47,14 @@ export default class SessionsController {
 
   async index({ inertia, auth, request }: HttpContext) {
     const user = auth.user!
-    const page = Number(request.input('page', 1))
-    const sessions = await this.listSessions.execute(user.id, page)
+    const filters = await request.validateUsing(listSessionsValidator)
+    const sports = await this.listSports.execute()
+    const sessions = await this.listSessions.execute(user.id, {
+      page: filters.page,
+      sportId: filters.sportId,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
+    })
     return inertia.render('Sessions/Index', {
       sessions: {
         data: sessions.data.map((s) => ({
@@ -61,13 +68,19 @@ export default class SessionsController {
         })),
         meta: sessions.meta,
       },
+      sports: sports.map((s) => ({ id: s.id, name: s.name })),
+      filters: {
+        sportId: filters.sportId ?? null,
+        sortBy: filters.sortBy ?? null,
+        sortOrder: filters.sortOrder ?? null,
+      },
     })
   }
 
   async create({ inertia, auth }: HttpContext) {
     const user = auth.user!
     const [sessions, sports, profile] = await Promise.all([
-      this.listSessions.execute(user.id),
+      this.listSessions.execute(user.id, {}),
       this.listSports.execute(),
       this.getProfile.execute(user.id),
     ])
