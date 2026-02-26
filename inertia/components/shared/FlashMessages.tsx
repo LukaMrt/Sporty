@@ -25,12 +25,12 @@ export default function FlashMessages() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
 
-  function scheduleAutoDismiss(id: number) {
-    const timer = setTimeout(() => dismiss([id]), DISMISS_DELAY)
-    timersRef.current.set(id, timer)
-  }
-
   useEffect(() => {
+    function scheduleAutoDismiss(id: number) {
+      const timer = setTimeout(() => dismiss([id]), DISMISS_DELAY)
+      timersRef.current.set(id, timer)
+    }
+
     const incoming: Toast[] = []
     if (flash?.success)
       incoming.push({ id: nextId++, type: 'success', message: flash.success, visible: false })

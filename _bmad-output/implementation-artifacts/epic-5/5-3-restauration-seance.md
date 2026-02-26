@@ -1,6 +1,6 @@
 # Story 5.3: Restauration d'une séance
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -20,28 +20,28 @@ So that **je peux récupérer une séance supprimée par erreur** (FR16).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Vérifier le use case `RestoreSession` (AC: #1)
-  - [ ] Normalement créé en Story 5.1 — vérifier qu'il existe
-  - [ ] Sinon créer `app/use_cases/sessions/restore_session.ts`
-  - [ ] Ownership check + appel `sessionRepository.restore(id)`
+- [x] Task 1 — Vérifier le use case `RestoreSession` (AC: #1)
+  - [x] Normalement créé en Story 5.1 — vérifier qu'il existe
+  - [x] Sinon créer `app/use_cases/sessions/restore_session.ts`
+  - [x] Ownership check + appel `sessionRepository.restore(id)`
 
-- [ ] Task 2 — Vérifier la route restore (AC: #1)
-  - [ ] Normalement créée en Story 5.1 : `POST /sessions/:id/restore`
-  - [ ] Sinon l'ajouter dans `start/routes.ts`
+- [x] Task 2 — Vérifier la route restore (AC: #1)
+  - [x] Normalement créée en Story 5.1 : `POST /sessions/:id/restore`
+  - [x] Sinon l'ajouter dans `start/routes.ts`
 
-- [ ] Task 3 — Bouton "Restaurer" dans la page Trash (AC: #1)
-  - [ ] Ajouter un bouton "Restaurer" sur chaque séance dans `Sessions/Trash.tsx`
-  - [ ] Appeler `POST /sessions/:id/restore` via `router.post()` d'Inertia
-  - [ ] Afficher toast "Séance restaurée" après succès
-  - [ ] La séance disparaît de la liste (re-render automatique via Inertia)
+- [x] Task 3 — Bouton "Restaurer" dans la page Trash (AC: #1)
+  - [x] Ajouter un bouton "Restaurer" sur chaque séance dans `Sessions/Trash.tsx`
+  - [x] Appeler `POST /sessions/:id/restore` via `router.post()` d'Inertia
+  - [x] Afficher toast "Séance restaurée" après succès
+  - [x] La séance disparaît de la liste (re-render automatique via Inertia)
 
-- [ ] Task 4 — Tests fonctionnels (AC: #1)
-  - [ ] `tests/functional/sessions/restore_session.spec.ts`
-  - [ ] Test : restore remet deleted_at à null
-  - [ ] Test : séance réapparaît dans la liste principale après restore
-  - [ ] Test : séance disparaît de la corbeille après restore
-  - [ ] Test : ownership check (403 si pas propriétaire)
-  - [ ] Test : 404 si séance non trouvée ou pas dans la corbeille
+- [x] Task 4 — Tests fonctionnels (AC: #1)
+  - [x] `tests/functional/sessions/restore_session.spec.ts`
+  - [x] Test : restore remet deleted_at à null
+  - [x] Test : séance réapparaît dans la liste principale après restore
+  - [x] Test : séance disparaît de la corbeille après restore
+  - [x] Test : ownership check (403 si pas propriétaire)
+  - [x] Test : 404 si séance non trouvée ou pas dans la corbeille
 
 ## Dev Notes
 
@@ -71,3 +71,21 @@ So that **je peux récupérer une séance supprimée par erreur** (FR16).
 - [Source: app/repositories/lucid_session_repository.ts#restore]
 - [Source: 5-1-suppression-seance-soft-delete.md — Task 2 et 4]
 - [Source: 5-2-corbeille-seances-supprimees.md — Task 5]
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- Tasks 1, 2, 3 : backend (use case, route, controller, bouton Trash.tsx) déjà intégralement implémentés en Stories 5.1 et 5.2
+- Toast "Séance restaurée" : géré via `session.flash('success', ...)` côté controller + `FlashMessages.tsx` côté client — aucune modification nécessaire dans `Trash.tsx`
+- Fix lint : `scheduleAutoDismiss` déplacée à l'intérieur du `useEffect` dans `FlashMessages.tsx` pour corriger `react-hooks/exhaustive-deps` (erreur introduite en 5.2)
+- Tests fonctionnels : 6 tests couvrant les 5 scénarios requis par la story (deleted_at null, réapparition liste, disparition corbeille, ownership, introuvable, non connecté)
+
+### Files Modified
+
+- `inertia/components/shared/FlashMessages.tsx` — fix lint react-hooks/exhaustive-deps
+- `tests/functional/sessions/restore_session.spec.ts` — nouveau (6 tests)
+
+### Change Log
+
+- 2026-02-26 — Story 5.3 implémentée : tests fonctionnels restore + fix lint FlashMessages. CI verte. AC#1 satisfait.
