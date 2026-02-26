@@ -7,6 +7,34 @@ L'utilisateur ouvre l'app et VOIT sa progression. Le moment "aha".
 
 ---
 
+## Decisions metriques et calculs
+
+### Table de reference des metriques
+
+| Metrique | Calcul | Periode affichee | Tendance (vs quoi) | Affichage tendance |
+|---|---|---|---|---|
+| HeroMetric (allure) | `duree_totale / distance_totale` (pas la moyenne des allures) | Rolling 4 semaines | 4 sem. actuelles vs 4 sem. precedentes | "-18s/km vs 5'30 en moyenne" |
+| Sparkline | Allure par seance | 8 dernieres seances | Visuel uniquement | — |
+| Volume hebdo (km) | `Σ distances` | Semaine ISO en cours | vs moyenne des 4 sem. precedentes | "32km vs 28km en moyenne" |
+| FC moyenne | `Σ(FC × duree) / Σ(duree)` (ponderee par duree) | Rolling 4 semaines | 4 sem. vs 4 sem. precedentes | "vs 158bpm en moyenne" |
+| Nb seances | Count | Semaine ISO en cours | vs moyenne des 4 sem. precedentes (projetee) | "2 vs 1.8 en moyenne" |
+
+### Regles de calcul
+
+- **Allure moyenne** : Toujours calculee comme `duree_totale / distance_totale` sur la periode, jamais comme la moyenne des allures par seance (evite le biais vers les seances courtes).
+- **FC moyenne** : Ponderee par la duree de chaque seance. Formule : `Σ(FC_seance × duree_seance) / Σ(duree_seance)`.
+- **Tendance universelle** : `valeur_courante - moyenne_4_semaines_precedentes`. Meme formule partout pour coherence.
+- **Projection milieu de semaine (nb seances, volume hebdo)** : Pour les metriques de la semaine en cours, la comparaison est projetee au meme point de la semaine (ex: si on est mercredi, on compare au lundi-mercredi moyen des 4 semaines precedentes).
+
+### Regles d'affichage des tendances
+
+- **Tendance positive** : badge vert doux (couleur success)
+- **Tendance neutre ou negative** : badge gris neutre (jamais de rouge)
+- **Libelle** : toujours afficher "vs [valeur] en moyenne" pour que l'utilisateur comprenne la reference
+- **Seuil "Pas assez de donnees"** : moins de 2 seances → afficher "—" avec message
+
+---
+
 ## Story 6.1 : Dashboard - HeroMetric
 
 As a **utilisateur connecte avec des seances**,
@@ -17,9 +45,9 @@ So that **je comprends immediatement ou j'en suis** (FR18).
 
 **Given** j'ai des seances enregistrees
 **When** j'arrive sur la page d'accueil
-**Then** le composant HeroMetric affiche ma metrique cle (ex: allure moyenne) en grand et bold
-**And** un badge de tendance indique l'evolution recente (ex: "-18s/km ce mois")
-**And** un mini-graphique sparkline a droite montre la tendance visuelle
+**Then** le composant HeroMetric affiche l'allure moyenne (calculee comme `duree_totale / distance_totale` sur un rolling 4 semaines) en grand et bold
+**And** un badge de tendance indique l'evolution recente (ex: "-18s/km vs 5'30 en moyenne") comparant les 4 sem. actuelles vs 4 sem. precedentes
+**And** un mini-graphique sparkline a droite montre la tendance visuelle sur les 8 dernieres seances
 
 **Given** j'ai moins de 2 seances
 **When** j'arrive sur la page d'accueil
@@ -49,10 +77,10 @@ So that **j'ai une vue rapide sur mon volume, ma FC et ma frequence d'entraineme
 **When** j'arrive sur la page d'accueil
 **Then** 3 QuickStatCards s'affichent en ligne sous le HeroMetric :
 
-- Volume hebdomadaire (km)
-- FC moyenne
-- Nombre de seances (cette semaine)
-  **And** chaque carte affiche la valeur, l'unite et une tendance
+- Volume hebdomadaire (km) — `Σ distances` de la semaine ISO en cours, tendance vs moyenne des 4 sem. precedentes (projetee au meme jour de la semaine)
+- FC moyenne — `Σ(FC × duree) / Σ(duree)` ponderee par duree, rolling 4 sem., tendance vs 4 sem. precedentes
+- Nombre de seances (cette semaine) — count semaine ISO en cours, tendance vs moyenne des 4 sem. precedentes (projetee au meme jour)
+  **And** chaque carte affiche la valeur, l'unite et une tendance au format "vs [valeur] en moyenne"
 
 **Given** je suis sur mobile (< 768px)
 **When** je regarde les QuickStatCards
