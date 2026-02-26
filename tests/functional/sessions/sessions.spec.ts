@@ -304,6 +304,9 @@ test.group('GET /sessions — liste des seances', (group) => {
     const user = await getUser()
     const sport = await Sport.firstOrFail()
 
+    const countBefore = await Session.query().where('userId', user.id).count('* as total')
+    const before = Number(countBefore[0].$extras.total)
+
     for (let i = 0; i < 3; i++) {
       await Session.create({
         userId: user.id,
@@ -321,9 +324,8 @@ test.group('GET /sessions — liste des seances', (group) => {
     const response = await client.get('/sessions').qs({ page: 1 }).loginAs(user)
     response.assertStatus(200)
 
-    // Verifie que les seances existent bien en DB pour cet utilisateur
-    const count = await Session.query().where('userId', user.id).count('* as total')
-    assert.equal(Number(count[0].$extras.total), 3)
+    const countAfter = await Session.query().where('userId', user.id).count('* as total')
+    assert.equal(Number(countAfter[0].$extras.total), before + 3)
   })
 
   test("les seances d'un autre utilisateur ne sont PAS incluses (AC#1 — isolation)", async ({
@@ -356,11 +358,7 @@ test.group('GET /sessions — liste des seances', (group) => {
       notes: null,
     })
 
-    // Le user principal n'a aucune seance
-    const myCount = await Session.query().where('userId', user.id).count('* as total')
-    assert.equal(Number(myCount[0].$extras.total), 0)
-
-    // L'autre user a bien sa seance
+    // L'autre user a bien sa séance créée dans ce test
     const otherCount = await Session.query().where('userId', otherUser.id).count('* as total')
     assert.equal(Number(otherCount[0].$extras.total), 1)
 

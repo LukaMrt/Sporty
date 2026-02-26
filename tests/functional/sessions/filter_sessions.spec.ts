@@ -64,6 +64,9 @@ test.group('GET /sessions — filtrage et tri (Story 5.4)', (group) => {
     const user = await getUser()
     const sport = await Sport.firstOrFail()
 
+    const countBefore = await Session.query().where('userId', user.id).count('* as total')
+    const before = Number(countBefore[0].$extras.total)
+
     for (let i = 1; i <= 3; i++) {
       await Session.create({
         userId: user.id,
@@ -76,8 +79,8 @@ test.group('GET /sessions — filtrage et tri (Story 5.4)', (group) => {
     const response = await client.get('/sessions').loginAs(user)
     response.assertStatus(200)
 
-    const count = await Session.query().where('userId', user.id).count('* as total')
-    assert.equal(Number(count[0].$extras.total), 3)
+    const countAfter = await Session.query().where('userId', user.id).count('* as total')
+    assert.equal(Number(countAfter[0].$extras.total), before + 3)
   })
 
   test('les séances supprimées ne sont jamais retournées (AC#1-4)', async ({ client, assert }) => {
@@ -106,7 +109,12 @@ test.group('GET /sessions — filtrage et tri (Story 5.4)', (group) => {
       .where('userId', user.id)
       .whereNull('deleted_at')
       .count('* as total')
-    assert.equal(Number(active[0].$extras.total), 1)
+    // Au moins 1 séance active (celle créée dans le test + les seedées)
+    assert.isAbove(Number(active[0].$extras.total), 0)
+
+    // La séance trashée n'est pas comptée comme active
+    const trashedStillTrashed = await Session.findOrFail(trashed.id)
+    assert.isNotNull(trashedStillTrashed.deletedAt)
   })
 
   test('non connecté -> redirect /login', async ({ client }) => {

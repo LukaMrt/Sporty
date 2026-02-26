@@ -58,9 +58,9 @@ test.group('Sessions', (group) => {
     const session = await Session.query()
       .where('userId', user.id)
       .where('sportId', sport.id)
-      .first()
-    assert.isNotNull(session)
-    assert.equal(session!.durationMinutes, 45)
+      .orderBy('id', 'desc')
+      .firstOrFail()
+    assert.equal(session.durationMinutes, 45)
   })
 
   test('POST /sessions avec champs optionnels → séance enregistrée complète', async ({
@@ -84,7 +84,10 @@ test.group('Sessions', (group) => {
       .loginAs(user)
       .redirects(0)
 
-    const session = await Session.query().where('userId', user.id).firstOrFail()
+    const session = await Session.query()
+      .where('userId', user.id)
+      .orderBy('id', 'desc')
+      .firstOrFail()
     assert.equal(Number(session.distanceKm), 10.5)
     assert.equal(session.avgHeartRate, 145)
     assert.equal(session.perceivedEffort, 4)
