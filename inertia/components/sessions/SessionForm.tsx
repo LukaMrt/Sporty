@@ -112,6 +112,9 @@ export default function SessionForm({
     if (mode === 'create') {
       form.transform(() => payload)
       form.post('/sessions', { onSuccess: onClose })
+    } else {
+      form.transform(() => payload)
+      form.put(`/sessions/${session!.id}`, { onSuccess: onClose })
     }
   }
 

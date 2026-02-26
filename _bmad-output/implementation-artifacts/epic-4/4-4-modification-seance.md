@@ -1,6 +1,6 @@
 # Story 4.4 : Modification d'une séance
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

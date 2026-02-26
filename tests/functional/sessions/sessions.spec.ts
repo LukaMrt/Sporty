@@ -83,6 +83,187 @@ test.group('GET /sessions/:id — detail seance', (group) => {
   })
 })
 
+test.group('PUT /sessions/:id — modification seance', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('valide + proprietaire -> 302 redirect /sessions/:id + données mises à jour (AC#2)', async ({
+    client,
+    assert,
+  }) => {
+    const user = await getOnboardedUser()
+    const sport = await Sport.firstOrFail()
+
+    const dbSession = await Session.create({
+      userId: user.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-02-25'),
+      durationMinutes: 45,
+      distanceKm: null,
+      avgHeartRate: null,
+      perceivedEffort: null,
+      sportMetrics: {},
+      notes: null,
+    })
+
+    const response = await client
+      .put(`/sessions/${dbSession.id}`)
+      .loginAs(user)
+      .form({
+        sport_id: sport.id,
+        date: '2026-02-26',
+        duration_minutes: 60,
+      })
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', `/sessions/${dbSession.id}`)
+
+    const updated = await Session.findOrFail(dbSession.id)
+    assert.equal(updated.durationMinutes, 60)
+    assert.equal(updated.date.toISODate(), '2026-02-26')
+  })
+
+  test('distance modifiée 5 km -> 15 km -> sauvegardée en DB (AC#3)', async ({
+    client,
+    assert,
+  }) => {
+    const user = await getOnboardedUser()
+    const sport = await Sport.firstOrFail()
+
+    const dbSession = await Session.create({
+      userId: user.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-02-25'),
+      durationMinutes: 45,
+      distanceKm: 5,
+      avgHeartRate: null,
+      perceivedEffort: null,
+      sportMetrics: {},
+      notes: null,
+    })
+
+    const response = await client
+      .put(`/sessions/${dbSession.id}`)
+      .loginAs(user)
+      .form({
+        sport_id: sport.id,
+        date: '2026-02-25',
+        duration_minutes: 45,
+        distance_km: 15,
+      })
+      .redirects(0)
+
+    response.assertStatus(302)
+
+    const updated = await Session.findOrFail(dbSession.id)
+    assert.equal(Number(updated.distanceKm), 15)
+  })
+
+  test('non propriétaire -> redirect /sessions avec error (AC#2)', async ({ client }) => {
+    const user = await getOnboardedUser()
+    const sport = await Sport.firstOrFail()
+
+    const otherUser = await User.create({
+      email: 'other-update-test@example.com',
+      password: 'Secret1234!',
+      fullName: 'Other User',
+      role: 'user',
+      onboardingCompleted: true,
+    })
+    await otherUser.related('profile').create({
+      preferences: DEFAULT_USER_PREFERENCES,
+    })
+
+    const otherSession = await Session.create({
+      userId: otherUser.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-02-25'),
+      durationMinutes: 30,
+      distanceKm: null,
+      avgHeartRate: null,
+      perceivedEffort: null,
+      sportMetrics: {},
+      notes: null,
+    })
+
+    const response = await client
+      .put(`/sessions/${otherSession.id}`)
+      .loginAs(user)
+      .form({
+        sport_id: sport.id,
+        date: '2026-02-25',
+        duration_minutes: 30,
+      })
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/sessions')
+  })
+
+  test('séance inexistante -> redirect /sessions (AC#2)', async ({ client }) => {
+    const user = await getOnboardedUser()
+    const sport = await Sport.firstOrFail()
+
+    const response = await client
+      .put('/sessions/999999')
+      .loginAs(user)
+      .form({
+        sport_id: sport.id,
+        date: '2026-02-25',
+        duration_minutes: 30,
+      })
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/sessions')
+  })
+
+  test('données invalides -> redirect back avec erreurs de validation (AC#2)', async ({
+    client,
+  }) => {
+    const user = await getOnboardedUser()
+    const sport = await Sport.firstOrFail()
+
+    const dbSession = await Session.create({
+      userId: user.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-02-25'),
+      durationMinutes: 45,
+      distanceKm: null,
+      avgHeartRate: null,
+      perceivedEffort: null,
+      sportMetrics: {},
+      notes: null,
+    })
+
+    const response = await client
+      .put(`/sessions/${dbSession.id}`)
+      .loginAs(user)
+      .form({
+        sport_id: sport.id,
+        date: 'invalid-date',
+        duration_minutes: -1,
+      })
+      .redirects(0)
+
+    response.assertStatus(302)
+  })
+
+  test('non connecté -> redirect /login (AC#2)', async ({ client }) => {
+    const response = await client
+      .put('/sessions/1')
+      .form({
+        sport_id: 1,
+        date: '2026-02-25',
+        duration_minutes: 30,
+      })
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/login')
+  })
+})
+
 test.group('GET /sessions — liste des seances', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 
