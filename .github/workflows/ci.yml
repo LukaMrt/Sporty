@@ -26,8 +26,46 @@ jobs:
 
       - run: pnpm ${{ matrix.check }}
 
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: sporty
+          POSTGRES_PASSWORD: sporty
+          POSTGRES_DB: sporty_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      NODE_ENV: test
+      APP_KEY: ${{ secrets.APP_KEY }}
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: sporty
+      DB_PASSWORD: sporty
+      DB_DATABASE: sporty_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm test
+
   docker:
-    needs: quality
+    needs: [quality, test]
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
