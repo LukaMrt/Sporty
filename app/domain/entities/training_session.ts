@@ -11,4 +11,5 @@ export interface TrainingSession {
   sportMetrics: Record<string, unknown>
   notes: string | null
   createdAt: string
+  deletedAt?: string | null
 }

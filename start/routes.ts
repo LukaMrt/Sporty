@@ -38,6 +38,7 @@ router
     router.get('/', [DashboardController, 'index'])
     router.get('/sessions', [SessionsController, 'index'])
     router.get('/sessions/create', [SessionsController, 'create'])
+    router.get('/sessions/trash', [SessionsController, 'trash'])
     router.post('/sessions', [SessionsController, 'store'])
     router.get('/sessions/:id', [SessionsController, 'show'])
     router.get('/sessions/:id/edit', [SessionsController, 'edit'])

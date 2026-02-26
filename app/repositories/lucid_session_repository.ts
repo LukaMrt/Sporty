@@ -82,6 +82,15 @@ export default class LucidSessionRepository extends SessionRepository {
     return this.#toEntity(model)
   }
 
+  async findTrashedByUserId(userId: number): Promise<TrainingSession[]> {
+    const models = await SessionModel.query()
+      .preload('sport')
+      .withScopes((s) => s.onlyTrashed())
+      .where('userId', userId)
+      .orderBy('deletedAt', 'desc')
+    return models.map((m) => this.#toEntity(m))
+  }
+
   async softDelete(id: number): Promise<void> {
     const model = await SessionModel.find(id)
     if (!model) throw new SessionNotFoundError(id)
@@ -113,6 +122,7 @@ export default class LucidSessionRepository extends SessionRepository {
       sportMetrics: model.sportMetrics,
       notes: model.notes,
       createdAt: model.createdAt.toISO() ?? '',
+      deletedAt: model.deletedAt?.toISO() ?? null,
     }
   }
 }

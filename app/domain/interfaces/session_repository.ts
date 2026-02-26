@@ -15,6 +15,7 @@ export abstract class SessionRepository {
     id: number,
     data: Partial<Omit<TrainingSession, 'id' | 'userId' | 'createdAt' | 'sportName'>>
   ): Promise<TrainingSession>
+  abstract findTrashedByUserId(userId: number): Promise<TrainingSession[]>
   abstract softDelete(id: number): Promise<void>
   abstract restore(id: number): Promise<void>
 }

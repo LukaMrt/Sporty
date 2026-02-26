@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePage, router } from '@inertiajs/react'
 import { CheckCircle, AlertCircle, X } from 'lucide-react'
 
@@ -23,6 +23,12 @@ const TRANSITION_DURATION = 300
 export default function FlashMessages() {
   const { flash } = usePage<FlashProps>().props
   const [toasts, setToasts] = useState<Toast[]>([])
+  const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+
+  function scheduleAutoDismiss(id: number) {
+    const timer = setTimeout(() => dismiss([id]), DISMISS_DELAY)
+    timersRef.current.set(id, timer)
+  }
 
   useEffect(() => {
     const incoming: Toast[] = []
@@ -47,13 +53,15 @@ export default function FlashMessages() {
       setToasts((prev) =>
         prev.map((t) => (incoming.find((i) => i.id === t.id) ? { ...t, visible: true } : t))
       )
+      incoming.forEach((t) => scheduleAutoDismiss(t.id))
     })
-
-    const timer = setTimeout(() => dismiss(incoming.map((i) => i.id)), DISMISS_DELAY)
-    return () => clearTimeout(timer)
   }, [flash])
 
   function dismiss(ids: number[]) {
+    ids.forEach((id) => {
+      clearTimeout(timersRef.current.get(id))
+      timersRef.current.delete(id)
+    })
     setToasts((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, visible: false } : t)))
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => !ids.includes(t.id)))

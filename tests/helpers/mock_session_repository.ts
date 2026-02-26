@@ -29,6 +29,10 @@ export function makeMockSessionRepository(
       return null
     }
 
+    async findTrashedByUserId(): Promise<TrainingSession[]> {
+      return []
+    }
+
     async update(): Promise<TrainingSession> {
       return {
         id: 1,

@@ -1,6 +1,7 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateSession from '#use_cases/sessions/create_session'
+import ListTrashedSessions from '#use_cases/sessions/list_trashed_sessions'
 import UpdateSession from '#use_cases/sessions/update_session'
 import DeleteSession from '#use_cases/sessions/delete_session'
 import RestoreSession from '#use_cases/sessions/restore_session'
@@ -22,10 +23,26 @@ export default class SessionsController {
     private deleteSession: DeleteSession,
     private restoreSession: RestoreSession,
     private listSessions: ListSessions,
+    private listTrashedSessions: ListTrashedSessions,
     private getSession: GetSession,
     private listSports: ListSports,
     private getProfile: GetProfile
   ) {}
+
+  async trash({ inertia, auth }: HttpContext) {
+    const user = auth.user!
+    const sessions = await this.listTrashedSessions.execute(user.id)
+    return inertia.render('Sessions/Trash', {
+      sessions: sessions.map((s) => ({
+        id: s.id,
+        sportName: s.sportName,
+        date: s.date,
+        durationMinutes: s.durationMinutes,
+        distanceKm: s.distanceKm,
+        deletedAt: s.deletedAt ?? null,
+      })),
+    })
+  }
 
   async index({ inertia, auth, request }: HttpContext) {
     const user = auth.user!
@@ -136,7 +153,8 @@ export default class SessionsController {
   async restore({ params, response, session, auth }: HttpContext) {
     try {
       await this.restoreSession.execute(Number(params.id), auth.user!.id)
-      return response.redirect(`/sessions/${params.id}`)
+      session.flash('success', 'Séance restaurée')
+      return response.redirect('/sessions/trash')
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
         session.flash('error', 'Séance introuvable ou accès refusé')
