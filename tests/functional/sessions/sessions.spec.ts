@@ -7,6 +7,82 @@ import { getOnboardedUser } from '#tests/helpers'
 import User from '#models/user'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 
+test.group('GET /sessions/:id — detail seance', (group) => {
+  group.each.setup(() => testUtils.db().withGlobalTransaction())
+
+  test('connecte + proprietaire -> 200 avec session complete (AC#1)', async ({
+    client,
+    assert,
+  }) => {
+    const user = await getOnboardedUser()
+    const sport = await Sport.firstOrFail()
+
+    const dbSession = await Session.create({
+      userId: user.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-02-25'),
+      durationMinutes: 45,
+      distanceKm: 10,
+      avgHeartRate: 150,
+      perceivedEffort: 3,
+      sportMetrics: {},
+      notes: 'Belle séance',
+    })
+
+    const response = await client.get(`/sessions/${dbSession.id}`).loginAs(user)
+    response.assertStatus(200)
+    assert.exists(response.body())
+  })
+
+  test('connecte + pas proprietaire -> redirect /sessions avec flash error (AC#1)', async ({
+    client,
+  }) => {
+    const user = await getOnboardedUser()
+    const sport = await Sport.firstOrFail()
+
+    const otherUser = await User.create({
+      email: 'other-show-test@example.com',
+      password: 'Secret1234!',
+      fullName: 'Other User',
+      role: 'user',
+      onboardingCompleted: true,
+    })
+    await otherUser.related('profile').create({
+      preferences: DEFAULT_USER_PREFERENCES,
+    })
+
+    const otherSession = await Session.create({
+      userId: otherUser.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-02-25'),
+      durationMinutes: 30,
+      distanceKm: null,
+      avgHeartRate: null,
+      perceivedEffort: null,
+      sportMetrics: {},
+      notes: null,
+    })
+
+    const response = await client.get(`/sessions/${otherSession.id}`).loginAs(user).redirects(0)
+    response.assertStatus(302)
+    response.assertHeader('location', '/sessions')
+  })
+
+  test('seance inexistante -> redirect /sessions avec flash error (AC#1)', async ({ client }) => {
+    const user = await getOnboardedUser()
+
+    const response = await client.get('/sessions/999999').loginAs(user).redirects(0)
+    response.assertStatus(302)
+    response.assertHeader('location', '/sessions')
+  })
+
+  test('non connecte -> redirect /login (AC#1)', async ({ client }) => {
+    const response = await client.get('/sessions/1').redirects(0)
+    response.assertStatus(302)
+    response.assertHeader('location', '/login')
+  })
+})
+
 test.group('GET /sessions — liste des seances', (group) => {
   group.each.setup(() => testUtils.db().withGlobalTransaction())
 

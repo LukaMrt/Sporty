@@ -39,6 +39,7 @@ router
     router.get('/sessions', [SessionsController, 'index'])
     router.get('/sessions/create', [SessionsController, 'create'])
     router.post('/sessions', [SessionsController, 'store'])
+    router.get('/sessions/:id', [SessionsController, 'show'])
     router.on('/planning').renderInertia('Planning/Index')
     router.get('/profile', [ProfileController, 'show'])
     router.put('/profile', [ProfileController, 'update'])

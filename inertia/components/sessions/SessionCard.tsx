@@ -27,7 +27,7 @@ export default function SessionCard({
     <button
       type="button"
       onClick={handleClick}
-      className="w-full rounded-xl border bg-card p-4 shadow-sm text-left transition-colors hover:bg-accent/50 active:bg-accent min-h-[44px]"
+      className="w-full rounded-xl border bg-card p-4 shadow-sm text-left transition-colors cursor-pointer hover:bg-accent/50 active:bg-accent min-h-[44px]"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">

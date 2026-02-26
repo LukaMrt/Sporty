@@ -2,16 +2,20 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateSession from '#use_cases/sessions/create_session'
 import ListSessions from '#use_cases/sessions/list_sessions'
+import GetSession from '#use_cases/sessions/get_session'
 import ListSports from '#use_cases/sports/list_sports'
 import GetProfile from '#use_cases/profile/get_profile'
 import { createSessionValidator } from '#validators/sessions/create_session_validator'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
+import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
+import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
 
 @inject()
 export default class SessionsController {
   constructor(
     private createSession: CreateSession,
     private listSessions: ListSessions,
+    private getSession: GetSession,
     private listSports: ListSports,
     private getProfile: GetProfile
   ) {}
@@ -52,6 +56,19 @@ export default class SessionsController {
       defaultSportId,
       speedUnit,
     })
+  }
+
+  async show({ params, inertia, auth, response, session }: HttpContext) {
+    try {
+      const trainingSession = await this.getSession.execute(Number(params.id), auth.user!.id)
+      return inertia.render('Sessions/Show', { session: trainingSession })
+    } catch (error) {
+      if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
+        session.flash('error', 'Séance introuvable')
+        return response.redirect('/sessions')
+      }
+      throw error
+    }
   }
 
   async store({ request, response, session, auth }: HttpContext) {
