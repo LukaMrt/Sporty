@@ -1,6 +1,6 @@
 # Story 4.2 : Liste des séances
 
-Status: review
+Status: done
 
 ## Story
 

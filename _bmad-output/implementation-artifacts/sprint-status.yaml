@@ -71,7 +71,7 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4 : Saisie & Consultation de Seances
-  epic-4: in-progress
+  epic-4: done
   4-1-saisie-seance: done
   4-2-liste-seances: done
   4-3-detail-seance: done

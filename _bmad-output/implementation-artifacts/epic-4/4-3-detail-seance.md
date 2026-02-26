@@ -1,6 +1,6 @@
 # Story 4.3 : Détail d'une séance
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
