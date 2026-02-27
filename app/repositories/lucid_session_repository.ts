@@ -38,8 +38,14 @@ export default class LucidSessionRepository extends SessionRepository {
       .withScopes((s) => s.withoutTrashed())
       .where('userId', userId)
       .if(opts?.sportId !== undefined, (q) => q.where('sportId', opts!.sportId!))
-      .orderBy(sortBy, sortOrder)
-    const result = await query.paginate(page, perPage)
+
+    const sorted =
+      sortBy === 'distance_km'
+        ? query.orderByRaw(
+            `distance_km IS NULL, distance_km ${sortOrder === 'asc' ? 'ASC' : 'DESC'}`
+          )
+        : query.orderBy(sortBy, sortOrder)
+    const result = await sorted.paginate(page, perPage)
     return {
       data: result.all().map((m) => this.#toEntity(m)),
       meta: {

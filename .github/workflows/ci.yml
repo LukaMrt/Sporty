@@ -44,12 +44,17 @@ jobs:
           - 5432:5432
     env:
       NODE_ENV: test
-      APP_KEY: ${{ secrets.APP_KEY }}
+      APP_KEY: kDvkrhtbc8N2L0ftV-wQbX4Msfce8-IrF4AsJwtJ4do
       DB_HOST: localhost
       DB_PORT: 5432
       DB_USER: sporty
       DB_PASSWORD: sporty
       DB_DATABASE: sporty_test
+      PORT: 3333
+      HOST: 0.0.0.0
+      LOG_LEVEL: info
+      SESSION_DRIVER: memory
+      TZ: UTC
     steps:
       - uses: actions/checkout@v4
 

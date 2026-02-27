@@ -13,8 +13,7 @@ import type { TrainingSession } from '#domain/entities/training_session'
 export default class GetDashboardMetrics {
   constructor(private sessionRepository: SessionRepository) {}
 
-  async execute(userId: number): Promise<DashboardMetrics> {
-    const now = new Date()
+  async execute(userId: number, now: Date = new Date()): Promise<DashboardMetrics> {
     const currentEnd = this.#toISODate(now)
     const currentStart = this.#toISODate(this.#weeksAgo(now, 4))
     const previousStart = this.#toISODate(this.#weeksAgo(now, 8))

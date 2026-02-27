@@ -13,18 +13,21 @@ interface Sport {
   name: string
 }
 
+export type SortByField = 'date' | 'duration_minutes' | 'distance_km'
+export type SortOrder = 'asc' | 'desc'
+
 export interface Filters {
   sportId: number | null
-  sortBy: string | null
-  sortOrder: string | null
+  sortBy: SortByField | null
+  sortOrder: SortOrder | null
 }
 
 interface SessionFiltersProps {
   sports: Sport[]
   filters: Filters
   onSportChange: (value: string) => void
-  onSortByChange: (value: string) => void
-  onSortOrderChange: (value: string) => void
+  onSortByChange: (value: SortByField | 'default') => void
+  onSortOrderChange: (value: SortOrder) => void
   onReset: () => void
 }
 
@@ -57,11 +60,15 @@ export default function SessionFilters({
         </SelectContent>
       </Select>
 
-      <Select value={filters.sortBy ?? ''} onValueChange={onSortByChange}>
+      <Select
+        value={filters.sortBy ?? ''}
+        onValueChange={(v) => onSortByChange(v as SortByField | 'default')}
+      >
         <SelectTrigger className="w-[160px] cursor-pointer">
           <SelectValue placeholder="Trier par..." />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="default">Par défaut</SelectItem>
           <SelectItem value="date">Date</SelectItem>
           <SelectItem value="duration_minutes">Durée</SelectItem>
           <SelectItem value="distance_km">Distance</SelectItem>
@@ -69,7 +76,10 @@ export default function SessionFilters({
       </Select>
 
       {filters.sortBy && (
-        <Select value={filters.sortOrder ?? 'desc'} onValueChange={onSortOrderChange}>
+        <Select
+          value={filters.sortOrder ?? 'desc'}
+          onValueChange={(v) => onSortOrderChange(v as SortOrder)}
+        >
           <SelectTrigger className="w-[130px] cursor-pointer">
             <SelectValue />
           </SelectTrigger>

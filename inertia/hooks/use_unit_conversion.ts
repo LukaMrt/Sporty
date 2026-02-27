@@ -18,11 +18,16 @@ export function useUnitConversion() {
     return `${formatPaceMinSec(paceMinPerKm)}/km`
   }
 
-  const formatDistance = (km: number): string => {
+  const formatDistanceParts = (km: number): { value: string; unit: string } => {
     if (distanceUnit === 'mi') {
-      return `${kmToMiles(km).toFixed(1)} mi`
+      return { value: kmToMiles(km).toFixed(1), unit: 'mi' }
     }
-    return `${km.toFixed(1)} km`
+    return { value: km.toFixed(1), unit: 'km' }
+  }
+
+  const formatDistance = (km: number): string => {
+    const { value, unit } = formatDistanceParts(km)
+    return `${value} ${unit}`
   }
 
   const convertPaceForChart = (paceMinPerKm: number): number => {
@@ -30,5 +35,12 @@ export function useUnitConversion() {
     return paceMinPerKm
   }
 
-  return { formatSpeed, formatDistance, convertPaceForChart, speedUnit, distanceUnit }
+  return {
+    formatSpeed,
+    formatDistance,
+    formatDistanceParts,
+    convertPaceForChart,
+    speedUnit,
+    distanceUnit,
+  }
 }

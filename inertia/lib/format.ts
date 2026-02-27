@@ -6,6 +6,16 @@ export function kmToMiles(km: number): number {
   return km * 0.621371
 }
 
+export function toMinSec(decimalMinutes: number): { minutes: number; seconds: number } {
+  let minutes = Math.floor(decimalMinutes)
+  let seconds = Math.round((decimalMinutes - minutes) * 60)
+  if (seconds === 60) {
+    minutes++
+    seconds = 0
+  }
+  return { minutes, seconds }
+}
+
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
@@ -16,22 +26,23 @@ export function formatDuration(minutes: number): string {
 
 export function formatPace(durationMinutes: number, distanceKm: number | null): string | null {
   if (!distanceKm || distanceKm === 0) return null
-  const paceMin = durationMinutes / distanceKm
-  const minutes = Math.floor(paceMin)
-  const seconds = Math.round((paceMin - minutes) * 60)
+  const { minutes, seconds } = toMinSec(durationMinutes / distanceKm)
   return `${minutes}'${seconds.toString().padStart(2, '0')}/km`
 }
 
 export function formatPaceMinSec(paceMinPerKm: number): string {
-  const minutes = Math.floor(paceMinPerKm)
-  const seconds = Math.round((paceMinPerKm - minutes) * 60)
+  const { minutes, seconds } = toMinSec(paceMinPerKm)
   return `${minutes}'${seconds.toString().padStart(2, '0')}`
 }
 
-export function formatTrend(trendSeconds: number): string {
+export function formatTrend(
+  trendSeconds: number,
+  unitLabel: string = 's/km',
+  periodLabel: string = 'période précédente'
+): string {
   const sign = trendSeconds < 0 ? '-' : '+'
   const abs = Math.abs(trendSeconds)
-  return `${sign}${abs}s/km vs mois dernier`
+  return `${sign}${abs}${unitLabel} vs ${periodLabel}`
 }
 
 export function formatMetricKey(key: string): string {
@@ -39,16 +50,13 @@ export function formatMetricKey(key: string): string {
 }
 
 export function formatChartDate(iso: string): string {
-  const d = new Date(iso)
-  const day = d.getDate().toString().padStart(2, '0')
-  const month = (d.getMonth() + 1).toString().padStart(2, '0')
+  const [, month, day] = iso.split('-')
   return `${day}/${month}`
 }
 
 export function formatChartValue(value: number, metric: string): string {
   if (metric === 'pace') {
-    const minutes = Math.floor(value)
-    const seconds = Math.round((value - minutes) * 60)
+    const { minutes, seconds } = toMinSec(value)
     return `${minutes}'${seconds.toString().padStart(2, '0')}/km`
   }
   if (metric === 'heartRate') {
@@ -58,7 +66,8 @@ export function formatChartValue(value: number, metric: string): string {
 }
 
 export function isoWeek(iso: string): string {
-  const d = new Date(iso)
+  const [y, m, dd] = iso.split('-').map(Number)
+  const d = new Date(y, m - 1, dd)
   const day = d.getDay() || 7
   d.setDate(d.getDate() + 4 - day)
   const year = d.getFullYear()
@@ -67,7 +76,8 @@ export function isoWeek(iso: string): string {
 }
 
 export function isThisWeek(iso: string): boolean {
-  const date = new Date(iso)
+  const [y, m, dd] = iso.split('-').map(Number)
+  const date = new Date(y, m - 1, dd)
   const now = new Date()
   // ISO week: Monday = day 1
   const dayOfWeek = now.getDay() || 7
@@ -80,9 +90,9 @@ export function isThisWeek(iso: string): boolean {
 }
 
 export function isThisMonth(iso: string): boolean {
-  const date = new Date(iso)
+  const [y, m] = iso.split('-').map(Number)
   const now = new Date()
-  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
+  return y === now.getFullYear() && m === now.getMonth() + 1
 }
 
 export function formatDate(iso: string): string {

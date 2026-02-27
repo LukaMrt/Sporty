@@ -9,7 +9,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { ChartDataPoint } from '../../../app/domain/entities/dashboard_metrics'
-import { formatChartDate, isThisMonth, isThisWeek, isoWeek } from '~/lib/format'
+import { formatChartDate, formatPaceMinSec, isThisMonth, isThisWeek, isoWeek } from '~/lib/format'
 import type { Period } from './PeriodSelector'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
@@ -130,11 +130,16 @@ export default function EvolutionChart({
   const filteredData = convertedData.filter((point) => point[activeMetric] !== null)
   const mergedData = buildMergedData(filteredData, activeMetric)
 
-  const rawValues = filteredData.map((p) => p[activeMetric] as number)
-  const rawMin = Math.min(...rawValues)
-  const rawMax = Math.max(...rawValues)
-  const padding = (rawMax - rawMin) * 0.2 || 1
-  const yDomain: [number, number] = [Math.max(0, rawMin - padding), rawMax + padding]
+  let yDomain: [number, number]
+  if (filteredData.length === 0) {
+    yDomain = [0, 1]
+  } else {
+    const rawValues = filteredData.map((p) => p[activeMetric] as number)
+    const rawMin = Math.min(...rawValues)
+    const rawMax = Math.max(...rawValues)
+    const padding = (rawMax - rawMin) * 0.2 || 1
+    yDomain = [Math.max(0, rawMin - padding), rawMax + padding]
+  }
 
   const yAxisLabel =
     activeMetric === 'pace'
@@ -148,9 +153,7 @@ export default function EvolutionChart({
   const formatYTick = (v: number): string => {
     if (activeMetric === 'pace') {
       if (speedUnit === 'km_h') return v.toFixed(1)
-      const m = Math.floor(v)
-      const s = Math.round((v - m) * 60)
-      return `${m}'${s.toString().padStart(2, '0')}`
+      return formatPaceMinSec(v)
     }
     return Math.round(v).toString()
   }

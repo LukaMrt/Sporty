@@ -7,7 +7,7 @@ import SessionCard from '~/components/sessions/SessionCard'
 import SessionFilters from '~/components/sessions/SessionFilters'
 import SessionPagination from '~/components/sessions/SessionPagination'
 import { Button } from '~/components/ui/button'
-import type { Filters } from '~/components/sessions/SessionFilters'
+import type { Filters, SortByField, SortOrder } from '~/components/sessions/SessionFilters'
 
 interface SessionSummary {
   id: number
@@ -76,14 +76,16 @@ export default function SessionsIndex({ sessions, sports, filters }: SessionsInd
         onSportChange={(value) =>
           navigateWithFilters(filters, { sportId: value === 'all' ? null : Number(value), page: 1 })
         }
-        onSortByChange={(value) =>
+        onSortByChange={(value: SortByField | 'default') =>
           navigateWithFilters(filters, {
-            sortBy: value,
-            sortOrder: filters.sortOrder ?? 'desc',
+            sortBy: value === 'default' ? null : value,
+            sortOrder: value === 'default' ? null : (filters.sortOrder ?? 'desc'),
             page: 1,
           })
         }
-        onSortOrderChange={(value) => navigateWithFilters(filters, { sortOrder: value, page: 1 })}
+        onSortOrderChange={(value: SortOrder) =>
+          navigateWithFilters(filters, { sortOrder: value, page: 1 })
+        }
         onReset={() => router.get('/sessions', {}, { preserveState: true, preserveScroll: true })}
       />
 

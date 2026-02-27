@@ -10,7 +10,7 @@ function makeSession(overrides: Partial<TrainingSession> = {}): TrainingSession 
     id: 1,
     userId: 1,
     sportId: 1,
-    sportName: 'Course a pied',
+    sportName: 'Course à pied',
     date: '2026-02-25',
     durationMinutes: 45,
     distanceKm: null,

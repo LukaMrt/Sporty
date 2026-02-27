@@ -73,7 +73,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <span className="text-lg font-semibold">Sporty</span>
         </div>
         <Avatar>
-          <AvatarFallback>{auth?.user?.fullName?.charAt(0)?.toUpperCase()}</AvatarFallback>
+          <AvatarFallback>{auth?.user?.fullName?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
         </Avatar>
       </header>
 
