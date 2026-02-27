@@ -4,16 +4,28 @@ import MainLayout from '~/layouts/MainLayout'
 import EmptyState from '~/components/shared/EmptyState'
 import HeroMetric, { HeroMetricEmpty } from '~/components/shared/HeroMetric'
 import QuickStatCard from '~/components/shared/QuickStatCard'
-import type { HeroMetricData, QuickStatData } from '../../app/domain/entities/dashboard_metrics'
+import EvolutionChart from '~/components/shared/EvolutionChart'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import type {
+  ChartData,
+  HeroMetricData,
+  QuickStatData,
+} from '../../app/domain/entities/dashboard_metrics'
 
 interface DashboardProps {
   sessionCount: number
   heroMetric: HeroMetricData | null
   quickStats: QuickStatData | null
+  chartData: ChartData | null
   speedUnit: string
 }
 
-export default function Dashboard({ sessionCount, heroMetric, quickStats }: DashboardProps) {
+export default function Dashboard({
+  sessionCount,
+  heroMetric,
+  quickStats,
+  chartData,
+}: DashboardProps) {
   const isEmpty = quickStats === null
 
   return (
@@ -66,6 +78,16 @@ export default function Dashboard({ sessionCount, heroMetric, quickStats }: Dash
               isEmpty={isEmpty}
             />
           </div>
+          {chartData !== null && chartData.points.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Évolution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EvolutionChart data={chartData.points} />
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </>

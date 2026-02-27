@@ -30,6 +30,25 @@ export function formatMetricKey(key: string): string {
   return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
+export function formatChartDate(iso: string): string {
+  const d = new Date(iso)
+  const day = d.getDate().toString().padStart(2, '0')
+  const month = (d.getMonth() + 1).toString().padStart(2, '0')
+  return `${day}/${month}`
+}
+
+export function formatChartValue(value: number, metric: string): string {
+  if (metric === 'pace') {
+    const minutes = Math.floor(value)
+    const seconds = Math.round((value - minutes) * 60)
+    return `${minutes}'${seconds.toString().padStart(2, '0')}/km`
+  }
+  if (metric === 'heartRate') {
+    return `${Math.round(value)} bpm`
+  }
+  return `${value.toFixed(1)} km`
+}
+
 export function formatDate(iso: string): string {
   const today = new Date()
   const todayStr = today.toISOString().split('T')[0]

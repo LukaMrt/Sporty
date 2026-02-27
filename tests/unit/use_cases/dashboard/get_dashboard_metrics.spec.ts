@@ -156,4 +156,90 @@ test.group('GetDashboardMetrics — use case', () => {
     assert.isNull(result.heroMetric)
     assert.equal(result.sessionCount, 0)
   })
+
+  test('chartData contient un point par séance', async ({ assert }) => {
+    const sessions = [
+      makeSession({ id: 1, date: '2026-01-01', durationMinutes: 60, distanceKm: 10 }),
+      makeSession({ id: 2, date: '2026-01-08', durationMinutes: 50, distanceKm: 8 }),
+    ]
+
+    const repo = makeMockSessionRepository({
+      async findByUserIdAndDateRange() {
+        return sessions
+      },
+      async findAllByUserId() {
+        return makePaginatedResult(sessions, 2)
+      },
+    })
+
+    const useCase = new GetDashboardMetrics(repo)
+    const result = await useCase.execute(1)
+
+    assert.isNotNull(result.chartData)
+    assert.equal(result.chartData!.points.length, 2)
+  })
+
+  test('allure chart calculée correctement pour chaque point', async ({ assert }) => {
+    const session = makeSession({ id: 1, date: '2026-01-01', durationMinutes: 60, distanceKm: 10 })
+
+    const repo = makeMockSessionRepository({
+      async findByUserIdAndDateRange() {
+        return [session, session]
+      },
+      async findAllByUserId() {
+        return makePaginatedResult([session], 1)
+      },
+    })
+
+    const useCase = new GetDashboardMetrics(repo)
+    const result = await useCase.execute(1)
+
+    assert.isNotNull(result.chartData)
+    const point = result.chartData!.points[0]
+    assert.equal(point.date, '2026-01-01')
+    assert.approximately(point.pace!, 6, 0.001) // 60min / 10km = 6 min/km
+    assert.equal(point.distance, 10)
+  })
+
+  test('chartData null si 0 séances', async ({ assert }) => {
+    const repo = makeMockSessionRepository({
+      async findByUserIdAndDateRange() {
+        return []
+      },
+      async findAllByUserId() {
+        return makePaginatedResult([], 0)
+      },
+    })
+
+    const useCase = new GetDashboardMetrics(repo)
+    const result = await useCase.execute(1)
+
+    assert.isNull(result.chartData)
+  })
+
+  test('point chart sans distance : pace et distance sont null', async ({ assert }) => {
+    const session = makeSession({
+      id: 1,
+      date: '2026-01-01',
+      durationMinutes: 45,
+      distanceKm: null,
+    })
+
+    const repo = makeMockSessionRepository({
+      async findByUserIdAndDateRange() {
+        return []
+      },
+      async findAllByUserId() {
+        return makePaginatedResult([session], 1)
+      },
+    })
+
+    const useCase = new GetDashboardMetrics(repo)
+    const result = await useCase.execute(1)
+
+    assert.isNotNull(result.chartData)
+    const point = result.chartData!.points[0]
+    assert.isNull(point.pace)
+    assert.isNull(point.distance)
+  })
 })

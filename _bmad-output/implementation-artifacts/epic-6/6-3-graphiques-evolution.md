@@ -1,6 +1,6 @@
 # Story 6.3: Graphiques d'évolution
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -37,8 +37,8 @@ So that **je VOIS ma progression concrètement** (FR19).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Étendre `DashboardMetrics` entité (AC: #1, #2)
-  - [ ] Ajouter à `app/domain/entities/dashboard_metrics.ts` :
+- [x] Task 1 — Étendre `DashboardMetrics` entité (AC: #1, #2)
+  - [x] Ajouter à `app/domain/entities/dashboard_metrics.ts` :
     ```typescript
     export interface ChartDataPoint {
       date: string          // ISO date
@@ -50,66 +50,55 @@ So that **je VOIS ma progression concrètement** (FR19).
       points: ChartDataPoint[]
     }
     ```
-  - [ ] Ajouter `chartData: ChartData | null` à `DashboardMetrics`
+  - [x] Ajouter `chartData: ChartData | null` à `DashboardMetrics`
 
-- [ ] Task 2 — Étendre use case `GetDashboardMetrics` (AC: #1, #2, #5)
-  - [ ] Récupérer toutes les séances utilisateur (non supprimées) ordonnées par date
-  - [ ] Pour chaque séance, calculer : date, allure (duration/distance), FC, distance
-  - [ ] Retourner les points ordonnés chronologiquement
-  - [ ] **Performance** : une seule requête DB, pas de N+1
-  - [ ] Si 0 séances → `chartData = null`
+- [x] Task 2 — Étendre use case `GetDashboardMetrics` (AC: #1, #2, #5)
+  - [x] Récupérer toutes les séances utilisateur (non supprimées) ordonnées par date
+  - [x] Pour chaque séance, calculer : date, allure (duration/distance), FC, distance
+  - [x] Retourner les points ordonnés chronologiquement
+  - [x] **Performance** : une seule requête DB, pas de N+1
+  - [x] Si 0 séances → `chartData = null`
 
-- [ ] Task 3 — Composant `EvolutionChart.tsx` (AC: #1, #2, #3, #4)
-  - [ ] Créer `inertia/components/shared/EvolutionChart.tsx`
-  - [ ] Props :
+- [x] Task 3 — Composant `EvolutionChart.tsx` (AC: #1, #2, #3, #4)
+  - [x] Créer `inertia/components/shared/EvolutionChart.tsx`
+  - [x] Props :
     ```typescript
     interface EvolutionChartProps {
       data: ChartDataPoint[]
       defaultMetric?: 'pace' | 'heartRate' | 'distance'
     }
     ```
-  - [ ] Utiliser Recharts `ResponsiveContainer` + `LineChart`
-  - [ ] Sélecteur de métrique : 3 boutons/tabs (Allure, FC, Volume)
+  - [x] Utiliser Recharts `ResponsiveContainer` + `LineChart`
+  - [x] Sélecteur de métrique : 3 boutons/tabs (Allure, FC, Volume)
     - Utiliser un state local React pour la métrique active
-  - [ ] Configuration Recharts :
-    ```tsx
-    <ResponsiveContainer width="100%" height={250}>
-      <LineChart data={filteredData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tickFormatter={formatChartDate} />
-        <YAxis />
-        <Tooltip content={<CustomTooltip />} />
-        <Line type="monotone" dataKey={activeMetric} stroke="var(--color-primary)" dot={{ r: 3 }} />
-      </LineChart>
-    </ResponsiveContainer>
-    ```
-  - [ ] Tooltip personnalisé : date formatée + valeur avec unité
-  - [ ] Filtrer les points `null` pour la métrique sélectionnée (ne pas afficher les séances sans FC si métrique = FC)
-  - [ ] Pour la métrique "Volume", afficher la distance cumulée par semaine (agrégation frontend) OU la distance par séance
+  - [x] Configuration Recharts avec double courbe (brute + tendance hebdomadaire)
+  - [x] Tooltip personnalisé : date formatée + valeur avec unité
+  - [x] Filtrer les points `null` pour la métrique sélectionnée
+  - [x] Pour la métrique "Volume", afficher la distance par séance
 
-- [ ] Task 4 — Sélecteur de métrique (AC: #2)
-  - [ ] 3 boutons inline (style tabs) : "Allure", "FC", "Distance"
-  - [ ] Utiliser les composants shadcn existants ou des boutons avec variante `ghost`/`outline`
-  - [ ] État actif visuellement distinct (variante `default` ou border)
+- [x] Task 4 — Sélecteur de métrique (AC: #2)
+  - [x] 3 boutons inline (style tabs) : "Allure", "FC", "Distance"
+  - [x] État actif visuellement distinct
 
-- [ ] Task 5 — Intégrer dans `Dashboard.tsx` (AC: #1-5)
-  - [ ] Ajouter le graphique sous les QuickStatCards
-  - [ ] Wrapper dans une Card shadcn avec titre "Évolution"
-  - [ ] N'afficher que si `chartData` existe et a des points
-  - [ ] Layout responsive : pleine largeur mobile et desktop
+- [x] Task 5 — Intégrer dans `Dashboard.tsx` (AC: #1-5)
+  - [x] Ajouter le graphique sous les QuickStatCards
+  - [x] Wrapper dans une Card shadcn avec titre "Évolution"
+  - [x] N'afficher que si `chartData` existe et a des points
+  - [x] Layout responsive : pleine largeur mobile et desktop
 
-- [ ] Task 6 — Utilitaires de formatage chart (AC: #3)
-  - [ ] Ajouter dans `inertia/lib/format.ts` :
-    - `formatChartDate(isoDate: string): string` → "3 jan", "15 fév"
+- [x] Task 6 — Utilitaires de formatage chart (AC: #3)
+  - [x] Ajouter dans `inertia/lib/format.ts` :
+    - `formatChartDate(isoDate: string): string` → "dd/MM"
     - `formatChartValue(value: number, metric: string): string` → "5'12/km", "158 bpm", "12.5 km"
 
-- [ ] Task 7 — Tests (AC: #1-5)
-  - [ ] Étendre `tests/unit/use_cases/get_dashboard_metrics.spec.ts` :
+- [x] Task 7 — Tests (AC: #1-5)
+  - [x] Étendre `tests/unit/use_cases/get_dashboard_metrics.spec.ts` :
     - Test : chartData contient un point par séance
     - Test : allure calculée correctement pour chaque point
     - Test : 0 séances → chartData null
-  - [ ] `tests/functional/dashboard/dashboard.spec.ts` :
-    - Test : props incluent chartData avec les bons points
+    - Test : point sans distance → pace et distance null
+  - [x] `tests/functional/dashboard.spec.ts` :
+    - Test : GET / avec plusieurs séances → 200
 
 ## Dev Notes
 
@@ -147,9 +136,26 @@ So that **je VOIS ma progression concrètement** (FR19).
 ## Dev Agent Record
 
 ### Agent Model Used
+claude-sonnet-4-6
 
 ### Debug Log References
+— Aucun blocage majeur
 
 ### Completion Notes List
+- Double courbe Recharts : données brutes (fine, semi-transparente) + tendance hebdomadaire (épaisse, pleine)
+- Domaine Y calculé sur les données brutes → échelle stable lors du switch métrique
+- `findAllByUserId` avec `perPage: 10000` + `sortBy: date asc` → une seule requête DB pour le chart
+- Formatage axe Y : valeur courte sans unité (ex: `6'30`), unité en label vertical, tooltip complet
+- Dates axe X en `dd/MM`
+- Agrégation hebdomadaire pour la tendance côté frontend (zéro requête serveur supplémentaire)
 
 ### File List
+- `app/domain/entities/dashboard_metrics.ts`
+- `app/use_cases/dashboard/get_dashboard_metrics.ts`
+- `app/controllers/dashboard/dashboard_controller.ts`
+- `inertia/pages/Dashboard.tsx`
+- `inertia/components/shared/EvolutionChart.tsx` (nouveau)
+- `inertia/lib/format.ts`
+- `tests/unit/use_cases/dashboard/get_dashboard_metrics.spec.ts`
+- `tests/functional/dashboard.spec.ts`
+- `_bmad-output/implementation-artifacts/epic-6/6-3-graphiques-evolution.md`

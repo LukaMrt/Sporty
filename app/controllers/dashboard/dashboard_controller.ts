@@ -23,6 +23,7 @@ export default class DashboardController {
       heroMetric: dashboardMetrics.heroMetric,
       sessionCount: dashboardMetrics.sessionCount,
       quickStats: dashboardMetrics.quickStats,
+      chartData: dashboardMetrics.chartData,
       speedUnit,
     })
   }

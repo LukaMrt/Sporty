@@ -1,6 +1,8 @@
 import { inject } from '@adonisjs/core'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import type {
+  ChartData,
+  ChartDataPoint,
   DashboardMetrics,
   HeroMetricData,
   QuickStatData,
@@ -24,16 +26,21 @@ export default class GetDashboardMetrics {
     // pour avoir les données complètes de chaque semaine (le lundi peut être jusqu'à 6j avant weeksAgo)
     const heartRateStart = this.#toISODate(this.#isoWeekStart(this.#weeksAgo(now, 4)))
 
-    const [currentSessions, previousSessions, weeklySessions, heartRateSessions, allSessions] =
+    const [currentSessions, previousSessions, weeklySessions, heartRateSessions, allSessionsPage] =
       await Promise.all([
         this.sessionRepository.findByUserIdAndDateRange(userId, currentStart, currentEnd),
         this.sessionRepository.findByUserIdAndDateRange(userId, previousStart, previousEnd),
         this.sessionRepository.findByUserIdAndDateRange(userId, weekStart, currentEnd),
         this.sessionRepository.findByUserIdAndDateRange(userId, heartRateStart, currentEnd),
-        this.sessionRepository.findAllByUserId(userId, { perPage: 1 }),
+        this.sessionRepository.findAllByUserId(userId, {
+          perPage: 10000,
+          sortBy: 'date',
+          sortOrder: 'asc',
+        }),
       ])
 
-    const sessionCount = allSessions.meta.total
+    const sessionCount = allSessionsPage.meta.total
+    const allSessions = allSessionsPage.data
 
     const currentWithDistance = currentSessions.filter((s) => s.distanceKm && s.distanceKm > 0)
 
@@ -41,8 +48,12 @@ export default class GetDashboardMetrics {
     const quickStats: QuickStatData | null =
       sessionCount < 2 ? null : this.#computeQuickStats(now, weeklySessions, heartRateSessions)
 
+    // ChartData: null si 0 séances
+    const chartData: ChartData | null =
+      sessionCount === 0 ? null : { points: this.#computeChartPoints(allSessions) }
+
     if (currentWithDistance.length < 2) {
-      return { heroMetric: null, sessionCount, quickStats }
+      return { heroMetric: null, sessionCount, quickStats, chartData }
     }
 
     const currentPace = this.#computePace(currentWithDistance)
@@ -65,7 +76,7 @@ export default class GetDashboardMetrics {
       sparklineData,
     }
 
-    return { heroMetric, sessionCount, quickStats }
+    return { heroMetric, sessionCount, quickStats, chartData }
   }
 
   #computeQuickStats(
@@ -148,6 +159,19 @@ export default class GetDashboardMetrics {
       weeklySessionTrend: weeklySessionCount - weeklySessionPreviousAvg,
       weeklySessionPreviousAvg,
     }
+  }
+
+  #computeChartPoints(sessions: TrainingSession[]): ChartDataPoint[] {
+    return sessions.map((s) => {
+      const distance = s.distanceKm !== null && s.distanceKm > 0 ? Number(s.distanceKm) : null
+      const pace = distance !== null ? Number(s.durationMinutes) / distance : null
+      return {
+        date: s.date,
+        pace,
+        heartRate: s.avgHeartRate !== null ? Number(s.avgHeartRate) : null,
+        distance,
+      }
+    })
   }
 
   #computePace(sessions: TrainingSession[]): number {

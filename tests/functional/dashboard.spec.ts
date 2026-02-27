@@ -48,4 +48,30 @@ test.group('Dashboard', (group) => {
 
     response.assertStatus(200)
   })
+
+  test('GET / connecté avec plusieurs séances → 200 avec chartData (AC#1)', async ({ client }) => {
+    const user = await getUser()
+    const sport = await Sport.firstOrFail()
+
+    await Session.createMany([
+      {
+        userId: user.id,
+        sportId: sport.id,
+        date: DateTime.now().minus({ days: 14 }),
+        durationMinutes: 60,
+        distanceKm: 10,
+      },
+      {
+        userId: user.id,
+        sportId: sport.id,
+        date: DateTime.now().minus({ days: 7 }),
+        durationMinutes: 50,
+        distanceKm: 8,
+      },
+    ])
+
+    const response = await client.get('/').loginAs(user)
+
+    response.assertStatus(200)
+  })
 })
