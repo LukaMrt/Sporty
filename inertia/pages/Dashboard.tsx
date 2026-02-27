@@ -3,15 +3,19 @@ import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import EmptyState from '~/components/shared/EmptyState'
 import HeroMetric, { HeroMetricEmpty } from '~/components/shared/HeroMetric'
-import type { HeroMetricData } from '../../app/domain/entities/dashboard_metrics'
+import QuickStatCard from '~/components/shared/QuickStatCard'
+import type { HeroMetricData, QuickStatData } from '../../app/domain/entities/dashboard_metrics'
 
 interface DashboardProps {
   sessionCount: number
   heroMetric: HeroMetricData | null
+  quickStats: QuickStatData | null
   speedUnit: string
 }
 
-export default function Dashboard({ sessionCount, heroMetric }: DashboardProps) {
+export default function Dashboard({ sessionCount, heroMetric, quickStats }: DashboardProps) {
+  const isEmpty = quickStats === null
+
   return (
     <>
       <Head title="Accueil" />
@@ -22,18 +26,46 @@ export default function Dashboard({ sessionCount, heroMetric }: DashboardProps) 
           ctaLabel="Saisir ma première séance"
           onCtaClick={() => router.visit('/sessions/create')}
         />
-      ) : heroMetric === null ? (
-        <div className="mx-auto max-w-2xl p-4">
-          <HeroMetricEmpty />
-        </div>
       ) : (
-        <div className="mx-auto max-w-2xl p-4">
-          <HeroMetric
-            pace={heroMetric.currentPace}
-            trendSeconds={heroMetric.trendSeconds}
-            previousPace={heroMetric.previousPace}
-            sparklineData={heroMetric.sparklineData}
-          />
+        <div className="mx-auto max-w-2xl space-y-4 p-4">
+          {heroMetric === null ? (
+            <HeroMetricEmpty />
+          ) : (
+            <HeroMetric
+              pace={heroMetric.currentPace}
+              trendSeconds={heroMetric.trendSeconds}
+              previousPace={heroMetric.previousPace}
+              sparklineData={heroMetric.sparklineData}
+            />
+          )}
+          <div className="grid grid-cols-3 gap-2">
+            <QuickStatCard
+              label="Volume semaine"
+              value={isEmpty ? '—' : quickStats.weeklyVolumeKm.toFixed(1)}
+              unit="km"
+              trend={isEmpty ? null : quickStats.weeklyVolumeTrend}
+              isEmpty={isEmpty}
+            />
+            <QuickStatCard
+              label="FC moyenne"
+              value={
+                isEmpty || quickStats.avgHeartRate === null
+                  ? '—'
+                  : Math.round(quickStats.avgHeartRate).toString()
+              }
+              unit="bpm"
+              trend={isEmpty ? null : quickStats.avgHeartRateTrend}
+              isEmpty={isEmpty || quickStats.avgHeartRate === null}
+              lowerIsBetter
+            />
+            <QuickStatCard
+              label="Séances"
+              value={isEmpty ? '—' : quickStats.weeklySessionCount.toString()}
+              unit="cette sem."
+              trend={isEmpty ? null : quickStats.weeklySessionTrend}
+              isEmpty={isEmpty}
+            />
+          </div>
         </div>
       )}
     </>

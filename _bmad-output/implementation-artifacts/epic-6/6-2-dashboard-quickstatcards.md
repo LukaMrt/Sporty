@@ -1,6 +1,6 @@
 # Story 6.2: Dashboard - QuickStatCards
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -45,7 +45,7 @@ So that **j'ai une vue rapide sur mon volume, ma FC et ma fréquence d'entraîne
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Étendre `DashboardMetrics` entité (AC: #1, #2, #3)
+- [x] Task 1 — Étendre `DashboardMetrics` entité (AC: #1, #2, #3)
   - [ ] Ajouter à `app/domain/entities/dashboard_metrics.ts` :
     ```typescript
     export interface QuickStatData {
@@ -62,7 +62,7 @@ So that **j'ai une vue rapide sur mon volume, ma FC et ma fréquence d'entraîne
     ```
   - [ ] Ajouter `quickStats: QuickStatData | null` à `DashboardMetrics`
 
-- [ ] Task 2 — Étendre use case `GetDashboardMetrics` (AC: #1, #2, #3)
+- [x] Task 2 — Étendre use case `GetDashboardMetrics` (AC: #1, #2, #3)
   - [ ] Calcul volume hebdo : `Σ distanceKm` des séances de la semaine ISO en cours
   - [ ] Calcul FC moyenne rolling 4 sem : `Σ(avgHeartRate × durationMinutes) / Σ(durationMinutes)` — ignorer séances sans FC
   - [ ] Calcul nb séances : count de la semaine ISO en cours
@@ -73,7 +73,7 @@ So that **j'ai une vue rapide sur mon volume, ma FC et ma fréquence d'entraîne
   - [ ] Tendance = `valeur_courante - moyenne_projetée`
   - [ ] Retourner `null` pour quickStats si < 2 séances totales
 
-- [ ] Task 3 — Composant `QuickStatCard.tsx` (AC: #1, #2, #4, #5, #6)
+- [x] Task 3 — Composant `QuickStatCard.tsx` (AC: #1, #2, #4, #5, #6)
   - [ ] Créer `inertia/components/shared/QuickStatCard.tsx`
   - [ ] Props :
     ```typescript
@@ -94,14 +94,14 @@ So that **j'ai une vue rapide sur mon volume, ma FC et ma fréquence d'entraîne
     - Libellé : "vs [previousAvg] en moyenne"
   - [ ] État vide : "—"
 
-- [ ] Task 4 — Intégrer dans `Dashboard.tsx` (AC: #1, #4, #5)
+- [x] Task 4 — Intégrer dans `Dashboard.tsx` (AC: #1, #4, #5)
   - [ ] Ajouter les QuickStatCards sous le HeroMetric
   - [ ] Layout responsive :
     - Mobile : `grid grid-cols-3 gap-2` (1/3 chacune, compactes)
     - Desktop : intégrées dans la grille dashboard (à côté ou sous le HeroMetric selon l'espace)
   - [ ] Passer les données depuis les props Inertia
 
-- [ ] Task 5 — Tests (AC: #1-6)
+- [x] Task 5 — Tests (AC: #1-6)
   - [ ] Étendre `tests/unit/use_cases/get_dashboard_metrics.spec.ts` :
     - Test : volume hebdo = somme des distances de la semaine ISO
     - Test : FC pondérée par durée (pas simple moyenne)

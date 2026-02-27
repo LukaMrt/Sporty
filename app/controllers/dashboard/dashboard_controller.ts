@@ -22,6 +22,7 @@ export default class DashboardController {
     return inertia.render('Dashboard', {
       heroMetric: dashboardMetrics.heroMetric,
       sessionCount: dashboardMetrics.sessionCount,
+      quickStats: dashboardMetrics.quickStats,
       speedUnit,
     })
   }
