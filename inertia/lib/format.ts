@@ -49,6 +49,34 @@ export function formatChartValue(value: number, metric: string): string {
   return `${value.toFixed(1)} km`
 }
 
+export function isoWeek(iso: string): string {
+  const d = new Date(iso)
+  const day = d.getDay() || 7
+  d.setDate(d.getDate() + 4 - day)
+  const year = d.getFullYear()
+  const week = Math.ceil(((d.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + 1) / 7)
+  return `${year}-W${week.toString().padStart(2, '0')}`
+}
+
+export function isThisWeek(iso: string): boolean {
+  const date = new Date(iso)
+  const now = new Date()
+  // ISO week: Monday = day 1
+  const dayOfWeek = now.getDay() || 7
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - dayOfWeek + 1)
+  monday.setHours(0, 0, 0, 0)
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 7)
+  return date >= monday && date < sunday
+}
+
+export function isThisMonth(iso: string): boolean {
+  const date = new Date(iso)
+  const now = new Date()
+  return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
+}
+
 export function formatDate(iso: string): string {
   const today = new Date()
   const todayStr = today.toISOString().split('T')[0]

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   CartesianGrid,
   Line,
@@ -9,16 +9,8 @@ import {
   YAxis,
 } from 'recharts'
 import type { ChartDataPoint } from '../../../app/domain/entities/dashboard_metrics'
-import { formatChartDate, formatChartValue } from '~/lib/format'
-
-function isoWeek(iso: string): string {
-  const d = new Date(iso)
-  const day = d.getDay() || 7
-  d.setDate(d.getDate() + 4 - day)
-  const year = d.getFullYear()
-  const week = Math.ceil(((d.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + 1) / 7)
-  return `${year}-W${week.toString().padStart(2, '0')}`
-}
+import { formatChartDate, formatChartValue, isThisMonth, isThisWeek, isoWeek } from '~/lib/format'
+import type { Period } from './PeriodSelector'
 
 type Metric = 'pace' | 'heartRate' | 'distance'
 
@@ -30,21 +22,32 @@ interface MergedPoint {
 
 function buildMergedData(data: ChartDataPoint[], metric: Metric): MergedPoint[] {
   // Agréger la tendance par semaine
-  const weekMap = new Map<string, { sum: number; count: number; firstDate: string }>()
+  const weekMap = new Map<
+    string,
+    { sum: number; count: number; firstDate: string; lastDate: string }
+  >()
   for (const point of data) {
     const key = isoWeek(point.date)
     const v = point[metric]
     if (v === null) continue
-    if (!weekMap.has(key)) weekMap.set(key, { sum: 0, count: 0, firstDate: point.date })
+    if (!weekMap.has(key))
+      weekMap.set(key, { sum: 0, count: 0, firstDate: point.date, lastDate: point.date })
     const entry = weekMap.get(key)!
     entry.sum += v
     entry.count++
+    entry.lastDate = point.date
   }
 
   const trendByDate = new Map<string, number>()
-  for (const { sum, count, firstDate } of weekMap.values()) {
-    trendByDate.set(firstDate, sum / count)
-  }
+  const weeks = [...weekMap.values()]
+  weeks.forEach(({ sum, count, firstDate, lastDate }, i) => {
+    const avg = sum / count
+    trendByDate.set(firstDate, avg)
+    // Pour la dernière semaine, ancrer aussi sur le dernier point pour que la courbe s'étende jusqu'au bout
+    if (i === weeks.length - 1 && lastDate !== firstDate) {
+      trendByDate.set(lastDate, avg)
+    }
+  })
 
   return data.map((point) => ({
     date: point.date,
@@ -90,12 +93,23 @@ function CustomTooltip({ active, payload, label, activeMetric }: CustomTooltipPr
 interface EvolutionChartProps {
   data: ChartDataPoint[]
   defaultMetric?: Metric
+  period?: Period
 }
 
-export default function EvolutionChart({ data, defaultMetric = 'pace' }: EvolutionChartProps) {
+export default function EvolutionChart({
+  data,
+  defaultMetric = 'pace',
+  period = 'all',
+}: EvolutionChartProps) {
   const [activeMetric, setActiveMetric] = useState<Metric>(defaultMetric)
 
-  const filteredData = data.filter((point) => point[activeMetric] !== null)
+  const periodFiltered = useMemo(() => {
+    if (period === 'week') return data.filter((p) => isThisWeek(p.date))
+    if (period === 'month') return data.filter((p) => isThisMonth(p.date))
+    return data
+  }, [data, period])
+
+  const filteredData = periodFiltered.filter((point) => point[activeMetric] !== null)
   const mergedData = buildMergedData(filteredData, activeMetric)
 
   const rawValues = filteredData.map((p) => p[activeMetric] as number)

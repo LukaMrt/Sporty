@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import EmptyState from '~/components/shared/EmptyState'
 import HeroMetric, { HeroMetricEmpty } from '~/components/shared/HeroMetric'
 import QuickStatCard from '~/components/shared/QuickStatCard'
 import EvolutionChart from '~/components/shared/EvolutionChart'
+import PeriodSelector from '~/components/shared/PeriodSelector'
+import type { Period } from '~/components/shared/PeriodSelector'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import type {
   ChartData,
@@ -26,6 +28,7 @@ export default function Dashboard({
   quickStats,
   chartData,
 }: DashboardProps) {
+  const [period, setPeriod] = useState<Period>('all')
   const isEmpty = quickStats === null
 
   return (
@@ -81,10 +84,13 @@ export default function Dashboard({
           {chartData !== null && chartData.points.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Évolution</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Évolution</CardTitle>
+                  <PeriodSelector value={period} onChange={setPeriod} />
+                </div>
               </CardHeader>
               <CardContent>
-                <EvolutionChart data={chartData.points} />
+                <EvolutionChart data={chartData.points} period={period} />
               </CardContent>
             </Card>
           )}
