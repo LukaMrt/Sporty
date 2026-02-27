@@ -1,0 +1,73 @@
+{
+  "title": "Sessions",
+  "new": "New session",
+  "empty": {
+    "title": "No sessions yet",
+    "description": "Start logging your workouts to build your history.",
+    "cta": "Log my first session"
+  },
+  "filters": {
+    "allSports": "All sports",
+    "sortBy": "Sort by...",
+    "sortDefault": "Default",
+    "sortDate": "Date",
+    "sortDuration": "Duration",
+    "sortDistance": "Distance",
+    "sortDesc": "Descending",
+    "sortAsc": "Ascending",
+    "reset": "Reset"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} / {lastPage}"
+  },
+  "form": {
+    "sport": "Sport *",
+    "date": "Date *",
+    "duration": "Duration (minutes) *",
+    "distance": "Distance (km)",
+    "speed": "Speed",
+    "pace": "Pace",
+    "moreDetails": "More details",
+    "heartRate": "Avg. HR (bpm)",
+    "effort": "Perceived effort",
+    "effortLabel": "Effort {value}",
+    "notes": "Free notes",
+    "notesPlaceholder": "Some notes about this session...",
+    "saving": "Saving...",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "show": {
+    "primaryMetrics": "Main metrics",
+    "secondaryMetrics": "Secondary metrics",
+    "specificMetrics": "Specific metrics",
+    "duration": "Duration",
+    "pace": "Pace",
+    "heartRate": "avg. bpm HR",
+    "effort": "Perceived effort",
+    "effortLabel": "Effort {value}",
+    "notes": "Notes",
+    "back": "Back",
+    "deleteAriaLabel": "Delete session",
+    "editAriaLabel": "Edit session",
+    "deleteTitle": "Delete this session?",
+    "deleteDescription": "This action can be undone within 5 seconds after deletion.",
+    "deleteConfirm": "Delete",
+    "deleteCancel": "Cancel"
+  },
+  "edit": {
+    "title": "Edit session",
+    "back": "Back"
+  },
+  "trash": {
+    "title": "Trash",
+    "empty": {
+      "title": "No sessions in trash",
+      "description": "Deleted sessions appear here. You can restore them if needed."
+    },
+    "deletedAt": "Deleted on {date}",
+    "restore": "Restore"
+  }
+}

@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/react'
 import { ChevronLeft } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import SessionForm from '~/components/sessions/SessionForm'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface TrainingSessionProps {
   id: number
@@ -28,9 +29,11 @@ interface EditProps {
 }
 
 export default function SessionEdit({ session, sports }: EditProps) {
+  const { t } = useTranslation()
+
   return (
     <>
-      <Head title={`Modifier — ${session.sportName}`} />
+      <Head title={`${t('sessions.edit.title')} — ${session.sportName}`} />
 
       <div className="flex items-center justify-between p-4 md:p-6">
         <Link
@@ -38,9 +41,9 @@ export default function SessionEdit({ session, sports }: EditProps) {
           className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft size={20} />
-          <span className="text-sm font-medium">Retour</span>
+          <span className="text-sm font-medium">{t('sessions.edit.back')}</span>
         </Link>
-        <h1 className="text-lg font-bold text-foreground">Modifier la séance</h1>
+        <h1 className="text-lg font-bold text-foreground">{t('sessions.edit.title')}</h1>
         <div className="w-16" />
       </div>
 

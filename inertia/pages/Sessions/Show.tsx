@@ -15,6 +15,7 @@ import {
   DialogClose,
 } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface TrainingSessionProps {
   id: number
@@ -38,6 +39,7 @@ interface ShowProps {
 export default function SessionShow({ session }: ShowProps) {
   const [open, setOpen] = useState(false)
   const { formatSpeed, formatDistanceParts } = useUnitConversion()
+  const { t } = useTranslation()
   const rawPaceMinPerKm =
     session.distanceKm && session.distanceKm > 0
       ? session.durationMinutes / session.distanceKm
@@ -61,21 +63,21 @@ export default function SessionShow({ session }: ShowProps) {
           className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft size={20} />
-          <span className="text-sm font-medium">Retour</span>
+          <span className="text-sm font-medium">{t('sessions.show.back')}</span>
         </Link>
         <h1 className="text-lg font-bold text-foreground">{session.sportName}</h1>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setOpen(true)}
             className="flex items-center gap-1 cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
-            aria-label="Supprimer la séance"
+            aria-label={t('sessions.show.deleteAriaLabel')}
           >
             <Trash2 size={18} />
           </button>
           <Link
             href={`/sessions/${session.id}/edit`}
             className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Modifier la séance"
+            aria-label={t('sessions.show.editAriaLabel')}
           >
             <Pencil size={18} />
           </Link>
@@ -99,14 +101,14 @@ export default function SessionShow({ session }: ShowProps) {
         {/* Métriques principales */}
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-            Métriques principales
+            {t('sessions.show.primaryMetrics')}
           </h2>
           <div className="grid grid-cols-3 gap-4">
             <div className="flex flex-col items-center">
               <span className="text-2xl font-bold text-foreground">
                 {formatDuration(session.durationMinutes)}
               </span>
-              <span className="text-xs text-muted-foreground mt-1">Durée</span>
+              <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.duration')}</span>
             </div>
             {session.distanceKm !== null && session.distanceKm !== undefined && (
               <div className="flex flex-col items-center">
@@ -121,7 +123,7 @@ export default function SessionShow({ session }: ShowProps) {
             {pace && (
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-foreground">{pace}</span>
-                <span className="text-xs text-muted-foreground mt-1">Allure</span>
+                <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.pace')}</span>
               </div>
             )}
           </div>
@@ -131,21 +133,24 @@ export default function SessionShow({ session }: ShowProps) {
         {(session.avgHeartRate !== null || session.perceivedEffort !== null) && (
           <div className="rounded-xl border bg-card p-4 shadow-sm">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Métriques secondaires
+              {t('sessions.show.secondaryMetrics')}
             </h2>
             <div className="flex gap-6">
               {session.avgHeartRate !== null && (
                 <div className="flex flex-col items-center">
                   <span className="text-2xl font-bold text-foreground">{session.avgHeartRate}</span>
-                  <span className="text-xs text-muted-foreground mt-1">bpm FC moy.</span>
+                  <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.heartRate')}</span>
                 </div>
               )}
               {session.perceivedEffort !== null && (
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl" aria-label={`Ressenti ${session.perceivedEffort}`}>
+                  <span
+                    className="text-3xl"
+                    aria-label={t('sessions.show.effortLabel', { value: session.perceivedEffort })}
+                  >
                     {EFFORT_EMOJIS[(session.perceivedEffort - 1) as 0 | 1 | 2 | 3 | 4]}
                   </span>
-                  <span className="text-xs text-muted-foreground mt-1">Ressenti</span>
+                  <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.effort')}</span>
                 </div>
               )}
             </div>
@@ -156,7 +161,7 @@ export default function SessionShow({ session }: ShowProps) {
         {session.notes && (
           <div className="rounded-xl border bg-card p-4 shadow-sm">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-              Notes
+              {t('sessions.show.notes')}
             </h2>
             <p className="text-sm text-foreground whitespace-pre-wrap">{session.notes}</p>
           </div>
@@ -166,7 +171,7 @@ export default function SessionShow({ session }: ShowProps) {
         {hasSportMetrics && (
           <div className="rounded-xl border bg-card p-4 shadow-sm">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Métriques spécifiques
+              {t('sessions.show.specificMetrics')}
             </h2>
             <div className="space-y-2">
               {Object.entries(session.sportMetrics).map(([key, value]) => (
@@ -184,17 +189,15 @@ export default function SessionShow({ session }: ShowProps) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer cette séance ?</DialogTitle>
-            <DialogDescription>
-              Cette action peut être annulée dans les 5 secondes après la suppression.
-            </DialogDescription>
+            <DialogTitle>{t('sessions.show.deleteTitle')}</DialogTitle>
+            <DialogDescription>{t('sessions.show.deleteDescription')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Annuler</Button>
+              <Button variant="outline">{t('sessions.show.deleteCancel')}</Button>
             </DialogClose>
             <Button variant="destructive" onClick={handleDelete}>
-              Supprimer
+              {t('sessions.show.deleteConfirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

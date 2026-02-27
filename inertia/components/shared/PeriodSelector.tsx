@@ -1,12 +1,7 @@
 import React from 'react'
+import { useTranslation } from '~/hooks/use_translation'
 
 export type Period = 'week' | 'month' | 'all'
-
-const PERIODS: { key: Period; label: string }[] = [
-  { key: 'all', label: 'Tout' },
-  { key: 'week', label: 'Semaine' },
-  { key: 'month', label: 'Mois' },
-]
 
 interface PeriodSelectorProps {
   value: Period
@@ -14,6 +9,14 @@ interface PeriodSelectorProps {
 }
 
 export default function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
+  const { t } = useTranslation()
+
+  const PERIODS: { key: Period; label: string }[] = [
+    { key: 'all', label: t('dashboard.chart.periods.all') },
+    { key: 'week', label: t('dashboard.chart.periods.week') },
+    { key: 'month', label: t('dashboard.chart.periods.month') },
+  ]
+
   return (
     <div className="overflow-x-auto whitespace-nowrap">
       <div className="flex gap-1">

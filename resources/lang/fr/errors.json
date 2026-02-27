@@ -1,0 +1,20 @@
+{
+  "notFound": {
+    "title": "Page introuvable",
+    "heading": "Page introuvable",
+    "description": "La page que tu cherches n'existe pas ou a été déplacée.",
+    "back": "Retour à l'accueil"
+  },
+  "forbidden": {
+    "title": "Accès refusé",
+    "heading": "Accès refusé",
+    "description": "Tu n'as pas les permissions nécessaires pour accéder à cette page.",
+    "back": "Retour à l'accueil"
+  },
+  "serverError": {
+    "title": "Erreur serveur",
+    "heading": "Erreur serveur",
+    "description": "Une erreur inattendue s'est produite. Réessaie dans quelques instants.",
+    "back": "Retour à l'accueil"
+  }
+}

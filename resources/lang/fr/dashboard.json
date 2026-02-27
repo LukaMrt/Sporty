@@ -1,0 +1,22 @@
+{
+  "title": "Accueil",
+  "empty": {
+    "title": "Saisis ta première séance pour commencer",
+    "description": "Suis tes entraînements et vois ta progression au fil du temps.",
+    "cta": "Saisir ma première séance"
+  },
+  "stats": {
+    "weeklyVolume": "Volume semaine",
+    "avgHeartRate": "FC moyenne",
+    "sessions": "Séances",
+    "thisWeek": "cette sem."
+  },
+  "chart": {
+    "evolution": "Évolution",
+    "periods": {
+      "all": "Tout",
+      "week": "Semaine",
+      "month": "Mois"
+    }
+  }
+}

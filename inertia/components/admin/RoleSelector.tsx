@@ -1,22 +1,8 @@
 import React from 'react'
 import { User, ShieldCheck } from 'lucide-react'
+import { useTranslation } from '~/hooks/use_translation'
 
-const ROLES = [
-  {
-    value: 'user',
-    label: 'Utilisateur',
-    description: 'Accès standard à ses propres données',
-    icon: User,
-  },
-  {
-    value: 'admin',
-    label: 'Administrateur',
-    description: 'Accès complet, gestion des membres',
-    icon: ShieldCheck,
-  },
-] as const
-
-type RoleValue = (typeof ROLES)[number]['value']
+type RoleValue = 'user' | 'admin'
 
 interface RoleSelectorProps {
   value: string
@@ -25,9 +11,26 @@ interface RoleSelectorProps {
 }
 
 export default function RoleSelector({ value, onChange, error }: RoleSelectorProps) {
+  const { t } = useTranslation()
+
+  const ROLES = [
+    {
+      value: 'user' as const,
+      label: t('admin.roles.user.label'),
+      description: t('admin.roles.user.description'),
+      icon: User,
+    },
+    {
+      value: 'admin' as const,
+      label: t('admin.roles.admin.label'),
+      description: t('admin.roles.admin.description'),
+      icon: ShieldCheck,
+    },
+  ]
+
   return (
     <div className="space-y-1.5">
-      <span className="block text-sm font-medium">Rôle</span>
+      <span className="block text-sm font-medium">{t('admin.roles.label')}</span>
       <div className="grid grid-cols-2 gap-3">
         {ROLES.map(({ value: roleValue, label, description, icon: Icon }) => {
           const selected = value === roleValue

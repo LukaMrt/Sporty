@@ -1,0 +1,53 @@
+{
+  "title": "Administration — Utilisateurs",
+  "users": "Utilisateurs",
+  "addUser": "Ajouter un utilisateur",
+  "table": {
+    "name": "Nom",
+    "email": "Email",
+    "role": "Rôle",
+    "createdAt": "Création"
+  },
+  "edit": {
+    "back": "Retour à la liste",
+    "accountInfo": "Informations du compte",
+    "fullName": "Nom complet",
+    "email": "Adresse e-mail",
+    "saving": "Sauvegarde...",
+    "save": "Sauvegarder",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "newTempPassword": "Nouveau mot de passe temporaire",
+    "resetting": "Réinitialisation...",
+    "reset": "Réinitialiser",
+    "dangerZone": "Zone dangereuse",
+    "dangerDescription": "La suppression est définitive et irréversible.",
+    "deleteAccount": "Supprimer le compte",
+    "cannotDeleteSelf": "Impossible de supprimer votre propre compte",
+    "confirmDelete": "Supprimer ce compte ? Cette action est irréversible."
+  },
+  "create": {
+    "title": "Administration — Ajouter un utilisateur",
+    "heading": "Ajouter un utilisateur",
+    "description": "Créer un compte et définir son niveau d'accès.",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "ex. Marie Dupont",
+    "email": "Adresse e-mail",
+    "emailPlaceholder": "marie@exemple.com",
+    "tempPassword": "Mot de passe temporaire",
+    "firstLoginNote": "L'utilisateur pourra modifier son mot de passe lors de sa première connexion.",
+    "creating": "Création...",
+    "submit": "Créer l'utilisateur",
+    "cancel": "Annuler"
+  },
+  "roles": {
+    "label": "Rôle",
+    "user": {
+      "label": "Utilisateur",
+      "description": "Accès standard à ses propres données"
+    },
+    "admin": {
+      "label": "Administrateur",
+      "description": "Accès complet, gestion des membres"
+    }
+  }
+}

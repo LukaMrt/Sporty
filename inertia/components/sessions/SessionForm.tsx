@@ -7,6 +7,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
 import FormField from '~/components/forms/FormField'
 import { EFFORT_EMOJIS } from '~/lib/effort'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface Sport {
   id: number
@@ -67,6 +68,7 @@ export default function SessionForm({
   session,
 }: SessionFormProps) {
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const { t } = useTranslation()
 
   const form = useForm({
     sport_id: session?.sportId ?? defaultSportId ?? sports[0]?.id ?? 0,
@@ -121,7 +123,7 @@ export default function SessionForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Sport */}
-      <FormField label="Sport *" htmlFor="sport_id" error={form.errors.sport_id}>
+      <FormField label={t('sessions.form.sport')} htmlFor="sport_id" error={form.errors.sport_id}>
         <select
           id="sport_id"
           value={form.data.sport_id}
@@ -137,7 +139,7 @@ export default function SessionForm({
       </FormField>
 
       {/* Date */}
-      <FormField label="Date *" htmlFor="date" error={form.errors.date}>
+      <FormField label={t('sessions.form.date')} htmlFor="date" error={form.errors.date}>
         <Input
           id="date"
           type="date"
@@ -149,7 +151,7 @@ export default function SessionForm({
 
       {/* Durée */}
       <FormField
-        label="Durée (minutes) *"
+        label={t('sessions.form.duration')}
         htmlFor="duration_minutes"
         error={form.errors.duration_minutes}
       >
@@ -164,7 +166,7 @@ export default function SessionForm({
       </FormField>
 
       {/* Distance */}
-      <FormField label="Distance (km)" htmlFor="distance_km" error={form.errors.distance_km}>
+      <FormField label={t('sessions.form.distance')} htmlFor="distance_km" error={form.errors.distance_km}>
         <Input
           id="distance_km"
           type="number"
@@ -179,7 +181,7 @@ export default function SessionForm({
       {/* Vitesse / allure auto-calculée */}
       {pace && (
         <p className="text-sm text-muted-foreground">
-          {speedUnit === 'km_h' ? 'Vitesse' : 'Allure'} :{' '}
+          {speedUnit === 'km_h' ? t('sessions.form.speed') : t('sessions.form.pace')} :{' '}
           <span className="font-medium text-foreground">{pace}</span>
         </p>
       )}
@@ -190,7 +192,7 @@ export default function SessionForm({
         onClick={() => setDetailsOpen((o) => !o)}
         className="flex w-full cursor-pointer items-center justify-between rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
-        Plus de détails
+        {t('sessions.form.moreDetails')}
         {detailsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
 
@@ -198,7 +200,7 @@ export default function SessionForm({
         <div className="space-y-4 border-l-2 border-muted pl-3">
           {/* FC moyenne */}
           <FormField
-            label="FC moyenne (bpm)"
+            label={t('sessions.form.heartRate')}
             htmlFor="avg_heart_rate"
             error={form.errors.avg_heart_rate}
           >
@@ -215,7 +217,7 @@ export default function SessionForm({
 
           {/* Ressenti */}
           <div className="space-y-1.5">
-            <Label>Ressenti</Label>
+            <Label>{t('sessions.form.effort')}</Label>
             <div className="flex gap-2">
               {EFFORT_EMOJIS.map((emoji, i) => {
                 const val = String(i + 1)
@@ -234,7 +236,7 @@ export default function SessionForm({
                         ? 'border-primary bg-primary/10'
                         : 'border-muted hover:border-primary/50'
                     }`}
-                    aria-label={`Ressenti ${val}`}
+                    aria-label={t('sessions.form.effortLabel', { value: val })}
                   >
                     {emoji}
                   </button>
@@ -247,10 +249,10 @@ export default function SessionForm({
           </div>
 
           {/* Notes */}
-          <FormField label="Notes libres" htmlFor="notes" error={form.errors.notes}>
+          <FormField label={t('sessions.form.notes')} htmlFor="notes" error={form.errors.notes}>
             <Textarea
               id="notes"
-              placeholder="Quelques notes sur cette séance..."
+              placeholder={t('sessions.form.notesPlaceholder')}
               maxLength={1000}
               value={form.data.notes}
               onChange={(e) => form.setData('notes', e.target.value)}
@@ -263,10 +265,10 @@ export default function SessionForm({
       {/* Actions */}
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>
-          Annuler
+          {t('sessions.form.cancel')}
         </Button>
         <Button type="submit" className="flex-1" disabled={form.processing}>
-          {form.processing ? 'Enregistrement...' : 'Enregistrer'}
+          {form.processing ? t('sessions.form.saving') : t('sessions.form.save')}
         </Button>
       </div>
     </form>

@@ -3,7 +3,9 @@ import { Link, router, usePage } from '@inertiajs/react'
 import { Home, Activity, Calendar, User, LogOut, ShieldCheck } from 'lucide-react'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import FlashMessages from '~/components/shared/FlashMessages'
+import LocaleSwitcher from '~/components/shared/LocaleSwitcher'
 import logo from '~/assets/logo.png'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface AuthUser {
   id: number
@@ -15,11 +17,17 @@ interface SharedProps {
   auth?: { user: AuthUser | null }
 }
 
-const navItems = [
-  { href: '/', label: 'Accueil', icon: Home },
-  { href: '/sessions', label: 'Séances', icon: Activity },
-  { href: '/planning', label: 'Planning', icon: Calendar },
-  { href: '/profile', label: 'Profil', icon: User },
+interface NavItem {
+  href: string
+  labelKey: string
+  icon: React.ComponentType<{ className?: string }>
+}
+
+const navItems: NavItem[] = [
+  { href: '/', labelKey: 'common.nav.home', icon: Home },
+  { href: '/sessions', labelKey: 'common.nav.sessions', icon: Activity },
+  { href: '/planning', labelKey: 'common.nav.planning', icon: Calendar },
+  { href: '/profile', labelKey: 'common.nav.profile', icon: User },
 ]
 
 function useIsActive(href: string) {
@@ -28,8 +36,9 @@ function useIsActive(href: string) {
   return url === href || url.startsWith(href + '/')
 }
 
-function SidebarLink({ href, label, icon: Icon }: (typeof navItems)[number]) {
+function SidebarLink({ href, labelKey, icon: Icon }: NavItem) {
   const active = useIsActive(href)
+  const { t } = useTranslation()
   return (
     <Link
       href={href}
@@ -40,13 +49,14 @@ function SidebarLink({ href, label, icon: Icon }: (typeof navItems)[number]) {
       }`}
     >
       <Icon className="h-5 w-5" />
-      {label}
+      {t(labelKey)}
     </Link>
   )
 }
 
-function TabBarItem({ href, label, icon: Icon }: (typeof navItems)[number]) {
+function TabBarItem({ href, labelKey, icon: Icon }: NavItem) {
   const active = useIsActive(href)
+  const { t } = useTranslation()
   return (
     <Link
       href={href}
@@ -55,13 +65,14 @@ function TabBarItem({ href, label, icon: Icon }: (typeof navItems)[number]) {
       }`}
     >
       <Icon className="h-5 w-5" />
-      {label}
+      {t(labelKey)}
     </Link>
   )
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { auth } = usePage<SharedProps>().props
+  const { t } = useTranslation()
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,9 +83,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <img src={logo} alt="Sporty" className="h-8 w-8" />
           <span className="text-lg font-semibold">Sporty</span>
         </div>
-        <Avatar>
-          <AvatarFallback>{auth?.user?.fullName?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-3">
+          <LocaleSwitcher />
+          <Avatar>
+            <AvatarFallback>{auth?.user?.fullName?.charAt(0)?.toUpperCase() || '?'}</AvatarFallback>
+          </Avatar>
+        </div>
       </header>
 
       {/* Sidebar desktop */}
@@ -84,7 +98,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <SidebarLink key={item.href} {...item} />
           ))}
           {auth?.user?.role === 'admin' && (
-            <SidebarLink href="/admin/users" label="Administration" icon={ShieldCheck} />
+            <SidebarLink href="/admin/users" labelKey="common.nav.admin" icon={ShieldCheck} />
           )}
         </nav>
         <button
@@ -92,7 +106,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
           <LogOut className="h-5 w-5" />
-          Se déconnecter
+          {t('common.nav.logout')}
         </button>
       </aside>
 

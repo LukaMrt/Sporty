@@ -4,6 +4,7 @@ import { Trash2, RotateCcw } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import EmptyState from '~/components/shared/EmptyState'
 import { Button } from '~/components/ui/button'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface TrashedSession {
   id: number
@@ -34,19 +35,21 @@ function restoreSession(id: number) {
 }
 
 export default function SessionsTrash({ sessions }: TrashProps) {
+  const { t } = useTranslation()
+
   return (
     <>
-      <Head title="Corbeille" />
+      <Head title={t('sessions.trash.title')} />
 
       <div className="flex items-center gap-3 p-4 md:p-6">
         <Trash2 size={20} className="text-muted-foreground" />
-        <h1 className="text-xl font-bold text-foreground md:text-2xl">Corbeille</h1>
+        <h1 className="text-xl font-bold text-foreground md:text-2xl">{t('sessions.trash.title')}</h1>
       </div>
 
       {sessions.length === 0 ? (
         <EmptyState
-          title="Aucune séance dans la corbeille"
-          description="Les séances supprimées apparaissent ici. Tu pourras les restaurer si besoin."
+          title={t('sessions.trash.empty.title')}
+          description={t('sessions.trash.empty.description')}
         />
       ) : (
         <div className="px-4 pb-6 md:px-6">
@@ -64,7 +67,7 @@ export default function SessionsTrash({ sessions }: TrashProps) {
                   </p>
                   {s.deletedAt && (
                     <p className="text-xs text-muted-foreground">
-                      Supprimée le {formatDate(s.deletedAt)}
+                      {t('sessions.trash.deletedAt', { date: formatDate(s.deletedAt) })}
                     </p>
                   )}
                 </div>
@@ -75,7 +78,7 @@ export default function SessionsTrash({ sessions }: TrashProps) {
                   className="flex items-center gap-2 shrink-0"
                 >
                   <RotateCcw size={14} />
-                  Restaurer
+                  {t('sessions.trash.restore')}
                 </Button>
               </li>
             ))}

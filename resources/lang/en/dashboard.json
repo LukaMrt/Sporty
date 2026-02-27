@@ -1,0 +1,22 @@
+{
+  "title": "Home",
+  "empty": {
+    "title": "Log your first session to get started",
+    "description": "Track your workouts and see your progress over time.",
+    "cta": "Log my first session"
+  },
+  "stats": {
+    "weeklyVolume": "Weekly volume",
+    "avgHeartRate": "Avg. HR",
+    "sessions": "Sessions",
+    "thisWeek": "this week"
+  },
+  "chart": {
+    "evolution": "Progress",
+    "periods": {
+      "all": "All",
+      "week": "Week",
+      "month": "Month"
+    }
+  }
+}

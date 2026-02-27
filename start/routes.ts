@@ -10,6 +10,7 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
 
+const LocaleController = () => import('#controllers/locale_controller')
 const OnboardingController = () => import('#controllers/onboarding/onboarding_controller')
 const SessionsController = () => import('#controllers/sessions/sessions_controller')
 const RegisterController = () => import('#controllers/auth/register_controller')
@@ -19,6 +20,8 @@ const DashboardController = () => import('#controllers/dashboard/dashboard_contr
 const AdminUsersController = () => import('#controllers/admin/users_controller')
 const PasswordController = () => import('#controllers/profile/password_controller')
 const ProfileController = () => import('#controllers/profile/profile_controller')
+
+router.post('/locale', [LocaleController, 'update'])
 
 router.get('/register', [RegisterController, 'show'])
 router.post('/register', [RegisterController, 'register'])

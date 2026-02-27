@@ -28,6 +28,8 @@ const inertiaConfig = defineConfig({
       const profile = await repo.findByUserId(ctx.auth.user.id)
       return profile?.preferences ?? DEFAULT_USER_PREFERENCES
     },
+    locale: (ctx) => ctx.i18n.locale,
+    translations: (ctx) => ctx.i18n.localeTranslations,
   },
 
   /**
@@ -42,5 +44,8 @@ const inertiaConfig = defineConfig({
 export default inertiaConfig
 
 declare module '@adonisjs/inertia/types' {
-  export interface SharedProps extends InferSharedProps<typeof inertiaConfig> {}
+  export interface SharedProps extends InferSharedProps<typeof inertiaConfig> {
+    locale: string
+    translations: Record<string, string>
+  }
 }

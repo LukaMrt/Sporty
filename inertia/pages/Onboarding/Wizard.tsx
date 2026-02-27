@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import logo from '~/assets/logo.png'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface SharedProps {
   auth?: { user: { fullName: string } | null }
@@ -16,48 +17,6 @@ interface WizardProps {
   sports: Sport[]
 }
 
-const OBJECTIVES = [
-  {
-    value: 'endurance_progress',
-    label: 'Progresser en endurance',
-    description: 'Améliore ta VO2max et ta résistance sur la durée',
-  },
-  {
-    value: 'run_faster',
-    label: 'Courir plus vite',
-    description: 'Travaille ta vitesse et tes temps sur les distances courtes',
-  },
-  {
-    value: 'comeback_after_break',
-    label: 'Reprendre après une pause',
-    description: 'Retrouve progressivement ton niveau après une interruption',
-  },
-  {
-    value: 'maintain_fitness',
-    label: 'Maintenir ma forme',
-    description: 'Garde un rythme régulier sans te surcharger',
-  },
-  {
-    value: 'prepare_competition',
-    label: 'Préparer une compétition',
-    description: "Structures tes entraînements autour d'un objectif de course",
-  },
-] as const
-
-const LEVELS = [
-  { value: 'beginner', label: 'Je débute', description: "Je commence tout juste l'activité" },
-  {
-    value: 'intermediate',
-    label: 'Je cours régulièrement',
-    description: "J'ai de l'expérience mais je progresse encore",
-  },
-  {
-    value: 'advanced',
-    label: "Je m'entraîne sérieusement",
-    description: 'Je suis un sportif régulier et exigeant',
-  },
-] as const
-
 const SPORT_ICONS: Record<string, string> = {
   running: '🏃',
   cycling: '🚴',
@@ -67,6 +26,7 @@ const SPORT_ICONS: Record<string, string> = {
 
 export default function Wizard({ sports }: WizardProps) {
   const { auth } = usePage<SharedProps>().props
+  const { t } = useTranslation()
   const firstName = auth?.user?.fullName?.split(' ')[0] ?? ''
   const [step, setStep] = useState(1)
   const { data, setData, post, processing, errors } = useForm({
@@ -86,6 +46,52 @@ export default function Wizard({ sports }: WizardProps) {
     date_format: 'DD/MM/YYYY' as 'DD/MM/YYYY' | 'MM/DD/YYYY',
   })
 
+  const LEVELS = [
+    {
+      value: 'beginner' as const,
+      label: t('onboarding.levels.beginner.label'),
+      description: t('onboarding.levels.beginner.description'),
+    },
+    {
+      value: 'intermediate' as const,
+      label: t('onboarding.levels.intermediate.label'),
+      description: t('onboarding.levels.intermediate.description'),
+    },
+    {
+      value: 'advanced' as const,
+      label: t('onboarding.levels.advanced.label'),
+      description: t('onboarding.levels.advanced.description'),
+    },
+  ]
+
+  const OBJECTIVES = [
+    {
+      value: 'endurance_progress' as const,
+      label: t('onboarding.objectives.endurance_progress.label'),
+      description: t('onboarding.objectives.endurance_progress.description'),
+    },
+    {
+      value: 'run_faster' as const,
+      label: t('onboarding.objectives.run_faster.label'),
+      description: t('onboarding.objectives.run_faster.description'),
+    },
+    {
+      value: 'comeback_after_break' as const,
+      label: t('onboarding.objectives.comeback_after_break.label'),
+      description: t('onboarding.objectives.comeback_after_break.description'),
+    },
+    {
+      value: 'maintain_fitness' as const,
+      label: t('onboarding.objectives.maintain_fitness.label'),
+      description: t('onboarding.objectives.maintain_fitness.description'),
+    },
+    {
+      value: 'prepare_competition' as const,
+      label: t('onboarding.objectives.prepare_competition.label'),
+      description: t('onboarding.objectives.prepare_competition.description'),
+    },
+  ]
+
   const canGoNext = () => {
     if (step === 1) return data.sport_id > 0
     if (step === 2) return data.level !== ''
@@ -101,18 +107,18 @@ export default function Wizard({ sports }: WizardProps) {
 
   return (
     <>
-      <Head title="Bienvenue sur Sporty" />
+      <Head title={t('onboarding.title')} />
       <div className="h-screen bg-sand-1 flex flex-col px-4 py-6 overflow-hidden">
         <div className="w-full max-w-lg mx-auto flex flex-col flex-1 min-h-0">
           {/* Logo + accroche */}
           <div className="mb-4 text-center shrink-0">
             <img src={logo} alt="Sporty" className="mx-auto h-10 w-10 mb-2" />
             <h1 className="text-xl font-bold text-sand-12">
-              {firstName ? `Bienvenue, ${firstName} !` : 'Bienvenue sur Sporty !'}
+              {firstName
+                ? t('onboarding.welcome', { name: firstName })
+                : t('onboarding.welcomeGeneric')}
             </h1>
-            <p className="mt-1 text-sm text-sand-10">
-              2 minutes pour personnaliser ton expérience.
-            </p>
+            <p className="mt-1 text-sm text-sand-10">{t('onboarding.subtitle')}</p>
           </div>
 
           {/* Carte principale */}
@@ -121,10 +127,8 @@ export default function Wizard({ sports }: WizardProps) {
               /* Écran de confirmation */
               <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
                 <div className="text-5xl animate-bounce">🎉</div>
-                <h2 className="text-xl font-bold text-sand-12">C'est tout bon !</h2>
-                <p className="text-sand-10 text-sm max-w-xs">
-                  Ton profil est configuré. On t'emmène sur ton tableau de bord…
-                </p>
+                <h2 className="text-xl font-bold text-sand-12">{t('onboarding.done.title')}</h2>
+                <p className="text-sand-10 text-sm max-w-xs">{t('onboarding.done.description')}</p>
                 <div className="flex gap-1 mt-2">
                   {[0, 1, 2].map((i) => (
                     <div
@@ -154,33 +158,33 @@ export default function Wizard({ sports }: WizardProps) {
                   {step === 1 && (
                     <>
                       <h1 className="text-2xl font-bold text-sand-12 mb-1">
-                        Quel sport pratiques-tu ?
+                        {t('onboarding.step1.title')}
                       </h1>
-                      <p className="text-sm text-sand-11">Sélectionne ton sport principal.</p>
+                      <p className="text-sm text-sand-11">{t('onboarding.step1.subtitle')}</p>
                     </>
                   )}
                   {step === 2 && (
                     <>
                       <h1 className="text-2xl font-bold text-sand-12 mb-1">
-                        Quel est ton niveau ?
+                        {t('onboarding.step2.title')}
                       </h1>
-                      <p className="text-sm text-sand-11">Sois honnête, l'app s'adaptera à toi.</p>
+                      <p className="text-sm text-sand-11">{t('onboarding.step2.subtitle')}</p>
                     </>
                   )}
                   {step === 3 && (
                     <>
                       <h1 className="text-2xl font-bold text-sand-12 mb-1">
-                        Quel est ton objectif ?
+                        {t('onboarding.step3.title')}
                       </h1>
-                      <p className="text-sm text-sand-11">Tu peux aussi passer cette étape.</p>
+                      <p className="text-sm text-sand-11">{t('onboarding.step3.subtitle')}</p>
                     </>
                   )}
                   {step === 4 && (
                     <>
                       <h1 className="text-2xl font-bold text-sand-12 mb-1">
-                        Tes préférences d'affichage
+                        {t('onboarding.step4.title')}
                       </h1>
-                      <p className="text-sm text-sand-11">Comment veux-tu voir ta vitesse ?</p>
+                      <p className="text-sm text-sand-11">{t('onboarding.step4.subtitle')}</p>
                     </>
                   )}
                 </div>
@@ -278,10 +282,10 @@ export default function Wizard({ sports }: WizardProps) {
                           <p
                             className={`font-semibold ${data.objective === '' ? 'text-sand-12' : 'text-sand-11'}`}
                           >
-                            Pas d'objectif précis
+                            {t('onboarding.objectives.none.label')}
                           </p>
                           <p className="text-sm text-sand-10 mt-0.5">
-                            On te proposera des plans généraux
+                            {t('onboarding.objectives.none.description')}
                           </p>
                         </button>
                       </div>
@@ -294,20 +298,20 @@ export default function Wizard({ sports }: WizardProps) {
                       {/* Vitesse */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
-                          Vitesse
+                          {t('onboarding.speed.title')}
                         </p>
                         <div className="flex flex-col gap-2">
                           {(
                             [
                               {
                                 value: 'min_km',
-                                label: 'min/km',
-                                description: 'Allure (ex : 5:30/km)',
+                                label: t('onboarding.speed.min_km.label'),
+                                description: t('onboarding.speed.min_km.description'),
                               },
                               {
                                 value: 'km_h',
-                                label: 'km/h',
-                                description: 'Vitesse (ex : 10,9 km/h)',
+                                label: t('onboarding.speed.km_h.label'),
+                                description: t('onboarding.speed.km_h.description'),
                               },
                             ] as const
                           ).map((opt) => (
@@ -335,13 +339,21 @@ export default function Wizard({ sports }: WizardProps) {
                       {/* Distance */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
-                          Distance
+                          {t('onboarding.distance.title')}
                         </p>
                         <div className="flex flex-col gap-2">
                           {(
                             [
-                              { value: 'km', label: 'Kilomètres', description: 'ex : 10,5 km' },
-                              { value: 'mi', label: 'Miles', description: 'ex : 6,5 mi' },
+                              {
+                                value: 'km',
+                                label: t('onboarding.distance.km.label'),
+                                description: t('onboarding.distance.km.description'),
+                              },
+                              {
+                                value: 'mi',
+                                label: t('onboarding.distance.mi.label'),
+                                description: t('onboarding.distance.mi.description'),
+                              },
                             ] as const
                           ).map((opt) => (
                             <button
@@ -368,13 +380,21 @@ export default function Wizard({ sports }: WizardProps) {
                       {/* Poids */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
-                          Poids
+                          {t('onboarding.weight.title')}
                         </p>
                         <div className="flex flex-col gap-2">
                           {(
                             [
-                              { value: 'kg', label: 'Kilogrammes', description: 'ex : 72 kg' },
-                              { value: 'lbs', label: 'Livres', description: 'ex : 158 lbs' },
+                              {
+                                value: 'kg',
+                                label: t('onboarding.weight.kg.label'),
+                                description: t('onboarding.weight.kg.description'),
+                              },
+                              {
+                                value: 'lbs',
+                                label: t('onboarding.weight.lbs.label'),
+                                description: t('onboarding.weight.lbs.description'),
+                              },
                             ] as const
                           ).map((opt) => (
                             <button
@@ -401,13 +421,21 @@ export default function Wizard({ sports }: WizardProps) {
                       {/* Début de semaine */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
-                          Début de semaine
+                          {t('onboarding.weekStart.title')}
                         </p>
                         <div className="flex flex-col gap-2">
                           {(
                             [
-                              { value: 'monday', label: 'Lundi', description: 'Lun → Dim' },
-                              { value: 'sunday', label: 'Dimanche', description: 'Dim → Sam' },
+                              {
+                                value: 'monday',
+                                label: t('onboarding.weekStart.monday.label'),
+                                description: t('onboarding.weekStart.monday.description'),
+                              },
+                              {
+                                value: 'sunday',
+                                label: t('onboarding.weekStart.sunday.label'),
+                                description: t('onboarding.weekStart.sunday.description'),
+                              },
                             ] as const
                           ).map((opt) => (
                             <button
@@ -434,20 +462,20 @@ export default function Wizard({ sports }: WizardProps) {
                       {/* Format de date */}
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
-                          Format de date
+                          {t('onboarding.dateFormat.title')}
                         </p>
                         <div className="flex flex-col gap-2">
                           {(
                             [
                               {
                                 value: 'DD/MM/YYYY',
-                                label: 'JJ/MM/AAAA',
-                                description: 'ex : 25/02/2026',
+                                label: t('onboarding.dateFormat.ddmmyyyy.label'),
+                                description: t('onboarding.dateFormat.ddmmyyyy.description'),
                               },
                               {
                                 value: 'MM/DD/YYYY',
-                                label: 'MM/JJ/AAAA',
-                                description: 'ex : 02/25/2026',
+                                label: t('onboarding.dateFormat.mmddyyyy.label'),
+                                description: t('onboarding.dateFormat.mmddyyyy.description'),
                               },
                             ] as const
                           ).map((opt) => (
@@ -488,7 +516,7 @@ export default function Wizard({ sports }: WizardProps) {
                   onClick={() => setStep((s) => s - 1)}
                   className="rounded-lg border border-sand-7 bg-white px-5 py-2.5 text-sm font-medium text-sand-11 transition-all duration-150 hover:bg-sand-2 hover:border-sand-9 hover:shadow-sm cursor-pointer"
                 >
-                  Retour
+                  {t('onboarding.back')}
                 </button>
               ) : (
                 <span />
@@ -500,7 +528,7 @@ export default function Wizard({ sports }: WizardProps) {
                   disabled={!canGoNext()}
                   className="rounded-lg bg-sand-12 px-5 py-2.5 text-sm font-medium text-sand-1 transition-all duration-150 hover:bg-sand-11 hover:shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:bg-sand-12"
                 >
-                  Suivant
+                  {t('onboarding.next')}
                 </button>
               ) : (
                 <button
@@ -509,7 +537,7 @@ export default function Wizard({ sports }: WizardProps) {
                   disabled={processing}
                   className="rounded-lg bg-sand-12 px-5 py-2.5 text-sm font-medium text-sand-1 transition-all duration-150 hover:bg-sand-11 hover:shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {processing ? 'Enregistrement...' : 'Terminer'}
+                  {processing ? t('onboarding.saving') : t('onboarding.finish')}
                 </button>
               )}
             </div>

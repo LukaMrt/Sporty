@@ -1,0 +1,53 @@
+{
+  "title": "Administration — Users",
+  "users": "Users",
+  "addUser": "Add user",
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "createdAt": "Created"
+  },
+  "edit": {
+    "back": "Back to list",
+    "accountInfo": "Account information",
+    "fullName": "Full name",
+    "email": "Email address",
+    "saving": "Saving...",
+    "save": "Save",
+    "resetPassword": "Reset password",
+    "newTempPassword": "New temporary password",
+    "resetting": "Resetting...",
+    "reset": "Reset",
+    "dangerZone": "Danger zone",
+    "dangerDescription": "Deletion is permanent and irreversible.",
+    "deleteAccount": "Delete account",
+    "cannotDeleteSelf": "Cannot delete your own account",
+    "confirmDelete": "Delete this account? This action is irreversible."
+  },
+  "create": {
+    "title": "Administration — Add user",
+    "heading": "Add user",
+    "description": "Create an account and set their access level.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "e.g. Marie Dupont",
+    "email": "Email address",
+    "emailPlaceholder": "marie@example.com",
+    "tempPassword": "Temporary password",
+    "firstLoginNote": "The user will be able to change their password on first login.",
+    "creating": "Creating...",
+    "submit": "Create user",
+    "cancel": "Cancel"
+  },
+  "roles": {
+    "label": "Role",
+    "user": {
+      "label": "User",
+      "description": "Standard access to their own data"
+    },
+    "admin": {
+      "label": "Administrator",
+      "description": "Full access, member management"
+    }
+  }
+}

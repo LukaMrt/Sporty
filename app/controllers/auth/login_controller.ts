@@ -24,14 +24,14 @@ export default class LoginController {
     return inertia.render('Auth/Login')
   }
 
-  async login({ request, response, session }: HttpContext) {
+  async login({ request, response, session, i18n }: HttpContext) {
     const { email, password } = await request.validateUsing(loginValidator)
     try {
       await this.loginUser.execute(email, password)
       return response.redirect('/')
     } catch (error) {
       if (error instanceof InvalidCredentialsError) {
-        session.flashErrors({ form: 'Identifiants incorrects' })
+        session.flashErrors({ form: i18n.t('auth.login.invalidCredentials') })
         return response.redirect().back()
       }
       throw error

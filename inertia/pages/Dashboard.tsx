@@ -14,6 +14,7 @@ import type {
   QuickStatData,
 } from '../../app/domain/entities/dashboard_metrics'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface DashboardProps {
   sessionCount: number
@@ -31,15 +32,16 @@ export default function Dashboard({
   const [period, setPeriod] = useState<Period>('all')
   const isEmpty = quickStats === null
   const { formatDistanceParts } = useUnitConversion()
+  const { t } = useTranslation()
 
   return (
     <>
-      <Head title="Accueil" />
+      <Head title={t('dashboard.title')} />
       {sessionCount === 0 ? (
         <EmptyState
-          title="Saisis ta première séance pour commencer"
-          description="Suis tes entraînements et vois ta progression au fil du temps."
-          ctaLabel="Saisir ma première séance"
+          title={t('dashboard.empty.title')}
+          description={t('dashboard.empty.description')}
+          ctaLabel={t('dashboard.empty.cta')}
           onCtaClick={() => router.visit('/sessions/create')}
         />
       ) : (
@@ -56,14 +58,14 @@ export default function Dashboard({
           )}
           <div className="grid grid-cols-3 gap-2">
             <QuickStatCard
-              label="Volume semaine"
+              label={t('dashboard.stats.weeklyVolume')}
               value={isEmpty ? '—' : formatDistanceParts(quickStats.weeklyVolumeKm).value}
               unit={isEmpty ? 'km' : formatDistanceParts(quickStats.weeklyVolumeKm).unit}
               trend={isEmpty ? null : quickStats.weeklyVolumeTrend}
               isEmpty={isEmpty}
             />
             <QuickStatCard
-              label="FC moyenne"
+              label={t('dashboard.stats.avgHeartRate')}
               value={
                 isEmpty || quickStats.avgHeartRate === null
                   ? '—'
@@ -75,9 +77,9 @@ export default function Dashboard({
               lowerIsBetter
             />
             <QuickStatCard
-              label="Séances"
+              label={t('dashboard.stats.sessions')}
               value={isEmpty ? '—' : quickStats.weeklySessionCount.toString()}
-              unit="cette sem."
+              unit={t('dashboard.stats.thisWeek')}
               trend={isEmpty ? null : quickStats.weeklySessionTrend}
               isEmpty={isEmpty}
             />
@@ -86,7 +88,7 @@ export default function Dashboard({
             <Card>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Évolution</CardTitle>
+                  <CardTitle className="text-base">{t('dashboard.chart.evolution')}</CardTitle>
                   <PeriodSelector value={period} onChange={setPeriod} />
                 </div>
               </CardHeader>

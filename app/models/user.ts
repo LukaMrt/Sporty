@@ -32,6 +32,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare onboardingCompleted: boolean
 
+  @column()
+  declare locale: string | null
+
   @hasMany(() => Session)
   declare sessions: HasMany<typeof Session>
 

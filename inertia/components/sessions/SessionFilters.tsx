@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface Sport {
   id: number
@@ -40,6 +41,7 @@ export default function SessionFilters({
   onReset,
 }: SessionFiltersProps) {
   const hasFilters = filters.sportId !== null || filters.sortBy !== null
+  const { t } = useTranslation()
 
   return (
     <div className="px-4 md:px-6 pb-4 flex flex-wrap gap-3 items-center">
@@ -48,10 +50,10 @@ export default function SessionFilters({
         onValueChange={onSportChange}
       >
         <SelectTrigger className="w-[180px] cursor-pointer">
-          <SelectValue placeholder="Tous les sports" />
+          <SelectValue placeholder={t('sessions.filters.allSports')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Tous les sports</SelectItem>
+          <SelectItem value="all">{t('sessions.filters.allSports')}</SelectItem>
           {sports.map((s) => (
             <SelectItem key={s.id} value={String(s.id)}>
               {s.name}
@@ -65,13 +67,13 @@ export default function SessionFilters({
         onValueChange={(v) => onSortByChange(v as SortByField | 'default')}
       >
         <SelectTrigger className="w-[160px] cursor-pointer">
-          <SelectValue placeholder="Trier par..." />
+          <SelectValue placeholder={t('sessions.filters.sortBy')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="default">Par défaut</SelectItem>
-          <SelectItem value="date">Date</SelectItem>
-          <SelectItem value="duration_minutes">Durée</SelectItem>
-          <SelectItem value="distance_km">Distance</SelectItem>
+          <SelectItem value="default">{t('sessions.filters.sortDefault')}</SelectItem>
+          <SelectItem value="date">{t('sessions.filters.sortDate')}</SelectItem>
+          <SelectItem value="duration_minutes">{t('sessions.filters.sortDuration')}</SelectItem>
+          <SelectItem value="distance_km">{t('sessions.filters.sortDistance')}</SelectItem>
         </SelectContent>
       </Select>
 
@@ -84,8 +86,8 @@ export default function SessionFilters({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="desc">Décroissant</SelectItem>
-            <SelectItem value="asc">Croissant</SelectItem>
+            <SelectItem value="desc">{t('sessions.filters.sortDesc')}</SelectItem>
+            <SelectItem value="asc">{t('sessions.filters.sortAsc')}</SelectItem>
           </SelectContent>
         </Select>
       )}
@@ -93,7 +95,7 @@ export default function SessionFilters({
       {hasFilters && (
         <Button variant="ghost" size="sm" onClick={onReset} className="gap-1.5">
           <RotateCcw size={14} />
-          Réinitialiser
+          {t('sessions.filters.reset')}
         </Button>
       )}
     </div>

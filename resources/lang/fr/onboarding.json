@@ -1,0 +1,125 @@
+{
+  "title": "Bienvenue sur Sporty",
+  "welcome": "Bienvenue, {name} !",
+  "welcomeGeneric": "Bienvenue sur Sporty !",
+  "subtitle": "2 minutes pour personnaliser ton expérience.",
+  "done": {
+    "title": "C'est tout bon !",
+    "description": "Ton profil est configuré. On t'emmène sur ton tableau de bord…"
+  },
+  "step1": {
+    "title": "Quel sport pratiques-tu ?",
+    "subtitle": "Sélectionne ton sport principal."
+  },
+  "step2": {
+    "title": "Quel est ton niveau ?",
+    "subtitle": "Sois honnête, l'app s'adaptera à toi."
+  },
+  "step3": {
+    "title": "Quel est ton objectif ?",
+    "subtitle": "Tu peux aussi passer cette étape."
+  },
+  "step4": {
+    "title": "Tes préférences d'affichage",
+    "subtitle": "Comment veux-tu voir ta vitesse ?"
+  },
+  "back": "Retour",
+  "next": "Suivant",
+  "finish": "Terminer",
+  "saving": "Enregistrement...",
+  "levels": {
+    "beginner": {
+      "label": "Je débute",
+      "description": "Je commence tout juste l'activité"
+    },
+    "intermediate": {
+      "label": "Je cours régulièrement",
+      "description": "J'ai de l'expérience mais je progresse encore"
+    },
+    "advanced": {
+      "label": "Je m'entraîne sérieusement",
+      "description": "Je suis un sportif régulier et exigeant"
+    }
+  },
+  "objectives": {
+    "endurance_progress": {
+      "label": "Progresser en endurance",
+      "description": "Améliore ta VO2max et ta résistance sur la durée"
+    },
+    "run_faster": {
+      "label": "Courir plus vite",
+      "description": "Travaille ta vitesse et tes temps sur les distances courtes"
+    },
+    "comeback_after_break": {
+      "label": "Reprendre après une pause",
+      "description": "Retrouve progressivement ton niveau après une interruption"
+    },
+    "maintain_fitness": {
+      "label": "Maintenir ma forme",
+      "description": "Garde un rythme régulier sans te surcharger"
+    },
+    "prepare_competition": {
+      "label": "Préparer une compétition",
+      "description": "Structures tes entraînements autour d'un objectif de course"
+    },
+    "none": {
+      "label": "Pas d'objectif précis",
+      "description": "On te proposera des plans généraux"
+    }
+  },
+  "speed": {
+    "title": "Vitesse",
+    "min_km": {
+      "label": "min/km",
+      "description": "Allure (ex : 5:30/km)"
+    },
+    "km_h": {
+      "label": "km/h",
+      "description": "Vitesse (ex : 10,9 km/h)"
+    }
+  },
+  "distance": {
+    "title": "Distance",
+    "km": {
+      "label": "Kilomètres",
+      "description": "ex : 10,5 km"
+    },
+    "mi": {
+      "label": "Miles",
+      "description": "ex : 6,5 mi"
+    }
+  },
+  "weight": {
+    "title": "Poids",
+    "kg": {
+      "label": "Kilogrammes",
+      "description": "ex : 72 kg"
+    },
+    "lbs": {
+      "label": "Livres",
+      "description": "ex : 158 lbs"
+    }
+  },
+  "weekStart": {
+    "title": "Début de semaine",
+    "monday": {
+      "label": "Lundi",
+      "description": "Lun → Dim"
+    },
+    "sunday": {
+      "label": "Dimanche",
+      "description": "Dim → Sam"
+    }
+  },
+  "dateFormat": {
+    "title": "Format de date",
+    "ddmmyyyy": {
+      "label": "JJ/MM/AAAA",
+      "description": "ex : 25/02/2026"
+    },
+    "mmddyyyy": {
+      "label": "MM/JJ/AAAA",
+      "description": "ex : 02/25/2026"
+    }
+  }
+}
