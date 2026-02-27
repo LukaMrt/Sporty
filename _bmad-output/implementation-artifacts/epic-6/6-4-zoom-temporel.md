@@ -1,6 +1,6 @@
 # Story 6.4: Zoom temporel
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -125,9 +125,18 @@ So that **je peux analyser ma progression sur la période qui m'intéresse** (FR
 ## Dev Agent Record
 
 ### Agent Model Used
+claude-sonnet-4-6
 
 ### Debug Log References
+Aucun
 
 ### Completion Notes List
+- Filtrage purement frontend (Option A pour QuickStatCards — pas de recalcul client)
+- Fix courbe de tendance : ancrage firstDate + lastDate de la dernière semaine pour éviter le point manquant en bout de courbe
+- isoWeek, isThisWeek, isThisMonth extraits dans inertia/lib/format.ts
 
 ### File List
+- inertia/components/shared/PeriodSelector.tsx (nouveau)
+- inertia/components/shared/EvolutionChart.tsx (modifié)
+- inertia/pages/Dashboard.tsx (modifié)
+- inertia/lib/format.ts (modifié)
