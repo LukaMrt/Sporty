@@ -16,6 +16,11 @@
   "weight": "Weight",
   "weekStart": "Week starts on",
   "dateFormat": "Date format",
+  "locale": "Language",
+  "localeOptions": {
+    "fr": "Français",
+    "en": "English"
+  },
   "saving": "Saving...",
   "save": "Save",
   "levels": {

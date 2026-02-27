@@ -30,6 +30,7 @@ interface ProfileData {
     weightUnit: 'kg' | 'lbs'
     weekStartsOn: 'monday' | 'sunday'
     dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY'
+    locale: 'fr' | 'en'
   }
 }
 
@@ -52,6 +53,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     weight_unit: profile?.preferences.weightUnit ?? ('kg' as 'kg' | 'lbs'),
     week_starts_on: profile?.preferences.weekStartsOn ?? ('monday' as 'monday' | 'sunday'),
     date_format: profile?.preferences.dateFormat ?? ('DD/MM/YYYY' as 'DD/MM/YYYY' | 'MM/DD/YYYY'),
+    locale: profile?.preferences.locale ?? ('fr' as 'fr' | 'en'),
   })
 
   const LEVELS = [
@@ -287,6 +289,31 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                       onClick={() => form.setData('date_format', opt.value)}
                       className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
                         form.data.date_format === opt.value
+                          ? 'border-sand-12 bg-sand-3 text-sand-12'
+                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
+
+              {/* Langue */}
+              <FormField label={t('profile.locale')} error={form.errors.locale}>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: 'fr', label: t('profile.localeOptions.fr') },
+                      { value: 'en', label: t('profile.localeOptions.en') },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => form.setData('locale', opt.value)}
+                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        form.data.locale === opt.value
                           ? 'border-sand-12 bg-sand-3 text-sand-12'
                           : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
                       }`}
