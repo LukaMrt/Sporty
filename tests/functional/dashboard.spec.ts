@@ -1,5 +1,8 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
+import { DateTime } from 'luxon'
+import Sport from '#models/sport'
+import Session from '#models/session'
 import { getUser } from '#tests/helpers'
 
 test.group('Dashboard', (group) => {
@@ -12,10 +15,34 @@ test.group('Dashboard', (group) => {
     response.assertHeader('location', '/login')
   })
 
-  test('GET / connecté sans séances → 200 Dashboard avec EmptyState (AC#1, #2)', async ({
-    client,
-  }) => {
+  test('GET / connecté sans séances → 200 (AC#5)', async ({ client }) => {
     const user = await getUser()
+
+    const response = await client.get('/').loginAs(user)
+
+    response.assertStatus(200)
+  })
+
+  test('GET / connecté avec séances → 200 (AC#1)', async ({ client }) => {
+    const user = await getUser()
+    const sport = await Sport.firstOrFail()
+
+    await Session.createMany([
+      {
+        userId: user.id,
+        sportId: sport.id,
+        date: DateTime.now().minus({ days: 7 }),
+        durationMinutes: 60,
+        distanceKm: 10,
+      },
+      {
+        userId: user.id,
+        sportId: sport.id,
+        date: DateTime.now().minus({ days: 14 }),
+        durationMinutes: 55,
+        distanceKm: 10,
+      },
+    ])
 
     const response = await client.get('/').loginAs(user)
 

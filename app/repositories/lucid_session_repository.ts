@@ -112,6 +112,21 @@ export default class LucidSessionRepository extends SessionRepository {
     await model.save()
   }
 
+  async findByUserIdAndDateRange(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<TrainingSession[]> {
+    const models = await SessionModel.query()
+      .where('userId', userId)
+      .where('date', '>=', startDate)
+      .where('date', '<=', endDate)
+      .withScopes((s) => s.withoutTrashed())
+      .preload('sport')
+      .orderBy('date', 'asc')
+    return models.map((m) => this.#toEntity(m))
+  }
+
   #toEntity(model: SessionModel): TrainingSession {
     return {
       id: model.id,

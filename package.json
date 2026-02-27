@@ -82,7 +82,7 @@
     "@adonisjs/shield": "^8.2.0",
     "@adonisjs/static": "^1.1.1",
     "@adonisjs/vite": "^4.0.0",
-    "@inertiajs/react": "^2.3.16",
+    "@inertiajs/react": "^2.3.17",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",
@@ -97,6 +97,7 @@
     "pg": "^8.19.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "recharts": "^3.7.0",
     "reflect-metadata": "^0.2.2",
     "tailwind-merge": "^3.5.0"
   },

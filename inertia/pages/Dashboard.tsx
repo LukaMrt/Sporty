@@ -2,12 +2,16 @@ import React from 'react'
 import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import EmptyState from '~/components/shared/EmptyState'
+import HeroMetric, { HeroMetricEmpty } from '~/components/shared/HeroMetric'
+import type { HeroMetricData } from '../../app/domain/entities/dashboard_metrics'
 
 interface DashboardProps {
   sessionCount: number
+  heroMetric: HeroMetricData | null
+  speedUnit: string
 }
 
-export default function Dashboard({ sessionCount }: DashboardProps) {
+export default function Dashboard({ sessionCount, heroMetric }: DashboardProps) {
   return (
     <>
       <Head title="Accueil" />
@@ -18,8 +22,19 @@ export default function Dashboard({ sessionCount }: DashboardProps) {
           ctaLabel="Saisir ma première séance"
           onCtaClick={() => router.visit('/sessions/create')}
         />
+      ) : heroMetric === null ? (
+        <div className="mx-auto max-w-2xl p-4">
+          <HeroMetricEmpty />
+        </div>
       ) : (
-        <p className="text-muted-foreground">Tableau de bord — à venir</p>
+        <div className="mx-auto max-w-2xl p-4">
+          <HeroMetric
+            pace={heroMetric.currentPace}
+            trendSeconds={heroMetric.trendSeconds}
+            previousPace={heroMetric.previousPace}
+            sparklineData={heroMetric.sparklineData}
+          />
+        </div>
       )}
     </>
   )

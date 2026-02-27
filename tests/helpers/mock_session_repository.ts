@@ -53,6 +53,10 @@ export function makeMockSessionRepository(
     async softDelete(): Promise<void> {}
 
     async restore(): Promise<void> {}
+
+    async findByUserIdAndDateRange(): Promise<TrainingSession[]> {
+      return []
+    }
   }
 
   return Object.assign(new MockRepository(), overrides)
