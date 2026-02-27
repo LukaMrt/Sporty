@@ -20,7 +20,6 @@ interface DashboardProps {
   heroMetric: HeroMetricData | null
   quickStats: QuickStatData | null
   chartData: ChartData | null
-  speedUnit: string
 }
 
 export default function Dashboard({
@@ -31,7 +30,7 @@ export default function Dashboard({
 }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('all')
   const isEmpty = quickStats === null
-  const { distanceUnit } = useUnitConversion()
+  const { formatDistance } = useUnitConversion()
 
   return (
     <>
@@ -58,14 +57,8 @@ export default function Dashboard({
           <div className="grid grid-cols-3 gap-2">
             <QuickStatCard
               label="Volume semaine"
-              value={
-                isEmpty
-                  ? '—'
-                  : distanceUnit === 'mi'
-                    ? (quickStats.weeklyVolumeKm * 0.621371).toFixed(1)
-                    : quickStats.weeklyVolumeKm.toFixed(1)
-              }
-              unit={distanceUnit === 'mi' ? 'mi' : 'km'}
+              value={isEmpty ? '—' : formatDistance(quickStats.weeklyVolumeKm).split(' ')[0]}
+              unit={isEmpty ? 'km' : formatDistance(quickStats.weeklyVolumeKm).split(' ')[1]}
               trend={isEmpty ? null : quickStats.weeklyVolumeTrend}
               isEmpty={isEmpty}
             />

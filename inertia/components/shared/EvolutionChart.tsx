@@ -130,11 +130,16 @@ export default function EvolutionChart({
   const filteredData = convertedData.filter((point) => point[activeMetric] !== null)
   const mergedData = buildMergedData(filteredData, activeMetric)
 
-  const rawValues = filteredData.map((p) => p[activeMetric] as number)
-  const rawMin = Math.min(...rawValues)
-  const rawMax = Math.max(...rawValues)
-  const padding = (rawMax - rawMin) * 0.2 || 1
-  const yDomain: [number, number] = [Math.max(0, rawMin - padding), rawMax + padding]
+  let yDomain: [number, number]
+  if (filteredData.length === 0) {
+    yDomain = [0, 1]
+  } else {
+    const rawValues = filteredData.map((p) => p[activeMetric] as number)
+    const rawMin = Math.min(...rawValues)
+    const rawMax = Math.max(...rawValues)
+    const padding = (rawMax - rawMin) * 0.2 || 1
+    yDomain = [Math.max(0, rawMin - padding), rawMax + padding]
+  }
 
   const yAxisLabel =
     activeMetric === 'pace'
@@ -148,8 +153,12 @@ export default function EvolutionChart({
   const formatYTick = (v: number): string => {
     if (activeMetric === 'pace') {
       if (speedUnit === 'km_h') return v.toFixed(1)
-      const m = Math.floor(v)
-      const s = Math.round((v - m) * 60)
+      let m = Math.floor(v)
+      let s = Math.round((v - m) * 60)
+      if (s === 60) {
+        m++
+        s = 0
+      }
       return `${m}'${s.toString().padStart(2, '0')}`
     }
     return Math.round(v).toString()

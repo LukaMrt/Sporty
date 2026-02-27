@@ -99,7 +99,6 @@ test.group('GET /sessions/trash', (group) => {
       .where('date', DateTime.fromISO('2026-01-05').toSQLDate()!)
       .whereNotNull('deletedAt')
       .firstOrFail()
-    // Confirm la séance de user2 existe bien en corbeille
     assert.isNotNull(user2TrashedSession.deletedAt)
   })
 

@@ -13,10 +13,13 @@ interface Sport {
   name: string
 }
 
+export type SortByField = 'date' | 'duration_minutes' | 'distance_km'
+export type SortOrder = 'asc' | 'desc'
+
 export interface Filters {
   sportId: number | null
-  sortBy: string | null
-  sortOrder: string | null
+  sortBy: SortByField | null
+  sortOrder: SortOrder | null
 }
 
 interface SessionFiltersProps {
@@ -62,6 +65,7 @@ export default function SessionFilters({
           <SelectValue placeholder="Trier par..." />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="default">Par défaut</SelectItem>
           <SelectItem value="date">Date</SelectItem>
           <SelectItem value="duration_minutes">Durée</SelectItem>
           <SelectItem value="distance_km">Distance</SelectItem>

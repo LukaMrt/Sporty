@@ -78,8 +78,8 @@ export default function SessionsIndex({ sessions, sports, filters }: SessionsInd
         }
         onSortByChange={(value) =>
           navigateWithFilters(filters, {
-            sortBy: value,
-            sortOrder: filters.sortOrder ?? 'desc',
+            sortBy: value === 'default' ? null : value,
+            sortOrder: value === 'default' ? null : (filters.sortOrder ?? 'desc'),
             page: 1,
           })
         }
