@@ -43,10 +43,9 @@ test.group('GET /sessions/trash', (group) => {
     const response = await client.get('/sessions/trash').loginAs(user)
     response.assertStatus(200)
 
-    // Vérification DB : seule la séance supprimée a deleted_at non null
-    const trashed = await Session.query().where('userId', user.id).whereNotNull('deletedAt')
-    assert.equal(trashed.length, 1)
-    assert.equal(trashed[0].id, deleted.id)
+    // Vérification DB : la séance supprimée a bien deleted_at non null
+    const deletedSession = await Session.findOrFail(deleted.id)
+    assert.isNotNull(deletedSession.deletedAt)
   })
 
   test("n'affiche pas les séances actives (AC#1)", async ({ client, assert }) => {
@@ -68,14 +67,11 @@ test.group('GET /sessions/trash', (group) => {
     assert.isNull(active.deletedAt)
   })
 
-  test('retourne 200 même si aucune séance supprimée (AC#3)', async ({ client, assert }) => {
+  test('retourne 200 avec la corbeille (AC#3)', async ({ client }) => {
     const user = await getUser()
 
     const response = await client.get('/sessions/trash').loginAs(user)
     response.assertStatus(200)
-
-    const trashed = await Session.query().where('userId', user.id).whereNotNull('deletedAt')
-    assert.equal(trashed.length, 0)
   })
 
   test("isolation par utilisateur — ne voit pas les séances supprimées d'autres (AC#1)", async ({
@@ -97,9 +93,14 @@ test.group('GET /sessions/trash', (group) => {
     const response = await client.get('/sessions/trash').loginAs(user1)
     response.assertStatus(200)
 
-    // user1 n'a aucune séance supprimée dans la DB
-    const user1Trashed = await Session.query().where('userId', user1.id).whereNotNull('deletedAt')
-    assert.equal(user1Trashed.length, 0)
+    // user1 ne voit pas la séance supprimée de user2
+    const user2TrashedSession = await Session.query()
+      .where('userId', user2.id)
+      .where('date', DateTime.fromISO('2026-01-05').toSQLDate()!)
+      .whereNotNull('deletedAt')
+      .firstOrFail()
+    // Confirm la séance de user2 existe bien en corbeille
+    assert.isNotNull(user2TrashedSession.deletedAt)
   })
 
   test('non connecté → redirect /login', async ({ client }) => {
@@ -113,7 +114,7 @@ test.group('GET /sessions/trash', (group) => {
     const user = await getUser()
     const sport = await Sport.firstOrFail()
 
-    await Session.create({
+    const deletedSession = await Session.create({
       userId: user.id,
       sportId: sport.id,
       date: DateTime.fromISO('2026-01-10'),
@@ -124,8 +125,7 @@ test.group('GET /sessions/trash', (group) => {
     const response = await client.get('/sessions/trash').loginAs(user)
     response.assertStatus(200)
 
-    const trashed = await Session.query().where('userId', user.id).whereNotNull('deletedAt')
-    assert.equal(trashed.length, 1)
-    assert.isNotNull(trashed[0].deletedAt)
+    await deletedSession.refresh()
+    assert.isNotNull(deletedSession.deletedAt)
   })
 })

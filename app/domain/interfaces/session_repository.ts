@@ -26,4 +26,9 @@ export abstract class SessionRepository {
   abstract findTrashedByUserId(userId: number): Promise<TrainingSession[]>
   abstract softDelete(id: number): Promise<void>
   abstract restore(id: number): Promise<void>
+  abstract findByUserIdAndDateRange(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<TrainingSession[]>
 }

@@ -4,7 +4,7 @@ import {
   SEEDED_USER_2_EMAIL,
   SEEDED_ADMIN_EMAIL,
   SEEDED_NON_ONBOARDED_USER_EMAIL,
-} from '#database/seeders/user_seeder'
+} from '#database/seeders/2_user_seeder'
 
 export {
   SEEDED_USER_EMAIL,
@@ -12,7 +12,7 @@ export {
   SEEDED_ADMIN_EMAIL,
   SEEDED_NON_ONBOARDED_USER_EMAIL,
   SEEDED_PASSWORD,
-} from '#database/seeders/user_seeder'
+} from '#database/seeders/2_user_seeder'
 
 export async function getUser() {
   return User.findByOrFail('email', SEEDED_USER_EMAIL)

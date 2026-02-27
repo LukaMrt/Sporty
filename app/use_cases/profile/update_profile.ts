@@ -3,6 +3,7 @@ import { UserRepository } from '#domain/interfaces/user_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { UserProfile } from '#domain/entities/user_profile'
 import type { User } from '#domain/entities/user'
+import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 
 export interface UpdateProfileInput {
   fullName?: string
@@ -47,7 +48,18 @@ export default class UpdateProfile {
 
     let profile: UserProfile | null = null
     if (Object.keys(profileUpdate).length > 0) {
-      profile = await this.userProfileRepository.update(userId, profileUpdate)
+      const existing = await this.userProfileRepository.findByUserId(userId)
+      if (existing) {
+        profile = await this.userProfileRepository.update(userId, profileUpdate)
+      } else if (profileUpdate.sportId) {
+        profile = await this.userProfileRepository.create({
+          userId,
+          sportId: profileUpdate.sportId,
+          level: profileUpdate.level ?? null,
+          objective: profileUpdate.objective ?? null,
+          preferences: profileUpdate.preferences ?? DEFAULT_USER_PREFERENCES,
+        })
+      }
     } else {
       profile = await this.userProfileRepository.findByUserId(userId)
     }
