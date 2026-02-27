@@ -28,6 +28,7 @@ async function createUserWithProfile() {
       weightUnit: 'kg',
       weekStartsOn: 'monday',
       dateFormat: 'DD/MM/YYYY',
+      locale: 'fr',
     },
   })
 

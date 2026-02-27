@@ -12,7 +12,7 @@ export type CompleteOnboardingInput = {
   objective: UserObjective | null
   preferences: Pick<
     UserPreferences,
-    'speedUnit' | 'distanceUnit' | 'weightUnit' | 'weekStartsOn' | 'dateFormat'
+    'speedUnit' | 'distanceUnit' | 'weightUnit' | 'weekStartsOn' | 'dateFormat' | 'locale'
   >
 }
 
@@ -38,6 +38,7 @@ export default class CompleteOnboarding {
         weightUnit: input.preferences.weightUnit,
         weekStartsOn: input.preferences.weekStartsOn,
         dateFormat: input.preferences.dateFormat,
+        locale: input.preferences.locale,
       },
     })
 

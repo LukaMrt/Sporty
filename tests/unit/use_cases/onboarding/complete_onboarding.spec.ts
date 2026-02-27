@@ -28,6 +28,7 @@ function makeUserProfileRepository(
           weightUnit: 'kg',
           weekStartsOn: 'monday',
           dateFormat: 'DD/MM/YYYY',
+          locale: 'fr',
         },
       }
     }
@@ -58,6 +59,7 @@ test.group('CompleteOnboarding — use case', () => {
         weightUnit: 'kg',
         weekStartsOn: 'monday',
         dateFormat: 'DD/MM/YYYY',
+        locale: 'fr',
       },
     })
 
@@ -91,6 +93,7 @@ test.group('CompleteOnboarding — use case', () => {
         weightUnit: 'kg',
         weekStartsOn: 'monday',
         dateFormat: 'DD/MM/YYYY',
+        locale: 'fr',
       },
     })
 
@@ -119,6 +122,7 @@ test.group('CompleteOnboarding — use case', () => {
         weightUnit: 'kg',
         weekStartsOn: 'monday',
         dateFormat: 'DD/MM/YYYY',
+        locale: 'fr',
       },
     })
 
@@ -147,6 +151,7 @@ test.group('CompleteOnboarding — use case', () => {
         weightUnit: 'kg',
         weekStartsOn: 'monday',
         dateFormat: 'DD/MM/YYYY',
+        locale: 'fr',
       },
     })
 

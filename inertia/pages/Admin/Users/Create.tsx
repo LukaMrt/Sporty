@@ -52,7 +52,11 @@ export default function AdminUsersCreate() {
 
         <div className="max-w-md rounded-xl border bg-card p-6 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <FormField label={t('admin.create.fullName')} htmlFor="full_name" error={errors.full_name}>
+            <FormField
+              label={t('admin.create.fullName')}
+              htmlFor="full_name"
+              error={errors.full_name}
+            >
               <IconInput
                 id="full_name"
                 type="text"
@@ -76,7 +80,11 @@ export default function AdminUsersCreate() {
               />
             </FormField>
 
-            <FormField label={t('admin.create.tempPassword')} htmlFor="password" error={errors.password}>
+            <FormField
+              label={t('admin.create.tempPassword')}
+              htmlFor="password"
+              error={errors.password}
+            >
               <PasswordInput
                 id="password"
                 value={data.password}

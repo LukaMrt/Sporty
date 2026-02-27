@@ -108,7 +108,9 @@ export default function SessionShow({ session }: ShowProps) {
               <span className="text-2xl font-bold text-foreground">
                 {formatDuration(session.durationMinutes)}
               </span>
-              <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.duration')}</span>
+              <span className="text-xs text-muted-foreground mt-1">
+                {t('sessions.show.duration')}
+              </span>
             </div>
             {session.distanceKm !== null && session.distanceKm !== undefined && (
               <div className="flex flex-col items-center">
@@ -123,7 +125,9 @@ export default function SessionShow({ session }: ShowProps) {
             {pace && (
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-foreground">{pace}</span>
-                <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.pace')}</span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  {t('sessions.show.pace')}
+                </span>
               </div>
             )}
           </div>
@@ -139,7 +143,9 @@ export default function SessionShow({ session }: ShowProps) {
               {session.avgHeartRate !== null && (
                 <div className="flex flex-col items-center">
                   <span className="text-2xl font-bold text-foreground">{session.avgHeartRate}</span>
-                  <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.heartRate')}</span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {t('sessions.show.heartRate')}
+                  </span>
                 </div>
               )}
               {session.perceivedEffort !== null && (
@@ -150,7 +156,9 @@ export default function SessionShow({ session }: ShowProps) {
                   >
                     {EFFORT_EMOJIS[(session.perceivedEffort - 1) as 0 | 1 | 2 | 3 | 4]}
                   </span>
-                  <span className="text-xs text-muted-foreground mt-1">{t('sessions.show.effort')}</span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    {t('sessions.show.effort')}
+                  </span>
                 </div>
               )}
             </div>

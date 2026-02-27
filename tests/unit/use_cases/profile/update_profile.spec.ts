@@ -17,6 +17,7 @@ const DEFAULT_PROFILE: UserProfile = {
     weightUnit: 'kg',
     weekStartsOn: 'monday',
     dateFormat: 'DD/MM/YYYY',
+    locale: 'fr',
   },
 }
 

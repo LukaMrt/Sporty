@@ -14,7 +14,9 @@ export default function ServerError() {
       <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
         <ServerCrash className="mb-6 h-16 w-16 text-muted-foreground" />
         <p className="text-7xl font-bold text-destructive">500</p>
-        <h1 className="mt-4 text-2xl font-semibold text-foreground">{t('errors.serverError.heading')}</h1>
+        <h1 className="mt-4 text-2xl font-semibold text-foreground">
+          {t('errors.serverError.heading')}
+        </h1>
         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
           {t('errors.serverError.description')}
         </p>

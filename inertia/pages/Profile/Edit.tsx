@@ -88,7 +88,11 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
             {/* Informations personnelles */}
             <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
               <h2 className="text-sm font-semibold">{t('profile.personalInfo')}</h2>
-              <FormField label={t('profile.fullName')} htmlFor="full_name" error={form.errors.full_name}>
+              <FormField
+                label={t('profile.fullName')}
+                htmlFor="full_name"
+                error={form.errors.full_name}
+              >
                 <Input
                   id="full_name"
                   value={form.data.full_name}
@@ -153,7 +157,11 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
               </FormField>
 
               {/* Objectif */}
-              <FormField label={t('profile.objective')} htmlFor="objective" error={form.errors.objective}>
+              <FormField
+                label={t('profile.objective')}
+                htmlFor="objective"
+                error={form.errors.objective}
+              >
                 <select
                   id="objective"
                   value={form.data.objective ?? ''}

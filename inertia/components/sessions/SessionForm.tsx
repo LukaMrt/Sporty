@@ -166,7 +166,11 @@ export default function SessionForm({
       </FormField>
 
       {/* Distance */}
-      <FormField label={t('sessions.form.distance')} htmlFor="distance_km" error={form.errors.distance_km}>
+      <FormField
+        label={t('sessions.form.distance')}
+        htmlFor="distance_km"
+        error={form.errors.distance_km}
+      >
         <Input
           id="distance_km"
           type="number"

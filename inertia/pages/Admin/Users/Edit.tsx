@@ -150,8 +150,12 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
 
           {/* Danger zone */}
           <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 shadow-sm">
-            <h2 className="mb-1 text-sm font-semibold text-destructive">{t('admin.edit.dangerZone')}</h2>
-            <p className="mb-4 text-xs text-muted-foreground">{t('admin.edit.dangerDescription')}</p>
+            <h2 className="mb-1 text-sm font-semibold text-destructive">
+              {t('admin.edit.dangerZone')}
+            </h2>
+            <p className="mb-4 text-xs text-muted-foreground">
+              {t('admin.edit.dangerDescription')}
+            </p>
             <Button
               type="button"
               variant="destructive"

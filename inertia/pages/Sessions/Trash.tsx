@@ -43,7 +43,9 @@ export default function SessionsTrash({ sessions }: TrashProps) {
 
       <div className="flex items-center gap-3 p-4 md:p-6">
         <Trash2 size={20} className="text-muted-foreground" />
-        <h1 className="text-xl font-bold text-foreground md:text-2xl">{t('sessions.trash.title')}</h1>
+        <h1 className="text-xl font-bold text-foreground md:text-2xl">
+          {t('sessions.trash.title')}
+        </h1>
       </div>
 
       {sessions.length === 0 ? (

@@ -36,6 +36,7 @@ export default class OnboardingController {
         weightUnit: data.weight_unit,
         weekStartsOn: data.week_starts_on,
         dateFormat: data.date_format,
+        locale: 'fr',
       },
     })
     return response.redirect('/')
