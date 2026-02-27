@@ -11,22 +11,13 @@ export default class DetectUserLocaleMiddleware {
   }
 
   protected getRequestLocale(ctx: HttpContext): string | null {
-    // 1. Check user's saved locale preference
-    const user = ctx.auth?.user
-    if (user && (user as { locale?: string | null }).locale) {
-      const userLocale = (user as { locale?: string | null }).locale!
-      if (i18nManager.supportedLocales().includes(userLocale)) {
-        return userLocale
-      }
-    }
-
-    // 2. Check session
+    // 1. Check session (set on login from profile.preferences.locale, or via LocaleSwitcher)
     const sessionLocale = ctx.session?.get('locale') as string | undefined
     if (sessionLocale && i18nManager.supportedLocales().includes(sessionLocale)) {
       return sessionLocale
     }
 
-    // 3. Fall back to Accept-Language header
+    // 2. Fall back to Accept-Language header
     const userLanguages = ctx.request.languages()
     return i18nManager.getSupportedLocaleFor(userLanguages)
   }

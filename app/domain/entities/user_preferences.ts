@@ -4,6 +4,7 @@ export type UserPreferences = {
   weightUnit: 'kg' | 'lbs'
   weekStartsOn: 'monday' | 'sunday'
   dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY'
+  locale: 'fr' | 'en'
 }
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -12,4 +13,5 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   weightUnit: 'kg',
   weekStartsOn: 'monday',
   dateFormat: 'DD/MM/YYYY',
+  locale: 'fr',
 }
