@@ -6,6 +6,16 @@ export function kmToMiles(km: number): number {
   return km * 0.621371
 }
 
+export function toMinSec(decimalMinutes: number): { minutes: number; seconds: number } {
+  let minutes = Math.floor(decimalMinutes)
+  let seconds = Math.round((decimalMinutes - minutes) * 60)
+  if (seconds === 60) {
+    minutes++
+    seconds = 0
+  }
+  return { minutes, seconds }
+}
+
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
@@ -16,23 +26,12 @@ export function formatDuration(minutes: number): string {
 
 export function formatPace(durationMinutes: number, distanceKm: number | null): string | null {
   if (!distanceKm || distanceKm === 0) return null
-  const paceMin = durationMinutes / distanceKm
-  let minutes = Math.floor(paceMin)
-  let seconds = Math.round((paceMin - minutes) * 60)
-  if (seconds === 60) {
-    minutes++
-    seconds = 0
-  }
+  const { minutes, seconds } = toMinSec(durationMinutes / distanceKm)
   return `${minutes}'${seconds.toString().padStart(2, '0')}/km`
 }
 
 export function formatPaceMinSec(paceMinPerKm: number): string {
-  let minutes = Math.floor(paceMinPerKm)
-  let seconds = Math.round((paceMinPerKm - minutes) * 60)
-  if (seconds === 60) {
-    minutes++
-    seconds = 0
-  }
+  const { minutes, seconds } = toMinSec(paceMinPerKm)
   return `${minutes}'${seconds.toString().padStart(2, '0')}`
 }
 
@@ -57,12 +56,7 @@ export function formatChartDate(iso: string): string {
 
 export function formatChartValue(value: number, metric: string): string {
   if (metric === 'pace') {
-    let minutes = Math.floor(value)
-    let seconds = Math.round((value - minutes) * 60)
-    if (seconds === 60) {
-      minutes++
-      seconds = 0
-    }
+    const { minutes, seconds } = toMinSec(value)
     return `${minutes}'${seconds.toString().padStart(2, '0')}/km`
   }
   if (metric === 'heartRate') {

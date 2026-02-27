@@ -37,7 +37,7 @@ interface ShowProps {
 
 export default function SessionShow({ session }: ShowProps) {
   const [open, setOpen] = useState(false)
-  const { formatSpeed, formatDistance } = useUnitConversion()
+  const { formatSpeed, formatDistanceParts } = useUnitConversion()
   const rawPaceMinPerKm =
     session.distanceKm && session.distanceKm > 0
       ? session.durationMinutes / session.distanceKm
@@ -111,10 +111,10 @@ export default function SessionShow({ session }: ShowProps) {
             {session.distanceKm !== null && session.distanceKm !== undefined && (
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-foreground">
-                  {formatDistance(Number(session.distanceKm)).split(' ')[0]}
+                  {formatDistanceParts(Number(session.distanceKm)).value}
                 </span>
                 <span className="text-xs text-muted-foreground mt-1">
-                  {formatDistance(Number(session.distanceKm)).split(' ')[1]}
+                  {formatDistanceParts(Number(session.distanceKm)).unit}
                 </span>
               </div>
             )}

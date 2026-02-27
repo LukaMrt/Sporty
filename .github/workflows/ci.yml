@@ -44,7 +44,7 @@ jobs:
           - 5432:5432
     env:
       NODE_ENV: test
-      APP_KEY: test-key-for-ci-only-not-secret
+      APP_KEY: kDvkrhtbc8N2L0ftV-wQbX4Msfce8-IrF4AsJwtJ4do
       DB_HOST: localhost
       DB_PORT: 5432
       DB_USER: sporty

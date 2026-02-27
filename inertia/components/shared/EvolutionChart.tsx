@@ -9,7 +9,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { ChartDataPoint } from '../../../app/domain/entities/dashboard_metrics'
-import { formatChartDate, isThisMonth, isThisWeek, isoWeek } from '~/lib/format'
+import { formatChartDate, formatPaceMinSec, isThisMonth, isThisWeek, isoWeek } from '~/lib/format'
 import type { Period } from './PeriodSelector'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
@@ -153,13 +153,7 @@ export default function EvolutionChart({
   const formatYTick = (v: number): string => {
     if (activeMetric === 'pace') {
       if (speedUnit === 'km_h') return v.toFixed(1)
-      let m = Math.floor(v)
-      let s = Math.round((v - m) * 60)
-      if (s === 60) {
-        m++
-        s = 0
-      }
-      return `${m}'${s.toString().padStart(2, '0')}`
+      return formatPaceMinSec(v)
     }
     return Math.round(v).toString()
   }

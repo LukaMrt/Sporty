@@ -30,7 +30,7 @@ export default function Dashboard({
 }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('all')
   const isEmpty = quickStats === null
-  const { formatDistance } = useUnitConversion()
+  const { formatDistanceParts } = useUnitConversion()
 
   return (
     <>
@@ -57,8 +57,8 @@ export default function Dashboard({
           <div className="grid grid-cols-3 gap-2">
             <QuickStatCard
               label="Volume semaine"
-              value={isEmpty ? '—' : formatDistance(quickStats.weeklyVolumeKm).split(' ')[0]}
-              unit={isEmpty ? 'km' : formatDistance(quickStats.weeklyVolumeKm).split(' ')[1]}
+              value={isEmpty ? '—' : formatDistanceParts(quickStats.weeklyVolumeKm).value}
+              unit={isEmpty ? 'km' : formatDistanceParts(quickStats.weeklyVolumeKm).unit}
               trend={isEmpty ? null : quickStats.weeklyVolumeTrend}
               isEmpty={isEmpty}
             />

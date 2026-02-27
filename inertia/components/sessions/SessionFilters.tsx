@@ -26,8 +26,8 @@ interface SessionFiltersProps {
   sports: Sport[]
   filters: Filters
   onSportChange: (value: string) => void
-  onSortByChange: (value: string) => void
-  onSortOrderChange: (value: string) => void
+  onSortByChange: (value: SortByField | 'default') => void
+  onSortOrderChange: (value: SortOrder) => void
   onReset: () => void
 }
 
@@ -60,7 +60,10 @@ export default function SessionFilters({
         </SelectContent>
       </Select>
 
-      <Select value={filters.sortBy ?? ''} onValueChange={onSortByChange}>
+      <Select
+        value={filters.sortBy ?? ''}
+        onValueChange={(v) => onSortByChange(v as SortByField | 'default')}
+      >
         <SelectTrigger className="w-[160px] cursor-pointer">
           <SelectValue placeholder="Trier par..." />
         </SelectTrigger>
@@ -73,7 +76,10 @@ export default function SessionFilters({
       </Select>
 
       {filters.sortBy && (
-        <Select value={filters.sortOrder ?? 'desc'} onValueChange={onSortOrderChange}>
+        <Select
+          value={filters.sortOrder ?? 'desc'}
+          onValueChange={(v) => onSortOrderChange(v as SortOrder)}
+        >
           <SelectTrigger className="w-[130px] cursor-pointer">
             <SelectValue />
           </SelectTrigger>
