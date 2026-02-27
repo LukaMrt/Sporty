@@ -1,5 +1,8 @@
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
+import app from '@adonisjs/core/services/app'
+import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 
 const inertiaConfig = defineConfig({
   /**
@@ -19,6 +22,12 @@ const inertiaConfig = defineConfig({
       })),
     flash: (ctx) =>
       ctx.inertia.always(() => (ctx.session?.flashMessages.all() ?? {}) as Record<string, string>),
+    userPreferences: async (ctx) => {
+      if (!ctx.auth?.user) return null
+      const repo = await app.container.make(UserProfileRepository)
+      const profile = await repo.findByUserId(ctx.auth.user.id)
+      return profile?.preferences ?? DEFAULT_USER_PREFERENCES
+    },
   },
 
   /**

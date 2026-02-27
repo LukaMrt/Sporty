@@ -1,3 +1,11 @@
+export function paceToKmh(paceMinPerKm: number): number {
+  return 60 / paceMinPerKm
+}
+
+export function kmToMiles(km: number): number {
+  return km * 0.621371
+}
+
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60

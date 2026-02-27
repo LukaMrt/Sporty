@@ -87,10 +87,10 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6 : Dashboard & Visualisation de Progression
-  epic-6: in-progress
-  6-1-dashboard-herometric: ready-for-dev
-  6-2-dashboard-quickstatcards: ready-for-dev
-  6-3-graphiques-evolution: ready-for-dev
-  6-4-zoom-temporel: ready-for-dev
-  6-5-affichage-unites-configurees: ready-for-dev
+  epic-6: done
+  6-1-dashboard-herometric: done
+  6-2-dashboard-quickstatcards: done
+  6-3-graphiques-evolution: done
+  6-4-zoom-temporel: done
+  6-5-affichage-unites-configurees: done
   epic-6-retrospective: optional

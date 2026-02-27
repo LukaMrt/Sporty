@@ -13,6 +13,7 @@ import type {
   HeroMetricData,
   QuickStatData,
 } from '../../app/domain/entities/dashboard_metrics'
+import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
 interface DashboardProps {
   sessionCount: number
@@ -30,6 +31,7 @@ export default function Dashboard({
 }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('all')
   const isEmpty = quickStats === null
+  const { distanceUnit } = useUnitConversion()
 
   return (
     <>
@@ -56,8 +58,14 @@ export default function Dashboard({
           <div className="grid grid-cols-3 gap-2">
             <QuickStatCard
               label="Volume semaine"
-              value={isEmpty ? '—' : quickStats.weeklyVolumeKm.toFixed(1)}
-              unit="km"
+              value={
+                isEmpty
+                  ? '—'
+                  : distanceUnit === 'mi'
+                    ? (quickStats.weeklyVolumeKm * 0.621371).toFixed(1)
+                    : quickStats.weeklyVolumeKm.toFixed(1)
+              }
+              unit={distanceUnit === 'mi' ? 'mi' : 'km'}
               trend={isEmpty ? null : quickStats.weeklyVolumeTrend}
               isEmpty={isEmpty}
             />

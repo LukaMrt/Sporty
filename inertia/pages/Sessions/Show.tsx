@@ -3,7 +3,8 @@ import { Head, Link, router } from '@inertiajs/react'
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { EFFORT_EMOJIS } from '~/lib/effort'
-import { formatDate, formatDuration, formatMetricKey, formatPace } from '~/lib/format'
+import { formatDate, formatDuration, formatMetricKey } from '~/lib/format'
+import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import {
   Dialog,
   DialogContent,
@@ -36,7 +37,12 @@ interface ShowProps {
 
 export default function SessionShow({ session }: ShowProps) {
   const [open, setOpen] = useState(false)
-  const pace = formatPace(session.durationMinutes, session.distanceKm)
+  const { formatSpeed, distanceUnit } = useUnitConversion()
+  const rawPaceMinPerKm =
+    session.distanceKm && session.distanceKm > 0
+      ? session.durationMinutes / session.distanceKm
+      : null
+  const pace = rawPaceMinPerKm !== null ? formatSpeed(rawPaceMinPerKm) : null
   const hasSportMetrics = Object.keys(session.sportMetrics).length > 0
 
   function handleDelete() {
@@ -105,9 +111,13 @@ export default function SessionShow({ session }: ShowProps) {
             {session.distanceKm !== null && session.distanceKm !== undefined && (
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-foreground">
-                  {Number(session.distanceKm).toFixed(1)}
+                  {distanceUnit === 'mi'
+                    ? (Number(session.distanceKm) * 0.621371).toFixed(1)
+                    : Number(session.distanceKm).toFixed(1)}
                 </span>
-                <span className="text-xs text-muted-foreground mt-1">km</span>
+                <span className="text-xs text-muted-foreground mt-1">
+                  {distanceUnit === 'mi' ? 'mi' : 'km'}
+                </span>
               </div>
             )}
             {pace && (

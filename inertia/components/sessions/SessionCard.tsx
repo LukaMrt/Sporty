@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { formatDate, formatDuration } from '~/lib/format'
+import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
 interface SessionCardProps {
   id: number
@@ -19,6 +20,8 @@ export default function SessionCard({
   distanceKm,
   perceivedEffort,
 }: SessionCardProps) {
+  const { formatDistance } = useUnitConversion()
+
   function handleClick() {
     router.visit(`/sessions/${id}`)
   }
@@ -37,7 +40,7 @@ export default function SessionCard({
         <div className="flex items-center gap-3 shrink-0 text-sm text-muted-foreground">
           <span>{formatDuration(durationMinutes)}</span>
           {distanceKm !== null && distanceKm !== undefined && Number(distanceKm) > 0 && (
-            <span>{Number(distanceKm).toFixed(1)} km</span>
+            <span>{formatDistance(Number(distanceKm))}</span>
           )}
           {perceivedEffort !== null && perceivedEffort !== undefined && (
             <span className="text-base" aria-label={`Ressenti ${perceivedEffort}`}>

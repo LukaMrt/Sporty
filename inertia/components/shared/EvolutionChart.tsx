@@ -9,8 +9,9 @@ import {
   YAxis,
 } from 'recharts'
 import type { ChartDataPoint } from '../../../app/domain/entities/dashboard_metrics'
-import { formatChartDate, formatChartValue, isThisMonth, isThisWeek, isoWeek } from '~/lib/format'
+import { formatChartDate, isThisMonth, isThisWeek, isoWeek } from '~/lib/format'
 import type { Period } from './PeriodSelector'
+import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
 type Metric = 'pace' | 'heartRate' | 'distance'
 
@@ -73,9 +74,16 @@ interface CustomTooltipProps {
   payload?: TooltipPayloadItem[]
   label?: string
   activeMetric: Metric
+  formatValue: (v: number) => string
 }
 
-function CustomTooltip({ active, payload, label, activeMetric }: CustomTooltipProps) {
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  activeMetric: _activeMetric,
+  formatValue,
+}: CustomTooltipProps) {
   if (!active || !payload?.length || !label) return null
   return (
     <div className="rounded border bg-background px-3 py-2 text-sm shadow">
@@ -83,7 +91,7 @@ function CustomTooltip({ active, payload, label, activeMetric }: CustomTooltipPr
       {payload.map((entry) => (
         <p key={entry.dataKey} style={{ color: entry.color }}>
           {entry.dataKey === 'trend' ? 'Tendance : ' : ''}
-          {formatChartValue(entry.value, activeMetric)}
+          {formatValue(entry.value)}
         </p>
       ))}
     </div>
@@ -102,6 +110,7 @@ export default function EvolutionChart({
   period = 'all',
 }: EvolutionChartProps) {
   const [activeMetric, setActiveMetric] = useState<Metric>(defaultMetric)
+  const { convertPaceForChart, formatSpeed, speedUnit } = useUnitConversion()
 
   const periodFiltered = useMemo(() => {
     if (period === 'week') return data.filter((p) => isThisWeek(p.date))
@@ -109,7 +118,16 @@ export default function EvolutionChart({
     return data
   }, [data, period])
 
-  const filteredData = periodFiltered.filter((point) => point[activeMetric] !== null)
+  // Convert pace values to km/h before passing to Recharts (useMemo avoids unnecessary re-renders)
+  const convertedData = useMemo(() => {
+    if (activeMetric !== 'pace' || speedUnit === 'min_km') return periodFiltered
+    return periodFiltered.map((point) => ({
+      ...point,
+      pace: point.pace !== null ? convertPaceForChart(point.pace) : null,
+    }))
+  }, [periodFiltered, activeMetric, speedUnit, convertPaceForChart])
+
+  const filteredData = convertedData.filter((point) => point[activeMetric] !== null)
   const mergedData = buildMergedData(filteredData, activeMetric)
 
   const rawValues = filteredData.map((p) => p[activeMetric] as number)
@@ -117,6 +135,35 @@ export default function EvolutionChart({
   const rawMax = Math.max(...rawValues)
   const padding = (rawMax - rawMin) * 0.2 || 1
   const yDomain: [number, number] = [Math.max(0, rawMin - padding), rawMax + padding]
+
+  const yAxisLabel =
+    activeMetric === 'pace'
+      ? speedUnit === 'km_h'
+        ? 'km/h'
+        : 'min/km'
+      : activeMetric === 'heartRate'
+        ? 'bpm'
+        : 'km'
+
+  const formatYTick = (v: number): string => {
+    if (activeMetric === 'pace') {
+      if (speedUnit === 'km_h') return v.toFixed(1)
+      const m = Math.floor(v)
+      const s = Math.round((v - m) * 60)
+      return `${m}'${s.toString().padStart(2, '0')}`
+    }
+    return Math.round(v).toString()
+  }
+
+  const formatTooltipValue = (v: number): string => {
+    if (activeMetric === 'pace') {
+      // chart data is already converted: v is in km/h or min/km depending on speedUnit
+      if (speedUnit === 'km_h') return `${v.toFixed(1)} km/h`
+      return formatSpeed(v)
+    }
+    if (activeMetric === 'heartRate') return `${Math.round(v)} bpm`
+    return `${v.toFixed(1)} km`
+  }
 
   return (
     <div className="space-y-3">
@@ -144,24 +191,18 @@ export default function EvolutionChart({
             tick={{ fontSize: 11 }}
             width={55}
             label={{
-              value:
-                activeMetric === 'pace' ? 'min/km' : activeMetric === 'heartRate' ? 'bpm' : 'km',
+              value: yAxisLabel,
               angle: -90,
               position: 'insideLeft',
               offset: 10,
               style: { fontSize: 10, fill: 'var(--color-muted-foreground)' },
             }}
             domain={yDomain}
-            tickFormatter={(v: number) => {
-              if (activeMetric === 'pace') {
-                const m = Math.floor(v)
-                const s = Math.round((v - m) * 60)
-                return `${m}'${s.toString().padStart(2, '0')}`
-              }
-              return Math.round(v).toString()
-            }}
+            tickFormatter={formatYTick}
           />
-          <Tooltip content={<CustomTooltip activeMetric={activeMetric} />} />
+          <Tooltip
+            content={<CustomTooltip activeMetric={activeMetric} formatValue={formatTooltipValue} />}
+          />
           <Line
             type="monotone"
             dataKey="value"

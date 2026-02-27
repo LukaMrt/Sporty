@@ -106,197 +106,195 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
             </div>
 
             {/* Profil sportif */}
-            {profile && (
-              <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
-                <h2 className="text-sm font-semibold">Profil sportif</h2>
+            <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
+              <h2 className="text-sm font-semibold">Profil sportif</h2>
 
-                {/* Sport */}
-                <FormField label="Sport" htmlFor="sport_id" error={form.errors.sport_id}>
-                  <select
-                    id="sport_id"
-                    value={form.data.sport_id}
-                    onChange={(e) => form.setData('sport_id', Number(e.target.value))}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value={0} disabled>
-                      Sélectionner un sport
+              {/* Sport */}
+              <FormField label="Sport" htmlFor="sport_id" error={form.errors.sport_id}>
+                <select
+                  id="sport_id"
+                  value={form.data.sport_id}
+                  onChange={(e) => form.setData('sport_id', Number(e.target.value))}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value={0} disabled>
+                    Sélectionner un sport
+                  </option>
+                  {sports.map((sport) => (
+                    <option key={sport.id} value={sport.id}>
+                      {sport.name}
                     </option>
-                    {sports.map((sport) => (
-                      <option key={sport.id} value={sport.id}>
-                        {sport.name}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
+                  ))}
+                </select>
+              </FormField>
 
-                {/* Niveau */}
-                <FormField label="Niveau" error={form.errors.level}>
-                  <div className="flex gap-2">
-                    {LEVELS.map((lvl) => (
-                      <button
-                        key={lvl.value}
-                        type="button"
-                        onClick={() => form.setData('level', lvl.value)}
-                        className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                          form.data.level === lvl.value
-                            ? 'border-sand-12 bg-sand-3 text-sand-12'
-                            : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                        }`}
-                      >
-                        {lvl.label}
-                      </button>
-                    ))}
-                  </div>
-                </FormField>
+              {/* Niveau */}
+              <FormField label="Niveau" error={form.errors.level}>
+                <div className="flex gap-2">
+                  {LEVELS.map((lvl) => (
+                    <button
+                      key={lvl.value}
+                      type="button"
+                      onClick={() => form.setData('level', lvl.value)}
+                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        form.data.level === lvl.value
+                          ? 'border-sand-12 bg-sand-3 text-sand-12'
+                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
+                      }`}
+                    >
+                      {lvl.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
 
-                {/* Objectif */}
-                <FormField label="Objectif" htmlFor="objective" error={form.errors.objective}>
-                  <select
-                    id="objective"
-                    value={form.data.objective ?? ''}
-                    onChange={(e) =>
-                      form.setData(
-                        'objective',
-                        (e.target.value || null) as ProfileData['objective'] | ''
-                      )
-                    }
-                    className="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:border-sand-9 hover:bg-sand-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="">Pas d'objectif précis</option>
-                    {OBJECTIVES.map((obj) => (
-                      <option key={obj.value} value={obj.value}>
-                        {obj.label}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
+              {/* Objectif */}
+              <FormField label="Objectif" htmlFor="objective" error={form.errors.objective}>
+                <select
+                  id="objective"
+                  value={form.data.objective ?? ''}
+                  onChange={(e) =>
+                    form.setData(
+                      'objective',
+                      (e.target.value || null) as ProfileData['objective'] | ''
+                    )
+                  }
+                  className="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:border-sand-9 hover:bg-sand-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">Pas d'objectif précis</option>
+                  {OBJECTIVES.map((obj) => (
+                    <option key={obj.value} value={obj.value}>
+                      {obj.label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
 
-                {/* Unité de vitesse */}
-                <FormField label="Unité de vitesse" error={form.errors.preferred_unit}>
-                  <div className="flex gap-2">
-                    {(
-                      [
-                        { value: 'min_km', label: 'min/km' },
-                        { value: 'km_h', label: 'km/h' },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => form.setData('preferred_unit', opt.value)}
-                        className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                          form.data.preferred_unit === opt.value
-                            ? 'border-sand-12 bg-sand-3 text-sand-12'
-                            : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </FormField>
+              {/* Unité de vitesse */}
+              <FormField label="Unité de vitesse" error={form.errors.preferred_unit}>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: 'min_km', label: 'min/km' },
+                      { value: 'km_h', label: 'km/h' },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => form.setData('preferred_unit', opt.value)}
+                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        form.data.preferred_unit === opt.value
+                          ? 'border-sand-12 bg-sand-3 text-sand-12'
+                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
 
-                {/* Distance */}
-                <FormField label="Distance" error={form.errors.distance_unit}>
-                  <div className="flex gap-2">
-                    {(
-                      [
-                        { value: 'km', label: 'km' },
-                        { value: 'mi', label: 'miles' },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => form.setData('distance_unit', opt.value)}
-                        className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                          form.data.distance_unit === opt.value
-                            ? 'border-sand-12 bg-sand-3 text-sand-12'
-                            : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </FormField>
+              {/* Distance */}
+              <FormField label="Distance" error={form.errors.distance_unit}>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: 'km', label: 'km' },
+                      { value: 'mi', label: 'miles' },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => form.setData('distance_unit', opt.value)}
+                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        form.data.distance_unit === opt.value
+                          ? 'border-sand-12 bg-sand-3 text-sand-12'
+                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
 
-                {/* Poids */}
-                <FormField label="Poids" error={form.errors.weight_unit}>
-                  <div className="flex gap-2">
-                    {(
-                      [
-                        { value: 'kg', label: 'kg' },
-                        { value: 'lbs', label: 'lbs' },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => form.setData('weight_unit', opt.value)}
-                        className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                          form.data.weight_unit === opt.value
-                            ? 'border-sand-12 bg-sand-3 text-sand-12'
-                            : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </FormField>
+              {/* Poids */}
+              <FormField label="Poids" error={form.errors.weight_unit}>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: 'kg', label: 'kg' },
+                      { value: 'lbs', label: 'lbs' },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => form.setData('weight_unit', opt.value)}
+                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        form.data.weight_unit === opt.value
+                          ? 'border-sand-12 bg-sand-3 text-sand-12'
+                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
 
-                {/* Début de semaine */}
-                <FormField label="Début de semaine" error={form.errors.week_starts_on}>
-                  <div className="flex gap-2">
-                    {(
-                      [
-                        { value: 'monday', label: 'Lundi' },
-                        { value: 'sunday', label: 'Dimanche' },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => form.setData('week_starts_on', opt.value)}
-                        className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                          form.data.week_starts_on === opt.value
-                            ? 'border-sand-12 bg-sand-3 text-sand-12'
-                            : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </FormField>
+              {/* Début de semaine */}
+              <FormField label="Début de semaine" error={form.errors.week_starts_on}>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: 'monday', label: 'Lundi' },
+                      { value: 'sunday', label: 'Dimanche' },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => form.setData('week_starts_on', opt.value)}
+                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        form.data.week_starts_on === opt.value
+                          ? 'border-sand-12 bg-sand-3 text-sand-12'
+                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
 
-                {/* Format de date */}
-                <FormField label="Format de date" error={form.errors.date_format}>
-                  <div className="flex gap-2">
-                    {(
-                      [
-                        { value: 'DD/MM/YYYY', label: 'JJ/MM/AAAA' },
-                        { value: 'MM/DD/YYYY', label: 'MM/JJ/AAAA' },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => form.setData('date_format', opt.value)}
-                        className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                          form.data.date_format === opt.value
-                            ? 'border-sand-12 bg-sand-3 text-sand-12'
-                            : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </FormField>
-              </div>
-            )}
+              {/* Format de date */}
+              <FormField label="Format de date" error={form.errors.date_format}>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: 'DD/MM/YYYY', label: 'JJ/MM/AAAA' },
+                      { value: 'MM/DD/YYYY', label: 'MM/JJ/AAAA' },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => form.setData('date_format', opt.value)}
+                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
+                        form.data.date_format === opt.value
+                          ? 'border-sand-12 bg-sand-3 text-sand-12'
+                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </FormField>
+            </div>
 
             <Button
               type="submit"
