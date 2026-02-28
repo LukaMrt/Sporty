@@ -1,6 +1,7 @@
-import { formatTrend } from '~/lib/format'
 import SparklineChart from '~/components/shared/SparklineChart'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
+import { useTranslation } from '~/hooks/use_translation'
+import { paceToKmh } from '~/lib/format'
 
 interface HeroMetricProps {
   pace: number
@@ -9,20 +10,37 @@ interface HeroMetricProps {
   sparklineData: { date: string; pace: number }[]
 }
 
+function formatHeroTrend(
+  trendSeconds: number,
+  pace: number,
+  previousPace: number,
+  speedUnit: string,
+  trendPrevLabel: string
+): string {
+  if (speedUnit === 'km_h') {
+    const delta = paceToKmh(pace) - paceToKmh(previousPace)
+    const sign = delta >= 0 ? '+' : '-'
+    return `${sign}${Math.abs(delta).toFixed(1)}km/h vs ${trendPrevLabel}`
+  }
+  const sign = trendSeconds < 0 ? '-' : '+'
+  return `${sign}${Math.abs(trendSeconds)}s/km vs ${trendPrevLabel}`
+}
+
 export default function HeroMetric({
   pace,
   trendSeconds,
   previousPace,
   sparklineData,
 }: HeroMetricProps) {
-  const { formatSpeed } = useUnitConversion()
+  const { formatSpeed, speedUnit } = useUnitConversion()
+  const { t } = useTranslation()
   const isImprovement = trendSeconds !== null && trendSeconds < 0
   const chartData = sparklineData.map((d) => ({ date: d.date, value: d.pace }))
 
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border bg-card p-6">
       <div className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">Allure moyenne (4 semaines)</p>
+        <p className="text-sm text-muted-foreground">{t('dashboard.hero.avgPaceLabel')}</p>
         <p className="text-4xl font-bold tabular-nums">{formatSpeed(pace)}</p>
         {trendSeconds !== null && previousPace !== null && (
           <span
@@ -32,7 +50,13 @@ export default function HeroMetric({
                 : 'bg-muted text-muted-foreground'
             }`}
           >
-            {formatTrend(trendSeconds)}
+            {formatHeroTrend(
+              trendSeconds,
+              pace,
+              previousPace,
+              speedUnit,
+              t('dashboard.hero.trendPrev')
+            )}
           </span>
         )}
       </div>
@@ -52,11 +76,12 @@ export default function HeroMetric({
 }
 
 export function HeroMetricEmpty() {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-2 rounded-xl border bg-card p-6">
-      <p className="text-sm text-muted-foreground">Allure moyenne (4 semaines)</p>
+      <p className="text-sm text-muted-foreground">{t('dashboard.hero.avgPaceLabel')}</p>
       <p className="text-4xl font-bold text-muted-foreground">—</p>
-      <p className="text-sm text-muted-foreground">Pas assez de données</p>
+      <p className="text-sm text-muted-foreground">{t('dashboard.hero.noData')}</p>
     </div>
   )
 }

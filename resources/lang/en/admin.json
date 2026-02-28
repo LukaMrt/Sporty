@@ -49,5 +49,12 @@
       "label": "Administrator",
       "description": "Full access, member management"
     }
+  },
+  "flash": {
+    "userCreated": "User created",
+    "userUpdated": "User updated",
+    "userDeleted": "User deleted",
+    "passwordReset": "Password reset",
+    "notFound": "User not found"
   }
 }

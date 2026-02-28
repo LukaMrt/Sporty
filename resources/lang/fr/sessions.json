@@ -69,5 +69,13 @@
     },
     "deletedAt": "Supprimée le {date}",
     "restore": "Restaurer"
+  },
+  "flash": {
+    "created": "Séance ajoutée",
+    "updated": "Séance modifiée",
+    "deleted": "Séance supprimée",
+    "restored": "Séance restaurée",
+    "notFound": "Séance introuvable",
+    "forbidden": "Séance introuvable ou accès refusé"
   }
 }

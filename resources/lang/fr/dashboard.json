@@ -5,11 +5,17 @@
     "description": "Suis tes entraînements et vois ta progression au fil du temps.",
     "cta": "Saisir ma première séance"
   },
+  "hero": {
+    "avgPaceLabel": "Allure moyenne (4 semaines)",
+    "noData": "Pas assez de données",
+    "trendPrev": "période précédente"
+  },
   "stats": {
     "weeklyVolume": "Volume semaine",
     "avgHeartRate": "FC moyenne",
     "sessions": "Séances",
-    "thisWeek": "cette sem."
+    "thisWeek": "cette sem.",
+    "trendSuffix": "vs moy. 4 sem."
   },
   "chart": {
     "evolution": "Évolution",
@@ -17,6 +23,11 @@
       "all": "Tout",
       "week": "Semaine",
       "month": "Mois"
+    },
+    "metrics": {
+      "pace": "Allure",
+      "heartRate": "FC",
+      "distance": "Distance"
     }
   }
 }

@@ -49,5 +49,12 @@
       "label": "Administrateur",
       "description": "Accès complet, gestion des membres"
     }
+  },
+  "flash": {
+    "userCreated": "Utilisateur créé",
+    "userUpdated": "Utilisateur modifié",
+    "userDeleted": "Utilisateur supprimé",
+    "passwordReset": "Mot de passe réinitialisé",
+    "notFound": "Utilisateur introuvable"
   }
 }

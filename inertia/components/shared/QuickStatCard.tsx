@@ -7,6 +7,7 @@ interface QuickStatCardProps {
   trend: number | null
   isEmpty: boolean
   lowerIsBetter?: boolean
+  trendSuffix?: string
 }
 
 export default function QuickStatCard({
@@ -16,6 +17,7 @@ export default function QuickStatCard({
   trend,
   isEmpty,
   lowerIsBetter = false,
+  trendSuffix = '',
 }: QuickStatCardProps) {
   const isFavorable = trend !== null && (lowerIsBetter ? trend < 0 : trend > 0)
   const trendSign = trend !== null && trend >= 0 ? '+' : ''
@@ -43,7 +45,7 @@ export default function QuickStatCard({
                 {trendSign}
                 {trend % 1 === 0 ? trend.toFixed(0) : trend.toFixed(1)}
               </span>
-              <span className="text-xs text-muted-foreground">vs moy. 4 sem.</span>
+              {trendSuffix && <span className="text-xs text-muted-foreground">{trendSuffix}</span>}
             </div>
           )}
         </>

@@ -63,6 +63,7 @@ export default function Dashboard({
               unit={isEmpty ? 'km' : formatDistanceParts(quickStats.weeklyVolumeKm).unit}
               trend={isEmpty ? null : quickStats.weeklyVolumeTrend}
               isEmpty={isEmpty}
+              trendSuffix={t('dashboard.stats.trendSuffix')}
             />
             <QuickStatCard
               label={t('dashboard.stats.avgHeartRate')}
@@ -75,6 +76,7 @@ export default function Dashboard({
               trend={isEmpty ? null : quickStats.avgHeartRateTrend}
               isEmpty={isEmpty || quickStats.avgHeartRate === null}
               lowerIsBetter
+              trendSuffix={t('dashboard.stats.trendSuffix')}
             />
             <QuickStatCard
               label={t('dashboard.stats.sessions')}
@@ -82,6 +84,7 @@ export default function Dashboard({
               unit={t('dashboard.stats.thisWeek')}
               trend={isEmpty ? null : quickStats.weeklySessionTrend}
               isEmpty={isEmpty}
+              trendSuffix={t('dashboard.stats.trendSuffix')}
             />
           </div>
           {chartData !== null && chartData.points.length > 0 && (

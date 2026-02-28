@@ -5,11 +5,17 @@
     "description": "Track your workouts and see your progress over time.",
     "cta": "Log my first session"
   },
+  "hero": {
+    "avgPaceLabel": "Avg. pace (4 weeks)",
+    "noData": "Not enough data",
+    "trendPrev": "prev. period"
+  },
   "stats": {
     "weeklyVolume": "Weekly volume",
     "avgHeartRate": "Avg. HR",
     "sessions": "Sessions",
-    "thisWeek": "this week"
+    "thisWeek": "this week",
+    "trendSuffix": "vs 4wk avg."
   },
   "chart": {
     "evolution": "Progress",
@@ -17,6 +23,11 @@
       "all": "All",
       "week": "Week",
       "month": "Month"
+    },
+    "metrics": {
+      "pace": "Pace",
+      "heartRate": "HR",
+      "distance": "Distance"
     }
   }
 }

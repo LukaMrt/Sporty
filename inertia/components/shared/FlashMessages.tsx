@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePage, router } from '@inertiajs/react'
 import { CheckCircle, AlertCircle, X } from 'lucide-react'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface Toast {
   id: number
@@ -22,6 +23,7 @@ const TRANSITION_DURATION = 300
 
 export default function FlashMessages() {
   const { flash } = usePage<FlashProps>().props
+  const { t } = useTranslation()
   const [toasts, setToasts] = useState<Toast[]>([])
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
 
@@ -40,7 +42,7 @@ export default function FlashMessages() {
       incoming.push({
         id: nextId++,
         type: 'undo',
-        message: 'Séance supprimée',
+        message: t('sessions.flash.deleted'),
         sessionId: Number(flash.deleted_session_id),
         visible: false,
       })
@@ -51,20 +53,24 @@ export default function FlashMessages() {
 
     requestAnimationFrame(() => {
       setToasts((prev) =>
-        prev.map((t) => (incoming.find((i) => i.id === t.id) ? { ...t, visible: true } : t))
+        prev.map((toast) =>
+          incoming.find((i) => i.id === toast.id) ? { ...toast, visible: true } : toast
+        )
       )
-      incoming.forEach((t) => scheduleAutoDismiss(t.id))
+      incoming.forEach((toast) => scheduleAutoDismiss(toast.id))
     })
-  }, [flash])
+  }, [flash, t])
 
   function dismiss(ids: number[]) {
     ids.forEach((id) => {
       clearTimeout(timersRef.current.get(id))
       timersRef.current.delete(id)
     })
-    setToasts((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, visible: false } : t)))
+    setToasts((prev) =>
+      prev.map((toast) => (ids.includes(toast.id) ? { ...toast, visible: false } : toast))
+    )
     setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => !ids.includes(t.id)))
+      setToasts((prev) => prev.filter((toast) => !ids.includes(toast.id)))
     }, TRANSITION_DURATION)
   }
 
@@ -100,13 +106,13 @@ export default function FlashMessages() {
               onClick={() => handleUndo(toast)}
               className="ml-1 cursor-pointer font-semibold underline opacity-80 transition hover:opacity-100"
             >
-              Annuler
+              {t('common.actions.undo')}
             </button>
           )}
           <button
             onClick={() => dismiss([toast.id])}
             className="ml-2 cursor-pointer opacity-60 transition hover:opacity-100"
-            aria-label="Fermer"
+            aria-label={t('common.actions.close')}
           >
             <X className="h-3.5 w-3.5" />
           </button>

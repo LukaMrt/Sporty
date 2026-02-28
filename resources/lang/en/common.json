@@ -15,6 +15,8 @@
     "edit": "Edit",
     "create": "Create",
     "back": "Back",
-    "backToList": "Back to list"
+    "backToList": "Back to list",
+    "close": "Close",
+    "undo": "Undo"
   }
 }

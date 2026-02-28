@@ -67,7 +67,7 @@ export default class ProfileController {
       preferences: mergedPreferences,
     })
 
-    session.flash('success', 'Profil mis à jour')
+    session.flash('success', i18n.t('profile.flash.updated'))
     return response.redirect().back()
   }
 }

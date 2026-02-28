@@ -69,5 +69,13 @@
     },
     "deletedAt": "Deleted on {date}",
     "restore": "Restore"
+  },
+  "flash": {
+    "created": "Session added",
+    "updated": "Session updated",
+    "deleted": "Session deleted",
+    "restored": "Session restored",
+    "notFound": "Session not found",
+    "forbidden": "Session not found or access denied"
   }
 }

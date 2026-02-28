@@ -41,7 +41,7 @@ interface EditProps {
 }
 
 export default function ProfileEdit({ user, profile, sports }: EditProps) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const form = useForm({
     full_name: user.fullName,
     email: user.email,
@@ -53,7 +53,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     weight_unit: profile?.preferences.weightUnit ?? ('kg' as 'kg' | 'lbs'),
     week_starts_on: profile?.preferences.weekStartsOn ?? ('monday' as 'monday' | 'sunday'),
     date_format: profile?.preferences.dateFormat ?? ('DD/MM/YYYY' as 'DD/MM/YYYY' | 'MM/DD/YYYY'),
-    locale: profile?.preferences.locale ?? ('fr' as 'fr' | 'en'),
+    locale: profile?.preferences.locale ?? (locale as 'fr' | 'en'),
   })
 
   const LEVELS = [

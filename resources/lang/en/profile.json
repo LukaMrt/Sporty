@@ -61,5 +61,10 @@
   "adminSection": {
     "title": "Administration",
     "link": "Manage users"
+  },
+  "flash": {
+    "updated": "Profile updated",
+    "passwordChanged": "Password changed",
+    "passwordIncorrect": "Current password is incorrect"
   }
 }
