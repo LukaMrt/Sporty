@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/react'
 import AuthLayout from '~/layouts/AuthLayout'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { useTranslation } from '~/hooks/use_translation'
 
 export default function Register() {
   const { data, setData, post, processing, errors } = useForm({
@@ -10,6 +11,7 @@ export default function Register() {
     email: '',
     password: '',
   })
+  const { t } = useTranslation()
 
   function handleSubmit(e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) {
     e.preventDefault()
@@ -18,12 +20,12 @@ export default function Register() {
 
   return (
     <>
-      <Head title="Inscription" />
-      <h2 className="mb-6 text-xl font-semibold text-sand-12">Créer un compte administrateur</h2>
+      <Head title={t('auth.register.title')} />
+      <h2 className="mb-6 text-xl font-semibold text-sand-12">{t('auth.register.title')}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
           <label htmlFor="full_name" className="block text-sm font-medium text-sand-11">
-            Nom complet
+            {t('auth.register.fullName')}
           </label>
           <Input
             id="full_name"
@@ -37,7 +39,7 @@ export default function Register() {
 
         <div className="space-y-1">
           <label htmlFor="email" className="block text-sm font-medium text-sand-11">
-            Adresse e-mail
+            {t('auth.register.email')}
           </label>
           <Input
             id="email"
@@ -51,7 +53,7 @@ export default function Register() {
 
         <div className="space-y-1">
           <label htmlFor="password" className="block text-sm font-medium text-sand-11">
-            Mot de passe
+            {t('auth.register.password')}
           </label>
           <Input
             id="password"
@@ -64,7 +66,7 @@ export default function Register() {
         </div>
 
         <Button type="submit" className="w-full" disabled={processing}>
-          {processing ? 'Création...' : 'Créer mon compte'}
+          {processing ? t('auth.register.submitting') : t('auth.register.submit')}
         </Button>
       </form>
     </>

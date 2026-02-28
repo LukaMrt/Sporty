@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/button'
 import FormField from '~/components/forms/FormField'
 import IconInput from '~/components/forms/IconInput'
 import PasswordInput from '~/components/forms/PasswordInput'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface UserData {
   id: number
@@ -25,6 +26,7 @@ interface SharedProps {
 export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
   const { auth } = usePage<SharedProps>().props
   const isSelf = auth?.user?.id === user.id
+  const { t } = useTranslation()
 
   const editForm = useForm({
     full_name: user.fullName,
@@ -46,7 +48,7 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
   }
 
   function handleDelete() {
-    if (!window.confirm('Supprimer ce compte ? Cette action est irréversible.')) return
+    if (!window.confirm(t('admin.edit.confirmDelete'))) return
     router.delete(`/admin/users/${user.id}`)
   }
 
@@ -59,7 +61,7 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
           className="absolute top-6 left-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          Retour à la liste
+          {t('admin.edit.back')}
         </Link>
 
         {/* Page header */}
@@ -78,9 +80,13 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
         <div className="w-full max-w-md space-y-6">
           {/* Edit profile */}
           <div className="rounded-xl border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold">Informations du compte</h2>
+            <h2 className="mb-4 text-sm font-semibold">{t('admin.edit.accountInfo')}</h2>
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <FormField label="Nom complet" htmlFor="full_name" error={editForm.errors.full_name}>
+              <FormField
+                label={t('admin.edit.fullName')}
+                htmlFor="full_name"
+                error={editForm.errors.full_name}
+              >
                 <IconInput
                   id="full_name"
                   type="text"
@@ -90,7 +96,11 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
                   onChange={(e) => editForm.setData('full_name', e.target.value)}
                 />
               </FormField>
-              <FormField label="Adresse e-mail" htmlFor="email" error={editForm.errors.email}>
+              <FormField
+                label={t('admin.edit.email')}
+                htmlFor="email"
+                error={editForm.errors.email}
+              >
                 <IconInput
                   id="email"
                   type="email"
@@ -106,17 +116,17 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                {editForm.processing ? 'Sauvegarde...' : 'Sauvegarder'}
+                {editForm.processing ? t('admin.edit.saving') : t('admin.edit.save')}
               </Button>
             </form>
           </div>
 
           {/* Reset password */}
           <div className="rounded-xl border bg-card p-6 shadow-sm">
-            <h2 className="mb-4 text-sm font-semibold">Réinitialiser le mot de passe</h2>
+            <h2 className="mb-4 text-sm font-semibold">{t('admin.edit.resetPassword')}</h2>
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
               <FormField
-                label="Nouveau mot de passe temporaire"
+                label={t('admin.edit.newTempPassword')}
                 htmlFor="password"
                 error={passwordForm.errors.password}
               >
@@ -133,16 +143,18 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
                 className="flex items-center gap-2"
               >
                 <RotateCcw className="h-4 w-4" />
-                {passwordForm.processing ? 'Réinitialisation...' : 'Réinitialiser'}
+                {passwordForm.processing ? t('admin.edit.resetting') : t('admin.edit.reset')}
               </Button>
             </form>
           </div>
 
           {/* Danger zone */}
           <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-6 shadow-sm">
-            <h2 className="mb-1 text-sm font-semibold text-destructive">Zone dangereuse</h2>
+            <h2 className="mb-1 text-sm font-semibold text-destructive">
+              {t('admin.edit.dangerZone')}
+            </h2>
             <p className="mb-4 text-xs text-muted-foreground">
-              La suppression est définitive et irréversible.
+              {t('admin.edit.dangerDescription')}
             </p>
             <Button
               type="button"
@@ -150,14 +162,14 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
               disabled={isSelf}
               onClick={handleDelete}
               className="flex items-center gap-2"
-              title={isSelf ? 'Impossible de supprimer votre propre compte' : undefined}
+              title={isSelf ? t('admin.edit.cannotDeleteSelf') : undefined}
             >
               <Trash2 className="h-4 w-4" />
-              Supprimer le compte
+              {t('admin.edit.deleteAccount')}
             </Button>
             {isSelf && (
               <p className="mt-2 text-xs text-muted-foreground">
-                Impossible de supprimer votre propre compte.
+                {t('admin.edit.cannotDeleteSelf')}
               </p>
             )}
           </div>

@@ -8,15 +8,15 @@ import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_erro
 export default class PasswordController {
   constructor(private changePassword: ChangePassword) {}
 
-  async update({ request, response, session, auth }: HttpContext) {
+  async update({ request, response, session, auth, i18n }: HttpContext) {
     const data = await request.validateUsing(changePasswordValidator)
     try {
       await this.changePassword.execute(auth.user!.id, data.current_password, data.new_password)
-      session.flash('success', 'Mot de passe modifié')
+      session.flash('success', i18n.t('profile.flash.passwordChanged'))
       return response.redirect().back()
     } catch (error) {
       if (error instanceof InvalidCredentialsError) {
-        session.flashErrors({ current_password: 'Mot de passe actuel incorrect' })
+        session.flashErrors({ current_password: i18n.t('profile.flash.passwordIncorrect') })
         return response.redirect().back()
       }
       throw error

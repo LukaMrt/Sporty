@@ -1,0 +1,70 @@
+{
+  "title": "My profile",
+  "personalInfo": "Personal information",
+  "fullName": "Full name",
+  "fullNamePlaceholder": "Your full name",
+  "email": "Email",
+  "emailPlaceholder": "your@email.com",
+  "sportProfile": "Sport profile",
+  "sport": "Sport",
+  "sportPlaceholder": "Select a sport",
+  "level": "Level",
+  "objective": "Objective",
+  "noObjective": "No specific objective",
+  "speedUnit": "Speed unit",
+  "distance": "Distance",
+  "weight": "Weight",
+  "weekStart": "Week starts on",
+  "dateFormat": "Date format",
+  "locale": "Language",
+  "localeOptions": {
+    "fr": "Français",
+    "en": "English"
+  },
+  "saving": "Saving...",
+  "save": "Save",
+  "levels": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
+  },
+  "objectives": {
+    "endurance_progress": "Improve endurance",
+    "run_faster": "Run faster",
+    "comeback_after_break": "Return after a break",
+    "maintain_fitness": "Maintain fitness",
+    "prepare_competition": "Prepare for competition"
+  },
+  "weekStartOptions": {
+    "monday": "Monday",
+    "sunday": "Sunday"
+  },
+  "dateFormatOptions": {
+    "ddmmyyyy": "DD/MM/YYYY",
+    "mmddyyyy": "MM/DD/YYYY"
+  },
+  "password": {
+    "title": "Change my password",
+    "current": "Current password",
+    "currentPlaceholder": "Your current password",
+    "new": "New password",
+    "newPlaceholder": "Minimum 8 characters",
+    "confirm": "Confirm new password",
+    "confirmPlaceholder": "Repeat the new password",
+    "changing": "Updating...",
+    "change": "Change password"
+  },
+  "trash": {
+    "title": "Deleted sessions",
+    "link": "View trash"
+  },
+  "adminSection": {
+    "title": "Administration",
+    "link": "Manage users"
+  },
+  "flash": {
+    "updated": "Profile updated",
+    "passwordChanged": "Password changed",
+    "passwordIncorrect": "Current password is incorrect"
+  }
+}

@@ -2,6 +2,7 @@ import React from 'react'
 import { Head } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import SessionForm from '~/components/sessions/SessionForm'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface Sport {
   id: number
@@ -16,11 +17,13 @@ interface CreateProps {
 }
 
 export default function SessionsCreate({ sports, defaultSportId, speedUnit }: CreateProps) {
+  const { t } = useTranslation()
+
   return (
     <>
-      <Head title="Nouvelle séance" />
+      <Head title={t('sessions.new')} />
       <div className="mx-auto max-w-lg px-4 py-6">
-        <h1 className="mb-6 text-2xl font-bold text-foreground">Nouvelle séance</h1>
+        <h1 className="mb-6 text-2xl font-bold text-foreground">{t('sessions.new')}</h1>
         <SessionForm
           sports={sports}
           defaultSportId={defaultSportId}

@@ -6,7 +6,7 @@ import Session from '#models/session'
 import { getUser, getUser2 } from '#tests/helpers'
 
 test.group('POST /sessions/:id/restore', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('restore remet deleted_at à null (AC#1)', async ({ client, assert }) => {
     const user = await getUser()

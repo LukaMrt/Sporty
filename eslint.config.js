@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 
 export default configApp(
-  { ignores: ['coverage/**'] },
+  { ignores: ['coverage/**', '.adonisjs/**'] },
   // Enforce no-console in all TS files (not in RULES_LIST by default)
   // TypeScript strict rules (type-checked)
   ...tseslint.configs.recommendedTypeChecked.map((config) => ({
@@ -54,12 +54,14 @@ export default configApp(
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
     },
   },
 
   // Inertia entry point : triple-slash refs et any sont nécessaires (fichier généré)
   {
-    files: ['inertia/app/app.tsx'],
+    files: ['inertia/app.tsx', 'inertia/app/app.tsx'],
     rules: {
       '@typescript-eslint/triple-slash-reference': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',

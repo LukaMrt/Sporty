@@ -3,6 +3,7 @@ import { Head, useForm, usePage } from '@inertiajs/react'
 import AuthLayout from '~/layouts/AuthLayout'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
+import { useTranslation } from '~/hooks/use_translation'
 
 export default function Login() {
   const { errors = {} } = usePage<{ errors?: { form?: string } }>().props
@@ -10,6 +11,7 @@ export default function Login() {
     email: '',
     password: '',
   })
+  const { t } = useTranslation()
 
   function handleSubmit(e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) {
     e.preventDefault()
@@ -18,14 +20,14 @@ export default function Login() {
 
   return (
     <>
-      <Head title="Connexion" />
-      <h2 className="mb-6 text-xl font-semibold text-sand-12">Se connecter</h2>
+      <Head title={t('auth.login.title')} />
+      <h2 className="mb-6 text-xl font-semibold text-sand-12">{t('auth.login.title')}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         {errors.form && <p className="text-sm text-red-500">{errors.form}</p>}
 
         <div className="space-y-1">
           <label htmlFor="email" className="block text-sm font-medium text-sand-11">
-            Adresse e-mail
+            {t('auth.login.email')}
           </label>
           <Input
             id="email"
@@ -38,7 +40,7 @@ export default function Login() {
 
         <div className="space-y-1">
           <label htmlFor="password" className="block text-sm font-medium text-sand-11">
-            Mot de passe
+            {t('auth.login.password')}
           </label>
           <Input
             id="password"
@@ -50,7 +52,7 @@ export default function Login() {
         </div>
 
         <Button type="submit" className="w-full" disabled={processing}>
-          {processing ? 'Connexion...' : 'Se connecter'}
+          {processing ? t('auth.login.submitting') : t('auth.login.submit')}
         </Button>
       </form>
     </>

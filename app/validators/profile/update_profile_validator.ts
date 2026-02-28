@@ -34,6 +34,7 @@ export const updateProfileValidator = vine.create(
     weight_unit: vine.enum(['kg', 'lbs'] as const).optional(),
     week_starts_on: vine.enum(['monday', 'sunday'] as const).optional(),
     date_format: vine.enum(['DD/MM/YYYY', 'MM/DD/YYYY'] as const).optional(),
+    locale: vine.enum(['fr', 'en'] as const).optional(),
   })
 )
 

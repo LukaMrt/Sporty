@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "home": "Home",
+    "sessions": "Sessions",
+    "planning": "Planning",
+    "profile": "Profile",
+    "admin": "Administration",
+    "logout": "Log out"
+  },
+  "actions": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "backToList": "Back to list",
+    "close": "Close",
+    "undo": "Undo"
+  }
+}

@@ -3,7 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { getUser, getAdmin } from '#tests/helpers'
 
 test.group('Admin / Users', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('GET /admin/users non connecté → redirect /login (AC#4)', async ({ client }) => {
     const response = await client.get('/admin/users').redirects(0)

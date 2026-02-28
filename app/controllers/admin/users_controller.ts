@@ -30,10 +30,10 @@ export default class UsersController {
   }
 
   async create({ inertia }: HttpContext) {
-    return inertia.render('Admin/Users/Create')
+    return inertia.render('Admin/Users/Create', {})
   }
 
-  async store({ request, response, session }: HttpContext) {
+  async store({ request, response, session, i18n }: HttpContext) {
     const data = await request.validateUsing(createUserValidator)
     await this.createUser.execute({
       fullName: data.full_name,
@@ -41,24 +41,24 @@ export default class UsersController {
       password: data.password,
       role: data.role as UserRole,
     })
-    session.flash('success', 'Utilisateur créé')
+    session.flash('success', i18n.t('admin.flash.userCreated'))
     return response.redirect('/admin/users')
   }
 
-  async edit({ params, inertia, response, session }: HttpContext) {
+  async edit({ params, inertia, response, session, i18n }: HttpContext) {
     try {
       const user = await this.getUser.execute(Number(params.id))
       return inertia.render('Admin/Users/Edit', { user })
     } catch (error) {
       if (error instanceof UserNotFoundError) {
-        session.flash('error', 'Utilisateur introuvable')
+        session.flash('error', i18n.t('admin.flash.notFound'))
         return response.redirect('/admin/users')
       }
       throw error
     }
   }
 
-  async update({ params, request, response, session }: HttpContext) {
+  async update({ params, request, response, session, i18n }: HttpContext) {
     const id = Number(params.id)
     try {
       const data = await request.validateUsing(updateUserValidator, {
@@ -68,39 +68,39 @@ export default class UsersController {
         fullName: data.full_name,
         email: data.email,
       })
-      session.flash('success', 'Utilisateur modifié')
+      session.flash('success', i18n.t('admin.flash.userUpdated'))
       return response.redirect(`/admin/users/${id}/edit`)
     } catch (error) {
       if (error instanceof UserNotFoundError) {
-        session.flash('error', 'Utilisateur introuvable')
+        session.flash('error', i18n.t('admin.flash.notFound'))
         return response.redirect('/admin/users')
       }
       throw error
     }
   }
 
-  async resetPassword({ params, request, response, session }: HttpContext) {
+  async resetPassword({ params, request, response, session, i18n }: HttpContext) {
     const id = Number(params.id)
     try {
       const data = await request.validateUsing(resetPasswordValidator)
       await this.resetUserPassword.execute(id, data.password)
-      session.flash('success', 'Mot de passe réinitialisé')
+      session.flash('success', i18n.t('admin.flash.passwordReset'))
       return response.redirect(`/admin/users/${id}/edit`)
     } catch (error) {
       if (error instanceof UserNotFoundError) {
-        session.flash('error', 'Utilisateur introuvable')
+        session.flash('error', i18n.t('admin.flash.notFound'))
         return response.redirect('/admin/users')
       }
       throw error
     }
   }
 
-  async destroy({ params, response, session, auth }: HttpContext) {
+  async destroy({ params, response, session, auth, i18n }: HttpContext) {
     const id = Number(params.id)
     const requesterId = auth.user!.id
     try {
       await this.deleteUser.execute(id, requesterId)
-      session.flash('success', 'Utilisateur supprimé')
+      session.flash('success', i18n.t('admin.flash.userDeleted'))
       return response.redirect('/admin/users')
     } catch (error) {
       if (error instanceof CannotDeleteSelfError) {
@@ -108,7 +108,7 @@ export default class UsersController {
         return response.redirect(`/admin/users/${id}/edit`)
       }
       if (error instanceof UserNotFoundError) {
-        session.flash('error', 'Utilisateur introuvable')
+        session.flash('error', i18n.t('admin.flash.notFound'))
         return response.redirect('/admin/users')
       }
       throw error

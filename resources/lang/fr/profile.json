@@ -1,0 +1,70 @@
+{
+  "title": "Mon profil",
+  "personalInfo": "Informations personnelles",
+  "fullName": "Nom complet",
+  "fullNamePlaceholder": "Votre nom complet",
+  "email": "Email",
+  "emailPlaceholder": "votre@email.com",
+  "sportProfile": "Profil sportif",
+  "sport": "Sport",
+  "sportPlaceholder": "Sélectionner un sport",
+  "level": "Niveau",
+  "objective": "Objectif",
+  "noObjective": "Pas d'objectif précis",
+  "speedUnit": "Unité de vitesse",
+  "distance": "Distance",
+  "weight": "Poids",
+  "weekStart": "Début de semaine",
+  "dateFormat": "Format de date",
+  "locale": "Langue",
+  "localeOptions": {
+    "fr": "Français",
+    "en": "English"
+  },
+  "saving": "Enregistrement...",
+  "save": "Enregistrer",
+  "levels": {
+    "beginner": "Débutant",
+    "intermediate": "Intermédiaire",
+    "advanced": "Avancé"
+  },
+  "objectives": {
+    "endurance_progress": "Progresser en endurance",
+    "run_faster": "Courir plus vite",
+    "comeback_after_break": "Reprendre après une pause",
+    "maintain_fitness": "Maintenir ma forme",
+    "prepare_competition": "Préparer une compétition"
+  },
+  "weekStartOptions": {
+    "monday": "Lundi",
+    "sunday": "Dimanche"
+  },
+  "dateFormatOptions": {
+    "ddmmyyyy": "JJ/MM/AAAA",
+    "mmddyyyy": "MM/JJ/AAAA"
+  },
+  "password": {
+    "title": "Changer mon mot de passe",
+    "current": "Mot de passe actuel",
+    "currentPlaceholder": "Votre mot de passe actuel",
+    "new": "Nouveau mot de passe",
+    "newPlaceholder": "Minimum 8 caractères",
+    "confirm": "Confirmation du nouveau mot de passe",
+    "confirmPlaceholder": "Répétez le nouveau mot de passe",
+    "changing": "Modification...",
+    "change": "Modifier le mot de passe"
+  },
+  "trash": {
+    "title": "Séances supprimées",
+    "link": "Voir la corbeille"
+  },
+  "adminSection": {
+    "title": "Administration",
+    "link": "Gérer les utilisateurs"
+  },
+  "flash": {
+    "updated": "Profil mis à jour",
+    "passwordChanged": "Mot de passe modifié",
+    "passwordIncorrect": "Mot de passe actuel incorrect"
+  }
+}

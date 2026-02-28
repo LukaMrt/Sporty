@@ -6,7 +6,7 @@ import Session from '#models/session'
 import { getUser, getUser2 } from '#tests/helpers'
 
 test.group('GET /sessions/trash', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('route accessible et retourne 200 (AC#1)', async ({ client }) => {
     const user = await getUser()

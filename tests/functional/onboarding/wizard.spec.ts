@@ -31,7 +31,7 @@ async function createOnboardedUser() {
 }
 
 test.group('Onboarding / Wizard', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('user non-onboardé → toute route protégée redirige vers /onboarding (AC#1)', async ({
     client,

@@ -35,7 +35,7 @@ export default class ProfileController {
     })
   }
 
-  async update({ request, response, session, auth }: HttpContext) {
+  async update({ request, response, session, auth, i18n }: HttpContext) {
     const data = await request.validateUsing(updateProfileValidator, {
       meta: { userId: auth.user!.id },
     })
@@ -46,6 +46,11 @@ export default class ProfileController {
     if (data.weight_unit !== undefined) preferences.weightUnit = data.weight_unit
     if (data.week_starts_on !== undefined) preferences.weekStartsOn = data.week_starts_on
     if (data.date_format !== undefined) preferences.dateFormat = data.date_format
+    if (data.locale !== undefined) {
+      preferences.locale = data.locale
+      session.put('locale', data.locale)
+      i18n.switchLocale(data.locale)
+    }
 
     const currentProfile = await this.getProfile.execute(auth.user!.id)
     const mergedPreferences =
@@ -62,7 +67,7 @@ export default class ProfileController {
       preferences: mergedPreferences,
     })
 
-    session.flash('success', 'Profil mis à jour')
+    session.flash('success', i18n.t('profile.flash.updated'))
     return response.redirect().back()
   }
 }

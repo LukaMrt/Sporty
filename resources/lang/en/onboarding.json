@@ -1,0 +1,125 @@
+{
+  "title": "Welcome to Sporty",
+  "welcome": "Welcome, {name}!",
+  "welcomeGeneric": "Welcome to Sporty!",
+  "subtitle": "2 minutes to personalize your experience.",
+  "done": {
+    "title": "All set!",
+    "description": "Your profile is configured. Taking you to your dashboard…"
+  },
+  "step1": {
+    "title": "What sport do you practice?",
+    "subtitle": "Select your main sport."
+  },
+  "step2": {
+    "title": "What is your level?",
+    "subtitle": "Be honest, the app will adapt to you."
+  },
+  "step3": {
+    "title": "What is your objective?",
+    "subtitle": "You can also skip this step."
+  },
+  "step4": {
+    "title": "Your display preferences",
+    "subtitle": "How do you want to see your speed?"
+  },
+  "back": "Back",
+  "next": "Next",
+  "finish": "Finish",
+  "saving": "Saving...",
+  "levels": {
+    "beginner": {
+      "label": "I'm a beginner",
+      "description": "I'm just starting the activity"
+    },
+    "intermediate": {
+      "label": "I train regularly",
+      "description": "I have experience but still improving"
+    },
+    "advanced": {
+      "label": "I train seriously",
+      "description": "I'm a regular and demanding athlete"
+    }
+  },
+  "objectives": {
+    "endurance_progress": {
+      "label": "Improve endurance",
+      "description": "Improve your VO2max and resistance over time"
+    },
+    "run_faster": {
+      "label": "Run faster",
+      "description": "Work on your speed and times for short distances"
+    },
+    "comeback_after_break": {
+      "label": "Return after a break",
+      "description": "Gradually regain your level after an interruption"
+    },
+    "maintain_fitness": {
+      "label": "Maintain fitness",
+      "description": "Keep a regular rhythm without overloading"
+    },
+    "prepare_competition": {
+      "label": "Prepare for competition",
+      "description": "Structure your training around a race goal"
+    },
+    "none": {
+      "label": "No specific objective",
+      "description": "We'll suggest general plans"
+    }
+  },
+  "speed": {
+    "title": "Speed",
+    "min_km": {
+      "label": "min/km",
+      "description": "Pace (e.g. 5:30/km)"
+    },
+    "km_h": {
+      "label": "km/h",
+      "description": "Speed (e.g. 10.9 km/h)"
+    }
+  },
+  "distance": {
+    "title": "Distance",
+    "km": {
+      "label": "Kilometers",
+      "description": "e.g. 10.5 km"
+    },
+    "mi": {
+      "label": "Miles",
+      "description": "e.g. 6.5 mi"
+    }
+  },
+  "weight": {
+    "title": "Weight",
+    "kg": {
+      "label": "Kilograms",
+      "description": "e.g. 72 kg"
+    },
+    "lbs": {
+      "label": "Pounds",
+      "description": "e.g. 158 lbs"
+    }
+  },
+  "weekStart": {
+    "title": "Week starts on",
+    "monday": {
+      "label": "Monday",
+      "description": "Mon → Sun"
+    },
+    "sunday": {
+      "label": "Sunday",
+      "description": "Sun → Sat"
+    }
+  },
+  "dateFormat": {
+    "title": "Date format",
+    "ddmmyyyy": {
+      "label": "DD/MM/YYYY",
+      "description": "e.g. 25/02/2026"
+    },
+    "mmddyyyy": {
+      "label": "MM/DD/YYYY",
+      "description": "e.g. 02/25/2026"
+    }
+  }
+}

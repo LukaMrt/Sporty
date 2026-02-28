@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { useTranslation } from '~/hooks/use_translation'
 import {
   CartesianGrid,
   Line,
@@ -57,12 +58,6 @@ function buildMergedData(data: ChartDataPoint[], metric: Metric): MergedPoint[] 
   }))
 }
 
-const METRICS: { key: Metric; label: string }[] = [
-  { key: 'pace', label: 'Allure' },
-  { key: 'heartRate', label: 'FC' },
-  { key: 'distance', label: 'Distance' },
-]
-
 interface TooltipPayloadItem {
   value: number
   dataKey: string
@@ -111,6 +106,13 @@ export default function EvolutionChart({
 }: EvolutionChartProps) {
   const [activeMetric, setActiveMetric] = useState<Metric>(defaultMetric)
   const { convertPaceForChart, formatSpeed, speedUnit } = useUnitConversion()
+  const { t } = useTranslation()
+
+  const METRICS: { key: Metric; label: string }[] = [
+    { key: 'pace', label: t('dashboard.chart.metrics.pace') },
+    { key: 'heartRate', label: t('dashboard.chart.metrics.heartRate') },
+    { key: 'distance', label: t('dashboard.chart.metrics.distance') },
+  ]
 
   const periodFiltered = useMemo(() => {
     if (period === 'week') return data.filter((p) => isThisWeek(p.date))

@@ -27,6 +27,7 @@ function makeMockProfileRepository(
           weightUnit: 'kg',
           weekStartsOn: 'monday',
           dateFormat: 'DD/MM/YYYY',
+          locale: 'fr',
         },
       }
     }
@@ -55,6 +56,7 @@ test.group('GetProfile — use case', () => {
         weightUnit: 'kg',
         weekStartsOn: 'monday',
         dateFormat: 'DD/MM/YYYY',
+        locale: 'fr',
       },
     }
     const repo = makeMockProfileRepository({ findByUserId: async () => profile })

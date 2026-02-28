@@ -1,0 +1,81 @@
+{
+  "title": "Séances",
+  "new": "Nouvelle séance",
+  "empty": {
+    "title": "Aucune séance pour l'instant",
+    "description": "Commence à saisir tes entraînements pour construire ton historique.",
+    "cta": "Saisir ma première séance"
+  },
+  "filters": {
+    "allSports": "Tous les sports",
+    "sortBy": "Trier par...",
+    "sortDefault": "Par défaut",
+    "sortDate": "Date",
+    "sortDuration": "Durée",
+    "sortDistance": "Distance",
+    "sortDesc": "Décroissant",
+    "sortAsc": "Croissant",
+    "reset": "Réinitialiser"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page {page} / {lastPage}"
+  },
+  "form": {
+    "sport": "Sport *",
+    "date": "Date *",
+    "duration": "Durée (minutes) *",
+    "distance": "Distance (km)",
+    "speed": "Vitesse",
+    "pace": "Allure",
+    "moreDetails": "Plus de détails",
+    "heartRate": "FC moyenne (bpm)",
+    "effort": "Ressenti",
+    "effortLabel": "Ressenti {value}",
+    "notes": "Notes libres",
+    "notesPlaceholder": "Quelques notes sur cette séance...",
+    "saving": "Enregistrement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler"
+  },
+  "show": {
+    "primaryMetrics": "Métriques principales",
+    "secondaryMetrics": "Métriques secondaires",
+    "specificMetrics": "Métriques spécifiques",
+    "duration": "Durée",
+    "pace": "Allure",
+    "heartRate": "bpm FC moy.",
+    "effort": "Ressenti",
+    "effortLabel": "Ressenti {value}",
+    "notes": "Notes",
+    "back": "Retour",
+    "deleteAriaLabel": "Supprimer la séance",
+    "editAriaLabel": "Modifier la séance",
+    "deleteTitle": "Supprimer cette séance ?",
+    "deleteDescription": "Cette action peut être annulée dans les 5 secondes après la suppression.",
+    "deleteConfirm": "Supprimer",
+    "deleteCancel": "Annuler"
+  },
+  "edit": {
+    "title": "Modifier la séance",
+    "back": "Retour"
+  },
+  "trash": {
+    "title": "Corbeille",
+    "empty": {
+      "title": "Aucune séance dans la corbeille",
+      "description": "Les séances supprimées apparaissent ici. Tu pourras les restaurer si besoin."
+    },
+    "deletedAt": "Supprimée le {date}",
+    "restore": "Restaurer"
+  },
+  "flash": {
+    "created": "Séance ajoutée",
+    "updated": "Séance modifiée",
+    "deleted": "Séance supprimée",
+    "restored": "Séance restaurée",
+    "notFound": "Séance introuvable",
+    "forbidden": "Séance introuvable ou accès refusé"
+  }
+}

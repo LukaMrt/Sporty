@@ -25,18 +25,31 @@ export default class GetDashboardMetrics {
     // pour avoir les données complètes de chaque semaine (le lundi peut être jusqu'à 6j avant weeksAgo)
     const heartRateStart = this.#toISODate(this.#isoWeekStart(this.#weeksAgo(now, 4)))
 
-    const [currentSessions, previousSessions, weeklySessions, heartRateSessions, allSessionsPage] =
-      await Promise.all([
-        this.sessionRepository.findByUserIdAndDateRange(userId, currentStart, currentEnd),
-        this.sessionRepository.findByUserIdAndDateRange(userId, previousStart, previousEnd),
-        this.sessionRepository.findByUserIdAndDateRange(userId, weekStart, currentEnd),
-        this.sessionRepository.findByUserIdAndDateRange(userId, heartRateStart, currentEnd),
-        this.sessionRepository.findAllByUserId(userId, {
-          perPage: 10000,
-          sortBy: 'date',
-          sortOrder: 'asc',
-        }),
-      ])
+    const currentSessions = await this.sessionRepository.findByUserIdAndDateRange(
+      userId,
+      currentStart,
+      currentEnd
+    )
+    const previousSessions = await this.sessionRepository.findByUserIdAndDateRange(
+      userId,
+      previousStart,
+      previousEnd
+    )
+    const weeklySessions = await this.sessionRepository.findByUserIdAndDateRange(
+      userId,
+      weekStart,
+      currentEnd
+    )
+    const heartRateSessions = await this.sessionRepository.findByUserIdAndDateRange(
+      userId,
+      heartRateStart,
+      currentEnd
+    )
+    const allSessionsPage = await this.sessionRepository.findAllByUserId(userId, {
+      perPage: 10000,
+      sortBy: 'date',
+      sortOrder: 'asc',
+    })
 
     const sessionCount = allSessionsPage.meta.total
     const allSessions = allSessionsPage.data

@@ -95,20 +95,20 @@ export default class SessionsController {
     })
   }
 
-  async show({ params, inertia, auth, response, session }: HttpContext) {
+  async show({ params, inertia, auth, response, session, i18n }: HttpContext) {
     try {
       const trainingSession = await this.getSession.execute(Number(params.id), auth.user!.id)
       return inertia.render('Sessions/Show', { session: trainingSession })
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
-        session.flash('error', 'Séance introuvable')
+        session.flash('error', i18n.t('sessions.flash.notFound'))
         return response.redirect('/sessions')
       }
       throw error
     }
   }
 
-  async edit({ params, inertia, auth, response, session }: HttpContext) {
+  async edit({ params, inertia, auth, response, session, i18n }: HttpContext) {
     try {
       const trainingSession = await this.getSession.execute(Number(params.id), auth.user!.id)
       const sports = await this.listSports.execute()
@@ -118,14 +118,14 @@ export default class SessionsController {
       })
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
-        session.flash('error', 'Séance introuvable')
+        session.flash('error', i18n.t('sessions.flash.notFound'))
         return response.redirect('/sessions')
       }
       throw error
     }
   }
 
-  async update({ params, request, response, session, auth }: HttpContext) {
+  async update({ params, request, response, session, auth, i18n }: HttpContext) {
     try {
       const data = await request.validateUsing(updateSessionValidator)
       await this.updateSession.execute(Number(params.id), auth.user!.id, {
@@ -138,46 +138,46 @@ export default class SessionsController {
         sportMetrics: data.sport_metrics as Record<string, unknown> | undefined,
         notes: data.notes,
       })
-      session.flash('success', 'Séance modifiée')
+      session.flash('success', i18n.t('sessions.flash.updated'))
       return response.redirect(`/sessions/${params.id}`)
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
-        session.flash('error', 'Séance introuvable ou accès refusé')
+        session.flash('error', i18n.t('sessions.flash.forbidden'))
         return response.redirect('/sessions')
       }
       throw error
     }
   }
 
-  async destroy({ params, response, session, auth }: HttpContext) {
+  async destroy({ params, response, session, auth, i18n }: HttpContext) {
     try {
       await this.deleteSession.execute(Number(params.id), auth.user!.id)
       session.flash('deleted_session_id', String(params.id))
       return response.redirect('/sessions')
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
-        session.flash('error', 'Séance introuvable ou accès refusé')
+        session.flash('error', i18n.t('sessions.flash.forbidden'))
         return response.redirect('/sessions')
       }
       throw error
     }
   }
 
-  async restore({ params, response, session, auth }: HttpContext) {
+  async restore({ params, response, session, auth, i18n }: HttpContext) {
     try {
       await this.restoreSession.execute(Number(params.id), auth.user!.id)
-      session.flash('success', 'Séance restaurée')
+      session.flash('success', i18n.t('sessions.flash.restored'))
       return response.redirect('/sessions/trash')
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
-        session.flash('error', 'Séance introuvable ou accès refusé')
+        session.flash('error', i18n.t('sessions.flash.forbidden'))
         return response.redirect('/sessions')
       }
       throw error
     }
   }
 
-  async store({ request, response, session, auth }: HttpContext) {
+  async store({ request, response, session, auth, i18n }: HttpContext) {
     const data = await request.validateUsing(createSessionValidator)
     const user = auth.user!
 
@@ -192,7 +192,7 @@ export default class SessionsController {
       notes: data.notes,
     })
 
-    session.flash('success', 'Séance ajoutée')
+    session.flash('success', i18n.t('sessions.flash.created'))
     return response.redirect('/sessions')
   }
 }

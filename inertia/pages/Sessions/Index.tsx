@@ -8,6 +8,7 @@ import SessionFilters from '~/components/sessions/SessionFilters'
 import SessionPagination from '~/components/sessions/SessionPagination'
 import { Button } from '~/components/ui/button'
 import type { Filters, SortByField, SortOrder } from '~/components/sessions/SessionFilters'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface SessionSummary {
   id: number
@@ -54,19 +55,20 @@ function navigateWithFilters(
 
 export default function SessionsIndex({ sessions, sports, filters }: SessionsIndexProps) {
   const { data, meta } = sessions
+  const { t } = useTranslation()
 
   return (
     <>
-      <Head title="Séances" />
+      <Head title={t('sessions.title')} />
 
       <div className="flex items-center justify-between p-4 md:p-6">
-        <h1 className="text-xl font-bold text-foreground md:text-2xl">Séances</h1>
+        <h1 className="text-xl font-bold text-foreground md:text-2xl">{t('sessions.title')}</h1>
         <Button
           onClick={() => router.visit('/sessions/create')}
           className="hidden sm:flex items-center gap-2"
         >
           <Plus size={16} />
-          Nouvelle séance
+          {t('sessions.new')}
         </Button>
       </div>
 
@@ -91,9 +93,9 @@ export default function SessionsIndex({ sessions, sports, filters }: SessionsInd
 
       {data.length === 0 ? (
         <EmptyState
-          title="Aucune séance pour l'instant"
-          description="Commence à saisir tes entraînements pour construire ton historique."
-          ctaLabel="Saisir ma première séance"
+          title={t('sessions.empty.title')}
+          description={t('sessions.empty.description')}
+          ctaLabel={t('sessions.empty.cta')}
           onCtaClick={() => router.visit('/sessions/create')}
         />
       ) : (
@@ -126,7 +128,7 @@ export default function SessionsIndex({ sessions, sports, filters }: SessionsInd
         size="icon"
         onClick={() => router.visit('/sessions/create')}
         className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
-        aria-label="Nouvelle séance"
+        aria-label={t('sessions.new')}
       >
         <Plus size={24} />
       </Button>

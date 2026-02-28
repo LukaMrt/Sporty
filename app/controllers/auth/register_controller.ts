@@ -17,7 +17,7 @@ export default class RegisterController {
       }
       throw error
     }
-    return inertia.render('Auth/Register')
+    return inertia.render('Auth/Register', {})
   }
 
   async register({ request, response }: HttpContext) {

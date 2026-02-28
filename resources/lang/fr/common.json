@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "sessions": "Séances",
+    "planning": "Planning",
+    "profile": "Profil",
+    "admin": "Administration",
+    "logout": "Se déconnecter"
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "back": "Retour",
+    "backToList": "Retour à la liste",
+    "close": "Fermer",
+    "undo": "Annuler"
+  }
+}
