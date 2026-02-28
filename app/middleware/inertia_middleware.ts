@@ -31,9 +31,12 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
 
   async handle(ctx: HttpContext, next: NextFn) {
     await this.init(ctx)
-    const output = await next()
-    this.dispose(ctx)
-    return output
+    try {
+      const output = await next()
+      return output
+    } finally {
+      this.dispose(ctx)
+    }
   }
 }
 
