@@ -12,7 +12,7 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "node ace generate:types && tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "depcruise": "depcruise app --config .dependency-cruiser.cjs",
     "ci": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run depcruise && pnpm run test",
     "db:migrate": "node ace migration:run",
