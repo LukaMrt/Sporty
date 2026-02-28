@@ -39,7 +39,7 @@ async function createUserWithProfile() {
 }
 
 test.group('Profile / Consultation & Modification', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('GET /profile non connecté → redirect /login', async ({ client }) => {
     const response = await client.get('/profile').redirects(0)

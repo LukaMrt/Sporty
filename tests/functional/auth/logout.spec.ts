@@ -3,7 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { getUser } from '#tests/helpers'
 
 test.group('Auth / Logout', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('POST /logout — utilisateur connecté → session invalidée → redirect /login (AC#1)', async ({
     client,

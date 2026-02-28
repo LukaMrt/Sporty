@@ -45,7 +45,7 @@ router
     router.put('/sessions/:id', [SessionsController, 'update'])
     router.delete('/sessions/:id', [SessionsController, 'destroy'])
     router.post('/sessions/:id/restore', [SessionsController, 'restore'])
-    router.on('/planning').renderInertia('Planning/Index')
+    router.on('/planning').renderInertia('Planning/Index', {})
     router.get('/profile', [ProfileController, 'show'])
     router.put('/profile', [ProfileController, 'update'])
     router.put('/profile/password', [PasswordController, 'update'])

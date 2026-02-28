@@ -4,7 +4,7 @@ import User from '#models/user'
 import { getAdmin, getUser, SEEDED_ADMIN_EMAIL } from '#tests/helpers'
 
 test.group('Admin / Créer utilisateur', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('POST /admin/users non connecté → redirect /login', async ({ client }) => {
     const response = await client

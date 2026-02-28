@@ -4,7 +4,7 @@ import User from '#models/user'
 import { getAdmin, SEEDED_ADMIN_EMAIL, SEEDED_PASSWORD } from '#tests/helpers'
 
 test.group('Profile / Changement de mot de passe', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('PUT /profile/password non connecté → redirect /login', async ({ client }) => {
     const response = await client

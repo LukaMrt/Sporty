@@ -4,7 +4,7 @@ import User from '#models/user'
 import { SEEDED_USER_EMAIL, SEEDED_PASSWORD } from '#tests/helpers'
 
 test.group('Auth / Login', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('GET /login — affiche la page connexion', async ({ client }) => {
     const response = await client.get('/login')
