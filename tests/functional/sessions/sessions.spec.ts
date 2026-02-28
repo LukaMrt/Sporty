@@ -8,7 +8,7 @@ import User from '#models/user'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 
 test.group('GET /sessions/:id — detail seance', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('connecte + proprietaire -> 200 avec session complete (AC#1)', async ({
     client,
@@ -84,7 +84,7 @@ test.group('GET /sessions/:id — detail seance', (group) => {
 })
 
 test.group('PUT /sessions/:id — modification seance', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('valide + proprietaire -> 302 redirect /sessions/:id + données mises à jour (AC#2)', async ({
     client,
@@ -265,7 +265,7 @@ test.group('PUT /sessions/:id — modification seance', (group) => {
 })
 
 test.group('GET /sessions — liste des seances', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('connecte avec seances -> 200 (AC#1)', async ({ client }) => {
     const user = await getUser()

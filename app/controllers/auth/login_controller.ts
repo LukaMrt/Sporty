@@ -27,7 +27,7 @@ export default class LoginController {
       }
       throw error
     }
-    return inertia.render('Auth/Login')
+    return inertia.render('Auth/Login', {})
   }
 
   async login({ request, response, session, i18n }: HttpContext) {

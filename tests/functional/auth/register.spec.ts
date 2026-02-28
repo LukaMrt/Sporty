@@ -4,7 +4,7 @@ import User from '#models/user'
 
 test.group('Auth / Register', (group) => {
   group.each.setup(async () => {
-    const cleanup = await testUtils.db().withGlobalTransaction()
+    const cleanup = await testUtils.db().wrapInGlobalTransaction()
     await User.query().delete()
     return cleanup
   })

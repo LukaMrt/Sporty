@@ -5,7 +5,7 @@ import Session from '#models/session'
 import { getUser } from '#tests/helpers'
 
 test.group('Sessions', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   // --- GET /sessions ---
 

@@ -3,7 +3,7 @@ import testUtils from '@adonisjs/core/services/test_utils'
 import { getUser } from '#tests/helpers'
 
 test.group('Navigation', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('GET / — authentifié → 200', async ({ client }) => {
     const user = await getUser()

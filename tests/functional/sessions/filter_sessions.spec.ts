@@ -6,7 +6,7 @@ import Session from '#models/session'
 import { getUser } from '#tests/helpers'
 
 test.group('GET /sessions — filtrage et tri (Story 5.4)', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('filtre par sportId -> 200 (AC#1)', async ({ client }) => {
     const user = await getUser()

@@ -6,7 +6,7 @@ import Session from '#models/session'
 import { getUser, getUser2 } from '#tests/helpers'
 
 test.group('DELETE /sessions/:id', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('suppression soft-delete OK — deleted_at est défini (AC#2)', async ({ client, assert }) => {
     const user = await getUser()
@@ -80,7 +80,7 @@ test.group('DELETE /sessions/:id', (group) => {
 })
 
 test.group('POST /sessions/:id/restore', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('restore remet deleted_at à null (AC#3)', async ({ client, assert }) => {
     const user = await getUser()

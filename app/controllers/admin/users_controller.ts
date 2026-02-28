@@ -30,7 +30,7 @@ export default class UsersController {
   }
 
   async create({ inertia }: HttpContext) {
-    return inertia.render('Admin/Users/Create')
+    return inertia.render('Admin/Users/Create', {})
   }
 
   async store({ request, response, session }: HttpContext) {

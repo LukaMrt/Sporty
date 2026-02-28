@@ -6,7 +6,7 @@ import Session from '#models/session'
 import { getUser } from '#tests/helpers'
 
 test.group('Dashboard', (group) => {
-  group.each.setup(() => testUtils.db().withGlobalTransaction())
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
 
   test('GET / sans session → redirect /login (AC#1)', async ({ client }) => {
     const response = await client.get('/').redirects(0)
