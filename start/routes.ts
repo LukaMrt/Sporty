@@ -21,7 +21,7 @@ const AdminUsersController = () => import('#controllers/admin/users_controller')
 const PasswordController = () => import('#controllers/profile/password_controller')
 const ProfileController = () => import('#controllers/profile/profile_controller')
 
-router.post('/locale', [LocaleController, 'update'])
+router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
 router.get('/register', [RegisterController, 'show'])
 router.post('/register', [RegisterController, 'register'])

@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import i18nManager from '@adonisjs/i18n/services/main'
 
 @inject()
 export default class LocaleController {
@@ -8,7 +9,7 @@ export default class LocaleController {
 
   async update({ request, response, auth, session, i18n }: HttpContext) {
     const locale = request.input('locale', 'fr') as 'fr' | 'en'
-    const supportedLocales: string[] = ['fr', 'en']
+    const supportedLocales = i18nManager.supportedLocales()
 
     if (!supportedLocales.includes(locale)) {
       return response.redirect().back()

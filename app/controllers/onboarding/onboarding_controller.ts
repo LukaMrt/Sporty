@@ -23,7 +23,7 @@ export default class OnboardingController {
     return inertia.render('Onboarding/Wizard', { sports })
   }
 
-  async complete({ request, response, auth }: HttpContext) {
+  async complete({ request, response, auth, i18n }: HttpContext) {
     const data = await request.validateUsing(completeOnboardingValidator)
     await this.completeOnboarding.execute({
       userId: auth.user!.id,
@@ -36,7 +36,7 @@ export default class OnboardingController {
         weightUnit: data.weight_unit,
         weekStartsOn: data.week_starts_on,
         dateFormat: data.date_format,
-        locale: 'fr',
+        locale: i18n.locale as 'fr' | 'en',
       },
     })
     return response.redirect('/')
