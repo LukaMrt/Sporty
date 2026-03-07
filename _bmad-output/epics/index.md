@@ -24,6 +24,10 @@ Ce dossier contient le decoupage par epic du projet Sporty. Chaque fichier corre
 | [epic-4-saisie-seances.md](epic-4-saisie-seances.md)                   | Saisie & Consultation de Seances           | 4.1 - 4.4 |
 | [epic-5-cycle-vie-seances.md](epic-5-cycle-vie-seances.md)             | Cycle de Vie des Seances                   | 5.1 - 5.4 |
 | [epic-6-dashboard-visualisation.md](epic-6-dashboard-visualisation.md) | Dashboard & Visualisation de Progression   | 6.1 - 6.5 |
+| [epic-7-infrastructure-connecteurs-oauth-strava.md](epic-7-infrastructure-connecteurs-oauth-strava.md) | Infrastructure Connecteurs & OAuth Strava | 7.1 - 7.6 |
+| [epic-8-import-manuel-seances.md](epic-8-import-manuel-seances.md) | Import Manuel de Seances | 8.1 - 8.7 |
+| [epic-9-import-automatique.md](epic-9-import-automatique.md) | Import Automatique | 9.1 - 9.3 |
+| [epic-10-resilience-gestion-erreurs.md](epic-10-resilience-gestion-erreurs.md) | Resilience & Gestion d'Erreurs | 10.1 - 10.3 |
 
 ## Requirements Inventory
 
@@ -176,3 +180,7 @@ Ce dossier contient le decoupage par epic du projet Sporty. Chaque fichier corre
 | 4    | Saisie & Consultation de Seances           | FR10, FR11, FR12, FR13, FR22, FR23 | 4 stories |
 | 5    | Cycle de Vie des Seances                   | FR14, FR15, FR16, FR17, FR24       | 4 stories |
 | 6    | Dashboard & Visualisation de Progression   | FR18, FR19, FR20, FR21             | 5 stories |
+| 7    | Infrastructure Connecteurs & OAuth Strava  | FR1-6, FR27, FR28 (import)         | 6 stories |
+| 8    | Import Manuel de Seances                   | FR7-13, FR18-22, FR25, FR29 (import) | 7 stories |
+| 9    | Import Automatique                         | FR14-17 (import)                   | 3 stories |
+| 10   | Resilience & Gestion d'Erreurs             | FR23, FR24, FR26 (import)          | 3 stories |
