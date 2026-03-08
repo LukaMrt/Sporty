@@ -1,6 +1,6 @@
 # Story 8.2 : Activity Mapper & Sport Mapper
 
-Status: draft
+Status: done
 
 ## Story
 
@@ -19,19 +19,19 @@ so that **les donnees importees s'integrent dans le modele existant** (FR18, FR1
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : StravaSportMapper (AC: #4, #5)
-  - [ ] Creer `app/connectors/strava/strava_sport_mapper.ts`
-  - [ ] Table de mapping sport_type -> type Sporty
-  - [ ] Fallback "autre" pour types inconnus
-- [ ] Task 2 : StravaActivityMapper (AC: #1, #2, #3, #6)
-  - [ ] Creer `app/connectors/strava/strava_activity_mapper.ts`
-  - [ ] Conversions : secondes -> minutes, metres -> km, m/s -> min/km ou km/h
-  - [ ] Donnees supplementaires dans sport_metrics JSONB
-  - [ ] Gestion des champs null/absents
-- [ ] Task 3 : Tests unitaires
-  - [ ] Mapper avec activite complete
-  - [ ] Mapper avec activite partielle
-  - [ ] Sport mapper avec tous les types connus + inconnu
+- [x] Task 1 : StravaSportMapper (AC: #4, #5)
+  - [x] Creer `app/connectors/strava/strava_sport_mapper.ts`
+  - [x] Table de mapping sport_type -> type Sporty
+  - [x] Fallback "autre" pour types inconnus
+- [x] Task 2 : StravaActivityMapper (AC: #1, #2, #3, #6)
+  - [x] Creer `app/connectors/strava/strava_activity_mapper.ts`
+  - [x] Conversions : secondes -> minutes, metres -> km, m/s -> min/km ou km/h
+  - [x] Donnees supplementaires dans sport_metrics JSONB
+  - [x] Gestion des champs null/absents
+- [x] Task 3 : Tests unitaires
+  - [x] Mapper avec activite complete
+  - [x] Mapper avec activite partielle
+  - [x] Sport mapper avec tous les types connus + inconnu
 
 ## Dev Notes
 
@@ -58,3 +58,29 @@ so that **les donnees importees s'integrent dans le modele existant** (FR18, FR1
 ### References
 
 - [Source: _bmad-output/planning-artifacts/epics-import-connectors.md#Story 8.2]
+
+## Dev Agent Record
+
+### Implementation Plan
+
+- `StravaSportMapper` : table de mapping statique `Record<string, SportySportSlug>` avec fallback `??` — zéro dépendance externe.
+- `StravaActivityMapper` : type intermédiaire `MappedActivity` (sport slug au lieu de sportId) car le mapper n'a pas accès à la DB ; la résolution sportId → use case d'import.
+- `allure` stockée dans `sportMetrics` (JSONB) car absent de l'entité `TrainingSession`.
+- Conversion `distance` : `=== null || === undefined || <= 0` → `null` (corrigé `!=` → `!==` pour ESLint `eqeqeq`).
+
+### Completion Notes
+
+- 36 tests passent (14 sport mapper + 22 activity mapper).
+- CI complète OK (format, lint, typecheck, depcruise, test).
+- `allure` velo = speed × 3.6 (km/h) ; course = 1000 / (speed × 60) (min/km).
+
+## File List
+
+- `app/connectors/strava/strava_sport_mapper.ts` (nouveau)
+- `app/connectors/strava/strava_activity_mapper.ts` (nouveau)
+- `tests/unit/connectors/strava/strava_sport_mapper.spec.ts` (nouveau)
+- `tests/unit/connectors/strava/strava_activity_mapper.spec.ts` (nouveau)
+
+## Change Log
+
+- 2026-03-08 : Implémentation Story 8.2 — StravaSportMapper, StravaActivityMapper, 36 tests unitaires. CI verte.
