@@ -53,8 +53,8 @@ test.group('Profile / Changement de mot de passe', (group) => {
       .redirects(0)
 
     response.assertStatus(302)
-    response.assertFlashMessage('errorsBag', {
-      current_password: 'Mot de passe actuel incorrect',
+    response.assertFlashMessage('inputErrorsBag', {
+      current_password: ['Mot de passe actuel incorrect'],
     })
   })
 

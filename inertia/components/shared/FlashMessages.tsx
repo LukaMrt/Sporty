@@ -26,8 +26,13 @@ export default function FlashMessages() {
   const { t } = useTranslation()
   const [toasts, setToasts] = useState<Toast[]>([])
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
+  const prevFlashRef = useRef<string>('')
 
   useEffect(() => {
+    const flashKey = JSON.stringify(flash)
+    if (flashKey === prevFlashRef.current) return
+    prevFlashRef.current = flashKey
+
     function scheduleAutoDismiss(id: number) {
       const timer = setTimeout(() => dismiss([id]), DISMISS_DELAY)
       timersRef.current.set(id, timer)

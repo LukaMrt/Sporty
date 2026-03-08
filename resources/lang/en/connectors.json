@@ -1,0 +1,13 @@
+{
+  "title": "Connectors",
+  "description": "Connect your third-party apps to import your activities.",
+  "strava": {
+    "connect": "Connect",
+    "status": "Connected",
+    "connected": "Strava connected successfully",
+    "denied": "Strava authorisation denied",
+    "invalidState": "Invalid state parameter",
+    "missingConfig": "Strava configuration missing",
+    "error": "Error connecting to Strava"
+  }
+}

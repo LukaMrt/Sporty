@@ -16,7 +16,9 @@ export default class PasswordController {
       return response.redirect().back()
     } catch (error) {
       if (error instanceof InvalidCredentialsError) {
-        session.flashErrors({ current_password: i18n.t('profile.flash.passwordIncorrect') })
+        session.flash('inputErrorsBag', {
+          current_password: [i18n.t('profile.flash.passwordIncorrect')],
+        })
         return response.redirect().back()
       }
       throw error

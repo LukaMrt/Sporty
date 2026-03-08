@@ -4,6 +4,7 @@ import { UserProfileRepository } from '#domain/interfaces/user_profile_repositor
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { AuthService } from '#domain/interfaces/auth_service'
 import { SessionRepository } from '#domain/interfaces/session_repository'
+import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -34,6 +35,12 @@ export default class AppProvider {
       const { default: LucidSessionRepository } =
         await import('#repositories/lucid_session_repository')
       return new LucidSessionRepository()
+    })
+
+    this.app.container.bind(ConnectorRepository, async () => {
+      const { default: LucidConnectorRepository } =
+        await import('#repositories/lucid_connector_repository')
+      return new LucidConnectorRepository()
     })
   }
 }

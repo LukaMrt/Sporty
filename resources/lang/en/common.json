@@ -5,6 +5,7 @@
     "planning": "Planning",
     "profile": "Profile",
     "admin": "Administration",
+    "connectors": "Connectors",
     "logout": "Log out"
   },
   "actions": {
