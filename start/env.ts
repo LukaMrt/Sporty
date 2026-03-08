@@ -35,4 +35,20 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_USER: Env.schema.string(),
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring connector token encryption
+  |----------------------------------------------------------
+  */
+  CONNECTOR_ENCRYPTION_KEY: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring Strava OAuth connector
+  |----------------------------------------------------------
+  */
+  APP_URL: Env.schema.string.optional(),
+  STRAVA_CLIENT_ID: Env.schema.string.optional(),
+  STRAVA_CLIENT_SECRET: Env.schema.string.optional(),
 })

@@ -49,7 +49,7 @@ export default class LoginController {
       return response.redirect('/')
     } catch (error) {
       if (error instanceof InvalidCredentialsError) {
-        session.flashErrors({ form: i18n.t('auth.login.invalidCredentials') })
+        session.flash('inputErrorsBag', { form: [i18n.t('auth.login.invalidCredentials')] })
         return response.redirect().back()
       }
       throw error

@@ -47,6 +47,7 @@ module.exports = {
       to: {
         path: layerPattern([
           'repositories',
+          'connectors',
           'services',
           'models',
           'controllers',
@@ -61,7 +62,7 @@ module.exports = {
       name: 'infra-no-http-nor-usecases',
       severity: 'error',
       comment: "L'infrastructure ne doit pas dépendre des use cases ou de la couche HTTP.",
-      from: { path: '^app/(repositories|services)/' },
+      from: { path: '^app/(repositories|services|connectors)/' },
       to: {
         path: layerPattern(['use_cases', 'controllers', 'middleware', 'validators', 'exceptions']),
       },

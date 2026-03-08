@@ -1,6 +1,6 @@
 # Story 7.1 : Migrations DB & modeles Lucid connecteurs
 
-Status: draft
+Status: review
 
 ## Story
 
@@ -23,30 +23,30 @@ so that **le modele de donnees est pret pour tout le systeme d'import**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Creer la migration `connectors` (AC: #1, #2)
-  - [ ] Table avec tous les champs specifies
-  - [ ] Contrainte unique `(user_id, provider)`
-  - [ ] FK vers `users`
-- [ ] Task 2 : Creer la migration `import_activities` (AC: #3, #4)
-  - [ ] Table avec tous les champs specifies
-  - [ ] Contrainte unique `(connector_id, external_id)`
-  - [ ] FK vers `connectors` et `sessions`
-- [ ] Task 3 : Migration d'evolution `sessions` (AC: #5)
-  - [ ] Ajouter colonnes `imported_from` et `external_id` (nullable)
-- [ ] Task 4 : Modeles Lucid (AC: #6)
-  - [ ] Creer `Connector` avec relations
-  - [ ] Creer `ImportActivity` avec relations
-  - [ ] Mettre a jour `Session` avec les nouveaux champs
-  - [ ] Mettre a jour `User` avec la relation `hasMany Connector`
-- [ ] Task 5 : Service TokenEncryption (AC: #7, #8)
-  - [ ] Implementer `encrypt(plaintext): string` et `decrypt(ciphertext): string`
-  - [ ] AES-256-GCM, IV aleatoire 12 bytes par operation
-  - [ ] Format sortie : `base64(iv):base64(ciphertext):base64(authTag)`
-- [ ] Task 6 : Getter/setter transparents sur Connector (AC: #7)
-  - [ ] `encrypted_access_token` et `encrypted_refresh_token` chiffres/dechiffres automatiquement
-- [ ] Task 7 : Validation env CONNECTOR_ENCRYPTION_KEY (AC: #9)
-  - [ ] Ajout dans `start/env.ts` avec validation conditionnelle
-- [ ] Task 8 : Verifier rollback (AC: #10)
+- [x] Task 1 : Creer la migration `connectors` (AC: #1, #2)
+  - [x] Table avec tous les champs specifies
+  - [x] Contrainte unique `(user_id, provider)`
+  - [x] FK vers `users`
+- [x] Task 2 : Creer la migration `import_activities` (AC: #3, #4)
+  - [x] Table avec tous les champs specifies
+  - [x] Contrainte unique `(connector_id, external_id)`
+  - [x] FK vers `connectors` et `sessions`
+- [x] Task 3 : Migration d'evolution `sessions` (AC: #5)
+  - [x] Ajouter colonnes `imported_from` et `external_id` (nullable)
+- [x] Task 4 : Modeles Lucid (AC: #6)
+  - [x] Creer `Connector` avec relations
+  - [x] Creer `ImportActivity` avec relations
+  - [x] Mettre a jour `Session` avec les nouveaux champs
+  - [x] Mettre a jour `User` avec la relation `hasMany Connector`
+- [x] Task 5 : Service TokenEncryption (AC: #7, #8)
+  - [x] Implementer `encrypt(plaintext): string` et `decrypt(ciphertext): string`
+  - [x] AES-256-GCM, IV aleatoire 12 bytes par operation
+  - [x] Format sortie : `base64(iv):base64(ciphertext):base64(authTag)`
+- [x] Task 6 : Getter/setter transparents sur Connector (AC: #7)
+  - [x] `encrypted_access_token` et `encrypted_refresh_token` chiffres/dechiffres automatiquement
+- [x] Task 7 : Validation env CONNECTOR_ENCRYPTION_KEY (AC: #9)
+  - [x] Ajout dans `start/env.ts` avec validation conditionnelle
+- [x] Task 8 : Verifier rollback (AC: #10)
 
 ## Dev Notes
 
@@ -95,3 +95,36 @@ base64(iv):base64(ciphertext):base64(authTag)
 
 - [Source: _bmad-output/planning-artifacts/architecture-import-connectors.md]
 - [Source: _bmad-output/planning-artifacts/epics-import-connectors.md#Story 7.1]
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- `TokenEncryption` placé dans `app/lib/` (hors des couches contrôlées) pour respecter la règle `models-isolated` de dependency-cruiser tout en permettant l'import depuis les models.
+- Les value objects `ConnectorProvider`, `ConnectorStatus`, `ImportActivityStatus` suivent le pattern `const object + type` du projet (cohérent avec `UserRole`).
+- `CONNECTOR_ENCRYPTION_KEY` déclaré `optional` dans `start/env.ts` ; la validation fail-fast est gérée dans le model au moment de l'accès aux tokens.
+- `database/schema.ts` (fichier auto-généré par AdonisJS) ajouté au `.gitignore` et à `eslint.config.js` pour éviter les faux positifs CI.
+
+### File List
+
+- `database/migrations/1772000000001_create_connectors_table.ts` (new)
+- `database/migrations/1772000000002_create_import_activities_table.ts` (new)
+- `database/migrations/1772000000003_add_imported_columns_to_sessions.ts` (new)
+- `app/lib/token_encryption.ts` (new)
+- `app/models/connector.ts` (new)
+- `app/models/import_activity.ts` (new)
+- `app/models/session.ts` (modified — ajout importedFrom, externalId)
+- `app/models/user.ts` (modified — ajout relation hasMany Connector)
+- `app/domain/value_objects/connector_provider.ts` (new)
+- `app/domain/value_objects/connector_status.ts` (new)
+- `app/domain/value_objects/import_activity_status.ts` (new)
+- `start/env.ts` (modified — ajout CONNECTOR_ENCRYPTION_KEY optional)
+- `package.json` (modified — ajout alias #lib/*)
+- `.gitignore` (modified — ajout database/schema.ts)
+- `eslint.config.js` (modified — ajout database/schema.ts dans ignores)
+- `.env` (modified — ajout CONNECTOR_ENCRYPTION_KEY demo)
+- `tests/unit/lib/token_encryption.spec.ts` (new)
+
+### Change Log
+
+- 2026-03-08 : Implémentation complète story 7.1 — migrations DB, modèles Lucid, TokenEncryption (AES-256-GCM), value objects enums, configuration env.

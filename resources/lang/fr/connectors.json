@@ -1,0 +1,18 @@
+{
+  "title": "Connecteurs",
+  "description": "Connectez vos applications tierces pour importer vos activités.",
+  "notConfigured": "Les connecteurs ne sont pas activés sur cette instance.",
+  "strava": {
+    "connect": "Connecter",
+    "reconnect": "Reconnecter",
+    "disconnect": "Déconnecter",
+    "status": "Connecté",
+    "statusError": "Erreur",
+    "disconnected": "Strava déconnecté avec succès",
+    "connected": "Strava connecté avec succès",
+    "denied": "Autorisation Strava refusée",
+    "invalidState": "Paramètre state invalide",
+    "missingConfig": "Configuration Strava manquante",
+    "error": "Erreur lors de la connexion à Strava"
+  }
+}

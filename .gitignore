@@ -10,6 +10,9 @@ tmp
 # AdonisJS generated indexes (recreated at startup)
 .adonisjs
 
+# AdonisJS generated schema file (recreated at each migration:run)
+database/schema.ts
+
 # Test coverage
 coverage
 

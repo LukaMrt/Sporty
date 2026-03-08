@@ -20,6 +20,9 @@ const DashboardController = () => import('#controllers/dashboard/dashboard_contr
 const AdminUsersController = () => import('#controllers/admin/users_controller')
 const PasswordController = () => import('#controllers/profile/password_controller')
 const ProfileController = () => import('#controllers/profile/profile_controller')
+const ConnectorsController = () => import('#controllers/connectors/connectors_controller')
+const StravaConnectorController = () =>
+  import('#controllers/connectors/strava_connector_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
@@ -53,8 +56,17 @@ router
     router.put('/profile', [ProfileController, 'update'])
     router.put('/profile/password', [PasswordController, 'update'])
     router.post('/logout', [LogoutController, 'logout'])
+    router.get('/connectors', [ConnectorsController, 'index'])
+    router.get('/connectors/strava/authorize', [StravaConnectorController, 'authorize'])
+    router.post('/connectors/strava/disconnect', [StravaConnectorController, 'disconnect'])
   })
   .use([middleware.auth(), middleware.onboarding()])
+
+// Hors groupe auth : Strava redirige ici depuis un domaine externe,
+// la session est vérifiée manuellement dans le controller
+router
+  .get('/connectors/strava/callback', [StravaConnectorController, 'callback'])
+  .use(middleware.silentAuth())
 
 router
   .group(() => {

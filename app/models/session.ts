@@ -35,6 +35,12 @@ export default class Session extends BaseModel {
   @column()
   declare notes: string | null
 
+  @column()
+  declare importedFrom: string | null
+
+  @column()
+  declare externalId: string | null
+
   @column.dateTime()
   declare deletedAt: DateTime | null
 

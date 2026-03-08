@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
-import { Home, Activity, Calendar, User, LogOut, ShieldCheck } from 'lucide-react'
+import { Home, Activity, Calendar, User, LogOut, ShieldCheck, Plug } from 'lucide-react'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import FlashMessages from '~/components/shared/FlashMessages'
 import LocaleSwitcher from '~/components/shared/LocaleSwitcher'
@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
   { href: '/', labelKey: 'common.nav.home', icon: Home },
   { href: '/sessions', labelKey: 'common.nav.sessions', icon: Activity },
   { href: '/planning', labelKey: 'common.nav.planning', icon: Calendar },
+  { href: '/connectors', labelKey: 'common.nav.connectors', icon: Plug },
   { href: '/profile', labelKey: 'common.nav.profile', icon: User },
 ]
 

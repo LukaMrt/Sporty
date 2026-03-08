@@ -10,7 +10,11 @@
 */
 
 import 'reflect-metadata'
+import { config } from 'dotenv'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
+
+// Load .env.local overrides (not versioned — see .gitignore)
+config({ path: new URL('../.env.local', import.meta.url), override: true })
 
 /**
  * URL to the application root. AdonisJS need it to resolve
