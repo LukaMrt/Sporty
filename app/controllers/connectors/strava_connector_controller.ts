@@ -4,13 +4,33 @@ import type { HttpContext } from '@adonisjs/core/http'
 import env from '#start/env'
 import ConnectStrava from '#use_cases/connectors/connect_strava'
 import DisconnectStrava from '#use_cases/connectors/disconnect_strava'
+import GetStravaConnector from '#use_cases/connectors/get_strava_connector'
+import ListPreImportActivities, {
+  ConnectorNotConnectedError,
+} from '#use_cases/import/list_pre_import_activities'
 
 @inject()
 export default class StravaConnectorController {
   constructor(
     private connectStrava: ConnectStrava,
-    private disconnectStrava: DisconnectStrava
+    private disconnectStrava: DisconnectStrava,
+    private getStravaConnector: GetStravaConnector,
+    private listPreImportActivities: ListPreImportActivities
   ) {}
+
+  async show({ inertia, auth }: HttpContext) {
+    const stravaStatus = await this.getStravaConnector.getStatus(auth.user!.id)
+
+    try {
+      const activities = await this.listPreImportActivities.execute({ userId: auth.user!.id })
+      return inertia.render('Connectors/Show', { stravaStatus, activityCount: activities.length })
+    } catch (error) {
+      if (error instanceof ConnectorNotConnectedError) {
+        return inertia.render('Connectors/Show', { stravaStatus, activityCount: null })
+      }
+      throw error
+    }
+  }
 
   async authorize({ session, response }: HttpContext) {
     const clientId = env.get('STRAVA_CLIENT_ID')

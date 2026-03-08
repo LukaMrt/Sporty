@@ -15,6 +15,7 @@
     "denied": "Strava authorization denied",
     "invalidState": "Invalid state parameter",
     "missingConfig": "Strava configuration missing",
-    "error": "Error connecting to Strava"
+    "error": "Error connecting to Strava",
+    "sessionCount": "{count} session(s) found"
   }
 }

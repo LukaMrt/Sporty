@@ -8,30 +8,30 @@ import { getUser } from '#tests/helpers'
 test.group('Import / Activities', (group) => {
   group.each.setup(async () => testUtils.db().wrapInGlobalTransaction())
 
-  test('GET /import/activities — redirige si non authentifié', async ({ client }) => {
-    const response = await client.get('/import/activities').redirects(0)
+  test('GET /connectors/strava — redirige si non authentifié', async ({ client }) => {
+    const response = await client.get('/connectors/strava').redirects(0)
     response.assertStatus(302)
   })
 
-  test('GET /import/activities — retourne connectorError si pas de connecteur (AC#4)', async ({
+  test('GET /connectors/strava — activities null si pas de connecteur', async ({
     client,
     assert,
   }) => {
     const user = await getUser()
 
     const response = await client
-      .get('/import/activities')
+      .get('/connectors/strava')
       .loginAs(user)
       .header('X-Inertia', 'true')
       .header('X-Inertia-Version', '1')
 
     response.assertStatus(200)
-    const body = response.body() as { props: { connectorError: boolean; activities: null } }
-    assert.isTrue(body.props.connectorError)
+    const body = response.body() as { props: { stravaStatus: null; activities: null } }
+    assert.isNull(body.props.stravaStatus)
     assert.isNull(body.props.activities)
   })
 
-  test('GET /import/activities — retourne connectorError si connecteur en erreur (AC#4)', async ({
+  test('GET /connectors/strava — activities null si connecteur en erreur', async ({
     client,
     assert,
   }) => {
@@ -48,14 +48,15 @@ test.group('Import / Activities', (group) => {
     })
 
     const response = await client
-      .get('/import/activities')
+      .get('/connectors/strava')
       .loginAs(user)
       .header('X-Inertia', 'true')
       .header('X-Inertia-Version', '1')
 
     delete process.env['CONNECTOR_ENCRYPTION_KEY']
     response.assertStatus(200)
-    const body = response.body() as { props: { connectorError: boolean } }
-    assert.isTrue(body.props.connectorError)
+    const body = response.body() as { props: { stravaStatus: string; activities: null } }
+    assert.equal(body.props.stravaStatus, 'error')
+    assert.isNull(body.props.activities)
   })
 })
