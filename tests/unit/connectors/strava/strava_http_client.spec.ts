@@ -25,6 +25,9 @@ function makeConnectorRepository(
 ): ConnectorRepository {
   class Mock extends ConnectorRepository {
     async upsert() {}
+    async findFullByUserAndProvider(): Promise<null> {
+      return null
+    }
     async findByUserAndProvider(): Promise<ConnectorRecord | null> {
       return null
     }

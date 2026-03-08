@@ -28,6 +28,7 @@ export interface ActivityDetail extends ActivitySummary {
 }
 
 export abstract class Connector {
+  abstract readonly id: number
   abstract authenticate(): Promise<ConnectorTokens>
   abstract listActivities(filters: ActivityFilters): Promise<ActivitySummary[]>
   abstract getActivityDetail(externalId: string): Promise<ActivityDetail>
