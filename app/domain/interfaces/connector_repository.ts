@@ -15,6 +15,12 @@ export interface ConnectorRecord {
   accessToken: string | null
 }
 
+export interface UpdateTokensInput {
+  accessToken: string
+  refreshToken: string
+  tokenExpiresAtSeconds: number
+}
+
 export abstract class ConnectorRepository {
   abstract upsert(data: UpsertConnectorInput): Promise<void>
   abstract findByUserAndProvider(
@@ -22,4 +28,14 @@ export abstract class ConnectorRepository {
     provider: ConnectorProvider
   ): Promise<ConnectorRecord | null>
   abstract disconnect(userId: number, provider: ConnectorProvider): Promise<void>
+  abstract updateTokens(
+    userId: number,
+    provider: ConnectorProvider,
+    data: UpdateTokensInput
+  ): Promise<void>
+  abstract setStatus(
+    userId: number,
+    provider: ConnectorProvider,
+    status: ConnectorStatus
+  ): Promise<void>
 }

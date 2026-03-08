@@ -1,8 +1,13 @@
 import { DateTime } from 'luxon'
 import ConnectorModel from '#models/connector'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
-import type { UpsertConnectorInput, ConnectorRecord } from '#domain/interfaces/connector_repository'
+import type {
+  UpsertConnectorInput,
+  ConnectorRecord,
+  UpdateTokensInput,
+} from '#domain/interfaces/connector_repository'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
+import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 
 export default class LucidConnectorRepository extends ConnectorRepository {
   async findByUserAndProvider(
@@ -32,5 +37,31 @@ export default class LucidConnectorRepository extends ConnectorRepository {
         status: data.status,
       }
     )
+  }
+
+  async updateTokens(
+    userId: number,
+    provider: ConnectorProvider,
+    data: UpdateTokensInput
+  ): Promise<void> {
+    const connector = await ConnectorModel.query()
+      .where('user_id', userId)
+      .where('provider', provider)
+      .firstOrFail()
+    connector.encryptedAccessToken = data.accessToken
+    connector.encryptedRefreshToken = data.refreshToken
+    connector.tokenExpiresAt = DateTime.fromSeconds(data.tokenExpiresAtSeconds)
+    await connector.save()
+  }
+
+  async setStatus(
+    userId: number,
+    provider: ConnectorProvider,
+    status: ConnectorStatus
+  ): Promise<void> {
+    await ConnectorModel.query()
+      .where('user_id', userId)
+      .where('provider', provider)
+      .update({ status })
   }
 }

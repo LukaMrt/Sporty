@@ -1,6 +1,6 @@
 # Story 7.5 : Refresh automatique des tokens
 
-Status: draft
+Status: review
 
 ## Story
 
@@ -17,16 +17,16 @@ so that **la connexion Strava reste fonctionnelle sans intervention utilisateur*
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Mecanisme de refresh dans StravaHttpClient (AC: #1, #2)
-  - [ ] Intercepter HTTP 401
-  - [ ] Appel `POST /oauth/token` avec refresh_token
-  - [ ] Persist-before-use : sauvegarder le nouveau refresh_token avant de reexecuter l'appel
-- [ ] Task 2 : Refresh proactif (AC: #4)
-  - [ ] Verifier `token_expires_at` avant chaque appel
-  - [ ] Si expire, refresh avant l'appel (evite un aller-retour 401)
-- [ ] Task 3 : Gestion des echecs de refresh (AC: #3)
-  - [ ] Passer le connecteur en etat `error`
-  - [ ] Stopper les appels API
+- [x] Task 1 : Mecanisme de refresh dans StravaHttpClient (AC: #1, #2)
+  - [x] Intercepter HTTP 401
+  - [x] Appel `POST /oauth/token` avec refresh_token
+  - [x] Persist-before-use : sauvegarder le nouveau refresh_token avant de reexecuter l'appel
+- [x] Task 2 : Refresh proactif (AC: #4)
+  - [x] Verifier `token_expires_at` avant chaque appel
+  - [x] Si expire, refresh avant l'appel (evite un aller-retour 401)
+- [x] Task 3 : Gestion des echecs de refresh (AC: #3)
+  - [x] Passer le connecteur en etat `error`
+  - [x] Stopper les appels API
 
 ## Dev Notes
 
@@ -45,3 +45,30 @@ C'est un pattern critique : le nouveau refresh_token doit etre sauvegarde en bas
 ### References
 
 - [Source: _bmad-output/planning-artifacts/epics-import-connectors.md#Story 7.5]
+
+## Dev Agent Record
+
+### Implementation Plan
+
+- `ConnectorRepository` (domain port) étendu avec `updateTokens` + `setStatus`
+- `LucidConnectorRepository` implémente les deux méthodes (save() pour déclencher les hooks @column.prepare de chiffrement)
+- `StravaHttpClient` (app/services/strava/) : service infra avec fetcher injectable pour tests
+
+### Completion Notes
+
+- AC#1 : 401 intercepté dans `get()` → `doRefresh()` → retry
+- AC#2 : `updateTokens()` appelé avant mise à jour in-memory (persist-before-use vérifié par test d'ordre)
+- AC#3 : `setStatus(error)` + throw `ConnectorAuthError` — aucun retry supplémentaire
+- AC#4 : `isExpired()` vérifié en début de `get()` → refresh proactif si `expiresAt <= now`
+- 6 tests unitaires, tous verts
+
+## File List
+
+- `app/domain/interfaces/connector_repository.ts` — ajout `UpdateTokensInput`, `updateTokens`, `setStatus`
+- `app/repositories/lucid_connector_repository.ts` — implémentation `updateTokens`, `setStatus`
+- `app/services/strava/strava_http_client.ts` — nouveau fichier
+- `tests/unit/services/strava/strava_http_client.spec.ts` — nouveau fichier (6 tests)
+
+## Change Log
+
+- 2026-03-08 : Implémentation story 7.5 — StravaHttpClient avec refresh automatique (AC#1-4)
