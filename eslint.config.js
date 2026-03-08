@@ -3,7 +3,7 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 
 export default configApp(
-  { ignores: ['coverage/**', '.adonisjs/**'] },
+  { ignores: ['coverage/**', '.adonisjs/**', 'database/schema.ts'] },
   // Enforce no-console in all TS files (not in RULES_LIST by default)
   // TypeScript strict rules (type-checked)
   ...tseslint.configs.recommendedTypeChecked.map((config) => ({

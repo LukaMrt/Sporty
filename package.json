@@ -39,6 +39,7 @@
     "#database/*": "./database/*.js",
     "#generated/*": "./.adonisjs/server/*.js",
     "#transformers/*": "./app/transformers/*.js",
+    "#lib/*": "./app/lib/*.js",
     "#tests/*": "./tests/*.js",
     "#start/*": "./start/*.js",
     "#config/*": "./config/*.js"

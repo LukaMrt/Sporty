@@ -6,6 +6,7 @@ import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import type { HasMany, HasOne } from '@adonisjs/lucid/types/relations'
 import Session from '#models/session'
 import UserProfile from '#models/user_profile'
+import Connector from '#models/connector'
 import type { UserRole } from '#domain/value_objects/user_role'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
@@ -37,6 +38,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @hasOne(() => UserProfile)
   declare profile: HasOne<typeof UserProfile>
+
+  @hasMany(() => Connector)
+  declare connectors: HasMany<typeof Connector>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
