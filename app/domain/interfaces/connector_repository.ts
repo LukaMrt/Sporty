@@ -12,6 +12,7 @@ export interface UpsertConnectorInput {
 
 export interface ConnectorRecord {
   status: ConnectorStatus
+  accessToken: string | null
 }
 
 export abstract class ConnectorRepository {
@@ -20,4 +21,5 @@ export abstract class ConnectorRepository {
     userId: number,
     provider: ConnectorProvider
   ): Promise<ConnectorRecord | null>
+  abstract disconnect(userId: number, provider: ConnectorProvider): Promise<void>
 }

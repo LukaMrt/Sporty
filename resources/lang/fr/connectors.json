@@ -3,7 +3,11 @@
   "description": "Connectez vos applications tierces pour importer vos activités.",
   "strava": {
     "connect": "Connecter",
+    "reconnect": "Reconnecter",
+    "disconnect": "Déconnecter",
     "status": "Connecté",
+    "statusError": "Erreur",
+    "disconnected": "Strava déconnecté avec succès",
     "connected": "Strava connecté avec succès",
     "denied": "Autorisation Strava refusée",
     "invalidState": "Paramètre state invalide",

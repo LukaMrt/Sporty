@@ -58,6 +58,7 @@ router
     router.post('/logout', [LogoutController, 'logout'])
     router.get('/connectors', [ConnectorsController, 'index'])
     router.get('/connectors/strava/authorize', [StravaConnectorController, 'authorize'])
+    router.post('/connectors/strava/disconnect', [StravaConnectorController, 'disconnect'])
   })
   .use([middleware.auth(), middleware.onboarding()])
 

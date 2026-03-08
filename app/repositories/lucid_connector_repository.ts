@@ -13,7 +13,13 @@ export default class LucidConnectorRepository extends ConnectorRepository {
       .where('user_id', userId)
       .where('provider', provider)
       .first()
-    return connector ? { status: connector.status } : null
+    return connector
+      ? { status: connector.status, accessToken: connector.encryptedAccessToken }
+      : null
+  }
+
+  async disconnect(userId: number, provider: ConnectorProvider): Promise<void> {
+    await ConnectorModel.query().where('user_id', userId).where('provider', provider).delete()
   }
 
   async upsert(data: UpsertConnectorInput): Promise<void> {

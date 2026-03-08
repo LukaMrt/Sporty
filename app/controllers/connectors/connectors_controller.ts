@@ -9,8 +9,8 @@ export default class ConnectorsController {
 
   async index({ inertia, auth }: HttpContext) {
     const stravaConfigured = Boolean(env.get('STRAVA_CLIENT_ID') && env.get('STRAVA_CLIENT_SECRET'))
-    const stravaConnected = await this.getStravaConnector.isConnected(auth.user!.id)
+    const stravaStatus = await this.getStravaConnector.getStatus(auth.user!.id)
 
-    return inertia.render('Connectors/Index', { stravaConfigured, stravaConnected })
+    return inertia.render('Connectors/Index', { stravaConfigured, stravaStatus })
   }
 }

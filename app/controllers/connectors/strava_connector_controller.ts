@@ -3,10 +3,14 @@ import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import env from '#start/env'
 import ConnectStrava from '#use_cases/connectors/connect_strava'
+import DisconnectStrava from '#use_cases/connectors/disconnect_strava'
 
 @inject()
 export default class StravaConnectorController {
-  constructor(private connectStrava: ConnectStrava) {}
+  constructor(
+    private connectStrava: ConnectStrava,
+    private disconnectStrava: DisconnectStrava
+  ) {}
 
   async authorize({ session, response }: HttpContext) {
     const clientId = env.get('STRAVA_CLIENT_ID')
@@ -94,6 +98,17 @@ export default class StravaConnectorController {
     } catch {
       session.flash('error', i18n.t('connectors.strava.error'))
     }
+
+    return response.redirect('/connectors')
+  }
+
+  async disconnect({ response, auth, session, i18n }: HttpContext) {
+    if (!auth.user) {
+      return response.redirect('/login')
+    }
+
+    await this.disconnectStrava.execute(auth.user.id)
+    session.flash('success', i18n.t('connectors.strava.disconnected'))
 
     return response.redirect('/connectors')
   }
