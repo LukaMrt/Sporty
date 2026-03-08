@@ -5,6 +5,7 @@ import { SportRepository } from '#domain/interfaces/sport_repository'
 import { AuthService } from '#domain/interfaces/auth_service'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
+import { RateLimitManager } from '#connectors/rate_limit_manager'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -41,6 +42,11 @@ export default class AppProvider {
       const { default: LucidConnectorRepository } =
         await import('#repositories/lucid_connector_repository')
       return new LucidConnectorRepository()
+    })
+
+    this.app.container.singleton(RateLimitManager, async () => {
+      const { StravaRateLimitManager } = await import('#connectors/rate_limit_manager')
+      return new StravaRateLimitManager()
     })
   }
 }
