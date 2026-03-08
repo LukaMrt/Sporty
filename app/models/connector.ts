@@ -10,10 +10,21 @@ import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 
 export type { ConnectorProvider, ConnectorStatus }
 
+let cachedEncryptionService: TokenEncryption | null | undefined
+
 function getEncryptionService(): TokenEncryption | null {
+  if (cachedEncryptionService !== undefined) {
+    return cachedEncryptionService
+  }
+
   const key = env.get('CONNECTOR_ENCRYPTION_KEY')
-  if (!key) return null
-  return new TokenEncryption(key)
+  if (!key) {
+    cachedEncryptionService = null
+    return null
+  }
+
+  cachedEncryptionService = new TokenEncryption(key)
+  return cachedEncryptionService
 }
 
 export default class Connector extends BaseModel {

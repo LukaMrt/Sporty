@@ -55,7 +55,7 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
                 </div>
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground">Strava</p>
-                  <p className="text-xs text-muted-foreground">Réseau social sportif</p>
+                  <p className="text-xs text-muted-foreground">{t('connectors.strava.tagline')}</p>
                 </div>
               </div>
 
@@ -115,15 +115,12 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>{t('connectors.strava.disconnect')} Strava ?</DialogTitle>
-            <DialogDescription>
-              Vos tokens seront supprimés et votre compte Strava sera révoqué. Vous pourrez
-              reconnecter à tout moment.
-            </DialogDescription>
+            <DialogDescription>{t('connectors.strava.disconnectDescription')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
               <button className="cursor-pointer rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-muted">
-                Annuler
+                {t('common.actions.cancel')}
               </button>
             </DialogClose>
             <button

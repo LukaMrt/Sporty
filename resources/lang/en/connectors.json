@@ -3,6 +3,8 @@
   "description": "Connect your third-party apps to import your activities.",
   "notConfigured": "Connectors are not enabled on this instance.",
   "strava": {
+    "tagline": "Sports social network",
+    "disconnectDescription": "Your tokens will be deleted and your Strava account will be revoked. You can reconnect at any time.",
     "connect": "Connect",
     "reconnect": "Reconnect",
     "disconnect": "Disconnect",
@@ -10,7 +12,7 @@
     "statusError": "Error",
     "disconnected": "Strava disconnected successfully",
     "connected": "Strava connected successfully",
-    "denied": "Strava authorisation denied",
+    "denied": "Strava authorization denied",
     "invalidState": "Invalid state parameter",
     "missingConfig": "Strava configuration missing",
     "error": "Error connecting to Strava"

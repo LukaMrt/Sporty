@@ -3,6 +3,8 @@
   "description": "Connectez vos applications tierces pour importer vos activités.",
   "notConfigured": "Les connecteurs ne sont pas activés sur cette instance.",
   "strava": {
+    "tagline": "Réseau social sportif",
+    "disconnectDescription": "Vos tokens seront supprimés et votre compte Strava sera révoqué. Vous pourrez reconnecter à tout moment.",
     "connect": "Connecter",
     "reconnect": "Reconnecter",
     "disconnect": "Déconnecter",
