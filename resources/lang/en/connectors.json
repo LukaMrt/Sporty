@@ -1,6 +1,7 @@
 {
   "title": "Connectors",
   "description": "Connect your third-party apps to import your activities.",
+  "notConfigured": "Connectors are not enabled on this instance.",
   "strava": {
     "connect": "Connect",
     "reconnect": "Reconnect",

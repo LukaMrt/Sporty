@@ -14,7 +14,7 @@ import {
   DialogClose,
 } from '~/components/ui/dialog'
 
-type ConnectorStatus = 'connected' | 'error' | 'disconnected'
+type ConnectorStatus = 'connected' | 'error'
 
 interface ConnectorsIndexProps {
   stravaConfigured: boolean
@@ -41,8 +41,12 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
         <h1 className="text-2xl font-bold text-foreground">{t('connectors.title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t('connectors.description')}</p>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {stravaConfigured && (
+        {!stravaConfigured && (
+          <p className="mt-6 text-sm text-muted-foreground">{t('connectors.notConfigured')}</p>
+        )}
+
+        {stravaConfigured && (
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex gap-4 rounded-xl border bg-card p-5 shadow-sm">
               {/* Gauche : logo + nom + description — pleine hauteur */}
               <div className="flex flex-1 items-center gap-3">
@@ -70,7 +74,7 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
                     {t('connectors.strava.statusError')}
                   </span>
                 )}
-                {!stravaStatus && <span />}
+                {stravaStatus === null && <span />}
 
                 {/* Action */}
                 {stravaStatus === 'connected' && (
@@ -91,7 +95,7 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
                     {t('connectors.strava.reconnect')}
                   </button>
                 )}
-                {!stravaStatus && (
+                {stravaStatus === null && (
                   <button
                     onClick={connectStrava}
                     className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#e04400] active:scale-95"
@@ -102,8 +106,8 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
                 )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Modale de confirmation déconnexion */}

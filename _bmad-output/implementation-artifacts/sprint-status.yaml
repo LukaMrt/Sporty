@@ -94,3 +94,13 @@ development_status:
   6-4-zoom-temporel: done
   6-5-affichage-unites-configurees: done
   epic-6-retrospective: optional
+
+  # Epic 7 : Import & Connecteurs
+  epic-7: done
+  7-1-migrations-db-modeles-lucid-connecteurs: done
+  7-2-domain-connecteur-interface-connector: done
+  7-3-flow-oauth-strava: done
+  7-4-deconnexion-reconnexion-strava: done
+  7-5-refresh-automatique-tokens: done
+  7-6-page-frontend-connecteurs: done
+  epic-7-retrospective: optional
