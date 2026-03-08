@@ -1,0 +1,23 @@
+{
+  "title": "Activités à importer",
+  "empty": "Aucune activité dans cette plage de dates.",
+  "status": {
+    "new": "Nouvelle",
+    "imported": "Importée",
+    "ignored": "Ignorée"
+  },
+  "table": {
+    "date": "Date",
+    "name": "Nom",
+    "type": "Type",
+    "duration": "Durée",
+    "distance": "Distance",
+    "distanceUnit": "km",
+    "status": "Statut"
+  },
+  "filters": {
+    "from": "Du",
+    "to": "Au",
+    "results": "résultat(s)"
+  }
+}

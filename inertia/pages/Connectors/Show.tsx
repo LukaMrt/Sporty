@@ -13,15 +13,27 @@ import {
   DialogFooter,
   DialogClose,
 } from '~/components/ui/dialog'
+import ActivitiesDataTable from '~/components/import/ActivitiesDataTable'
 
 type ConnectorStatus = 'connected' | 'error'
 
-interface ConnectorsShowProps {
-  stravaStatus: ConnectorStatus | null
-  activityCount: number | null
+interface StagingActivity {
+  id: number
+  externalId: string
+  status: string
+  date: string
+  name: string
+  sportType: string
+  durationMinutes: number
+  distanceKm: number | null
 }
 
-export default function ConnectorsShow({ stravaStatus, activityCount }: ConnectorsShowProps) {
+interface ConnectorsShowProps {
+  stravaStatus: ConnectorStatus | null
+  activities: StagingActivity[] | null
+}
+
+export default function ConnectorsShow({ stravaStatus, activities }: ConnectorsShowProps) {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -98,14 +110,15 @@ export default function ConnectorsShow({ stravaStatus, activityCount }: Connecto
             )}
           </div>
         </div>
-
-        {/* Compteur */}
-        {activityCount !== null && (
-          <p className="mt-6 text-sm text-muted-foreground">
-            {t('connectors.strava.sessionCount', { count: activityCount })}
-          </p>
-        )}
       </div>
+
+      {/* Liste des activités en staging */}
+      {activities !== null && (
+        <div className="px-6 pb-6">
+          <h2 className="text-lg font-semibold text-foreground">{t('import.title')}</h2>
+          <ActivitiesDataTable activities={activities} />
+        </div>
+      )}
 
       {/* Modale de confirmation déconnexion */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

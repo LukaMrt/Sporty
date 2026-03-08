@@ -1,0 +1,23 @@
+{
+  "title": "Activities to import",
+  "empty": "No activities in this date range.",
+  "status": {
+    "new": "New",
+    "imported": "Imported",
+    "ignored": "Ignored"
+  },
+  "table": {
+    "date": "Date",
+    "name": "Name",
+    "type": "Type",
+    "duration": "Duration",
+    "distance": "Distance",
+    "distanceUnit": "km",
+    "status": "Status"
+  },
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "results": "result(s)"
+  }
+}

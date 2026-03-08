@@ -8,6 +8,24 @@ import GetStravaConnector from '#use_cases/connectors/get_strava_connector'
 import ListPreImportActivities, {
   ConnectorNotConnectedError,
 } from '#use_cases/import/list_pre_import_activities'
+interface RawActivityData {
+  name?: string
+  sportType?: string
+  startDate?: string
+  distanceMeters?: number | null
+  durationSeconds?: number
+}
+
+interface StagingActivityDto {
+  id: number
+  externalId: string
+  status: string
+  date: string
+  name: string
+  sportType: string
+  durationMinutes: number
+  distanceKm: number | null
+}
 
 @inject()
 export default class StravaConnectorController {
@@ -22,11 +40,25 @@ export default class StravaConnectorController {
     const stravaStatus = await this.getStravaConnector.getStatus(auth.user!.id)
 
     try {
-      const activities = await this.listPreImportActivities.execute({ userId: auth.user!.id })
-      return inertia.render('Connectors/Show', { stravaStatus, activityCount: activities.length })
+      const records = await this.listPreImportActivities.execute({ userId: auth.user!.id })
+      const activities: StagingActivityDto[] = records.map((r) => {
+        const raw = (r.rawData ?? {}) as unknown as RawActivityData
+        const distanceM = raw.distanceMeters ?? null
+        return {
+          id: r.id,
+          externalId: r.externalId,
+          status: r.status,
+          date: raw.startDate ?? '',
+          name: raw.name ?? r.externalId,
+          sportType: raw.sportType ?? '',
+          durationMinutes: raw.durationSeconds ? raw.durationSeconds / 60 : 0,
+          distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
+        }
+      })
+      return inertia.render('Connectors/Show', { stravaStatus, activities })
     } catch (error) {
       if (error instanceof ConnectorNotConnectedError) {
-        return inertia.render('Connectors/Show', { stravaStatus, activityCount: null })
+        return inertia.render('Connectors/Show', { stravaStatus, activities: null })
       }
       throw error
     }
