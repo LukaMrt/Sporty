@@ -28,9 +28,9 @@ test.group('StravaActivityMapper — activité complète (AC#1, #2, #3)', () => 
     assert.equal(result.name, 'Morning Run')
   })
 
-  test('AC#1 — sport_type Run → sportSlug course', ({ assert }) => {
+  test('AC#1 — sport_type Run → sportSlug running', ({ assert }) => {
     const result = mapper.map(FULL_ACTIVITY)
-    assert.equal(result.sportSlug, 'course')
+    assert.equal(result.sportSlug, 'running')
   })
 
   test('AC#1 — start_date_local → date', ({ assert }) => {
@@ -155,9 +155,9 @@ test.group('StravaActivityMapper — allure vélo (AC#1)', () => {
 test.group('StravaActivityMapper — sport_type non mappé (AC#5)', () => {
   const mapper = new StravaActivityMapper()
 
-  test('sport inconnu → sportSlug = autre', ({ assert }) => {
+  test('sport inconnu → sportSlug = other', ({ assert }) => {
     const result = mapper.map({ ...FULL_ACTIVITY, sport_type: 'Yoga' })
-    assert.equal(result.sportSlug, 'autre')
+    assert.equal(result.sportSlug, 'other')
   })
 })
 
@@ -168,16 +168,16 @@ test.group('StravaActivityMapper — fixture réelle Strava (Afternoon Walk)', (
     assert.equal(mapper.map(FIXTURE_ACTIVITY).name, 'Afternoon Walk')
   })
 
-  test('sport_type Walk → marche', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).sportSlug, 'marche')
+  test('sport_type Walk → walking', ({ assert }) => {
+    assert.equal(mapper.map(FIXTURE_ACTIVITY).sportSlug, 'walking')
   })
 
   test('distance 2749m → 2.749 km', ({ assert }) => {
     assert.approximately(mapper.map(FIXTURE_ACTIVITY).distanceKm!, 2.749, 0.001)
   })
 
-  test('moving_time 2268s → 37.8 min', ({ assert }) => {
-    assert.approximately(mapper.map(FIXTURE_ACTIVITY).durationMinutes, 37.8, 0.01)
+  test('moving_time 2268s → 38 min (arrondi)', ({ assert }) => {
+    assert.equal(mapper.map(FIXTURE_ACTIVITY).durationMinutes, 38)
   })
 
   test('average_heartrate → 105.7', ({ assert }) => {

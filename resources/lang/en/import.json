@@ -13,11 +13,18 @@
     "duration": "Duration",
     "distance": "Distance",
     "distanceUnit": "km",
-    "status": "Status"
+    "status": "Status",
+    "actions": "Action"
   },
   "filters": {
     "from": "From",
     "to": "To",
     "results": "result(s)"
+  },
+  "batch": {
+    "button": "Import",
+    "importing": "Importing…",
+    "success": "Session imported successfully.",
+    "error": "Import failed."
   }
 }

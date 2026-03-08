@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import {
   createColumnHelper,
   flexRender,
@@ -12,6 +12,8 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import ActivityStatusBadge from '~/components/import/ActivityStatusBadge'
 import ActivityCard from '~/components/import/ActivityCard'
 import { useTranslation } from '~/hooks/use_translation'
+import { router } from '@inertiajs/react'
+import { pushToast } from '~/hooks/use_toast'
 
 interface StagingActivity {
   id: number
@@ -52,6 +54,80 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
   const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: true }])
   const [dateFrom, setDateFrom] = useState(defaults.after)
   const [dateTo, setDateTo] = useState(defaults.before)
+  const [importingIds, setImportingIds] = useState<Set<number>>(new Set())
+
+  const importOne = useCallback(
+    async (id: number) => {
+      const showToast = (message: string, ok: boolean) =>
+        pushToast(message, ok ? 'success' : 'error')
+      setImportingIds((prev) => new Set(prev).add(id))
+
+      try {
+        const raw = document.cookie
+          .split('; ')
+          .find((c) => c.startsWith('XSRF-TOKEN='))
+          ?.split('=')[1]
+        const csrfToken = raw ? decodeURIComponent(raw) : undefined
+
+        const res = await fetch('/import/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
+          },
+          body: JSON.stringify({ importActivityIds: [id] }),
+        })
+
+        if (!res.ok) {
+          showToast(t('import.batch.error'), false)
+          return
+        }
+
+        // Poll until done
+        await new Promise<void>((resolve) => {
+          const interval = setInterval(() => {
+            void (async () => {
+              try {
+                const progRes = await fetch('/import/progress', {
+                  headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                })
+                const data = (await progRes.json()) as {
+                  total: number
+                  completed: number
+                  failed: number
+                  errors: string[]
+                }
+                if (data.completed + data.failed >= data.total && data.total > 0) {
+                  clearInterval(interval)
+                  if (data.failed > 0) {
+                    showToast(t('import.batch.error'), false)
+                  } else {
+                    showToast(t('import.batch.success'), true)
+                    router.reload({ only: ['activities'] })
+                  }
+                  resolve()
+                }
+              } catch {
+                clearInterval(interval)
+                showToast(t('import.batch.error'), false)
+                resolve()
+              }
+            })()
+          }, 1500)
+        })
+      } catch {
+        showToast(t('import.batch.error'), false)
+      } finally {
+        setImportingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+      }
+    },
+    [t]
+  )
 
   const filtered = useMemo(() => {
     const from = dateFrom ? new Date(dateFrom).getTime() : -Infinity
@@ -116,8 +192,27 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         cell: ({ getValue }) => <ActivityStatusBadge status={getValue()} />,
         enableSorting: false,
       }),
+      columnHelper.display({
+        id: 'actions',
+        header: t('import.table.actions'),
+        cell: ({ row }) => {
+          if (row.original.status !== 'new') return null
+          const id = row.original.id
+          const isImporting = importingIds.has(id)
+          return (
+            <button
+              onClick={() => void importOne(id)}
+              disabled={isImporting}
+              className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isImporting ? t('import.batch.importing') : t('import.batch.button')}
+            </button>
+          )
+        },
+        enableSorting: false,
+      }),
     ],
-    [t]
+    [t, importingIds, importOne]
   )
 
   const table = useReactTable({
@@ -132,7 +227,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
 
   return (
     <div className="mt-6 space-y-4">
-      {/* Filtres dates */}
+      {/* Filtres */}
       <div className="flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           {t('import.filters.from')}
@@ -159,7 +254,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         </span>
       </div>
 
-      {/* Vue desktop — DataTable */}
+      {/* Vue desktop */}
       <div className="hidden md:block rounded-lg border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
@@ -190,11 +285,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  tabIndex={0}
-                  className="border-t transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-                >
+                <tr key={row.id} className="border-t transition-colors hover:bg-muted/30">
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -207,14 +298,27 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         </table>
       </div>
 
-      {/* Vue mobile — Cards */}
+      {/* Vue mobile */}
       <div className="md:hidden space-y-3">
         {filtered.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">{t('import.empty')}</p>
         ) : (
-          table
-            .getRowModel()
-            .rows.map((row) => <ActivityCard key={row.id} activity={row.original} />)
+          table.getRowModel().rows.map((row) => (
+            <div key={row.id} className="space-y-2">
+              <ActivityCard activity={row.original} />
+              {row.original.status === 'new' && (
+                <button
+                  onClick={() => void importOne(row.original.id)}
+                  disabled={importingIds.has(row.original.id)}
+                  className="w-full cursor-pointer rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {importingIds.has(row.original.id)
+                    ? t('import.batch.importing')
+                    : t('import.batch.button')}
+                </button>
+              )}
+            </div>
+          ))
         )}
       </div>
     </div>

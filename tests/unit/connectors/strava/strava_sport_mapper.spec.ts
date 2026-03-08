@@ -4,61 +4,59 @@ import { StravaSportMapper } from '#connectors/strava/strava_sport_mapper'
 test.group('StravaSportMapper', () => {
   const mapper = new StravaSportMapper()
 
-  // AC#4 — types connus
-  test('Run → course', ({ assert }) => {
-    assert.equal(mapper.map('Run'), 'course')
+  test('Run → running', ({ assert }) => {
+    assert.equal(mapper.map('Run'), 'running')
   })
 
-  test('TrailRun → course', ({ assert }) => {
-    assert.equal(mapper.map('TrailRun'), 'course')
+  test('TrailRun → running', ({ assert }) => {
+    assert.equal(mapper.map('TrailRun'), 'running')
   })
 
-  test('VirtualRun → course', ({ assert }) => {
-    assert.equal(mapper.map('VirtualRun'), 'course')
+  test('VirtualRun → running', ({ assert }) => {
+    assert.equal(mapper.map('VirtualRun'), 'running')
   })
 
-  test('Ride → velo', ({ assert }) => {
-    assert.equal(mapper.map('Ride'), 'velo')
+  test('Ride → cycling', ({ assert }) => {
+    assert.equal(mapper.map('Ride'), 'cycling')
   })
 
-  test('MountainBikeRide → velo', ({ assert }) => {
-    assert.equal(mapper.map('MountainBikeRide'), 'velo')
+  test('MountainBikeRide → cycling', ({ assert }) => {
+    assert.equal(mapper.map('MountainBikeRide'), 'cycling')
   })
 
-  test('GravelRide → velo', ({ assert }) => {
-    assert.equal(mapper.map('GravelRide'), 'velo')
+  test('GravelRide → cycling', ({ assert }) => {
+    assert.equal(mapper.map('GravelRide'), 'cycling')
   })
 
-  test('EBikeRide → velo', ({ assert }) => {
-    assert.equal(mapper.map('EBikeRide'), 'velo')
+  test('EBikeRide → cycling', ({ assert }) => {
+    assert.equal(mapper.map('EBikeRide'), 'cycling')
   })
 
-  test('VirtualRide → velo', ({ assert }) => {
-    assert.equal(mapper.map('VirtualRide'), 'velo')
+  test('VirtualRide → cycling', ({ assert }) => {
+    assert.equal(mapper.map('VirtualRide'), 'cycling')
   })
 
-  test('Swim → natation', ({ assert }) => {
-    assert.equal(mapper.map('Swim'), 'natation')
+  test('Swim → swimming', ({ assert }) => {
+    assert.equal(mapper.map('Swim'), 'swimming')
   })
 
-  test('Walk → marche', ({ assert }) => {
-    assert.equal(mapper.map('Walk'), 'marche')
+  test('Walk → walking', ({ assert }) => {
+    assert.equal(mapper.map('Walk'), 'walking')
   })
 
-  test('Hike → randonnee', ({ assert }) => {
-    assert.equal(mapper.map('Hike'), 'randonnee')
+  test('Hike → hiking', ({ assert }) => {
+    assert.equal(mapper.map('Hike'), 'hiking')
   })
 
-  // AC#5 — fallback
-  test('type inconnu → autre', ({ assert }) => {
-    assert.equal(mapper.map('Yoga'), 'autre')
+  test('type inconnu → other', ({ assert }) => {
+    assert.equal(mapper.map('Yoga'), 'other')
   })
 
-  test('type vide → autre', ({ assert }) => {
-    assert.equal(mapper.map(''), 'autre')
+  test('type vide → other', ({ assert }) => {
+    assert.equal(mapper.map(''), 'other')
   })
 
-  test('type non reconnu → autre', ({ assert }) => {
-    assert.equal(mapper.map('Crossfit'), 'autre')
+  test('type non reconnu → other', ({ assert }) => {
+    assert.equal(mapper.map('Crossfit'), 'other')
   })
 })

@@ -25,4 +25,20 @@ export default class LucidImportActivityRepository extends ImportActivityReposit
       rawData: row.rawData,
     }))
   }
+
+  async findByIds(ids: number[]): Promise<StagingActivityRecord[]> {
+    const rows = await ImportActivityModel.query().whereIn('id', ids)
+    return rows.map((row) => ({
+      id: row.id,
+      externalId: row.externalId,
+      status: row.status,
+      rawData: row.rawData,
+    }))
+  }
+
+  async setImported(id: number, sessionId: number): Promise<void> {
+    await ImportActivityModel.query()
+      .where('id', id)
+      .update({ status: ImportActivityStatus.Imported, importedSessionId: sessionId })
+  }
 }

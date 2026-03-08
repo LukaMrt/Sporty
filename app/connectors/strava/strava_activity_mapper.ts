@@ -34,7 +34,7 @@ export interface MappedActivity {
   }
 }
 
-const CYCLING_SLUGS: SportySportSlug[] = ['velo']
+const CYCLING_SLUGS: SportySportSlug[] = ['cycling']
 
 export class StravaActivityMapper {
   #sportMapper = new StravaSportMapper()
@@ -52,7 +52,7 @@ export class StravaActivityMapper {
       name: activity.name,
       sportSlug,
       date: activity.start_date_local,
-      durationMinutes: activity.moving_time / 60,
+      durationMinutes: Math.round(activity.moving_time / 60),
       distanceKm,
       avgHeartRate,
       importedFrom: 'strava',

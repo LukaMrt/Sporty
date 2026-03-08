@@ -60,6 +60,10 @@ function makeImportActivityRepository(
     async findByConnectorId(): Promise<StagingActivityRecord[]> {
       return []
     }
+    async findByIds(): Promise<StagingActivityRecord[]> {
+      return []
+    }
+    async setImported(): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }

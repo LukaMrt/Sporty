@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePage, router } from '@inertiajs/react'
 import { CheckCircle, AlertCircle, X } from 'lucide-react'
 import { useTranslation } from '~/hooks/use_translation'
+import { registerToastHandler } from '~/hooks/use_toast'
 
 interface Toast {
   id: number
@@ -27,6 +28,20 @@ export default function FlashMessages() {
   const [toasts, setToasts] = useState<Toast[]>([])
   const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
   const prevFlashRef = useRef<string>('')
+
+  useEffect(() => {
+    return registerToastHandler((message, type) => {
+      const id = nextId++
+      setToasts((prev) => [...prev, { id, type, message, visible: false }])
+      requestAnimationFrame(() => {
+        setToasts((prev) =>
+          prev.map((toast) => (toast.id === id ? { ...toast, visible: true } : toast))
+        )
+        const timer = setTimeout(() => dismiss([id]), DISMISS_DELAY)
+        timersRef.current.set(id, timer)
+      })
+    })
+  }, [])
 
   useEffect(() => {
     const flashKey = JSON.stringify(flash)
