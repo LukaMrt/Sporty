@@ -21,25 +21,15 @@ import {
   DialogFooter,
   DialogClose,
 } from '~/components/ui/dialog'
-import ActivitiesDataTable from '~/components/import/ActivitiesDataTable'
+import SessionsDataTable from '~/components/import/SessionsDataTable'
+import type { StagingSession } from '~/types/staging_session'
 
 type ConnectorStatus = 'connected' | 'error'
-
-interface StagingActivity {
-  id: number
-  externalId: string
-  status: string
-  date: string
-  name: string
-  sportType: string
-  durationMinutes: number
-  distanceKm: number | null
-}
 
 interface ConnectorsShowProps {
   stravaStatus: ConnectorStatus | null
   stravaConfigured: boolean
-  activities: StagingActivity[] | null
+  activities: StagingSession[] | null
 }
 
 export default function ConnectorsShow({
@@ -137,7 +127,7 @@ export default function ConnectorsShow({
       {activities !== null && (
         <div className="px-6 pb-6">
           <h2 className="text-lg font-semibold text-foreground">{t('import.title')}</h2>
-          <ActivitiesDataTable activities={activities} />
+          <SessionsDataTable sessions={activities} />
         </div>
       )}
 

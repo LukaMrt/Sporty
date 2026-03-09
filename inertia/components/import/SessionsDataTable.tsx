@@ -9,30 +9,15 @@ import {
   type SortingState,
 } from '@tanstack/react-table'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2 } from 'lucide-react'
-import ActivityStatusBadge from '~/components/import/ActivityStatusBadge'
-import ActivityCard from '~/components/import/ActivityCard'
+import SessionStatusBadge from '~/components/import/SessionStatusBadge'
+import StagingSessionCard from '~/components/import/StagingSessionCard'
 import { useTranslation } from '~/hooks/use_translation'
 import { pushToast } from '~/hooks/use_toast'
+import type { StagingSession } from '~/types/staging_session'
+import { formatDuration } from '~/lib/format'
 
-interface StagingActivity {
-  id: number
-  externalId: string
-  status: string
-  date: string
-  name: string
-  sportType: string
-  durationMinutes: number
-  distanceKm: number | null
-}
-
-interface ActivitiesDataTableProps {
-  activities: StagingActivity[]
-}
-
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = Math.round(minutes % 60)
-  return h > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${m}min`
+interface SessionsDataTableProps {
+  sessions: StagingSession[]
 }
 
 function getDefaultDateRange() {
@@ -45,9 +30,9 @@ function getDefaultDateRange() {
   }
 }
 
-const columnHelper = createColumnHelper<StagingActivity>()
+const columnHelper = createColumnHelper<StagingSession>()
 
-export default function ActivitiesDataTable({ activities }: ActivitiesDataTableProps) {
+export default function SessionsDataTable({ sessions }: SessionsDataTableProps) {
   const { t } = useTranslation()
   const defaults = getDefaultDateRange()
   const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: true }])
@@ -55,12 +40,12 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
   const [dateTo, setDateTo] = useState(defaults.before)
   const [importingIds, setImportingIds] = useState<Set<number>>(new Set())
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
-  const [localActivities, setLocalActivities] = useState(activities)
+  const [localSessions, setLocalSessions] = useState(sessions)
   const [showIgnored, setShowIgnored] = useState(false)
 
   const importOne = useCallback(
     async (id: number) => {
-      setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'importing' } : a)))
+      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s)))
       setImportingIds((prev) => new Set(prev).add(id))
 
       try {
@@ -81,7 +66,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         })
 
         if (!res.ok) {
-          setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+          setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
           pushToast(t('import.batch.error'), 'error')
           return
         }
@@ -103,13 +88,13 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
                 if (data.completed + data.failed >= data.total && data.total > 0) {
                   clearInterval(interval)
                   if (data.failed > 0) {
-                    setLocalActivities((cur) =>
-                      cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a))
+                    setLocalSessions((cur) =>
+                      cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s))
                     )
                     pushToast(t('import.batch.error'), 'error')
                   } else {
-                    setLocalActivities((cur) =>
-                      cur.map((a) => (a.id === id ? { ...a, status: 'imported' } : a))
+                    setLocalSessions((cur) =>
+                      cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
                     )
                     pushToast(t('import.batch.success'), 'success')
                   }
@@ -117,8 +102,8 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
                 }
               } catch {
                 clearInterval(interval)
-                setLocalActivities((cur) =>
-                  cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a))
+                setLocalSessions((cur) =>
+                  cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s))
                 )
                 pushToast(t('import.batch.error'), 'error')
                 resolve()
@@ -127,7 +112,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
           }, 1500)
         })
       } catch {
-        setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
         pushToast(t('import.batch.error'), 'error')
       } finally {
         setImportingIds((prev) => {
@@ -170,7 +155,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
 
   const ignoreOne = useCallback(
     async (id: number) => {
-      setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'ignored' } : a)))
+      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s)))
       setPendingIds((s) => new Set(s).add(id))
       const ok = await postAction(
         `/import/activities/${id}/ignore`,
@@ -178,7 +163,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         'import.ignore.error'
       )
       if (!ok)
-        setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
       setPendingIds((s) => {
         const n = new Set(s)
         n.delete(id)
@@ -190,7 +175,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
 
   const restoreOne = useCallback(
     async (id: number) => {
-      setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
       setPendingIds((s) => new Set(s).add(id))
       const ok = await postAction(
         `/import/activities/${id}/restore`,
@@ -198,7 +183,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         'import.restore.error'
       )
       if (!ok)
-        setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'ignored' } : a)))
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s)))
       setPendingIds((s) => {
         const n = new Set(s)
         n.delete(id)
@@ -211,11 +196,11 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
   const filtered = useMemo(() => {
     const from = dateFrom ? new Date(dateFrom).getTime() : -Infinity
     const to = dateTo ? new Date(dateTo).getTime() + 86_400_000 - 1 : Infinity
-    return localActivities.filter((a) => {
-      const ts = new Date(a.date).getTime()
-      return ts >= from && ts <= to && (showIgnored || a.status !== 'ignored')
+    return localSessions.filter((s) => {
+      const ts = new Date(s.date).getTime()
+      return ts >= from && ts <= to && (showIgnored || s.status !== 'ignored')
     })
-  }, [localActivities, dateFrom, dateTo, showIgnored])
+  }, [localSessions, dateFrom, dateTo, showIgnored])
 
   const columns = useMemo(
     () => [
@@ -268,7 +253,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
       }),
       columnHelper.accessor('status', {
         header: t('import.table.status'),
-        cell: ({ getValue }) => <ActivityStatusBadge status={getValue()} />,
+        cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
         enableSorting: false,
         size: 120,
         minSize: 120,
@@ -455,7 +440,7 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
             const isPending = pendingIds.has(id)
             return (
               <div key={row.id} className={`space-y-2 ${status === 'ignored' ? 'opacity-50' : ''}`}>
-                <ActivityCard activity={row.original} />
+                <StagingSessionCard session={row.original} />
                 {status === 'new' && (
                   <div className="flex gap-2">
                     <button

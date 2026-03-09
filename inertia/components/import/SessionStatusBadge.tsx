@@ -1,12 +1,12 @@
-import React from 'react'
 import { Badge } from '~/components/ui/badge'
 import { useTranslation } from '~/hooks/use_translation'
+import type { StagingSessionStatus } from '~/types/staging_session'
 
-interface ActivityStatusBadgeProps {
-  status: string
+interface SessionStatusBadgeProps {
+  status: StagingSessionStatus
 }
 
-export default function ActivityStatusBadge({ status }: ActivityStatusBadgeProps) {
+export default function SessionStatusBadge({ status }: SessionStatusBadgeProps) {
   const { t } = useTranslation()
 
   if (status === 'imported') {
