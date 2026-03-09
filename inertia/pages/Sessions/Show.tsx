@@ -29,6 +29,7 @@ interface TrainingSessionProps {
   perceivedEffort: number | null
   sportMetrics: Record<string, unknown>
   notes: string | null
+  importedFrom: string | null
   createdAt: string
 }
 
@@ -85,6 +86,18 @@ export default function SessionShow({ session }: ShowProps) {
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
+        {/* Badge source d'import */}
+        {session.importedFrom && (
+          <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-800 dark:bg-orange-900/20">
+            <p className="text-sm text-orange-700 dark:text-orange-400">
+              {t('sessions.show.importedFrom', {
+                source:
+                  session.importedFrom.charAt(0).toUpperCase() + session.importedFrom.slice(1),
+              })}
+            </p>
+          </div>
+        )}
+
         {/* En-tête */}
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <p className="text-sm text-muted-foreground">{formatDate(session.date)}</p>

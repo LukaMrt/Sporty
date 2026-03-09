@@ -151,6 +151,8 @@ export default class LucidSessionRepository extends SessionRepository {
       perceivedEffort: model.perceivedEffort,
       sportMetrics: model.sportMetrics,
       notes: model.notes,
+      importedFrom: model.importedFrom ?? null,
+      externalId: model.externalId ?? null,
       createdAt: model.createdAt.toISO() ?? '',
       deletedAt: model.deletedAt?.toISO() ?? null,
     }

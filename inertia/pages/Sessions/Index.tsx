@@ -18,6 +18,7 @@ interface SessionSummary {
   durationMinutes: number
   distanceKm: number | null
   perceivedEffort: number | null
+  importedFrom: string | null
 }
 
 interface PaginationMeta {
@@ -110,6 +111,7 @@ export default function SessionsIndex({ sessions, sports, filters }: SessionsInd
                   durationMinutes={s.durationMinutes}
                   distanceKm={s.distanceKm}
                   perceivedEffort={s.perceivedEffort}
+                  importedFrom={s.importedFrom}
                 />
               </li>
             ))}
