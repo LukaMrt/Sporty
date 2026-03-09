@@ -34,7 +34,6 @@ export class StravaDetailedActivityMapper extends ActivityMapper {
       importedFrom: 'strava',
       externalId: String(mapped.externalId),
       sportMetrics: {
-        allure: mapped.sportMetrics.allure,
         calories: mapped.sportMetrics.calories,
         elevationGain: mapped.sportMetrics.elevationGain,
         maxHeartRate: mapped.sportMetrics.maxHeartRate,
