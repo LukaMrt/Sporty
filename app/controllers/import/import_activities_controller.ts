@@ -10,13 +10,13 @@ export default class ImportActivitiesController {
     private restoreActivity: RestoreActivity
   ) {}
 
-  async ignore({ params, response }: HttpContext) {
-    await this.ignoreActivity.execute({ id: Number(params.id) })
+  async ignore({ auth, params, response }: HttpContext) {
+    await this.ignoreActivity.execute({ id: Number(params.id), userId: auth.user!.id })
     return response.status(200).json({ ok: true })
   }
 
-  async restore({ params, response }: HttpContext) {
-    await this.restoreActivity.execute({ id: Number(params.id) })
+  async restore({ auth, params, response }: HttpContext) {
+    await this.restoreActivity.execute({ id: Number(params.id), userId: auth.user!.id })
     return response.status(200).json({ ok: true })
   }
 }

@@ -33,13 +33,13 @@ test.group('IgnoreActivity', () => {
   test('appelle setIgnored avec le bon id (AC#1)', async ({ assert }) => {
     const calls: number[] = []
     const repo = makeImportActivityRepository({
-      setIgnored: async (id) => {
+      setIgnored: async (id: number) => {
         calls.push(id)
       },
     })
 
     const useCase = new IgnoreActivity(repo)
-    await useCase.execute({ id: 42 })
+    await useCase.execute({ id: 42, userId: 1 })
 
     assert.deepEqual(calls, [42])
   })
@@ -47,7 +47,7 @@ test.group('IgnoreActivity', () => {
   test('ne lance pas d erreur si setIgnored resout normalement', async ({ assert }) => {
     const repo = makeImportActivityRepository()
     const useCase = new IgnoreActivity(repo)
-    await assert.doesNotReject(() => useCase.execute({ id: 1 }))
+    await assert.doesNotReject(() => useCase.execute({ id: 1, userId: 1 }))
   })
 
   test('propage les erreurs du repository', async ({ assert }) => {
@@ -59,7 +59,7 @@ test.group('IgnoreActivity', () => {
     const useCase = new IgnoreActivity(repo)
 
     try {
-      await useCase.execute({ id: 1 })
+      await useCase.execute({ id: 1, userId: 1 })
       assert.fail('Should have thrown')
     } catch (error) {
       assert.instanceOf(error, Error)
@@ -71,13 +71,13 @@ test.group('RestoreActivity', () => {
   test('appelle setNew avec le bon id (AC#2)', async ({ assert }) => {
     const calls: number[] = []
     const repo = makeImportActivityRepository({
-      setNew: async (id) => {
+      setNew: async (id: number) => {
         calls.push(id)
       },
     })
 
     const useCase = new RestoreActivity(repo)
-    await useCase.execute({ id: 7 })
+    await useCase.execute({ id: 7, userId: 1 })
 
     assert.deepEqual(calls, [7])
   })
@@ -85,7 +85,7 @@ test.group('RestoreActivity', () => {
   test('ne lance pas d erreur si setNew resout normalement', async ({ assert }) => {
     const repo = makeImportActivityRepository()
     const useCase = new RestoreActivity(repo)
-    await assert.doesNotReject(() => useCase.execute({ id: 5 }))
+    await assert.doesNotReject(() => useCase.execute({ id: 5, userId: 1 }))
   })
 
   test('propage les erreurs du repository', async ({ assert }) => {
@@ -97,7 +97,7 @@ test.group('RestoreActivity', () => {
     const useCase = new RestoreActivity(repo)
 
     try {
-      await useCase.execute({ id: 1 })
+      await useCase.execute({ id: 1, userId: 1 })
       assert.fail('Should have thrown')
     } catch (error) {
       assert.instanceOf(error, Error)

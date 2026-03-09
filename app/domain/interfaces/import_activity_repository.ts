@@ -15,8 +15,8 @@ export interface StagingActivityRecord {
 export abstract class ImportActivityRepository {
   abstract upsertMany(connectorId: number, activities: StagingActivityInput[]): Promise<void>
   abstract findByConnectorId(connectorId: number): Promise<StagingActivityRecord[]>
-  abstract findByIds(ids: number[]): Promise<StagingActivityRecord[]>
+  abstract findByIds(ids: number[], connectorId: number): Promise<StagingActivityRecord[]>
   abstract setImported(id: number, sessionId: number): Promise<void>
-  abstract setIgnored(id: number): Promise<void>
-  abstract setNew(id: number): Promise<void>
+  abstract setIgnored(id: number, userId: number): Promise<void>
+  abstract setNew(id: number, userId: number): Promise<void>
 }

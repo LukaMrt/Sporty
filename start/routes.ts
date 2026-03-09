@@ -63,7 +63,6 @@ router
     router.get('/connectors/strava/authorize', [StravaConnectorController, 'authorize'])
     router.post('/connectors/strava/disconnect', [StravaConnectorController, 'disconnect'])
     router.post('/import/batch', [ImportController, 'batch'])
-    router.get('/import/progress', [ImportController, 'progress'])
     router.post('/import/activities/:id/ignore', [ImportActivitiesController, 'ignore'])
     router.post('/import/activities/:id/restore', [ImportActivitiesController, 'restore'])
   })

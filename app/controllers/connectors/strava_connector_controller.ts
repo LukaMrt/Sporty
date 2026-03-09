@@ -8,6 +8,7 @@ import GetStravaConnector from '#use_cases/connectors/get_strava_connector'
 import ListPreImportActivities, {
   ConnectorNotConnectedError,
 } from '#use_cases/import/list_pre_import_activities'
+
 interface RawActivityData {
   name?: string
   sportType?: string

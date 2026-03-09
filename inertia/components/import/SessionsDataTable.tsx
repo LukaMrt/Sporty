@@ -71,46 +71,16 @@ export default function SessionsDataTable({ sessions }: SessionsDataTableProps) 
           return
         }
 
-        // Poll until done
-        await new Promise<void>((resolve) => {
-          const interval = setInterval(() => {
-            void (async () => {
-              try {
-                const progRes = await fetch('/import/progress', {
-                  headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                })
-                const data = (await progRes.json()) as {
-                  total: number
-                  completed: number
-                  failed: number
-                  errors: string[]
-                }
-                if (data.completed + data.failed >= data.total && data.total > 0) {
-                  clearInterval(interval)
-                  if (data.failed > 0) {
-                    setLocalSessions((cur) =>
-                      cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s))
-                    )
-                    pushToast(t('import.batch.error'), 'error')
-                  } else {
-                    setLocalSessions((cur) =>
-                      cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
-                    )
-                    pushToast(t('import.batch.success'), 'success')
-                  }
-                  resolve()
-                }
-              } catch {
-                clearInterval(interval)
-                setLocalSessions((cur) =>
-                  cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s))
-                )
-                pushToast(t('import.batch.error'), 'error')
-                resolve()
-              }
-            })()
-          }, 1500)
-        })
+        const data = (await res.json()) as { failed: number }
+        if (data.failed > 0) {
+          setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+          pushToast(t('import.batch.error'), 'error')
+        } else {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
+          )
+          pushToast(t('import.batch.success'), 'success')
+        }
       } catch {
         setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
         pushToast(t('import.batch.error'), 'error')

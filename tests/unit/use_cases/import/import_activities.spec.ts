@@ -19,10 +19,8 @@ import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
-import type { ImportProgressPort, ImportProgress } from '#domain/interfaces/import_progress_port'
 import { ActivityMapper } from '#domain/interfaces/activity_mapper'
 import type { MappedSessionData } from '#domain/interfaces/activity_mapper'
-import { ImportProgressStore } from '#services/import_progress_store'
 import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
@@ -83,7 +81,7 @@ function makeImportActivityRepository(
     async findByConnectorId(): Promise<StagingActivityRecord[]> {
       return []
     }
-    async findByIds(ids: number[]): Promise<StagingActivityRecord[]> {
+    async findByIds(ids: number[], _connectorId: number): Promise<StagingActivityRecord[]> {
       return ids.map((id) => ({
         id,
         externalId: String(id * 100),
@@ -96,10 +94,6 @@ function makeImportActivityRepository(
     async setNew(): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
-}
-
-function makeProgressPort(): ImportProgressPort {
-  return new ImportProgressStore()
 }
 
 function makeSessionRepository(overrides: Partial<SessionRepository> = {}): SessionRepository {
@@ -181,7 +175,6 @@ function makeUseCase(
     connectorFactory?: ConnectorFactory
     sportRepo?: SportRepository
     sessionRepo?: SessionRepository
-    progressPort?: ImportProgressPort
     mapper?: ActivityMapper
   } = {}
 ): ImportActivities {
@@ -190,7 +183,6 @@ function makeUseCase(
     overrides.connectorFactory ?? makeConnectorFactory(makeConnector(42)),
     overrides.sportRepo ?? makeSportRepository([{ id: 1, name: 'Running', slug: 'running' }]),
     overrides.sessionRepo ?? makeSessionRepository(),
-    overrides.progressPort ?? makeProgressPort(),
     overrides.mapper ?? makeActivityMapper()
   )
 }
@@ -309,43 +301,5 @@ test.group('ImportActivities', () => {
 
     assert.equal(result.failed, 1)
     assert.equal(result.completed, 0)
-  })
-})
-
-test.group('ImportProgressStore', () => {
-  test('init et incremente correctement', ({ assert }) => {
-    const store = new ImportProgressStore()
-    store.init(1, 5)
-
-    store.incrementCompleted(1)
-    store.incrementCompleted(1)
-    store.incrementFailed(1)
-
-    const p = store.get(1)
-    assert.deepEqual(p, { total: 5, completed: 2, failed: 1, errors: [] })
-  })
-
-  test('retourne null si userId absent', ({ assert }) => {
-    const store = new ImportProgressStore()
-    assert.isNull(store.get(99))
-  })
-
-  test('clear supprime la progression', ({ assert }) => {
-    const store = new ImportProgressStore()
-    store.init(1, 3)
-    store.clear(1)
-    assert.isNull(store.get(1))
-  })
-})
-
-test.group('ImportProgress type contract', () => {
-  test('ImportProgressPort est bien abstrait (ne peut pas etre instancie directement)', ({
-    assert,
-  }) => {
-    const store = new ImportProgressStore()
-    store.init(42, 10)
-    const progress: ImportProgress | null = store.get(42)
-    assert.isNotNull(progress)
-    assert.equal(progress!.total, 10)
   })
 })

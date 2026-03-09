@@ -3,7 +3,6 @@ import { ImportActivityRepository } from '#domain/interfaces/import_activity_rep
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import { ImportProgressPort } from '#domain/interfaces/import_progress_port'
 import { ActivityMapper } from '#domain/interfaces/activity_mapper'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
 
@@ -18,6 +17,7 @@ export interface ImportActivitiesResult {
   total: number
   completed: number
   failed: number
+  errors: string[]
 }
 
 @inject()
@@ -27,15 +27,15 @@ export default class ImportActivities {
     private connectorFactory: ConnectorFactory,
     private sportRepository: SportRepository,
     private sessionRepository: SessionRepository,
-    private progressPort: ImportProgressPort,
     private activityMapper: ActivityMapper
   ) {}
 
   async execute(input: ImportActivitiesInput): Promise<ImportActivitiesResult> {
     const { userId, importActivityIds } = input
     const total = importActivityIds.length
-
-    this.progressPort.init(userId, total)
+    let completed = 0
+    let failed = 0
+    const errors: string[] = []
 
     const connector = await this.connectorFactory.make(userId)
     if (!connector) {
@@ -45,13 +45,14 @@ export default class ImportActivities {
     const sports = await this.sportRepository.findAll()
     const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
 
-    const records = await this.importActivityRepository.findByIds(importActivityIds)
+    const records = await this.importActivityRepository.findByIds(importActivityIds, connector.id)
     const recordById = new Map(records.map((r) => [r.id, r]))
 
     for (const id of importActivityIds) {
       const record = recordById.get(id)
       if (!record) {
-        this.progressPort.incrementFailed(userId, `id=${id}: record not found`)
+        failed++
+        errors.push(`id=${id}: record not found`)
         continue
       }
 
@@ -61,8 +62,8 @@ export default class ImportActivities {
 
         const sportId = sportBySlug.get(mapped.sportSlug)
         if (!sportId) {
-          this.progressPort.incrementFailed(
-            userId,
+          failed++
+          errors.push(
             `id=${id} externalId=${record.externalId}: sport slug '${mapped.sportSlug}' not found in DB (available: ${[...sportBySlug.keys()].join(', ')})`
           )
           continue
@@ -83,15 +84,15 @@ export default class ImportActivities {
         })
 
         await this.importActivityRepository.setImported(id, session.id)
-        this.progressPort.incrementCompleted(userId)
+        completed++
       } catch (err) {
-        this.progressPort.incrementFailed(
-          userId,
+        failed++
+        errors.push(
           `id=${id} externalId=${record.externalId}: ${err instanceof Error ? err.message : String(err)}`
         )
       }
     }
 
-    return this.progressPort.get(userId) ?? { total, completed: 0, failed: total }
+    return { total, completed, failed, errors }
   }
 }

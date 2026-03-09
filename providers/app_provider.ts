@@ -8,7 +8,6 @@ import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { RateLimitManager } from '#connectors/rate_limit_manager'
-import { ImportProgressPort } from '#domain/interfaces/import_progress_port'
 import { ActivityMapper } from '#domain/interfaces/activity_mapper'
 
 export default class AppProvider {
@@ -67,11 +66,6 @@ export default class AppProvider {
     this.app.container.singleton(RateLimitManager, async () => {
       const { StravaRateLimitManager } = await import('#connectors/rate_limit_manager')
       return new StravaRateLimitManager()
-    })
-
-    this.app.container.singleton(ImportProgressPort, async () => {
-      const { ImportProgressStore } = await import('#services/import_progress_store')
-      return new ImportProgressStore()
     })
 
     this.app.container.bind(ActivityMapper, async () => {

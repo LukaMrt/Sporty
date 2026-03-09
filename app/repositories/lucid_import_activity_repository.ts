@@ -8,12 +8,14 @@ import { ImportActivityStatus } from '#domain/value_objects/import_activity_stat
 
 export default class LucidImportActivityRepository extends ImportActivityRepository {
   async upsertMany(connectorId: number, activities: StagingActivityInput[]): Promise<void> {
-    for (const activity of activities) {
-      await ImportActivityModel.firstOrCreate(
-        { connectorId, externalId: activity.externalId },
-        { rawData: activity.rawData, status: ImportActivityStatus.New }
+    await Promise.all(
+      activities.map((activity) =>
+        ImportActivityModel.firstOrCreate(
+          { connectorId, externalId: activity.externalId },
+          { rawData: activity.rawData, status: ImportActivityStatus.New }
+        )
       )
-    }
+    )
   }
 
   async findByConnectorId(connectorId: number): Promise<StagingActivityRecord[]> {
@@ -26,8 +28,10 @@ export default class LucidImportActivityRepository extends ImportActivityReposit
     }))
   }
 
-  async findByIds(ids: number[]): Promise<StagingActivityRecord[]> {
-    const rows = await ImportActivityModel.query().whereIn('id', ids)
+  async findByIds(ids: number[], connectorId: number): Promise<StagingActivityRecord[]> {
+    const rows = await ImportActivityModel.query()
+      .whereIn('id', ids)
+      .where('connector_id', connectorId)
     return rows.map((row) => ({
       id: row.id,
       externalId: row.externalId,
@@ -42,13 +46,21 @@ export default class LucidImportActivityRepository extends ImportActivityReposit
       .update({ status: ImportActivityStatus.Imported, importedSessionId: sessionId })
   }
 
-  async setIgnored(id: number): Promise<void> {
+  async setIgnored(id: number, userId: number): Promise<void> {
     await ImportActivityModel.query()
       .where('id', id)
+      .whereHas('connector', (q) => {
+        void q.where('user_id', userId)
+      })
       .update({ status: ImportActivityStatus.Ignored })
   }
 
-  async setNew(id: number): Promise<void> {
-    await ImportActivityModel.query().where('id', id).update({ status: ImportActivityStatus.New })
+  async setNew(id: number, userId: number): Promise<void> {
+    await ImportActivityModel.query()
+      .where('id', id)
+      .whereHas('connector', (q) => {
+        void q.where('user_id', userId)
+      })
+      .update({ status: ImportActivityStatus.New })
   }
 }

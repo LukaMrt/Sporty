@@ -3,6 +3,7 @@ import { ImportActivityRepository } from '#domain/interfaces/import_activity_rep
 
 export interface RestoreActivityInput {
   id: number
+  userId: number
 }
 
 @inject()
@@ -10,6 +11,6 @@ export default class RestoreActivity {
   constructor(private importActivityRepository: ImportActivityRepository) {}
 
   async execute(input: RestoreActivityInput): Promise<void> {
-    await this.importActivityRepository.setNew(input.id)
+    await this.importActivityRepository.setNew(input.id, input.userId)
   }
 }
