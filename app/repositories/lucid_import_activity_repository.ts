@@ -41,4 +41,14 @@ export default class LucidImportActivityRepository extends ImportActivityReposit
       .where('id', id)
       .update({ status: ImportActivityStatus.Imported, importedSessionId: sessionId })
   }
+
+  async setIgnored(id: number): Promise<void> {
+    await ImportActivityModel.query()
+      .where('id', id)
+      .update({ status: ImportActivityStatus.Ignored })
+  }
+
+  async setNew(id: number): Promise<void> {
+    await ImportActivityModel.query().where('id', id).update({ status: ImportActivityStatus.New })
+  }
 }

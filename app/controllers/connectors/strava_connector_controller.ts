@@ -38,6 +38,14 @@ export default class StravaConnectorController {
 
   async show({ inertia, auth }: HttpContext) {
     const stravaStatus = await this.getStravaConnector.getStatus(auth.user!.id)
+    const clientId = env.get('STRAVA_CLIENT_ID')
+    const clientSecret = env.get('STRAVA_CLIENT_SECRET')
+    const stravaConfigured = Boolean(
+      clientId &&
+      !clientId.includes('change-me') &&
+      clientSecret &&
+      !clientSecret.includes('change-me')
+    )
 
     try {
       const records = await this.listPreImportActivities.execute({ userId: auth.user!.id })
@@ -55,10 +63,14 @@ export default class StravaConnectorController {
           distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
         }
       })
-      return inertia.render('Connectors/Show', { stravaStatus, activities })
+      return inertia.render('Connectors/Show', { stravaStatus, stravaConfigured, activities })
     } catch (error) {
       if (error instanceof ConnectorNotConnectedError) {
-        return inertia.render('Connectors/Show', { stravaStatus, activities: null })
+        return inertia.render('Connectors/Show', {
+          stravaStatus,
+          stravaConfigured,
+          activities: null,
+        })
       }
       throw error
     }

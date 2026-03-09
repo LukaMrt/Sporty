@@ -3,6 +3,7 @@
   "empty": "No activities in this date range.",
   "status": {
     "new": "New",
+    "importing": "Importing…",
     "imported": "Imported",
     "ignored": "Ignored"
   },
@@ -19,12 +20,23 @@
   "filters": {
     "from": "From",
     "to": "To",
-    "results": "result(s)"
+    "results": "result(s)",
+    "showIgnored": "Show ignored"
   },
   "batch": {
     "button": "Import",
     "importing": "Importing…",
     "success": "Session imported successfully.",
     "error": "Import failed."
+  },
+  "ignore": {
+    "button": "Ignore",
+    "success": "Activity ignored.",
+    "error": "Operation failed."
+  },
+  "restore": {
+    "button": "Restore",
+    "success": "Activity restored.",
+    "error": "Restore failed."
   }
 }

@@ -12,6 +12,13 @@ export default function ActivityStatusBadge({ status }: ActivityStatusBadgeProps
   if (status === 'imported') {
     return <Badge variant="green">{t('import.status.imported')}</Badge>
   }
+  if (status === 'importing') {
+    return (
+      <Badge variant="blue" className="animate-pulse">
+        {t('import.status.importing')}
+      </Badge>
+    )
+  }
   if (status === 'ignored') {
     return <Badge variant="gray">{t('import.status.ignored')}</Badge>
   }

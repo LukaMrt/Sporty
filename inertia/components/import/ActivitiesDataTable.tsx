@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   createColumnHelper,
   flexRender,
@@ -8,11 +8,10 @@ import {
   useReactTable,
   type SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2 } from 'lucide-react'
 import ActivityStatusBadge from '~/components/import/ActivityStatusBadge'
 import ActivityCard from '~/components/import/ActivityCard'
 import { useTranslation } from '~/hooks/use_translation'
-import { router } from '@inertiajs/react'
 import { pushToast } from '~/hooks/use_toast'
 
 interface StagingActivity {
@@ -55,11 +54,13 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
   const [dateFrom, setDateFrom] = useState(defaults.after)
   const [dateTo, setDateTo] = useState(defaults.before)
   const [importingIds, setImportingIds] = useState<Set<number>>(new Set())
+  const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
+  const [localActivities, setLocalActivities] = useState(activities)
+  const [showIgnored, setShowIgnored] = useState(false)
 
   const importOne = useCallback(
     async (id: number) => {
-      const showToast = (message: string, ok: boolean) =>
-        pushToast(message, ok ? 'success' : 'error')
+      setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'importing' } : a)))
       setImportingIds((prev) => new Set(prev).add(id))
 
       try {
@@ -80,7 +81,8 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         })
 
         if (!res.ok) {
-          showToast(t('import.batch.error'), false)
+          setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+          pushToast(t('import.batch.error'), 'error')
           return
         }
 
@@ -101,23 +103,32 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
                 if (data.completed + data.failed >= data.total && data.total > 0) {
                   clearInterval(interval)
                   if (data.failed > 0) {
-                    showToast(t('import.batch.error'), false)
+                    setLocalActivities((cur) =>
+                      cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a))
+                    )
+                    pushToast(t('import.batch.error'), 'error')
                   } else {
-                    showToast(t('import.batch.success'), true)
-                    router.reload({ only: ['activities'] })
+                    setLocalActivities((cur) =>
+                      cur.map((a) => (a.id === id ? { ...a, status: 'imported' } : a))
+                    )
+                    pushToast(t('import.batch.success'), 'success')
                   }
                   resolve()
                 }
               } catch {
                 clearInterval(interval)
-                showToast(t('import.batch.error'), false)
+                setLocalActivities((cur) =>
+                  cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a))
+                )
+                pushToast(t('import.batch.error'), 'error')
                 resolve()
               }
             })()
           }, 1500)
         })
       } catch {
-        showToast(t('import.batch.error'), false)
+        setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+        pushToast(t('import.batch.error'), 'error')
       } finally {
         setImportingIds((prev) => {
           const next = new Set(prev)
@@ -129,14 +140,82 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
     [t]
   )
 
+  const postAction = useCallback(
+    async (url: string, successKey: string, errorKey: string): Promise<boolean> => {
+      const raw = document.cookie
+        .split('; ')
+        .find((c) => c.startsWith('XSRF-TOKEN='))
+        ?.split('=')[1]
+      const csrfToken = raw ? decodeURIComponent(raw) : undefined
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
+        },
+      })
+
+      if (res.ok) {
+        pushToast(t(successKey), 'success')
+        return true
+      } else {
+        pushToast(t(errorKey), 'error')
+        return false
+      }
+    },
+    [t]
+  )
+
+  const ignoreOne = useCallback(
+    async (id: number) => {
+      setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'ignored' } : a)))
+      setPendingIds((s) => new Set(s).add(id))
+      const ok = await postAction(
+        `/import/activities/${id}/ignore`,
+        'import.ignore.success',
+        'import.ignore.error'
+      )
+      if (!ok)
+        setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+      setPendingIds((s) => {
+        const n = new Set(s)
+        n.delete(id)
+        return n
+      })
+    },
+    [postAction]
+  )
+
+  const restoreOne = useCallback(
+    async (id: number) => {
+      setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'new' } : a)))
+      setPendingIds((s) => new Set(s).add(id))
+      const ok = await postAction(
+        `/import/activities/${id}/restore`,
+        'import.restore.success',
+        'import.restore.error'
+      )
+      if (!ok)
+        setLocalActivities((cur) => cur.map((a) => (a.id === id ? { ...a, status: 'ignored' } : a)))
+      setPendingIds((s) => {
+        const n = new Set(s)
+        n.delete(id)
+        return n
+      })
+    },
+    [postAction]
+  )
+
   const filtered = useMemo(() => {
     const from = dateFrom ? new Date(dateFrom).getTime() : -Infinity
     const to = dateTo ? new Date(dateTo).getTime() + 86_400_000 - 1 : Infinity
-    return activities.filter((a) => {
+    return localActivities.filter((a) => {
       const ts = new Date(a.date).getTime()
-      return ts >= from && ts <= to
+      return ts >= from && ts <= to && (showIgnored || a.status !== 'ignored')
     })
-  }, [activities, dateFrom, dateTo])
+  }, [localActivities, dateFrom, dateTo, showIgnored])
 
   const columns = useMemo(
     () => [
@@ -191,28 +270,58 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         header: t('import.table.status'),
         cell: ({ getValue }) => <ActivityStatusBadge status={getValue()} />,
         enableSorting: false,
+        size: 120,
+        minSize: 120,
+        maxSize: 120,
       }),
       columnHelper.display({
         id: 'actions',
         header: t('import.table.actions'),
         cell: ({ row }) => {
-          if (row.original.status !== 'new') return null
-          const id = row.original.id
+          const { id, status } = row.original
           const isImporting = importingIds.has(id)
-          return (
-            <button
-              onClick={() => void importOne(id)}
-              disabled={isImporting}
-              className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isImporting ? t('import.batch.importing') : t('import.batch.button')}
-            </button>
-          )
+          const isPending = pendingIds.has(id)
+
+          if (status === 'new') {
+            return (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => void importOne(id)}
+                  disabled={isImporting || isPending}
+                  className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isImporting ? t('import.batch.importing') : t('import.batch.button')}
+                </button>
+                <button
+                  onClick={() => void ignoreOne(id)}
+                  disabled={isPending}
+                  className="w-[90px] cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {t('import.ignore.button')}
+                </button>
+              </div>
+            )
+          }
+
+          if (status === 'ignored') {
+            return (
+              <button
+                onClick={() => void restoreOne(id)}
+                disabled={isPending}
+                className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <Undo2 className="h-3.5 w-3.5" />
+                {t('import.restore.button')}
+              </button>
+            )
+          }
+
+          return null
         },
         enableSorting: false,
       }),
     ],
-    [t, importingIds, importOne]
+    [t, importingIds, pendingIds, importOne, ignoreOne, restoreOne]
   )
 
   const table = useReactTable({
@@ -249,6 +358,21 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
             className="rounded-md border cursor-pointer border-input bg-background px-2 py-1 text-sm text-foreground min-h-[44px]"
           />
         </label>
+        <button
+          onClick={() => setShowIgnored((v) => !v)}
+          className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium border transition cursor-pointer select-none ${
+            showIgnored
+              ? 'bg-muted border-input text-foreground'
+              : 'border-transparent bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
+          }`}
+        >
+          <span
+            className={`inline-block h-3.5 w-3.5 rounded-full border-2 transition ${
+              showIgnored ? 'bg-foreground border-foreground' : 'border-muted-foreground'
+            }`}
+          />
+          {t('import.filters.showIgnored')}
+        </button>
         <span className="text-xs text-muted-foreground">
           {filtered.length} {t('import.filters.results')}
         </span>
@@ -264,6 +388,14 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
                   <th
                     key={header.id}
                     className="px-4 py-3 text-left font-medium text-muted-foreground"
+                    style={
+                      header.column.columnDef.size
+                        ? {
+                            width: header.column.columnDef.size,
+                            minWidth: header.column.columnDef.size,
+                          }
+                        : undefined
+                    }
                   >
                     {header.isPlaceholder
                       ? null
@@ -285,9 +417,23 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-t transition-colors hover:bg-muted/30">
+                <tr
+                  key={row.id}
+                  className={`border-t transition-colors hover:bg-muted/30 ${row.original.status === 'ignored' ? 'opacity-50' : ''}`}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3">
+                    <td
+                      key={cell.id}
+                      className="px-4 py-3 h-14 align-middle"
+                      style={
+                        cell.column.columnDef.size
+                          ? {
+                              width: cell.column.columnDef.size,
+                              minWidth: cell.column.columnDef.size,
+                            }
+                          : undefined
+                      }
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -303,22 +449,45 @@ export default function ActivitiesDataTable({ activities }: ActivitiesDataTableP
         {filtered.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">{t('import.empty')}</p>
         ) : (
-          table.getRowModel().rows.map((row) => (
-            <div key={row.id} className="space-y-2">
-              <ActivityCard activity={row.original} />
-              {row.original.status === 'new' && (
-                <button
-                  onClick={() => void importOne(row.original.id)}
-                  disabled={importingIds.has(row.original.id)}
-                  className="w-full cursor-pointer rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {importingIds.has(row.original.id)
-                    ? t('import.batch.importing')
-                    : t('import.batch.button')}
-                </button>
-              )}
-            </div>
-          ))
+          table.getRowModel().rows.map((row) => {
+            const { id, status } = row.original
+            const isImporting = importingIds.has(id)
+            const isPending = pendingIds.has(id)
+            return (
+              <div key={row.id} className={`space-y-2 ${status === 'ignored' ? 'opacity-50' : ''}`}>
+                <ActivityCard activity={row.original} />
+                {status === 'new' && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => void importOne(id)}
+                      disabled={isImporting || isPending}
+                      className="flex-1 cursor-pointer rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isImporting ? t('import.batch.importing') : t('import.batch.button')}
+                    </button>
+                    <button
+                      onClick={() => void ignoreOne(id)}
+                      disabled={isPending}
+                      title={t('import.ignore.button')}
+                      className="cursor-pointer rounded-md border border-input px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                {status === 'ignored' && (
+                  <button
+                    onClick={() => void restoreOne(id)}
+                    disabled={isPending}
+                    className="w-full cursor-pointer rounded-md border border-input px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <Undo2 className="inline h-4 w-4 mr-1" />
+                    {t('import.restore.button')}
+                  </button>
+                )}
+              </div>
+            )
+          })
         )}
       </div>
     </div>

@@ -1,6 +1,14 @@
 import React, { useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { CheckCircle2, AlertCircle, Link2, Unlink, RefreshCw, ChevronLeft } from 'lucide-react'
+import {
+  CheckCircle2,
+  AlertCircle,
+  Link2,
+  Unlink,
+  RefreshCw,
+  ChevronLeft,
+  TriangleAlert,
+} from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import stravaLogo from '~/assets/strava-logo.svg'
 import { useTranslation } from '~/hooks/use_translation'
@@ -30,10 +38,15 @@ interface StagingActivity {
 
 interface ConnectorsShowProps {
   stravaStatus: ConnectorStatus | null
+  stravaConfigured: boolean
   activities: StagingActivity[] | null
 }
 
-export default function ConnectorsShow({ stravaStatus, activities }: ConnectorsShowProps) {
+export default function ConnectorsShow({
+  stravaStatus,
+  stravaConfigured,
+  activities,
+}: ConnectorsShowProps) {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -69,6 +82,12 @@ export default function ConnectorsShow({ stravaStatus, activities }: ConnectorsS
             <p className="text-sm text-muted-foreground">{t('connectors.strava.tagline')}</p>
           </div>
           <div className="ml-auto flex flex-col items-end gap-2">
+            {!stravaConfigured && (
+              <span className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700">
+                <TriangleAlert className="h-4 w-4" />
+                {t('connectors.strava.missingConfig')}
+              </span>
+            )}
             {stravaStatus === 'connected' && (
               <>
                 <span className="flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
@@ -92,7 +111,8 @@ export default function ConnectorsShow({ stravaStatus, activities }: ConnectorsS
                 </span>
                 <button
                   onClick={connectStrava}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#e04400] active:scale-95"
+                  disabled={!stravaConfigured}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#e04400] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   {t('connectors.strava.reconnect')}
@@ -102,7 +122,8 @@ export default function ConnectorsShow({ stravaStatus, activities }: ConnectorsS
             {stravaStatus === null && (
               <button
                 onClick={connectStrava}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#e04400] active:scale-95"
+                disabled={!stravaConfigured}
+                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#e04400] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Link2 className="h-3.5 w-3.5" />
                 {t('connectors.strava.connect')}
