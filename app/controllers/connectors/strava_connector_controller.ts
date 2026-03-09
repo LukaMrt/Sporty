@@ -4,13 +4,78 @@ import type { HttpContext } from '@adonisjs/core/http'
 import env from '#start/env'
 import ConnectStrava from '#use_cases/connectors/connect_strava'
 import DisconnectStrava from '#use_cases/connectors/disconnect_strava'
+import GetStravaConnector from '#use_cases/connectors/get_strava_connector'
+import ListPreImportActivities, {
+  ConnectorNotConnectedError,
+} from '#use_cases/import/list_pre_import_activities'
+
+interface RawActivityData {
+  name?: string
+  sportType?: string
+  startDate?: string
+  distanceMeters?: number | null
+  durationSeconds?: number
+}
+
+interface StagingActivityDto {
+  id: number
+  externalId: string
+  status: string
+  date: string
+  name: string
+  sportType: string
+  durationMinutes: number
+  distanceKm: number | null
+}
 
 @inject()
 export default class StravaConnectorController {
   constructor(
     private connectStrava: ConnectStrava,
-    private disconnectStrava: DisconnectStrava
+    private disconnectStrava: DisconnectStrava,
+    private getStravaConnector: GetStravaConnector,
+    private listPreImportActivities: ListPreImportActivities
   ) {}
+
+  async show({ inertia, auth }: HttpContext) {
+    const stravaStatus = await this.getStravaConnector.getStatus(auth.user!.id)
+    const clientId = env.get('STRAVA_CLIENT_ID')
+    const clientSecret = env.get('STRAVA_CLIENT_SECRET')
+    const stravaConfigured = Boolean(
+      clientId &&
+      !clientId.includes('change-me') &&
+      clientSecret &&
+      !clientSecret.includes('change-me')
+    )
+
+    try {
+      const records = await this.listPreImportActivities.execute({ userId: auth.user!.id })
+      const activities: StagingActivityDto[] = records.map((r) => {
+        const raw = (r.rawData ?? {}) as unknown as RawActivityData
+        const distanceM = raw.distanceMeters ?? null
+        return {
+          id: r.id,
+          externalId: r.externalId,
+          status: r.status,
+          date: raw.startDate ?? '',
+          name: raw.name ?? r.externalId,
+          sportType: raw.sportType ?? '',
+          durationMinutes: raw.durationSeconds ? raw.durationSeconds / 60 : 0,
+          distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
+        }
+      })
+      return inertia.render('Connectors/Show', { stravaStatus, stravaConfigured, activities })
+    } catch (error) {
+      if (error instanceof ConnectorNotConnectedError) {
+        return inertia.render('Connectors/Show', {
+          stravaStatus,
+          stravaConfigured,
+          activities: null,
+        })
+      }
+      throw error
+    }
+  }
 
   async authorize({ session, response }: HttpContext) {
     const clientId = env.get('STRAVA_CLIENT_ID')

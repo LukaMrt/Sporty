@@ -10,6 +10,7 @@ interface SessionCardProps {
   durationMinutes: number
   distanceKm: number | null
   perceivedEffort: number | null
+  importedFrom?: string | null
 }
 
 export default function SessionCard({
@@ -19,6 +20,7 @@ export default function SessionCard({
   durationMinutes,
   distanceKm,
   perceivedEffort,
+  importedFrom,
 }: SessionCardProps) {
   const { formatDistance } = useUnitConversion()
 
@@ -34,7 +36,14 @@ export default function SessionCard({
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-foreground truncate">{sportName}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-foreground truncate">{sportName}</p>
+            {importedFrom === 'strava' && (
+              <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                Strava
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">{formatDate(date)}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0 text-sm text-muted-foreground">

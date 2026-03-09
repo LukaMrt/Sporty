@@ -15,6 +15,14 @@ export interface ConnectorRecord {
   accessToken: string | null
 }
 
+export interface ConnectorFullRecord {
+  id: number
+  status: ConnectorStatus
+  accessToken: string | null
+  refreshToken: string | null
+  tokenExpiresAtSeconds: number | null
+}
+
 export interface UpdateTokensInput {
   accessToken: string
   refreshToken: string
@@ -23,6 +31,10 @@ export interface UpdateTokensInput {
 
 export abstract class ConnectorRepository {
   abstract upsert(data: UpsertConnectorInput): Promise<void>
+  abstract findFullByUserAndProvider(
+    userId: number,
+    provider: ConnectorProvider
+  ): Promise<ConnectorFullRecord | null>
   abstract findByUserAndProvider(
     userId: number,
     provider: ConnectorProvider

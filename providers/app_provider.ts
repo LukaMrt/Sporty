@@ -5,6 +5,10 @@ import { SportRepository } from '#domain/interfaces/sport_repository'
 import { AuthService } from '#domain/interfaces/auth_service'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
+import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
+import { ConnectorFactory } from '#domain/interfaces/connector_factory'
+import { RateLimitManager } from '#connectors/rate_limit_manager'
+import { ActivityMapper } from '#domain/interfaces/activity_mapper'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -41,6 +45,33 @@ export default class AppProvider {
       const { default: LucidConnectorRepository } =
         await import('#repositories/lucid_connector_repository')
       return new LucidConnectorRepository()
+    })
+
+    this.app.container.bind(ImportActivityRepository, async () => {
+      const { default: LucidImportActivityRepository } =
+        await import('#repositories/lucid_import_activity_repository')
+      return new LucidImportActivityRepository()
+    })
+
+    this.app.container.bind(ConnectorFactory, async (resolver) => {
+      const { StravaConnectorFactory } = await import('#connectors/strava/strava_connector_factory')
+      const connectorRepo = await resolver.make(ConnectorRepository)
+      const rateLimitMgr = await resolver.make(RateLimitManager)
+      const { default: env } = await import('#start/env')
+      const clientId = env.get('STRAVA_CLIENT_ID') ?? ''
+      const clientSecret = env.get('STRAVA_CLIENT_SECRET') ?? ''
+      return new StravaConnectorFactory(connectorRepo, rateLimitMgr, clientId, clientSecret)
+    })
+
+    this.app.container.singleton(RateLimitManager, async () => {
+      const { StravaRateLimitManager } = await import('#connectors/rate_limit_manager')
+      return new StravaRateLimitManager()
+    })
+
+    this.app.container.bind(ActivityMapper, async () => {
+      const { StravaDetailedActivityMapper } =
+        await import('#connectors/strava/strava_detailed_activity_mapper')
+      return new StravaDetailedActivityMapper()
     })
   }
 }

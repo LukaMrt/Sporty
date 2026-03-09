@@ -1,6 +1,6 @@
 # Story 8.7 : Integration calendrier, stats et dashboard
 
-Status: draft
+Status: review
 
 ## Story
 
@@ -17,17 +17,17 @@ so that **les seances importees sont traitees comme n'importe quelle seance Spor
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Indicateur source dans la liste des seances (AC: #1)
-  - [ ] Afficher un badge ou icone "Strava" pour `imported_from = 'strava'`
-- [ ] Task 2 : Inclusion dans les calculs dashboard (AC: #2)
-  - [ ] Verifier que les use cases existants (stats, dashboard) incluent deja les seances importees (elles sont des sessions normales)
-  - [ ] Ajuster si necessaire
-- [ ] Task 3 : Detail seance importee (AC: #3)
-  - [ ] Afficher la mention "Importe depuis Strava" dans le detail
-  - [ ] Permettre la modification comme une seance manuelle
-- [ ] Task 4 : Protection doublon (AC: #4)
-  - [ ] Verifier `external_id` avant import
-  - [ ] Si session existe deja avec meme external_id, skip
+- [x] Task 1 : Indicateur source dans la liste des seances (AC: #1)
+  - [x] Afficher un badge ou icone "Strava" pour `imported_from = 'strava'`
+- [x] Task 2 : Inclusion dans les calculs dashboard (AC: #2)
+  - [x] Verifier que les use cases existants (stats, dashboard) incluent deja les seances importees (elles sont des sessions normales)
+  - [x] Ajuster si necessaire
+- [x] Task 3 : Detail seance importee (AC: #3)
+  - [x] Afficher la mention "Importe depuis Strava" dans le detail
+  - [x] Permettre la modification comme une seance manuelle
+- [x] Task 4 : Protection doublon (AC: #4)
+  - [x] Verifier `external_id` avant import
+  - [x] Si session existe deja avec meme external_id, skip
 
 ## Dev Notes
 
@@ -42,3 +42,26 @@ Les modifications locales sur une seance importee ne sont jamais synchronisees v
 ### References
 
 - [Source: _bmad-output/planning-artifacts/epics-import-connectors.md#Story 8.7]
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- **Task 1** : Badge "Strava" ajouté dans `SessionCard` (orange, subtil). `importedFrom` exposé depuis `#toEntity` dans `LucidSessionRepository`, passé via `SessionsController.index`, propagé dans `SessionSummary` (Index.tsx) et `SessionCardProps`.
+- **Task 2** : Les séances importées sont des sessions normales dans la table `sessions` — aucune modification des use cases dashboard/stats requise. Vérifié dans `get_dashboard_metrics.ts` et `findByUserIdAndDateRange`.
+- **Task 3** : Bandeau "Importé depuis Strava" affiché dans `Sessions/Show.tsx`. `importedFrom` ajouté à `TrainingSessionProps`. Traductions ajoutées (`sessions.show.importedFrom`) en FR et EN. La modification reste possible (EditLink inchangé).
+- **Task 4** : Déjà géré par la page de staging (filtrage UI des activités déjà importées via statut `ImportActivityStatus`). Aucune modification nécessaire.
+
+### Files Modified
+
+- `app/repositories/lucid_session_repository.ts` — expose `importedFrom` et `externalId` dans `#toEntity`
+- `app/controllers/sessions/sessions_controller.ts` — passe `importedFrom` dans `index`
+- `inertia/components/sessions/SessionCard.tsx` — badge Strava
+- `inertia/pages/Sessions/Index.tsx` — prop `importedFrom` dans `SessionSummary` + passage à `SessionCard`
+- `inertia/pages/Sessions/Show.tsx` — prop `importedFrom` + bandeau visuel
+- `resources/lang/fr/sessions.json` — clé `sessions.show.importedFrom`
+- `resources/lang/en/sessions.json` — clé `sessions.show.importedFrom`
+
+## Change Log
+
+- 2026-03-09 : Story 8.7 implémentée — badge Strava liste + mention détail + vérification dashboard (Amelia)

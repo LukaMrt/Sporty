@@ -14,12 +14,17 @@ export default class LucidSessionRepository extends SessionRepository {
       userId: data.userId,
       sportId: data.sportId,
       date: DateTime.fromISO(data.date),
-      durationMinutes: data.durationMinutes,
+      durationMinutes: Math.round(data.durationMinutes),
       distanceKm: data.distanceKm ?? null,
-      avgHeartRate: data.avgHeartRate ?? null,
+      avgHeartRate:
+        data.avgHeartRate !== null && data.avgHeartRate !== undefined
+          ? Math.round(data.avgHeartRate)
+          : null,
       perceivedEffort: data.perceivedEffort ?? null,
       sportMetrics: data.sportMetrics,
       notes: data.notes ?? null,
+      importedFrom: data.importedFrom ?? null,
+      externalId: data.externalId ?? null,
     })
     await model.load('sport')
     return this.#toEntity(model)
@@ -146,6 +151,8 @@ export default class LucidSessionRepository extends SessionRepository {
       perceivedEffort: model.perceivedEffort,
       sportMetrics: model.sportMetrics,
       notes: model.notes,
+      importedFrom: model.importedFrom ?? null,
+      externalId: model.externalId ?? null,
       createdAt: model.createdAt.toISO() ?? '',
       deletedAt: model.deletedAt?.toISO() ?? null,
     }

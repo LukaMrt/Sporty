@@ -1,6 +1,6 @@
 # Story 8.1 : StravaHttpClient & RateLimitManager
 
-Status: draft
+Status: review
 
 ## Story
 
@@ -19,22 +19,22 @@ so that **tous les appels API Strava passent par un wrapper fiable qui respecte 
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : StravaHttpClient (AC: #1)
-  - [ ] Creer `app/connectors/strava/strava_http_client.ts`
-  - [ ] Wrapper fetch natif avec bearer token
-  - [ ] Parser les headers `X-RateLimit-Usage` (casse insensible)
-  - [ ] Mettre a jour le RateLimitManager apres chaque reponse
-- [ ] Task 2 : Retry logic (AC: #2, #3, #4)
-  - [ ] Backoff exponentiel avec jitter pour 429
-  - [ ] Retry max 3 pour 500/503
-  - [ ] Delegation refresh token pour 401
-- [ ] Task 3 : RateLimitManager (AC: #5)
-  - [ ] Creer `app/connectors/rate_limit_manager.ts`
-  - [ ] Tracking budget 15min (100 req) et journalier (1000 req)
-  - [ ] Attente automatique si budget epuise
-  - [ ] Enregistrement singleton dans IoC
-- [ ] Task 4 : Binding IoC (AC: #6)
-  - [ ] Enregistrer StravaHttpClient et RateLimitManager dans le container
+- [x] Task 1 : StravaHttpClient (AC: #1)
+  - [x] Creer `app/connectors/strava/strava_http_client.ts`
+  - [x] Wrapper fetch natif avec bearer token
+  - [x] Parser les headers `X-RateLimit-Usage` (casse insensible)
+  - [x] Mettre a jour le RateLimitManager apres chaque reponse
+- [x] Task 2 : Retry logic (AC: #2, #3, #4)
+  - [x] Backoff exponentiel avec jitter pour 429
+  - [x] Retry max 3 pour 500/503
+  - [x] Delegation refresh token pour 401
+- [x] Task 3 : RateLimitManager (AC: #5)
+  - [x] Creer `app/connectors/rate_limit_manager.ts`
+  - [x] Tracking budget 15min (100 req) et journalier (1000 req)
+  - [x] Attente automatique si budget epuise
+  - [x] Enregistrement singleton dans IoC
+- [x] Task 4 : Binding IoC (AC: #6)
+  - [x] Enregistrer StravaHttpClient et RateLimitManager dans le container
 
 ## Dev Notes
 
@@ -57,3 +57,32 @@ const delay = Math.pow(2, attempt) * 1000 + Math.random() * 500
 
 - [Source: _bmad-output/planning-artifacts/epics-import-connectors.md#Story 8.1]
 - [Source: _bmad-output/planning-artifacts/technical-api-strava-research-2026-03-07.md]
+
+## Dev Agent Record
+
+### Implementation Plan
+
+- `app/connectors/rate_limit_manager.ts` : abstract class `RateLimitManager` (port IoC) + `StravaRateLimitManager` (concrete, singleton). Sleeper injecté pour testabilité sans vraie attente.
+- `app/connectors/strava/strava_http_client.ts` : wraps fetch avec bearer token, parse `x-ratelimit-usage` (case-insensitive via Web API), retry 429/500/503 avec backoff injecté, refresh token sur 401 (persist-before-use pattern hérité de Story 7.5).
+- `package.json` : alias `#connectors/*` ajouté.
+- `providers/app_provider.ts` : `container.singleton(RateLimitManager, ...)` pour partager l'état budget entre tous les appels.
+
+### Completion Notes
+
+- Tous les ACs couverts par 20 tests unitaires (rate_limit_manager.spec.ts + strava_http_client.spec.ts).
+- `pnpm run ci` 100% vert (format, lint, typecheck, depcruise, tests).
+- Pattern sleeper injecté sur `StravaRateLimitManager` permet de tester l'attente sans vrais délais.
+- `StravaHttpClient` non enregistré comme singleton (paramètres runtime userId/tokens) — le singleton `RateLimitManager` est injecté dans les futures use cases via container.
+
+## File List
+
+- `app/connectors/rate_limit_manager.ts` (créé)
+- `app/connectors/strava/strava_http_client.ts` (créé)
+- `providers/app_provider.ts` (modifié — ajout singleton RateLimitManager)
+- `package.json` (modifié — ajout alias #connectors/*)
+- `tests/unit/connectors/rate_limit_manager.spec.ts` (créé)
+- `tests/unit/connectors/strava/strava_http_client.spec.ts` (créé)
+
+## Change Log
+
+- 2026-03-08 : Implémentation complète story 8.1 — StravaHttpClient (connectors) + RateLimitManager + IoC binding + tests unitaires

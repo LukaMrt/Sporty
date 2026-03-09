@@ -55,7 +55,8 @@
     "deleteTitle": "Supprimer cette séance ?",
     "deleteDescription": "Cette action peut être annulée dans les 5 secondes après la suppression.",
     "deleteConfirm": "Supprimer",
-    "deleteCancel": "Annuler"
+    "deleteCancel": "Annuler",
+    "importedFrom": "Importé depuis {source}"
   },
   "edit": {
     "title": "Modifier la séance",

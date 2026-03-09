@@ -55,7 +55,8 @@
     "deleteTitle": "Delete this session?",
     "deleteDescription": "This action can be undone within 5 seconds after deletion.",
     "deleteConfirm": "Delete",
-    "deleteCancel": "Cancel"
+    "deleteCancel": "Cancel",
+    "importedFrom": "Imported from {source}"
   },
   "edit": {
     "title": "Edit session",

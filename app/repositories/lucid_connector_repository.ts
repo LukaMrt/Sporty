@@ -4,12 +4,33 @@ import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import type {
   UpsertConnectorInput,
   ConnectorRecord,
+  ConnectorFullRecord,
   UpdateTokensInput,
 } from '#domain/interfaces/connector_repository'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 
 export default class LucidConnectorRepository extends ConnectorRepository {
+  async findFullByUserAndProvider(
+    userId: number,
+    provider: ConnectorProvider
+  ): Promise<ConnectorFullRecord | null> {
+    const connector = await ConnectorModel.query()
+      .where('user_id', userId)
+      .where('provider', provider)
+      .first()
+    if (!connector) return null
+    return {
+      id: connector.id,
+      status: connector.status,
+      accessToken: connector.encryptedAccessToken,
+      refreshToken: connector.encryptedRefreshToken,
+      tokenExpiresAtSeconds: connector.tokenExpiresAt
+        ? Math.floor(connector.tokenExpiresAt.toSeconds())
+        : null,
+    }
+  }
+
   async findByUserAndProvider(
     userId: number,
     provider: ConnectorProvider

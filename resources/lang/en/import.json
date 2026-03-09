@@ -1,0 +1,42 @@
+{
+  "title": "Activities to import",
+  "empty": "No activities in this date range.",
+  "status": {
+    "new": "New",
+    "importing": "Importing…",
+    "imported": "Imported",
+    "ignored": "Ignored"
+  },
+  "table": {
+    "date": "Date",
+    "name": "Name",
+    "type": "Type",
+    "duration": "Duration",
+    "distance": "Distance",
+    "distanceUnit": "km",
+    "status": "Status",
+    "actions": "Action"
+  },
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "results": "result(s)",
+    "showIgnored": "Show ignored"
+  },
+  "batch": {
+    "button": "Import",
+    "importing": "Importing…",
+    "success": "Session imported successfully.",
+    "error": "Import failed."
+  },
+  "ignore": {
+    "button": "Ignore",
+    "success": "Activity ignored.",
+    "error": "Operation failed."
+  },
+  "restore": {
+    "button": "Restore",
+    "success": "Activity restored.",
+    "error": "Restore failed."
+  }
+}

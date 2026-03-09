@@ -23,6 +23,8 @@ const ProfileController = () => import('#controllers/profile/profile_controller'
 const ConnectorsController = () => import('#controllers/connectors/connectors_controller')
 const StravaConnectorController = () =>
   import('#controllers/connectors/strava_connector_controller')
+const ImportController = () => import('#controllers/import/import_controller')
+const ImportActivitiesController = () => import('#controllers/import/import_activities_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
@@ -57,8 +59,12 @@ router
     router.put('/profile/password', [PasswordController, 'update'])
     router.post('/logout', [LogoutController, 'logout'])
     router.get('/connectors', [ConnectorsController, 'index'])
+    router.get('/connectors/strava', [StravaConnectorController, 'show'])
     router.get('/connectors/strava/authorize', [StravaConnectorController, 'authorize'])
     router.post('/connectors/strava/disconnect', [StravaConnectorController, 'disconnect'])
+    router.post('/import/batch', [ImportController, 'batch'])
+    router.post('/import/activities/:id/ignore', [ImportActivitiesController, 'ignore'])
+    router.post('/import/activities/:id/restore', [ImportActivitiesController, 'restore'])
   })
   .use([middleware.auth(), middleware.onboarding()])
 

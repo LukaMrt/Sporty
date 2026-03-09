@@ -3,6 +3,8 @@
   "description": "Connectez vos applications tierces pour importer vos activités.",
   "notConfigured": "Les connecteurs ne sont pas activés sur cette instance.",
   "strava": {
+    "tagline": "Réseau social sportif",
+    "disconnectDescription": "Vos tokens seront supprimés et votre compte Strava sera révoqué. Vous pourrez reconnecter à tout moment.",
     "connect": "Connecter",
     "reconnect": "Reconnecter",
     "disconnect": "Déconnecter",
@@ -13,6 +15,7 @@
     "denied": "Autorisation Strava refusée",
     "invalidState": "Paramètre state invalide",
     "missingConfig": "Configuration Strava manquante",
-    "error": "Erreur lors de la connexion à Strava"
+    "error": "Erreur lors de la connexion à Strava",
+    "sessionCount": "{count} session(s) trouvée(s)"
   }
 }

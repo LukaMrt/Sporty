@@ -10,6 +10,8 @@ export interface TrainingSession {
   perceivedEffort: number | null
   sportMetrics: Record<string, unknown>
   notes: string | null
+  importedFrom?: string | null
+  externalId?: string | null
   createdAt: string
   deletedAt?: string | null
 }

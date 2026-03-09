@@ -65,6 +65,7 @@ export default class SessionsController {
           durationMinutes: s.durationMinutes,
           distanceKm: s.distanceKm,
           perceivedEffort: s.perceivedEffort,
+          importedFrom: s.importedFrom ?? null,
         })),
         meta: sessions.meta,
       },
