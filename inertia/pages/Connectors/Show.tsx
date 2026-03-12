@@ -30,12 +30,16 @@ interface ConnectorsShowProps {
   stravaStatus: ConnectorStatus | null
   stravaConfigured: boolean
   activities: StagingSession[] | null
+  initialAfter?: string
+  initialBefore?: string
 }
 
 export default function ConnectorsShow({
   stravaStatus,
   stravaConfigured,
   activities,
+  initialAfter,
+  initialBefore,
 }: ConnectorsShowProps) {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -127,7 +131,11 @@ export default function ConnectorsShow({
       {activities !== null && (
         <div className="px-6 pb-6">
           <h2 className="text-lg font-semibold text-foreground">{t('import.title')}</h2>
-          <SessionsDataTable sessions={activities} />
+          <SessionsDataTable
+            sessions={activities}
+            initialAfter={initialAfter}
+            initialBefore={initialBefore}
+          />
         </div>
       )}
 
