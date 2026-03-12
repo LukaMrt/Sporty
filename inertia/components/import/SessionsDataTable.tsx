@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createColumnHelper,
   flexRender,
@@ -8,16 +8,20 @@ import {
   useReactTable,
   type SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2 } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2, Calendar } from 'lucide-react'
+import { router } from '@inertiajs/react'
 import SessionStatusBadge from '~/components/import/SessionStatusBadge'
 import StagingSessionCard from '~/components/import/StagingSessionCard'
 import { useTranslation } from '~/hooks/use_translation'
+import { useDateFormat } from '~/hooks/use_date_format'
 import { pushToast } from '~/hooks/use_toast'
 import type { StagingSession } from '~/types/staging_session'
 import { formatDuration } from '~/lib/format'
 
 interface SessionsDataTableProps {
   sessions: StagingSession[]
+  initialAfter?: string
+  initialBefore?: string
 }
 
 function getDefaultDateRange() {
@@ -32,16 +36,41 @@ function getDefaultDateRange() {
 
 const columnHelper = createColumnHelper<StagingSession>()
 
-export default function SessionsDataTable({ sessions }: SessionsDataTableProps) {
+export default function SessionsDataTable({
+  sessions,
+  initialAfter,
+  initialBefore,
+}: SessionsDataTableProps) {
   const { t } = useTranslation()
+  const { formatDate, formatShortDate } = useDateFormat()
   const defaults = getDefaultDateRange()
   const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: true }])
-  const [dateFrom, setDateFrom] = useState(defaults.after)
-  const [dateTo, setDateTo] = useState(defaults.before)
+  const [dateFrom, setDateFrom] = useState(initialAfter ?? defaults.after)
+  const [dateTo, setDateTo] = useState(initialBefore ?? defaults.before)
   const [importingIds, setImportingIds] = useState<Set<number>>(new Set())
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
   const [localSessions, setLocalSessions] = useState(sessions)
   const [showIgnored, setShowIgnored] = useState(false)
+
+  useEffect(() => {
+    setLocalSessions(sessions)
+  }, [sessions])
+
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    const timer = setTimeout(() => {
+      router.get(
+        '/connectors/strava',
+        { after: dateFrom, before: dateTo },
+        { preserveState: true, only: ['activities', 'initialAfter', 'initialBefore'] }
+      )
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [dateFrom, dateTo])
 
   const importOne = useCallback(
     async (id: number) => {
@@ -182,12 +211,7 @@ export default function SessionsDataTable({ sessions }: SessionsDataTableProps) 
             onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           />
         ),
-        cell: ({ getValue }) =>
-          new Date(getValue()).toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
+        cell: ({ getValue }) => formatDate(getValue()),
       }),
       columnHelper.accessor('name', {
         header: t('import.table.name'),
@@ -276,7 +300,7 @@ export default function SessionsDataTable({ sessions }: SessionsDataTableProps) 
         enableSorting: false,
       }),
     ],
-    [t, importingIds, pendingIds, importOne, ignoreOne, restoreOne]
+    [t, formatDate, importingIds, pendingIds, importOne, ignoreOne, restoreOne]
   )
 
   const table = useReactTable({
@@ -295,22 +319,20 @@ export default function SessionsDataTable({ sessions }: SessionsDataTableProps) 
       <div className="flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           {t('import.filters.from')}
-          <input
-            type="date"
+          <DateFilterInput
             value={dateFrom}
             max={dateTo}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="rounded-md border cursor-pointer border-input bg-background px-2 py-1 text-sm text-foreground min-h-[44px]"
+            onChange={setDateFrom}
+            formatDate={formatShortDate}
           />
         </label>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           {t('import.filters.to')}
-          <input
-            type="date"
+          <DateFilterInput
             value={dateTo}
             min={dateFrom}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="rounded-md border cursor-pointer border-input bg-background px-2 py-1 text-sm text-foreground min-h-[44px]"
+            onChange={setDateTo}
+            formatDate={formatShortDate}
           />
         </label>
         <button
@@ -445,6 +467,39 @@ export default function SessionsDataTable({ sessions }: SessionsDataTableProps) 
           })
         )}
       </div>
+    </div>
+  )
+}
+
+interface DateFilterInputProps {
+  value: string
+  onChange: (v: string) => void
+  formatDate: (d: string) => string
+  min?: string
+  max?: string
+}
+
+function DateFilterInput({ value, onChange, formatDate, min, max }: DateFilterInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  return (
+    <div
+      className="relative rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground min-h-[44px] flex items-center min-w-[120px] cursor-pointer"
+      onClick={() => inputRef.current?.showPicker()}
+    >
+      <span className="pointer-events-none select-none flex items-center gap-1.5">
+        {value ? formatDate(value) : '—'}
+        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+      </span>
+      <input
+        ref={inputRef}
+        type="date"
+        value={value}
+        min={min}
+        max={max}
+        onChange={(e) => onChange(e.target.value)}
+        className="sr-only"
+      />
     </div>
   )
 }

@@ -37,7 +37,7 @@ export default class StravaConnectorController {
     private listPreImportActivities: ListPreImportActivities
   ) {}
 
-  async show({ inertia, auth }: HttpContext) {
+  async show({ inertia, auth, request }: HttpContext) {
     const stravaStatus = await this.getStravaConnector.getStatus(auth.user!.id)
     const clientId = env.get('STRAVA_CLIENT_ID')
     const clientSecret = env.get('STRAVA_CLIENT_SECRET')
@@ -48,8 +48,19 @@ export default class StravaConnectorController {
       !clientSecret.includes('change-me')
     )
 
+    const { after: afterParam, before: beforeParam } = request.qs() as {
+      after?: string
+      before?: string
+    }
+    const after = afterParam ? new Date(afterParam) : undefined
+    const before = beforeParam ? new Date(beforeParam) : undefined
+
     try {
-      const records = await this.listPreImportActivities.execute({ userId: auth.user!.id })
+      const records = await this.listPreImportActivities.execute({
+        userId: auth.user!.id,
+        after,
+        before,
+      })
       const activities: StagingActivityDto[] = records.map((r) => {
         const raw = (r.rawData ?? {}) as unknown as RawActivityData
         const distanceM = raw.distanceMeters ?? null
@@ -64,13 +75,21 @@ export default class StravaConnectorController {
           distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
         }
       })
-      return inertia.render('Connectors/Show', { stravaStatus, stravaConfigured, activities })
+      return inertia.render('Connectors/Show', {
+        stravaStatus,
+        stravaConfigured,
+        activities,
+        initialAfter: afterParam,
+        initialBefore: beforeParam,
+      })
     } catch (error) {
       if (error instanceof ConnectorNotConnectedError) {
         return inertia.render('Connectors/Show', {
           stravaStatus,
           stravaConfigured,
           activities: null,
+          initialAfter: afterParam,
+          initialBefore: beforeParam,
         })
       }
       throw error

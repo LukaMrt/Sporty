@@ -30,9 +30,11 @@ export default class ListPreImportActivities {
 
     const after = input.after ?? new Date(Date.now() - DEFAULT_LOOKBACK_MS)
 
+    const before = input.before ?? new Date()
+
     const activities = await connector.listActivities({
       after,
-      before: input.before,
+      before,
       perPage: 200,
     })
 
@@ -44,6 +46,16 @@ export default class ListPreImportActivities {
       }))
     )
 
-    return this.importActivityRepository.findByConnectorId(connector.id)
+    const allRecords = await this.importActivityRepository.findByConnectorId(connector.id)
+
+    const afterMs = after.getTime()
+    const beforeMs = before.getTime() + 86_400_000 - 1
+
+    return allRecords.filter((r) => {
+      const startDate = (r.rawData as { startDate?: string } | null)?.startDate
+      if (!startDate) return true
+      const ts = new Date(startDate).getTime()
+      return ts >= afterMs && ts <= beforeMs
+    })
   }
 }
