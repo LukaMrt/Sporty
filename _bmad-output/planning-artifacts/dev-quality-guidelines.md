@@ -1,7 +1,7 @@
 # Règles de qualité de développement — Sporty
 
 > Document de référence pour tout développeur (humain ou IA) travaillant sur le projet.
-> Basé sur les retours d'exécution de l'Epic 2 et l'outillage d'analyse statique en place.
+> Consolidé à partir des retours d'exécution des Epics 2 à 9.
 
 ---
 
@@ -112,6 +112,62 @@ Le controller ne fait que : valider → déléguer au use case → gérer la ré
 
 Un fichier, une classe, une méthode publique. Toute la logique métier vit ici.
 
+### Value Objects pour les énumérations métier
+
+Utiliser des enums TypeScript regroupés dans `app/domain/value_objects/` pour tous les états et types métier :
+
+```typescript
+// app/domain/value_objects/connector_status.ts
+export enum ConnectorStatus {
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+  Error = 'error',
+}
+```
+
+Value objects existants : `ConnectorStatus`, `ConnectorProvider`, `ImportActivityStatus`, `UserRole`.
+
+### Couche Connectors (intégrations externes)
+
+Les connecteurs externes vivent dans `app/connectors/{provider}/` avec ce pattern :
+
+```
+app/connectors/strava/
+├── strava_connector.ts          # Implémente le port Connector (abstract class)
+├── strava_connector_factory.ts  # Implémente ConnectorFactory
+├── strava_http_client.ts        # Client HTTP spécifique au provider
+├── strava_activity_mapper.ts    # Mapping API externe → entités domaine
+└── strava_sport_mapper.ts       # Mapping types de sport externe → interne
+```
+
+**Règles :**
+- Les connecteurs sont de l'infra — ils n'importent ni use cases, ni controllers, ni middleware
+- Le domain définit les ports (`Connector`, `ConnectorFactory`, `ActivityMapper`) comme abstract classes
+- Le binding IoC se fait dans `providers/app_provider.ts`
+- Rate limiting centralisé via `RateLimitManager` (singleton IoC)
+
+### Patterns Inertia / React
+
+**Formulaires** — utiliser `useForm` d'Inertia :
+```tsx
+const { data, setData, post, processing, errors } = useForm({ name: '' })
+```
+
+**Props partagées** — typer via `usePage<SharedProps>()` :
+```tsx
+const { auth } = usePage<SharedProps>().props
+```
+
+**Navigation** — utiliser `router` d'Inertia (pas `window.location`) :
+```tsx
+router.visit('/path')           // Navigation classique
+router.get('/path', params, { preserveState: true })  // Avec query params
+router.post('/path')            // Action POST
+router.delete('/path')          // Action DELETE
+```
+
+**Pages** — chaque page dans `inertia/pages/{Feature}/Name.tsx`, rendue via `renderInertia('Feature/Name')` côté controller.
+
 ---
 
 ## 5. Tests
@@ -146,7 +202,7 @@ CSRF est désactivé quand `NODE_ENV === 'test'` (dans `config/shield.ts`). Pas 
 
 ---
 
-## 6. Pièges connus (retours Epic 2)
+## 6. Pièges connus
 
 | Piège | Solution |
 | --- | --- |
@@ -157,6 +213,9 @@ CSRF est désactivé quand `NODE_ENV === 'test'` (dans `config/shield.ts`). Pas 
 | `@theme inline` avec `hsl(var(--x))` | `:root` contient les valeurs `hsl()` complètes, `@theme` utilise `var()` directement |
 | `auth.loginViaId()` n'existe pas en AdonisJS v6 | Utiliser `auth.use('web').login(lucidModel)` |
 | Hash driver = `scrypt` (pas argon2) | `@beforeSave()` sur le model gère le hash automatiquement |
+| `withAuthFinder` mixin ajoute son propre `@beforeSave` hash | Ne JAMAIS ajouter un second `@beforeSave` pour hasher le mot de passe → double hash |
+| `auth.use('web').login()` attend un model Lucid | Pas un plain object — passer l'instance du model |
+| `response.redirect().back().withErrors()` n'existe pas en v6 | Utiliser `session.flashErrors()` puis `response.redirect().back()` |
 
 ---
 
