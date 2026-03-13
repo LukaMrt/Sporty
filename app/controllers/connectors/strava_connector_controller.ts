@@ -5,6 +5,8 @@ import env from '#start/env'
 import ConnectStrava from '#use_cases/connectors/connect_strava'
 import DisconnectStrava from '#use_cases/connectors/disconnect_strava'
 import GetStravaConnector from '#use_cases/connectors/get_strava_connector'
+import { ConnectorRepository } from '#domain/interfaces/connector_repository'
+import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import ListPreImportActivities, {
   ConnectorNotConnectedError,
 } from '#use_cases/import/list_pre_import_activities'
@@ -34,7 +36,8 @@ export default class StravaConnectorController {
     private connectStrava: ConnectStrava,
     private disconnectStrava: DisconnectStrava,
     private getStravaConnector: GetStravaConnector,
-    private listPreImportActivities: ListPreImportActivities
+    private listPreImportActivities: ListPreImportActivities,
+    private connectorRepository: ConnectorRepository
   ) {}
 
   async show({ inertia, auth, request }: HttpContext) {
@@ -54,6 +57,11 @@ export default class StravaConnectorController {
     }
     const after = afterParam ? new Date(afterParam) : undefined
     const before = beforeParam ? new Date(beforeParam) : undefined
+
+    const settings = await this.connectorRepository.findSettings(
+      auth.user!.id,
+      ConnectorProvider.Strava
+    )
 
     try {
       const records = await this.listPreImportActivities.execute({
@@ -81,6 +89,8 @@ export default class StravaConnectorController {
         activities,
         initialAfter: afterParam,
         initialBefore: beforeParam,
+        autoImportEnabled: settings?.autoImportEnabled ?? false,
+        pollingIntervalMinutes: settings?.pollingIntervalMinutes ?? 15,
       })
     } catch (error) {
       if (error instanceof ConnectorNotConnectedError) {
@@ -90,6 +100,8 @@ export default class StravaConnectorController {
           activities: null,
           initialAfter: afterParam,
           initialBefore: beforeParam,
+          autoImportEnabled: settings?.autoImportEnabled ?? false,
+          pollingIntervalMinutes: settings?.pollingIntervalMinutes ?? 15,
         })
       }
       throw error

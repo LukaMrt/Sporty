@@ -29,6 +29,16 @@ export interface UpdateTokensInput {
   tokenExpiresAtSeconds: number
 }
 
+export interface UpdateSettingsInput {
+  autoImportEnabled: boolean
+  pollingIntervalMinutes: number
+}
+
+export interface ConnectorSettingsRecord {
+  autoImportEnabled: boolean
+  pollingIntervalMinutes: number
+}
+
 export abstract class ConnectorRepository {
   abstract upsert(data: UpsertConnectorInput): Promise<void>
   abstract findFullByUserAndProvider(
@@ -50,4 +60,13 @@ export abstract class ConnectorRepository {
     provider: ConnectorProvider,
     status: ConnectorStatus
   ): Promise<void>
+  abstract updateSettings(
+    userId: number,
+    provider: ConnectorProvider,
+    data: UpdateSettingsInput
+  ): Promise<void>
+  abstract findSettings(
+    userId: number,
+    provider: ConnectorProvider
+  ): Promise<ConnectorSettingsRecord | null>
 }

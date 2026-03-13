@@ -23,6 +23,8 @@ const ProfileController = () => import('#controllers/profile/profile_controller'
 const ConnectorsController = () => import('#controllers/connectors/connectors_controller')
 const StravaConnectorController = () =>
   import('#controllers/connectors/strava_connector_controller')
+const ConnectorSettingsController = () =>
+  import('#controllers/connectors/connector_settings_controller')
 const ImportController = () => import('#controllers/import/import_controller')
 const ImportActivitiesController = () => import('#controllers/import/import_activities_controller')
 
@@ -62,6 +64,7 @@ router
     router.get('/connectors/strava', [StravaConnectorController, 'show'])
     router.get('/connectors/strava/authorize', [StravaConnectorController, 'authorize'])
     router.post('/connectors/strava/disconnect', [StravaConnectorController, 'disconnect'])
+    router.post('/connectors/:provider/settings', [ConnectorSettingsController, 'update'])
     router.post('/import/batch', [ImportController, 'batch'])
     router.post('/import/activities/:id/ignore', [ImportActivitiesController, 'ignore'])
     router.post('/import/activities/:id/restore', [ImportActivitiesController, 'restore'])

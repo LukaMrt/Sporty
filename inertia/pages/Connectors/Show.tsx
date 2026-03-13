@@ -12,6 +12,7 @@ import {
 import MainLayout from '~/layouts/MainLayout'
 import stravaLogo from '~/assets/strava-logo.svg'
 import { useTranslation } from '~/hooks/use_translation'
+import { pushToast } from '~/hooks/use_toast'
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,9 @@ import {
   DialogFooter,
   DialogClose,
 } from '~/components/ui/dialog'
+import { Switch } from '~/components/ui/switch'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import SessionsDataTable from '~/components/import/SessionsDataTable'
 import type { StagingSession } from '~/types/staging_session'
 
@@ -32,6 +36,8 @@ interface ConnectorsShowProps {
   activities: StagingSession[] | null
   initialAfter?: string
   initialBefore?: string
+  autoImportEnabled: boolean
+  pollingIntervalMinutes: number
 }
 
 export default function ConnectorsShow({
@@ -40,9 +46,43 @@ export default function ConnectorsShow({
   activities,
   initialAfter,
   initialBefore,
+  autoImportEnabled,
+  pollingIntervalMinutes,
 }: ConnectorsShowProps) {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [optimisticEnabled, setOptimisticEnabled] = useState(autoImportEnabled)
+  const [interval, setInterval] = useState(pollingIntervalMinutes)
+
+  const isConnected = stravaStatus === 'connected'
+
+  function submitSettings(enabled: boolean, minutes: number) {
+    router.post(
+      '/connectors/strava/settings',
+      { auto_import_enabled: enabled, polling_interval_minutes: minutes },
+      {
+        preserveScroll: true,
+        showProgress: false,
+        onSuccess: () => pushToast(t('connectors.settings.updated')),
+        onError: () => {
+          setOptimisticEnabled(autoImportEnabled)
+          setInterval(pollingIntervalMinutes)
+          pushToast(t('connectors.settings.error'), 'error')
+        },
+      }
+    )
+  }
+
+  function handleToggle(checked: boolean) {
+    setOptimisticEnabled(checked)
+    submitSettings(checked, interval)
+  }
+
+  function handleIntervalBlur() {
+    const clamped = Math.min(60, Math.max(5, interval))
+    setInterval(clamped)
+    submitSettings(optimisticEnabled, clamped)
+  }
 
   function connectStrava() {
     window.location.href = '/connectors/strava/authorize'
@@ -123,6 +163,46 @@ export default function ConnectorsShow({
                 {t('connectors.strava.connect')}
               </button>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Settings auto import */}
+      <div className="px-6 pb-4">
+        <div className="flex items-center gap-6 rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <Switch
+              id="auto-import"
+              checked={optimisticEnabled}
+              onCheckedChange={handleToggle}
+              disabled={!isConnected}
+            />
+            <Label
+              htmlFor="auto-import"
+              className={!isConnected ? 'text-muted-foreground' : undefined}
+            >
+              {t('connectors.settings.autoImport')}
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="polling-interval"
+              className={!isConnected ? 'text-muted-foreground' : undefined}
+            >
+              {t('connectors.settings.interval')}
+            </Label>
+            <Input
+              id="polling-interval"
+              type="number"
+              min={5}
+              max={60}
+              value={interval}
+              onChange={(e) => setInterval(Number(e.target.value))}
+              onBlur={handleIntervalBlur}
+              disabled={!isConnected}
+              className="w-20"
+            />
+            <span className={`text-sm ${!isConnected ? 'text-muted-foreground' : ''}`}>min</span>
           </div>
         </div>
       </div>

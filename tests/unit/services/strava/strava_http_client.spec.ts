@@ -33,6 +33,10 @@ function makeConnectorRepository(
     async disconnect() {}
     async updateTokens() {}
     async setStatus() {}
+    async updateSettings() {}
+    async findSettings() {
+      return null
+    }
   }
   return Object.assign(new Mock(), overrides)
 }

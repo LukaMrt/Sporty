@@ -17,5 +17,13 @@
     "missingConfig": "Configuration Strava manquante",
     "error": "Erreur lors de la connexion à Strava",
     "sessionCount": "{count} session(s) trouvée(s)"
+  },
+  "settings": {
+    "updated": "Paramètres du connecteur mis à jour",
+    "providerNotFound": "Provider invalide",
+    "connectorNotFound": "Connecteur introuvable",
+    "autoImport": "Import automatique",
+    "interval": "Intervalle",
+    "error": "Erreur lors de la mise à jour des paramètres"
   }
 }
