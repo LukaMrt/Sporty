@@ -45,7 +45,17 @@ export interface ActiveConnectorRecord {
   pollingIntervalMinutes: number
 }
 
+export interface ConnectorByIdRecord {
+  id: number
+  userId: number
+  provider: ConnectorProvider
+  status: ConnectorStatus
+  autoImportEnabled: boolean
+}
+
 export abstract class ConnectorRepository {
+  abstract findById(id: number): Promise<ConnectorByIdRecord | null>
+  abstract updateLastSyncAt(id: number): Promise<void>
   abstract findAllAutoImportEnabled(): Promise<ActiveConnectorRecord[]>
   abstract upsert(data: UpsertConnectorInput): Promise<void>
   abstract findFullByUserAndProvider(

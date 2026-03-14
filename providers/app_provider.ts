@@ -8,8 +8,9 @@ import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
-import { RateLimitManager } from '#connectors/rate_limit_manager'
+import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import { ActivityMapper } from '#domain/interfaces/activity_mapper'
+import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -75,13 +76,39 @@ export default class AppProvider {
       return new StravaDetailedActivityMapper()
     })
 
+    this.app.container.singleton(ConnectorRegistry, async (resolver) => {
+      const { InMemoryConnectorRegistry } = await import('#connectors/in_memory_connector_registry')
+      const { StravaConnectorFactory } = await import('#connectors/strava/strava_connector_factory')
+      const { StravaDetailedActivityMapper } =
+        await import('#connectors/strava/strava_detailed_activity_mapper')
+      const { default: env } = await import('#start/env')
+      const connectorRepo = await resolver.make(ConnectorRepository)
+      const rateLimitMgr = await resolver.make(RateLimitManager)
+      const clientId = env.get('STRAVA_CLIENT_ID') ?? ''
+      const clientSecret = env.get('STRAVA_CLIENT_SECRET') ?? ''
+      const stravaFactory = new StravaConnectorFactory(
+        connectorRepo,
+        rateLimitMgr,
+        clientId,
+        clientSecret
+      )
+      const stravaMapper = new StravaDetailedActivityMapper()
+      const registry = new InMemoryConnectorRegistry()
+      registry.register('strava', {
+        factory: stravaFactory,
+        mapper: stravaMapper,
+        rateLimiter: rateLimitMgr,
+      })
+      return registry
+    })
+
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {
       const { SyncScheduler } = await import('#services/sync_scheduler')
       const syncConnectorModule = await import('#use_cases/connectors/sync_connector')
       const SyncConnector = syncConnectorModule.default
-      const syncFn = async (connectorId: number, userId: number) => {
+      const syncFn = async (connectorId: number) => {
         const useCase = await resolver.make(SyncConnector)
-        return useCase.execute({ connectorId, userId })
+        return useCase.execute({ connectorId })
       }
       const loadConnectorsFn = async () => {
         const repo = await resolver.make(ConnectorRepository)

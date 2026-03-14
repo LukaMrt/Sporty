@@ -2,7 +2,7 @@ import { ConnectorScheduler } from '#domain/interfaces/connector_scheduler'
 import type { ActiveConnectorRecord } from '#domain/interfaces/connector_repository'
 
 export type SyncOutcome = 'success' | 'permanent_error' | 'temporary_error'
-export type SyncFn = (connectorId: number, userId: number) => Promise<{ outcome: SyncOutcome }>
+export type SyncFn = (connectorId: number) => Promise<{ outcome: SyncOutcome }>
 export type LoadConnectorsFn = () => Promise<ActiveConnectorRecord[]>
 
 interface ConnectorTimer {
@@ -40,7 +40,7 @@ export class SyncScheduler extends ConnectorScheduler {
 
     const ms = intervalMinutes * 60 * 1000
     const handle = setInterval(() => {
-      void this.runSync(connectorId, userId)
+      void this.runSync(connectorId)
     }, ms)
 
     this.timers.set(connectorId, { userId, intervalMinutes, handle })
@@ -61,8 +61,8 @@ export class SyncScheduler extends ConnectorScheduler {
     }
   }
 
-  private async runSync(connectorId: number, userId: number): Promise<void> {
-    const result = await this.syncFn(connectorId, userId)
+  private async runSync(connectorId: number): Promise<void> {
+    const result = await this.syncFn(connectorId)
     if (result.outcome === 'permanent_error') {
       this.removeConnector(connectorId)
     }

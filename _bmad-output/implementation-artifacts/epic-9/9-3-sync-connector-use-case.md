@@ -1,6 +1,6 @@
 # Story 9.3 : Sync connector use case
 
-Status: draft
+Status: done
 
 ## Story
 
@@ -17,29 +17,29 @@ so that **la logique de sync est isolee, testable et reutilisable par le schedul
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Port ConnectorRegistry (prerequis)
-  - [ ] Creer `app/domain/interfaces/connector_registry.ts` (classe abstraite)
-  - [ ] Methodes : `getFactory(provider)`, `getMapper(provider)`, `getRateLimitManager(provider)`
-- [ ] Task 2 : Implementation InMemoryConnectorRegistry
-  - [ ] Creer `app/connectors/in_memory_connector_registry.ts`
-  - [ ] `Map<ConnectorProvider, { factory, mapper, rateLimiter }>`
-  - [ ] Methode `register(provider, { factory, mapper, rateLimiter })`
-- [ ] Task 3 : Wiring dans AppProvider
-  - [ ] Modifier `providers/app_provider.ts`
-  - [ ] Creer le registry, y enregistrer Strava, binder dans le container
-  - [ ] Mettre a jour `ConnectorProvider` value object si necessaire
-- [ ] Task 4 : Use case SyncConnector (AC: #1, #2, #3, #4)
-  - [ ] Creer `app/use_cases/connectors/sync_connector.ts`
-  - [ ] Injection : `ConnectorRegistry`, `ConnectorRepository`, `ImportActivityRepository`
-  - [ ] Verifier etat connecteur (`connected` requis)
-  - [ ] Resoudre factory/mapper/rateLimiter via `ConnectorRegistry.get*(provider)`
-  - [ ] Appeler `listActivities` via l'abstraction `Connector`
-  - [ ] Sauvegarder nouvelles activites en staging
-  - [ ] Si `auto_import_enabled`, importer les activites `new` via `ImportActivities`
-  - [ ] Mettre a jour `last_sync_at`
-- [ ] Task 5 : Gestion erreurs (AC: #3, #4)
-  - [ ] `ConnectorAuthError` si etat invalide
-  - [ ] Arret propre si rate limit atteint (`RateLimitExceededError`)
+- [x] Task 1 : Port ConnectorRegistry (prerequis)
+  - [x] Creer `app/domain/interfaces/connector_registry.ts` (classe abstraite)
+  - [x] Methodes : `getFactory(provider)`, `getMapper(provider)`, `getRateLimitManager(provider)`
+- [x] Task 2 : Implementation InMemoryConnectorRegistry
+  - [x] Creer `app/connectors/in_memory_connector_registry.ts`
+  - [x] `Map<ConnectorProvider, { factory, mapper, rateLimiter }>`
+  - [x] Methode `register(provider, { factory, mapper, rateLimiter })`
+- [x] Task 3 : Wiring dans AppProvider
+  - [x] Modifier `providers/app_provider.ts`
+  - [x] Creer le registry, y enregistrer Strava, binder dans le container
+  - [x] Mettre a jour `ConnectorProvider` value object si necessaire
+- [x] Task 4 : Use case SyncConnector (AC: #1, #2, #3, #4)
+  - [x] Creer `app/use_cases/connectors/sync_connector.ts`
+  - [x] Injection : `ConnectorRegistry`, `ConnectorRepository`, `ImportActivityRepository`
+  - [x] Verifier etat connecteur (`connected` requis)
+  - [x] Resoudre factory/mapper/rateLimiter via `ConnectorRegistry.get*(provider)`
+  - [x] Appeler `listActivities` via l'abstraction `Connector`
+  - [x] Sauvegarder nouvelles activites en staging
+  - [x] Si `auto_import_enabled`, importer les activites `new` via `ImportActivities`
+  - [x] Mettre a jour `last_sync_at`
+- [x] Task 5 : Gestion erreurs (AC: #3, #4)
+  - [x] `ConnectorAuthError` si etat invalide
+  - [x] Arret propre si rate limit atteint (`RateLimitExceededError`)
 
 ## Dev Notes
 
@@ -76,3 +76,36 @@ Il est independant du contexte d'appel.
 
 - [Source: _bmad-output/epics/epic-9-import-automatique.md#Story 9.3]
 - [Source: _bmad-output/epics/epic-9-import-automatique.md#Decisions architecturales]
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- `RateLimitManager` abstract extrait vers `app/domain/interfaces/rate_limit_manager.ts` pour respecter la regle clean archi (domain n'importe rien depuis connectors). `app/connectors/rate_limit_manager.ts` re-exporte pour compatibilite des importeurs existants.
+- `ConnectorStatus.Disconnected` ajoute au value object (AC#3).
+- `ConnectorRepository` enrichi : `findById(id)` et `updateLastSyncAt(id)` — necessaires pour que le use case soit agnostique du provider.
+- `SyncConnector` reecrit : input reduit a `{ connectorId }`, userId et provider resolus depuis la BD via `findById`.
+- `SyncFn` dans `SyncScheduler` simplifiee : ne prend plus `userId` (gere en interne par le use case).
+- 10 tests unitaires couvrant les 4 AC + cas limites.
+
+### File List
+
+- `app/domain/interfaces/rate_limit_manager.ts` (nouveau)
+- `app/domain/interfaces/connector_registry.ts` (nouveau)
+- `app/domain/interfaces/connector_repository.ts` (modifie — findById, updateLastSyncAt, ConnectorByIdRecord)
+- `app/domain/value_objects/connector_status.ts` (modifie — Disconnected)
+- `app/connectors/rate_limit_manager.ts` (modifie — re-export depuis domain)
+- `app/connectors/in_memory_connector_registry.ts` (nouveau)
+- `app/repositories/lucid_connector_repository.ts` (modifie — findById, updateLastSyncAt)
+- `app/use_cases/connectors/sync_connector.ts` (modifie — refactoring registry)
+- `app/services/sync_scheduler.ts` (modifie — SyncFn sans userId)
+- `providers/app_provider.ts` (modifie — ConnectorRegistry binding)
+- `tests/unit/use_cases/connectors/sync_connector.spec.ts` (modifie — réécriture pour registry)
+- `tests/unit/services/sync_scheduler.spec.ts` (modifie — SyncFn sans userId)
+- `tests/unit/connectors/strava/strava_http_client.spec.ts` (modifie — mock findById/updateLastSyncAt)
+- `tests/unit/services/strava/strava_http_client.spec.ts` (modifie — mock findById/updateLastSyncAt)
+- `tests/unit/use_cases/connectors/update_connector_settings.spec.ts` (modifie — mock findById/updateLastSyncAt)
+
+### Change Log
+
+- Story 9.3 implementee — ConnectorRegistry pattern, SyncConnector refactorised, 358 tests passants (2026-03-14)

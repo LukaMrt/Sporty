@@ -1,11 +1,10 @@
+import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
+
+export { RateLimitManager }
+
 type Sleeper = (ms: number) => Promise<void>
 
 const defaultSleeper: Sleeper = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
-export abstract class RateLimitManager {
-  abstract update(usage15min: number, usageDaily: number): void
-  abstract waitIfNeeded(): Promise<void>
-}
 
 export class StravaRateLimitManager extends RateLimitManager {
   #usage15min = 0

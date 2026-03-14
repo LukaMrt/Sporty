@@ -4,11 +4,11 @@ import type { SyncFn, SyncOutcome, LoadConnectorsFn } from '#services/sync_sched
 
 function makeSyncFn(outcome: SyncOutcome = 'success'): {
   fn: SyncFn
-  calls: { connectorId: number; userId: number }[]
+  calls: { connectorId: number }[]
 } {
-  const calls: { connectorId: number; userId: number }[] = []
-  const fn: SyncFn = async (connectorId, userId) => {
-    calls.push({ connectorId, userId })
+  const calls: { connectorId: number }[] = []
+  const fn: SyncFn = async (connectorId) => {
+    calls.push({ connectorId })
     return { outcome }
   }
   return { fn, calls }
@@ -128,7 +128,7 @@ test.group('SyncScheduler', (group) => {
 
     // Appeler runSync directement pour tester sans attendre le timer
     // @ts-expect-error accès privé pour test
-    await scheduler.runSync(1, 10)
+    await scheduler.runSync(1)
 
     // @ts-expect-error accès privé pour test
     assert.equal(scheduler.timers.size, 0)
@@ -141,7 +141,7 @@ test.group('SyncScheduler', (group) => {
     scheduler.addConnector(1, 10, 60)
 
     // @ts-expect-error accès privé pour test
-    await scheduler.runSync(1, 10)
+    await scheduler.runSync(1)
 
     // @ts-expect-error accès privé pour test
     assert.equal(scheduler.timers.size, 1)
@@ -154,7 +154,7 @@ test.group('SyncScheduler', (group) => {
     scheduler.addConnector(1, 10, 60)
 
     // @ts-expect-error accès privé pour test
-    await scheduler.runSync(1, 10)
+    await scheduler.runSync(1)
 
     // @ts-expect-error accès privé pour test
     assert.equal(scheduler.timers.size, 1)

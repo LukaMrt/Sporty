@@ -24,6 +24,10 @@ function makeConnectorRepository(
   }> = {}
 ): ConnectorRepository {
   class Mock extends ConnectorRepository {
+    async findById() {
+      return null
+    }
+    async updateLastSyncAt() {}
     async findAllAutoImportEnabled() {
       return []
     }

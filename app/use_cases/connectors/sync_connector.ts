@@ -1,18 +1,16 @@
 import { inject } from '@adonisjs/core'
-import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
-import { ConnectorFactory } from '#domain/interfaces/connector_factory'
+import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
+import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import { ActivityMapper } from '#domain/interfaces/activity_mapper'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
+import { RateLimitExceededError } from '#domain/errors/rate_limit_exceeded_error'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
-import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 
 export interface SyncConnectorInput {
   connectorId: number
-  userId: number
 }
 
 export type SyncConnectorResult =
@@ -20,30 +18,49 @@ export type SyncConnectorResult =
   | { outcome: 'permanent_error'; reason: string }
   | { outcome: 'temporary_error'; reason: string }
 
-const LOOKBACK_MS = 24 * 60 * 60 * 1000 // 24h
-
 @inject()
 export default class SyncConnector {
   constructor(
-    private importActivityRepository: ImportActivityRepository,
-    private connectorFactory: ConnectorFactory,
+    private registry: ConnectorRegistry,
     private connectorRepository: ConnectorRepository,
+    private importActivityRepository: ImportActivityRepository,
     private sportRepository: SportRepository,
-    private sessionRepository: SessionRepository,
-    private activityMapper: ActivityMapper
+    private sessionRepository: SessionRepository
   ) {}
 
   async execute(input: SyncConnectorInput): Promise<SyncConnectorResult> {
-    const { connectorId, userId } = input
+    const { connectorId } = input
+
+    const record = await this.connectorRepository.findById(connectorId)
+    if (!record) {
+      return { outcome: 'permanent_error', reason: 'Connector not found' }
+    }
 
     try {
-      const connector = await this.connectorFactory.make(userId)
+      // AC#3 — vérifier l'état avant tout appel API
+      if (
+        record.status === ConnectorStatus.Error ||
+        record.status === ConnectorStatus.Disconnected
+      ) {
+        throw new ConnectorAuthError(record.provider)
+      }
+
+      const { provider, userId, autoImportEnabled } = record
+
+      const rateLimiter = this.registry.getRateLimitManager(provider)
+      await rateLimiter.waitIfNeeded()
+
+      const factory = this.registry.getFactory(provider)
+      const connector = await factory.make(userId)
       if (!connector) {
         return { outcome: 'permanent_error', reason: 'Connector not connected' }
       }
 
-      const after = new Date(Date.now() - LOOKBACK_MS)
-      const activities = await connector.listActivities({ after, before: new Date(), perPage: 200 })
+      const activities = await connector.listActivities({
+        after: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        before: new Date(),
+        perPage: 200,
+      })
 
       await this.importActivityRepository.upsertMany(
         connectorId,
@@ -53,6 +70,13 @@ export default class SyncConnector {
         }))
       )
 
+      await this.connectorRepository.updateLastSyncAt(connectorId)
+
+      // AC#2 — importer seulement si auto_import_enabled
+      if (!autoImportEnabled) {
+        return { outcome: 'success', imported: 0 }
+      }
+
       const staged = await this.importActivityRepository.findByConnectorId(connectorId)
       const newActivities = staged.filter((r) => r.status === ImportActivityStatus.New)
 
@@ -60,14 +84,15 @@ export default class SyncConnector {
         return { outcome: 'success', imported: 0 }
       }
 
+      const mapper = this.registry.getMapper(provider)
       const sports = await this.sportRepository.findAll()
       const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
       let imported = 0
 
-      for (const record of newActivities) {
+      for (const stagingRecord of newActivities) {
         try {
-          const detail = await connector.getActivityDetail(record.externalId)
-          const mapped = this.activityMapper.map(detail)
+          const detail = await connector.getActivityDetail(stagingRecord.externalId)
+          const mapped = mapper.map(detail)
           const sportId = sportBySlug.get(mapped.sportSlug)
           if (!sportId) continue
 
@@ -85,7 +110,7 @@ export default class SyncConnector {
             externalId: mapped.externalId,
           })
 
-          await this.importActivityRepository.setImported(record.id, session.id)
+          await this.importActivityRepository.setImported(stagingRecord.id, session.id)
           imported++
         } catch {
           // Activity-level error: skip and continue
@@ -96,11 +121,14 @@ export default class SyncConnector {
     } catch (err) {
       if (err instanceof ConnectorAuthError) {
         await this.connectorRepository.setStatus(
-          userId,
-          ConnectorProvider.Strava,
+          record.userId,
+          record.provider,
           ConnectorStatus.Error
         )
         return { outcome: 'permanent_error', reason: err.message }
+      }
+      if (err instanceof RateLimitExceededError) {
+        return { outcome: 'temporary_error', reason: err.message }
       }
       return {
         outcome: 'temporary_error',
