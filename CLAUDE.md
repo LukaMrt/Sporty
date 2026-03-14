@@ -92,7 +92,8 @@ Les imports entre couches sont strictement contrôlés. Règle clé : **domain n
 
 ## Conventions et pièges
 
-Voir @_bmad-output/planning-artifacts/dev-quality-guidelines.md pour :
+Voir @\_bmad-output/planning-artifacts/dev-quality-guidelines.md pour :
+
 - Conventions de nommage (snake_case backend, PascalCase React)
 - Patterns obligatoires (ports = abstract class, constructeurs avec super(), controllers minces)
 - Patterns de test (isolation DB par test, mocks de ports, CSRF désactivé en test)

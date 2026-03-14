@@ -11,12 +11,16 @@ export interface UpdateConnectorSettingsInput {
   pollingIntervalMinutes: number
 }
 
+export interface UpdateConnectorSettingsResult {
+  connectorId: number
+}
+
 @inject()
 export default class UpdateConnectorSettings {
   constructor(private connectorRepository: ConnectorRepository) {}
 
-  async execute(input: UpdateConnectorSettingsInput): Promise<void> {
-    const connector = await this.connectorRepository.findByUserAndProvider(
+  async execute(input: UpdateConnectorSettingsInput): Promise<UpdateConnectorSettingsResult> {
+    const connector = await this.connectorRepository.findFullByUserAndProvider(
       input.userId,
       input.provider
     )
@@ -33,5 +37,7 @@ export default class UpdateConnectorSettings {
       autoImportEnabled: input.autoImportEnabled,
       pollingIntervalMinutes: input.pollingIntervalMinutes,
     })
+
+    return { connectorId: connector.id }
   }
 }

@@ -23,6 +23,9 @@ function makeConnectorRepository(
   }> = {}
 ): ConnectorRepository {
   class Mock extends ConnectorRepository {
+    async findAllAutoImportEnabled() {
+      return []
+    }
     async upsert() {}
     async findFullByUserAndProvider(): Promise<null> {
       return null

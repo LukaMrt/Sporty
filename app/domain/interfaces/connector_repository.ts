@@ -39,7 +39,14 @@ export interface ConnectorSettingsRecord {
   pollingIntervalMinutes: number
 }
 
+export interface ActiveConnectorRecord {
+  id: number
+  userId: number
+  pollingIntervalMinutes: number
+}
+
 export abstract class ConnectorRepository {
+  abstract findAllAutoImportEnabled(): Promise<ActiveConnectorRecord[]>
   abstract upsert(data: UpsertConnectorInput): Promise<void>
   abstract findFullByUserAndProvider(
     userId: number,

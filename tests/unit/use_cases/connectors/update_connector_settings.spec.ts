@@ -20,6 +20,9 @@ function makeConnectorRepository(
   overrides: Partial<ConnectorRepository> = {}
 ): ConnectorRepository {
   class Mock extends ConnectorRepository {
+    async findAllAutoImportEnabled() {
+      return []
+    }
     async upsert(_data: UpsertConnectorInput): Promise<void> {}
     async findFullByUserAndProvider(
       _userId: number,
@@ -63,8 +66,14 @@ test.group('UpdateConnectorSettings', () => {
     let capturedSettings: UpdateSettingsInput | null = null
 
     const repo = makeConnectorRepository({
-      async findByUserAndProvider() {
-        return { status: ConnectorStatus.Connected, accessToken: 'tok' }
+      async findFullByUserAndProvider() {
+        return {
+          id: 42,
+          status: ConnectorStatus.Connected,
+          accessToken: 'tok',
+          refreshToken: 'ref',
+          tokenExpiresAtSeconds: 9999,
+        }
       },
       async updateSettings(_userId, _provider, data) {
         capturedSettings = data
@@ -88,7 +97,7 @@ test.group('UpdateConnectorSettings', () => {
 
   test("lance ConnectorNotFoundError si le connecteur n'existe pas", async ({ assert }) => {
     const repo = makeConnectorRepository({
-      async findByUserAndProvider() {
+      async findFullByUserAndProvider() {
         return null
       },
     })
@@ -110,8 +119,14 @@ test.group('UpdateConnectorSettings', () => {
 
   test('lance ConnectorNotFoundError si le connecteur est en erreur', async ({ assert }) => {
     const repo = makeConnectorRepository({
-      async findByUserAndProvider() {
-        return { status: ConnectorStatus.Error, accessToken: 'tok' }
+      async findFullByUserAndProvider() {
+        return {
+          id: 42,
+          status: ConnectorStatus.Error,
+          accessToken: 'tok',
+          refreshToken: 'ref',
+          tokenExpiresAtSeconds: 9999,
+        }
       },
     })
 

@@ -8,6 +8,7 @@ import type {
   UpdateTokensInput,
   UpdateSettingsInput,
   ConnectorSettingsRecord,
+  ActiveConnectorRecord,
 } from '#domain/interfaces/connector_repository'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
@@ -97,6 +98,17 @@ export default class LucidConnectorRepository extends ConnectorRepository {
       autoImportEnabled: data.autoImportEnabled,
       pollingIntervalMinutes: data.pollingIntervalMinutes,
     })
+  }
+
+  async findAllAutoImportEnabled(): Promise<ActiveConnectorRecord[]> {
+    const connectors = await ConnectorModel.query()
+      .where('auto_import_enabled', true)
+      .where('status', 'connected')
+    return connectors.map((c) => ({
+      id: c.id,
+      userId: c.userId,
+      pollingIntervalMinutes: c.pollingIntervalMinutes,
+    }))
   }
 
   async findSettings(

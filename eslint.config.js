@@ -4,12 +4,20 @@ import reactHooks from 'eslint-plugin-react-hooks'
 
 export default configApp(
   { ignores: ['coverage/**', '.adonisjs/**', 'database/schema.ts'] },
-  // Enforce no-console in all TS files (not in RULES_LIST by default)
   // TypeScript strict rules (type-checked)
-  ...tseslint.configs.recommendedTypeChecked.map((config) => ({
-    ...config,
-    files: ['**/*.ts', '**/*.tsx'],
-  })),
+  // On filtre base + eslint-recommended déjà fournis par configApp() pour éviter
+  // la redéfinition du plugin @typescript-eslint
+  ...tseslint.configs.recommendedTypeChecked
+    .filter(
+      (config) =>
+        !['typescript-eslint/base', 'typescript-eslint/eslint-recommended'].includes(
+          config.name ?? ''
+        )
+    )
+    .map((config) => ({
+      ...config,
+      files: ['**/*.ts', '**/*.tsx'],
+    })),
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {

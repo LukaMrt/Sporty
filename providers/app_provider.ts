@@ -1,4 +1,5 @@
 import type { ApplicationService } from '@adonisjs/core/types'
+import { ConnectorScheduler } from '#domain/interfaces/connector_scheduler'
 import { UserRepository } from '#domain/interfaces/user_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
@@ -73,5 +74,32 @@ export default class AppProvider {
         await import('#connectors/strava/strava_detailed_activity_mapper')
       return new StravaDetailedActivityMapper()
     })
+
+    this.app.container.singleton(ConnectorScheduler, async (resolver) => {
+      const { SyncScheduler } = await import('#services/sync_scheduler')
+      const syncConnectorModule = await import('#use_cases/connectors/sync_connector')
+      const SyncConnector = syncConnectorModule.default
+      const syncFn = async (connectorId: number, userId: number) => {
+        const useCase = await resolver.make(SyncConnector)
+        return useCase.execute({ connectorId, userId })
+      }
+      const loadConnectorsFn = async () => {
+        const repo = await resolver.make(ConnectorRepository)
+        return repo.findAllAutoImportEnabled()
+      }
+      return new SyncScheduler(syncFn, loadConnectorsFn)
+    })
+  }
+
+  async ready() {
+    if (!['web', 'test'].includes(this.app.getEnvironment())) return
+
+    const scheduler = await this.app.container.make(ConnectorScheduler)
+    await scheduler.start()
+  }
+
+  async shutdown() {
+    const scheduler = await this.app.container.make(ConnectorScheduler)
+    scheduler.stop()
   }
 }
