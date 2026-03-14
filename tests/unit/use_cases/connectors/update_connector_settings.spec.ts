@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import UpdateConnectorSettings from '#use_cases/connectors/update_connector_settings'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
+import { ConnectorScheduler } from '#domain/interfaces/connector_scheduler'
 import type {
   UpsertConnectorInput,
   ConnectorRecord,
@@ -63,6 +64,17 @@ function makeConnectorRepository(
   return Object.assign(new Mock(), overrides)
 }
 
+function makeScheduler(overrides: Partial<ConnectorScheduler> = {}): ConnectorScheduler {
+  class Mock extends ConnectorScheduler {
+    async start() {}
+    stop() {}
+    addConnector() {}
+    removeConnector() {}
+    updateInterval() {}
+  }
+  return Object.assign(new Mock(), overrides)
+}
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 test.group('UpdateConnectorSettings', () => {
@@ -84,7 +96,7 @@ test.group('UpdateConnectorSettings', () => {
       },
     })
 
-    const useCase = new UpdateConnectorSettings(repo)
+    const useCase = new UpdateConnectorSettings(repo, makeScheduler())
 
     await useCase.execute({
       userId: 1,
@@ -106,7 +118,7 @@ test.group('UpdateConnectorSettings', () => {
       },
     })
 
-    const useCase = new UpdateConnectorSettings(repo)
+    const useCase = new UpdateConnectorSettings(repo, makeScheduler())
 
     try {
       await useCase.execute({
@@ -119,6 +131,68 @@ test.group('UpdateConnectorSettings', () => {
     } catch (error) {
       assert.instanceOf(error, ConnectorNotFoundError)
     }
+  })
+
+  test('autoImportEnabled=true → addConnector appelé avec le bon intervalle', async ({
+    assert,
+  }) => {
+    let schedulerCall: { connectorId: number; userId: number; interval: number } | null = null
+
+    const repo = makeConnectorRepository({
+      async findFullByUserAndProvider() {
+        return {
+          id: 42,
+          status: ConnectorStatus.Connected,
+          accessToken: 'tok',
+          refreshToken: 'ref',
+          tokenExpiresAtSeconds: 9999,
+        }
+      },
+    })
+    const scheduler = makeScheduler({
+      addConnector(connectorId, userId, intervalMinutes) {
+        schedulerCall = { connectorId, userId, interval: intervalMinutes }
+      },
+    })
+
+    await new UpdateConnectorSettings(repo, scheduler).execute({
+      userId: 1,
+      provider: ConnectorProvider.Strava,
+      autoImportEnabled: true,
+      pollingIntervalMinutes: 10,
+    })
+
+    assert.deepEqual(schedulerCall, { connectorId: 42, userId: 1, interval: 10 })
+  })
+
+  test('autoImportEnabled=false → removeConnector appelé', async ({ assert }) => {
+    let removedId: number | null = null
+
+    const repo = makeConnectorRepository({
+      async findFullByUserAndProvider() {
+        return {
+          id: 42,
+          status: ConnectorStatus.Connected,
+          accessToken: 'tok',
+          refreshToken: 'ref',
+          tokenExpiresAtSeconds: 9999,
+        }
+      },
+    })
+    const scheduler = makeScheduler({
+      removeConnector(connectorId) {
+        removedId = connectorId
+      },
+    })
+
+    await new UpdateConnectorSettings(repo, scheduler).execute({
+      userId: 1,
+      provider: ConnectorProvider.Strava,
+      autoImportEnabled: false,
+      pollingIntervalMinutes: 10,
+    })
+
+    assert.equal(removedId, 42)
   })
 
   test('lance ConnectorNotFoundError si le connecteur est en erreur', async ({ assert }) => {
@@ -134,7 +208,7 @@ test.group('UpdateConnectorSettings', () => {
       },
     })
 
-    const useCase = new UpdateConnectorSettings(repo)
+    const useCase = new UpdateConnectorSettings(repo, makeScheduler())
 
     try {
       await useCase.execute({
