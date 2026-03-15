@@ -1,13 +1,13 @@
 import { inject } from '@adonisjs/core'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
-import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
+import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import { RateLimitExceededError } from '#domain/errors/rate_limit_exceeded_error'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
-import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
+import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 
 export interface SyncConnectorInput {
   connectorId: number
@@ -23,7 +23,7 @@ export default class SyncConnector {
   constructor(
     private registry: ConnectorRegistry,
     private connectorRepository: ConnectorRepository,
-    private importActivityRepository: ImportActivityRepository,
+    private importSessionRepository: ImportSessionRepository,
     private sportRepository: SportRepository,
     private sessionRepository: SessionRepository
   ) {}
@@ -56,15 +56,15 @@ export default class SyncConnector {
         return { outcome: 'permanent_error', reason: 'Connector not connected' }
       }
 
-      const activities = await connector.listActivities({
+      const sessions = await connector.listSessions({
         after: new Date(Date.now() - 24 * 60 * 60 * 1000),
         before: new Date(),
         perPage: 200,
       })
 
-      await this.importActivityRepository.upsertMany(
+      await this.importSessionRepository.upsertMany(
         connectorId,
-        activities.map((a) => ({
+        sessions.map((a) => ({
           externalId: a.externalId,
           rawData: a as unknown as Record<string, unknown>,
         }))
@@ -77,10 +77,10 @@ export default class SyncConnector {
         return { outcome: 'success', imported: 0 }
       }
 
-      const staged = await this.importActivityRepository.findByConnectorId(connectorId)
-      const newActivities = staged.filter((r) => r.status === ImportActivityStatus.New)
+      const staged = await this.importSessionRepository.findByConnectorId(connectorId)
+      const newSessions = staged.filter((r) => r.status === ImportSessionStatus.New)
 
-      if (newActivities.length === 0) {
+      if (newSessions.length === 0) {
         return { outcome: 'success', imported: 0 }
       }
 
@@ -89,13 +89,13 @@ export default class SyncConnector {
       const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
       let imported = 0
 
-      for (const stagingRecord of newActivities) {
+      for (const stagingRecord of newSessions) {
         try {
-          const detail = await connector.getActivityDetail(stagingRecord.externalId)
+          const detail = await connector.getSessionDetail(stagingRecord.externalId)
           const mapped = mapper.map(detail)
           const sportId = sportBySlug.get(mapped.sportSlug)
           if (!sportId) {
-            await this.importActivityRepository.setFailed(
+            await this.importSessionRepository.setFailed(
               stagingRecord.id,
               `unsupported_sport:${mapped.sportSlug}`
             )
@@ -116,10 +116,10 @@ export default class SyncConnector {
             externalId: mapped.externalId,
           })
 
-          await this.importActivityRepository.setImported(stagingRecord.id, session.id)
+          await this.importSessionRepository.setImported(stagingRecord.id, session.id)
           imported++
         } catch {
-          // Activity-level error: skip and continue
+          // Session-level error: skip and continue
         }
       }
 

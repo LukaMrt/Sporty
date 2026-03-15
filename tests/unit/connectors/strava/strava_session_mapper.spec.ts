@@ -1,11 +1,11 @@
 import { test } from '@japa/runner'
-import { StravaActivityMapper } from '#connectors/strava/strava_activity_mapper'
-import type { StravaDetailedActivity } from '#connectors/strava/strava_activity_mapper'
-import fixtureList from '../../../fixtures/strava_activity.json' with { type: 'json' }
+import { StravaSessionMapper } from '#connectors/strava/strava_session_mapper'
+import type { StravaDetailedSession } from '#connectors/strava/strava_session_mapper'
+import fixtureList from '../../../fixtures/strava_session.json' with { type: 'json' }
 
-const FIXTURE_ACTIVITY = fixtureList[0] as StravaDetailedActivity
+const FIXTURE_SESSION = fixtureList[0] as StravaDetailedSession
 
-const FULL_ACTIVITY: StravaDetailedActivity = {
+const FULL_SESSION: StravaDetailedSession = {
   id: 12345,
   name: 'Morning Run',
   sport_type: 'Run',
@@ -20,111 +20,111 @@ const FULL_ACTIVITY: StravaDetailedActivity = {
   device_name: 'Garmin Forerunner',
 }
 
-test.group('StravaActivityMapper — activité complète (AC#1, #2, #3)', () => {
-  const mapper = new StravaActivityMapper()
+test.group('StravaSessionMapper — session complète (AC#1, #2, #3)', () => {
+  const mapper = new StravaSessionMapper()
 
   test('AC#1 — name mappé correctement', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.name, 'Morning Run')
   })
 
   test('AC#1 — sport_type Run → sportSlug running', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.sportSlug, 'running')
   })
 
   test('AC#1 — start_date_local → date', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.date, '2024-03-01T07:30:00')
   })
 
   test('AC#1 — moving_time (s) → durationMinutes (/60)', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.durationMinutes, 60)
   })
 
   test('AC#1 — distance (m) → distanceKm (/1000)', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.distanceKm, 10)
   })
 
   test('AC#1 — average_heartrate → avgHeartRate', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.avgHeartRate, 145)
   })
 
   test('AC#1 — allure course = 1000 / (speed * 60)', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     // 1000 / (2.778 * 60) ≈ 5.996 min/km
     assert.approximately(result.sportMetrics.allure!, 6.0, 0.01)
   })
 
   test('AC#2 — importedFrom = strava', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.importedFrom, 'strava')
   })
 
-  test('AC#2 — externalId = activity.id', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+  test('AC#2 — externalId = session.id', ({ assert }) => {
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.externalId, 12345)
   })
 
   test('AC#3 — calories dans sportMetrics', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.sportMetrics.calories, 500)
   })
 
   test('AC#3 — elevationGain dans sportMetrics', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.sportMetrics.elevationGain, 120)
   })
 
   test('AC#3 — maxHeartRate dans sportMetrics', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.sportMetrics.maxHeartRate, 175)
   })
 
   test('AC#3 — deviceName dans sportMetrics', ({ assert }) => {
-    const result = mapper.map(FULL_ACTIVITY)
+    const result = mapper.map(FULL_SESSION)
     assert.equal(result.sportMetrics.deviceName, 'Garmin Forerunner')
   })
 })
 
-test.group('StravaActivityMapper — activité partielle (AC#6)', () => {
-  const mapper = new StravaActivityMapper()
+test.group('StravaSessionMapper — session partielle (AC#6)', () => {
+  const mapper = new StravaSessionMapper()
 
   test('AC#6 — sans FC → avgHeartRate null', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, average_heartrate: undefined })
+    const result = mapper.map({ ...FULL_SESSION, average_heartrate: undefined })
     assert.isNull(result.avgHeartRate)
   })
 
   test('AC#6 — sans distance → distanceKm null', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, distance: undefined })
+    const result = mapper.map({ ...FULL_SESSION, distance: undefined })
     assert.isNull(result.distanceKm)
   })
 
   test('AC#6 — distance 0 → distanceKm null', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, distance: 0 })
+    const result = mapper.map({ ...FULL_SESSION, distance: 0 })
     assert.isNull(result.distanceKm)
   })
 
   test('AC#6 — sans speed → allure null', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, average_speed: undefined })
+    const result = mapper.map({ ...FULL_SESSION, average_speed: undefined })
     assert.isNull(result.sportMetrics.allure)
   })
 
   test('AC#6 — sans calories → null dans sportMetrics', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, calories: undefined })
+    const result = mapper.map({ ...FULL_SESSION, calories: undefined })
     assert.isNull(result.sportMetrics.calories)
   })
 
   test('AC#6 — sans device_name → null dans sportMetrics', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, device_name: undefined })
+    const result = mapper.map({ ...FULL_SESSION, device_name: undefined })
     assert.isNull(result.sportMetrics.deviceName)
   })
 
-  test('AC#6 — activité minimale sans aucun champ optionnel → pas de crash', ({ assert }) => {
-    const minimal: StravaDetailedActivity = {
+  test('AC#6 — session minimale sans aucun champ optionnel → pas de crash', ({ assert }) => {
+    const minimal: StravaDetailedSession = {
       id: 99,
       name: 'Minimal',
       sport_type: 'Run',
@@ -143,72 +143,72 @@ test.group('StravaActivityMapper — activité partielle (AC#6)', () => {
   })
 })
 
-test.group('StravaActivityMapper — allure vélo (AC#1)', () => {
-  const mapper = new StravaActivityMapper()
+test.group('StravaSessionMapper — allure vélo (AC#1)', () => {
+  const mapper = new StravaSessionMapper()
 
   test('allure velo = speed * 3.6 (km/h)', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, sport_type: 'Ride', average_speed: 10 })
+    const result = mapper.map({ ...FULL_SESSION, sport_type: 'Ride', average_speed: 10 })
     assert.approximately(result.sportMetrics.allure!, 36.0, 0.01)
   })
 })
 
-test.group('StravaActivityMapper — sport_type non mappé (AC#5)', () => {
-  const mapper = new StravaActivityMapper()
+test.group('StravaSessionMapper — sport_type non mappé (AC#5)', () => {
+  const mapper = new StravaSessionMapper()
 
   test('sport inconnu → sportSlug = other', ({ assert }) => {
-    const result = mapper.map({ ...FULL_ACTIVITY, sport_type: 'Yoga' })
+    const result = mapper.map({ ...FULL_SESSION, sport_type: 'Yoga' })
     assert.equal(result.sportSlug, 'other')
   })
 })
 
-test.group('StravaActivityMapper — fixture réelle Strava (Afternoon Walk)', () => {
-  const mapper = new StravaActivityMapper()
+test.group('StravaSessionMapper — fixture réelle Strava (Afternoon Walk)', () => {
+  const mapper = new StravaSessionMapper()
 
   test('name mappé depuis la fixture', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).name, 'Afternoon Walk')
+    assert.equal(mapper.map(FIXTURE_SESSION).name, 'Afternoon Walk')
   })
 
   test('sport_type Walk → walking', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).sportSlug, 'walking')
+    assert.equal(mapper.map(FIXTURE_SESSION).sportSlug, 'walking')
   })
 
   test('distance 2749m → 2.749 km', ({ assert }) => {
-    assert.approximately(mapper.map(FIXTURE_ACTIVITY).distanceKm!, 2.749, 0.001)
+    assert.approximately(mapper.map(FIXTURE_SESSION).distanceKm!, 2.749, 0.001)
   })
 
   test('moving_time 2268s → 38 min (arrondi)', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).durationMinutes, 38)
+    assert.equal(mapper.map(FIXTURE_SESSION).durationMinutes, 38)
   })
 
   test('average_heartrate → 105.7', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).avgHeartRate, 105.7)
+    assert.equal(mapper.map(FIXTURE_SESSION).avgHeartRate, 105.7)
   })
 
   test('externalId = 17651473733', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).externalId, 17651473733)
+    assert.equal(mapper.map(FIXTURE_SESSION).externalId, 17651473733)
   })
 
   test('importedFrom = strava', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).importedFrom, 'strava')
+    assert.equal(mapper.map(FIXTURE_SESSION).importedFrom, 'strava')
   })
 
   test('elevationGain = 13.4', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).sportMetrics.elevationGain, 13.4)
+    assert.equal(mapper.map(FIXTURE_SESSION).sportMetrics.elevationGain, 13.4)
   })
 
   test('maxHeartRate = 115', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).sportMetrics.maxHeartRate, 115)
+    assert.equal(mapper.map(FIXTURE_SESSION).sportMetrics.maxHeartRate, 115)
   })
 
   test('deviceName = Apple Watch Series 10', ({ assert }) => {
-    assert.equal(mapper.map(FIXTURE_ACTIVITY).sportMetrics.deviceName, 'Apple Watch Series 10')
+    assert.equal(mapper.map(FIXTURE_SESSION).sportMetrics.deviceName, 'Apple Watch Series 10')
   })
 
   test('calories absent dans la fixture → null', ({ assert }) => {
-    assert.isNull(mapper.map(FIXTURE_ACTIVITY).sportMetrics.calories)
+    assert.isNull(mapper.map(FIXTURE_SESSION).sportMetrics.calories)
   })
 
   test('allure marche = 1000 / (1.212 * 60) ≈ 13.75 min/km', ({ assert }) => {
-    assert.approximately(mapper.map(FIXTURE_ACTIVITY).sportMetrics.allure!, 13.75, 0.01)
+    assert.approximately(mapper.map(FIXTURE_SESSION).sportMetrics.allure!, 13.75, 0.01)
   })
 })

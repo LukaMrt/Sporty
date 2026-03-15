@@ -1,12 +1,12 @@
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { ConnectorFactory } from '#domain/interfaces/connector_factory'
-import type { ActivityMapper } from '#domain/interfaces/activity_mapper'
+import type { SessionMapper } from '#domain/interfaces/session_mapper'
 import type { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 
 interface ProviderEntry {
   factory: ConnectorFactory
-  mapper: ActivityMapper
+  mapper: SessionMapper
   rateLimiter: RateLimitManager
 }
 
@@ -21,7 +21,7 @@ export class InMemoryConnectorRegistry extends ConnectorRegistry {
     return this.#get(provider).factory
   }
 
-  getMapper(provider: ConnectorProvider): ActivityMapper {
+  getMapper(provider: ConnectorProvider): SessionMapper {
     return this.#get(provider).mapper
   }
 

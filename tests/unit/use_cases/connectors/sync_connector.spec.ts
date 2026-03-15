@@ -3,30 +3,30 @@ import SyncConnector from '#use_cases/connectors/sync_connector'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import type { ConnectorByIdRecord } from '#domain/interfaces/connector_repository'
-import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
+import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import type {
-  StagingActivityInput,
-  StagingActivityRecord,
-  ImportedActivityRef,
-} from '#domain/interfaces/import_activity_repository'
+  StagingSessionInput,
+  StagingSessionRecord,
+  ImportedSessionRef,
+} from '#domain/interfaces/import_session_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
-import { ActivityMapper } from '#domain/interfaces/activity_mapper'
-import type { MappedSessionData } from '#domain/interfaces/activity_mapper'
+import { SessionMapper } from '#domain/interfaces/session_mapper'
+import type { MappedSessionData } from '#domain/interfaces/session_mapper'
 import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
-  ActivityFilters,
-  ActivitySummary,
-  ActivityDetail,
+  SessionFilters,
+  SessionSummary,
+  SessionDetail,
 } from '#domain/interfaces/connector'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import { RateLimitExceededError } from '#domain/errors/rate_limit_exceeded_error'
-import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
+import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { ConnectorStatus as ConnectorStatusType } from '#domain/value_objects/connector_status'
@@ -50,10 +50,10 @@ function makeConnector(overrides: Partial<Connector> = {}): Connector {
     async authenticate(): Promise<ConnectorTokens> {
       return { accessToken: 'a', refreshToken: 'r', expiresAt: 9999 }
     }
-    async listActivities(_filters: ActivityFilters): Promise<ActivitySummary[]> {
+    async listSessions(_filters: SessionFilters): Promise<SessionSummary[]> {
       return []
     }
-    async getActivityDetail(_externalId: string): Promise<ActivityDetail> {
+    async getSessionDetail(_externalId: string): Promise<SessionDetail> {
       return {
         externalId: 'ext1',
         name: 'Run',
@@ -83,8 +83,8 @@ function makeFactory(connector: Connector | null = makeConnector()): ConnectorFa
   return new Mock()
 }
 
-function makeMapper(mapped?: Partial<MappedSessionData>): ActivityMapper {
-  class Mock extends ActivityMapper {
+function makeMapper(mapped?: Partial<MappedSessionData>): SessionMapper {
+  class Mock extends SessionMapper {
     map() {
       return {
         sportSlug: 'running',
@@ -134,22 +134,22 @@ function makeRegistry(
   return new Mock()
 }
 
-function makeImportActivityRepo(
-  overrides: Partial<ImportActivityRepository> = {}
-): ImportActivityRepository {
-  class Mock extends ImportActivityRepository {
-    async upsertMany(_connectorId: number, _activities: StagingActivityInput[]) {}
-    async findByConnectorId(_connectorId: number): Promise<StagingActivityRecord[]> {
+function makeImportSessionRepo(
+  overrides: Partial<ImportSessionRepository> = {}
+): ImportSessionRepository {
+  class Mock extends ImportSessionRepository {
+    async upsertMany(_connectorId: number, _sessions: StagingSessionInput[]) {}
+    async findByConnectorId(_connectorId: number): Promise<StagingSessionRecord[]> {
       return []
     }
-    async findByIds(_ids: number[], _connectorId: number): Promise<StagingActivityRecord[]> {
+    async findByIds(_ids: number[], _connectorId: number): Promise<StagingSessionRecord[]> {
       return []
     }
     async setImported(_id: number, _sessionId: number) {}
     async setIgnored(_id: number, _userId: number) {}
     async setNew(_id: number, _userId: number) {}
     async setFailed(_id: number, _reason: string) {}
-    async markImportedBulk(_connectorId: number, _refs: ImportedActivityRef[]): Promise<void> {}
+    async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -230,7 +230,7 @@ function makeUseCase(
     record?: ConnectorByIdRecord | null
     connector?: Connector | null
     connectorRepoOverrides?: Partial<ConnectorRepository>
-    importRepoOverrides?: Partial<ImportActivityRepository>
+    importRepoOverrides?: Partial<ImportSessionRepository>
     sports?: SportSummary[]
     sessionRepoOverrides?: Partial<SessionRepository>
     mapperOverrides?: Partial<MappedSessionData>
@@ -245,7 +245,7 @@ function makeUseCase(
       options.record !== undefined ? options.record : makeConnectorRecord(),
       options.connectorRepoOverrides ?? {}
     ),
-    makeImportActivityRepo(options.importRepoOverrides ?? {}),
+    makeImportSessionRepo(options.importRepoOverrides ?? {}),
     makeSportRepo(options.sports ?? []),
     makeSessionRepo(options.sessionRepoOverrides ?? {})
   )
@@ -265,7 +265,7 @@ test.group('SyncConnector', () => {
   }) => {
     let apiCalled = false
     const connector = makeConnector({
-      async listActivities() {
+      async listSessions() {
         apiCalled = true
         return []
       },
@@ -282,7 +282,7 @@ test.group('SyncConnector', () => {
   }) => {
     let apiCalled = false
     const connector = makeConnector({
-      async listActivities() {
+      async listSessions() {
         apiCalled = true
         return []
       },
@@ -310,9 +310,9 @@ test.group('SyncConnector', () => {
   })
 
   test('AC#2 — skip import si auto_import_enabled=false', async ({ assert }) => {
-    const importRepo = makeImportActivityRepo({
+    const importRepo = makeImportSessionRepo({
       async findByConnectorId() {
-        return [{ id: 1, externalId: 'ext1', status: ImportActivityStatus.New, rawData: {} }]
+        return [{ id: 1, externalId: 'ext1', status: ImportSessionStatus.New, rawData: {} }]
       },
     })
     const record = makeConnectorRecord({ autoImportEnabled: false })
@@ -328,10 +328,10 @@ test.group('SyncConnector', () => {
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
   })
 
-  test('retourne success avec 0 imported quand aucune activité new', async ({ assert }) => {
-    const importRepo = makeImportActivityRepo({
+  test('retourne success avec 0 imported quand aucune session new', async ({ assert }) => {
+    const importRepo = makeImportSessionRepo({
       async findByConnectorId() {
-        return [{ id: 1, externalId: 'ext1', status: ImportActivityStatus.Imported, rawData: {} }]
+        return [{ id: 1, externalId: 'ext1', status: ImportSessionStatus.Imported, rawData: {} }]
       },
     })
     const uc = new SyncConnector(
@@ -345,9 +345,9 @@ test.group('SyncConnector', () => {
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
   })
 
-  test('AC#1 — importe les activités new et retourne le nombre importé', async ({ assert }) => {
+  test('AC#1 — importe les sessions new et retourne le nombre importé', async ({ assert }) => {
     const connector = makeConnector({
-      async listActivities() {
+      async listSessions() {
         return [
           {
             externalId: 'ext1',
@@ -361,9 +361,9 @@ test.group('SyncConnector', () => {
         ]
       },
     })
-    const importRepo = makeImportActivityRepo({
+    const importRepo = makeImportSessionRepo({
       async findByConnectorId() {
-        return [{ id: 1, externalId: 'ext1', status: ImportActivityStatus.New, rawData: {} }]
+        return [{ id: 1, externalId: 'ext1', status: ImportSessionStatus.New, rawData: {} }]
       },
     })
     const uc = new SyncConnector(
@@ -377,10 +377,10 @@ test.group('SyncConnector', () => {
     assert.deepEqual(result, { outcome: 'success', imported: 1 })
   })
 
-  test('skip les activités dont le sport est inconnu', async ({ assert }) => {
-    const importRepo = makeImportActivityRepo({
+  test('skip les sessions dont le sport est inconnu', async ({ assert }) => {
+    const importRepo = makeImportSessionRepo({
       async findByConnectorId() {
-        return [{ id: 1, externalId: 'ext1', status: ImportActivityStatus.New, rawData: {} }]
+        return [{ id: 1, externalId: 'ext1', status: ImportSessionStatus.New, rawData: {} }]
       },
     })
     const uc = new SyncConnector(
@@ -399,7 +399,7 @@ test.group('SyncConnector', () => {
   }) => {
     let statusSet: ConnectorStatusType | null = null
     const connector = makeConnector({
-      async listActivities() {
+      async listSessions() {
         throw new ConnectorAuthError('strava')
       },
     })
@@ -410,7 +410,7 @@ test.group('SyncConnector', () => {
           statusSet = status
         },
       }),
-      makeImportActivityRepo(),
+      makeImportSessionRepo(),
       makeSportRepo(),
       makeSessionRepo()
     )
@@ -421,14 +421,14 @@ test.group('SyncConnector', () => {
 
   test('AC#4 — RateLimitExceededError → temporary_error', async ({ assert }) => {
     const connector = makeConnector({
-      async listActivities() {
+      async listSessions() {
         throw new RateLimitExceededError(900)
       },
     })
     const uc = new SyncConnector(
       makeRegistry({ connector }),
       makeConnectorRepo(),
-      makeImportActivityRepo(),
+      makeImportSessionRepo(),
       makeSportRepo(),
       makeSessionRepo()
     )
@@ -438,14 +438,14 @@ test.group('SyncConnector', () => {
 
   test('erreur temporaire générique → temporary_error', async ({ assert }) => {
     const connector = makeConnector({
-      async listActivities() {
+      async listSessions() {
         throw new Error('network timeout')
       },
     })
     const uc = new SyncConnector(
       makeRegistry({ connector }),
       makeConnectorRepo(),
-      makeImportActivityRepo(),
+      makeImportSessionRepo(),
       makeSportRepo(),
       makeSessionRepo()
     )
@@ -463,7 +463,7 @@ test.group('SyncConnector', () => {
           lastSyncUpdated = true
         },
       }),
-      makeImportActivityRepo(),
+      makeImportSessionRepo(),
       makeSportRepo(),
       makeSessionRepo()
     )

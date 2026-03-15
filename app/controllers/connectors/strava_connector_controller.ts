@@ -7,12 +7,12 @@ import DisconnectStrava from '#use_cases/connectors/disconnect_strava'
 import GetStravaConnector from '#use_cases/connectors/get_strava_connector'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ConnectorProvider } from '#domain/value_objects/connector_provider'
-import ListPreImportActivities, {
+import ListPreImportSessions, {
   ConnectorNotConnectedError,
-} from '#use_cases/import/list_pre_import_activities'
-import GetStagedActivities from '#use_cases/import/get_staged_activities'
+} from '#use_cases/import/list_pre_import_sessions'
+import GetStagedSessions from '#use_cases/import/get_staged_sessions'
 
-interface RawActivityData {
+interface RawSessionData {
   name?: string
   sportType?: string
   startDate?: string
@@ -20,7 +20,7 @@ interface RawActivityData {
   durationSeconds?: number
 }
 
-interface StagingActivityDto {
+interface StagingSessionDto {
   id: number
   externalId: string
   status: string
@@ -37,8 +37,8 @@ export default class StravaConnectorController {
     private connectStrava: ConnectStrava,
     private disconnectStrava: DisconnectStrava,
     private getStravaConnector: GetStravaConnector,
-    private listPreImportActivities: ListPreImportActivities,
-    private getStagedActivities: GetStagedActivities,
+    private listPreImportSessions: ListPreImportSessions,
+    private getStagedSessions: GetStagedSessions,
     private connectorRepository: ConnectorRepository
   ) {}
 
@@ -66,13 +66,13 @@ export default class StravaConnectorController {
     )
 
     try {
-      const records = await this.listPreImportActivities.execute({
+      const records = await this.listPreImportSessions.execute({
         userId: auth.user!.id,
         after,
         before,
       })
-      const activities: StagingActivityDto[] = records.map((r) => {
-        const raw = (r.rawData ?? {}) as unknown as RawActivityData
+      const sessions: StagingSessionDto[] = records.map((r) => {
+        const raw = (r.rawData ?? {}) as unknown as RawSessionData
         const distanceM = raw.distanceMeters ?? null
         return {
           id: r.id,
@@ -88,7 +88,7 @@ export default class StravaConnectorController {
       return inertia.render('Connectors/Show', {
         stravaStatus,
         stravaConfigured,
-        activities,
+        sessions,
         connectorError: false,
         initialAfter: afterParam,
         initialBefore: beforeParam,
@@ -97,17 +97,17 @@ export default class StravaConnectorController {
       })
     } catch (error) {
       if (error instanceof ConnectorNotConnectedError) {
-        // En état error : on montre les activités en staging déjà présentes (AC#2 story 10.1)
+        // En état error : on montre les sessions en staging déjà présentes (AC#2 story 10.1)
         // sans appeler l'API Strava, avec le bouton import désactivé
         const connectorError = stravaStatus === 'error'
-        let activities: StagingActivityDto[] | null = null
+        let sessions: StagingSessionDto[] | null = null
         if (connectorError) {
-          const records = await this.getStagedActivities.execute(
+          const records = await this.getStagedSessions.execute(
             auth.user!.id,
             ConnectorProvider.Strava
           )
-          activities = records.map((r) => {
-            const raw = (r.rawData ?? {}) as unknown as RawActivityData
+          sessions = records.map((r) => {
+            const raw = (r.rawData ?? {}) as unknown as RawSessionData
             const distanceM = raw.distanceMeters ?? null
             return {
               id: r.id,
@@ -125,7 +125,7 @@ export default class StravaConnectorController {
         return inertia.render('Connectors/Show', {
           stravaStatus,
           stravaConfigured,
-          activities,
+          sessions,
           connectorError,
           initialAfter: afterParam,
           initialBefore: beforeParam,

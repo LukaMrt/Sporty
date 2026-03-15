@@ -1,10 +1,10 @@
 import { test } from '@japa/runner'
-import GetStagedActivities from '#use_cases/import/get_staged_activities'
-import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
+import GetStagedSessions from '#use_cases/import/get_staged_sessions'
+import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import type {
-  StagingActivityRecord,
-  ImportedActivityRef,
-} from '#domain/interfaces/import_activity_repository'
+  StagingSessionRecord,
+  ImportedSessionRef,
+} from '#domain/interfaces/import_session_repository'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import type {
   ConnectorFullRecord,
@@ -18,7 +18,7 @@ import type {
 } from '#domain/interfaces/connector_repository'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
-import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
+import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 
 function makeConnectorRepository(
   overrides: Partial<{ findFullByUserAndProvider: () => Promise<ConnectorFullRecord | null> }> = {}
@@ -49,35 +49,35 @@ function makeConnectorRepository(
   return Object.assign(new Mock(), overrides)
 }
 
-function makeImportRepo(records: StagingActivityRecord[] = []): ImportActivityRepository {
-  class Mock extends ImportActivityRepository {
+function makeImportRepo(records: StagingSessionRecord[] = []): ImportSessionRepository {
+  class Mock extends ImportSessionRepository {
     async upsertMany() {}
-    async findByConnectorId(): Promise<StagingActivityRecord[]> {
+    async findByConnectorId(): Promise<StagingSessionRecord[]> {
       return records
     }
-    async findByIds(): Promise<StagingActivityRecord[]> {
+    async findByIds(): Promise<StagingSessionRecord[]> {
       return []
     }
     async setImported() {}
     async setIgnored() {}
     async setNew() {}
     async setFailed() {}
-    async markImportedBulk(_connectorId: number, _refs: ImportedActivityRef[]) {}
+    async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]) {}
   }
   return new Mock()
 }
 
-test.group('GetStagedActivities', () => {
+test.group('GetStagedSessions', () => {
   test('retourne [] si aucun connecteur trouvé', async ({ assert }) => {
-    const useCase = new GetStagedActivities(makeImportRepo(), makeConnectorRepository())
+    const useCase = new GetStagedSessions(makeImportRepo(), makeConnectorRepository())
     const result = await useCase.execute(1, 'strava')
     assert.deepEqual(result, [])
   })
 
-  test('retourne les activités staging quand connecteur existe', async ({ assert }) => {
-    const records: StagingActivityRecord[] = [
-      { id: 1, externalId: 'ext-1', status: ImportActivityStatus.New, rawData: null },
-      { id: 2, externalId: 'ext-2', status: ImportActivityStatus.Imported, rawData: null },
+  test('retourne les sessions staging quand connecteur existe', async ({ assert }) => {
+    const records: StagingSessionRecord[] = [
+      { id: 1, externalId: 'ext-1', status: ImportSessionStatus.New, rawData: null },
+      { id: 2, externalId: 'ext-2', status: ImportSessionStatus.Imported, rawData: null },
     ]
     const repo = makeConnectorRepository({
       findFullByUserAndProvider: async () => ({
@@ -88,7 +88,7 @@ test.group('GetStagedActivities', () => {
         tokenExpiresAtSeconds: null,
       }),
     })
-    const useCase = new GetStagedActivities(makeImportRepo(records), repo)
+    const useCase = new GetStagedSessions(makeImportRepo(records), repo)
     const result = await useCase.execute(1, 'strava')
     assert.equal(result.length, 2)
     assert.equal(result[0].externalId, 'ext-1')

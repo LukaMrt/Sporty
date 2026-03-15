@@ -34,7 +34,7 @@ type ConnectorStatus = 'connected' | 'error'
 interface ConnectorsShowProps {
   stravaStatus: ConnectorStatus | null
   stravaConfigured: boolean
-  activities: StagingSession[] | null
+  sessions: StagingSession[] | null
   connectorError: boolean
   initialAfter?: string
   initialBefore?: string
@@ -45,7 +45,7 @@ interface ConnectorsShowProps {
 export default function ConnectorsShow({
   stravaStatus,
   stravaConfigured,
-  activities,
+  sessions,
   connectorError,
   initialAfter,
   initialBefore,
@@ -239,12 +239,12 @@ export default function ConnectorsShow({
         </div>
       )}
 
-      {/* Liste des activités en staging */}
-      {activities !== null && (
+      {/* Liste des sessions en staging */}
+      {sessions !== null && (
         <div className="px-6 pb-6">
           <h2 className="text-lg font-semibold text-foreground">{t('import.title')}</h2>
           <SessionsDataTable
-            sessions={activities}
+            sessions={sessions}
             connectorError={connectorError}
             initialAfter={initialAfter}
             initialBefore={initialBefore}

@@ -1,4 +1,4 @@
-import type { ActivityDetail } from '#domain/interfaces/connector'
+import type { SessionDetail } from '#domain/interfaces/connector'
 
 export interface MappedSessionData {
   sportSlug: string
@@ -11,6 +11,6 @@ export interface MappedSessionData {
   sportMetrics: Record<string, unknown>
 }
 
-export abstract class ActivityMapper {
-  abstract map(detail: ActivityDetail): MappedSessionData
+export abstract class SessionMapper {
+  abstract map(detail: SessionDetail): MappedSessionData
 }

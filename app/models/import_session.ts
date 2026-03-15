@@ -3,11 +3,13 @@ import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Connector from '#models/connector'
 import Session from '#models/session'
-import type { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
+import type { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 
-export type { ImportActivityStatus }
+export type { ImportSessionStatus }
 
-export default class ImportActivity extends BaseModel {
+export default class ImportSession extends BaseModel {
+  static tableName = 'import_sessions'
+
   @column({ isPrimary: true })
   declare id: number
 
@@ -18,7 +20,7 @@ export default class ImportActivity extends BaseModel {
   declare externalId: string
 
   @column()
-  declare status: ImportActivityStatus
+  declare status: ImportSessionStatus
 
   @column()
   declare rawData: Record<string, unknown> | null

@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
-import ImportActivity from '#models/import_activity'
+import ImportSession from '#models/import_session'
 import { TokenEncryption } from '#lib/token_encryption'
 import env from '#start/env'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
@@ -87,8 +87,8 @@ export default class Connector extends BaseModel {
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 
-  @hasMany(() => ImportActivity)
-  declare importActivities: HasMany<typeof ImportActivity>
+  @hasMany(() => ImportSession)
+  declare importSessions: HasMany<typeof ImportSession>
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

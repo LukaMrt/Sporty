@@ -68,7 +68,7 @@ export default function SessionsDataTable({
       router.get(
         '/connectors/strava',
         { after: dateFrom, before: dateTo },
-        { preserveState: true, only: ['activities', 'initialAfter', 'initialBefore'] }
+        { preserveState: true, only: ['sessions', 'initialAfter', 'initialBefore'] }
       )
     }, 600)
     return () => clearTimeout(timer)
@@ -98,7 +98,7 @@ export default function SessionsDataTable({
             'X-Requested-With': 'XMLHttpRequest',
             ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
           },
-          body: JSON.stringify({ importActivityIds: [id] }),
+          body: JSON.stringify({ importSessionIds: [id] }),
         })
 
         if (!res.ok) {
@@ -183,7 +183,7 @@ export default function SessionsDataTable({
       })
       setPendingIds((s) => new Set(s).add(id))
       const ok = await postAction(
-        `/import/activities/${id}/ignore`,
+        `/import/sessions/${id}/ignore`,
         'import.ignore.success',
         'import.ignore.error'
       )
@@ -203,7 +203,7 @@ export default function SessionsDataTable({
       setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
       setPendingIds((s) => new Set(s).add(id))
       const ok = await postAction(
-        `/import/activities/${id}/restore`,
+        `/import/sessions/${id}/restore`,
         'import.restore.success',
         'import.restore.error'
       )

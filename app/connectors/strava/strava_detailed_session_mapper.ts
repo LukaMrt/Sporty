@@ -1,14 +1,14 @@
-import { ActivityMapper } from '#domain/interfaces/activity_mapper'
-import type { MappedSessionData } from '#domain/interfaces/activity_mapper'
-import type { ActivityDetail } from '#domain/interfaces/connector'
-import { StravaActivityMapper } from '#connectors/strava/strava_activity_mapper'
-import type { StravaDetailedActivity } from '#connectors/strava/strava_activity_mapper'
+import { SessionMapper } from '#domain/interfaces/session_mapper'
+import type { MappedSessionData } from '#domain/interfaces/session_mapper'
+import type { SessionDetail } from '#domain/interfaces/connector'
+import { StravaSessionMapper } from '#connectors/strava/strava_session_mapper'
+import type { StravaDetailedSession } from '#connectors/strava/strava_session_mapper'
 
-export class StravaDetailedActivityMapper extends ActivityMapper {
-  readonly #inner = new StravaActivityMapper()
+export class StravaDetailedSessionMapper extends SessionMapper {
+  readonly #inner = new StravaSessionMapper()
 
-  map(detail: ActivityDetail): MappedSessionData {
-    const raw: StravaDetailedActivity = {
+  map(detail: SessionDetail): MappedSessionData {
+    const raw: StravaDetailedSession = {
       id: Number(detail.externalId),
       name: detail.name,
       sport_type: detail.sportType,
