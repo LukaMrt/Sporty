@@ -1,17 +1,19 @@
 import { test } from '@japa/runner'
-import ImportActivities from '#use_cases/import/import_activities'
-import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
+import ImportSessions from '#use_cases/import/import_sessions'
+import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import type {
-  StagingActivityInput,
-  StagingActivityRecord,
-} from '#domain/interfaces/import_activity_repository'
+  StagingSessionInput,
+  StagingSessionRecord,
+  ImportedSessionRef,
+} from '#domain/interfaces/import_session_repository'
+import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
-  ActivityFilters,
-  ActivitySummary,
-  ActivityDetail,
+  SessionFilters,
+  SessionSummary,
+  SessionDetail,
 } from '#domain/interfaces/connector'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { SessionRepository } from '#domain/interfaces/session_repository'
@@ -19,25 +21,25 @@ import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
-import { ActivityMapper } from '#domain/interfaces/activity_mapper'
-import type { MappedSessionData } from '#domain/interfaces/activity_mapper'
-import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
+import { SessionMapper } from '#domain/interfaces/session_mapper'
+import type { MappedSessionData } from '#domain/interfaces/session_mapper'
+import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 function makeConnector(
   id: number,
-  overrides: Partial<{ getActivityDetail: (externalId: string) => Promise<ActivityDetail> }> = {}
+  overrides: Partial<{ getSessionDetail: (externalId: string) => Promise<SessionDetail> }> = {}
 ): Connector {
   class Mock extends Connector {
     readonly id = id
     async authenticate(): Promise<ConnectorTokens> {
       return { accessToken: '', refreshToken: '', expiresAt: 0 }
     }
-    async listActivities(_f: ActivityFilters): Promise<ActivitySummary[]> {
+    async listSessions(_f: SessionFilters): Promise<SessionSummary[]> {
       return []
     }
-    async getActivityDetail(externalId: string): Promise<ActivityDetail> {
+    async getSessionDetail(externalId: string): Promise<SessionDetail> {
       return {
         externalId,
         name: 'Test Run',
@@ -73,25 +75,27 @@ function makeConnectorFactory(connector: Connector | null = null): ConnectorFact
   return new Mock()
 }
 
-function makeImportActivityRepository(
-  overrides: Partial<ImportActivityRepository> = {}
-): ImportActivityRepository {
-  class Mock extends ImportActivityRepository {
-    async upsertMany(_connectorId: number, _activities: StagingActivityInput[]): Promise<void> {}
-    async findByConnectorId(): Promise<StagingActivityRecord[]> {
+function makeImportSessionRepository(
+  overrides: Partial<ImportSessionRepository> = {}
+): ImportSessionRepository {
+  class Mock extends ImportSessionRepository {
+    async upsertMany(_connectorId: number, _sessions: StagingSessionInput[]): Promise<void> {}
+    async findByConnectorId(): Promise<StagingSessionRecord[]> {
       return []
     }
-    async findByIds(ids: number[], _connectorId: number): Promise<StagingActivityRecord[]> {
+    async findByIds(ids: number[], _connectorId: number): Promise<StagingSessionRecord[]> {
       return ids.map((id) => ({
         id,
         externalId: String(id * 100),
-        status: ImportActivityStatus.New,
+        status: ImportSessionStatus.New,
         rawData: null,
       }))
     }
     async setImported(): Promise<void> {}
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
+    async setFailed(): Promise<void> {}
+    async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -138,6 +142,9 @@ function makeSessionRepository(overrides: Partial<SessionRepository> = {}): Sess
     async findByUserIdAndDateRange(): Promise<TrainingSession[]> {
       return []
     }
+    async findByUserAndExternalIds(): Promise<{ externalId: string; id: number }[]> {
+      return []
+    }
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -151,9 +158,9 @@ function makeSportRepository(sports: SportSummary[] = []): SportRepository {
   return new Mock()
 }
 
-function makeActivityMapper(sportSlug = 'running'): ActivityMapper {
-  class Mock extends ActivityMapper {
-    map(detail: ActivityDetail): MappedSessionData {
+function makeSessionMapper(sportSlug = 'running'): SessionMapper {
+  class Mock extends SessionMapper {
+    map(detail: SessionDetail): MappedSessionData {
       return {
         sportSlug,
         date: detail.startDate.slice(0, 10),
@@ -171,39 +178,39 @@ function makeActivityMapper(sportSlug = 'running'): ActivityMapper {
 
 function makeUseCase(
   overrides: {
-    importRepo?: ImportActivityRepository
+    importRepo?: ImportSessionRepository
     connectorFactory?: ConnectorFactory
     sportRepo?: SportRepository
     sessionRepo?: SessionRepository
-    mapper?: ActivityMapper
+    mapper?: SessionMapper
   } = {}
-): ImportActivities {
-  return new ImportActivities(
-    overrides.importRepo ?? makeImportActivityRepository(),
+): ImportSessions {
+  return new ImportSessions(
+    overrides.importRepo ?? makeImportSessionRepository(),
     overrides.connectorFactory ?? makeConnectorFactory(makeConnector(42)),
     overrides.sportRepo ?? makeSportRepository([{ id: 1, name: 'Running', slug: 'running' }]),
     overrides.sessionRepo ?? makeSessionRepository(),
-    overrides.mapper ?? makeActivityMapper()
+    overrides.mapper ?? makeSessionMapper()
   )
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-test.group('ImportActivities', () => {
-  test('importe sequentiellement les activites et met a jour le statut (AC#2)', async ({
+test.group('ImportSessions', () => {
+  test('importe sequentiellement les sessions et met a jour le statut (AC#2)', async ({
     assert,
   }) => {
     const setImportedCalls: { id: number; sessionId: number }[] = []
 
     const useCase = makeUseCase({
-      importRepo: makeImportActivityRepository({
+      importRepo: makeImportSessionRepository({
         setImported: async (id, sessionId) => {
           setImportedCalls.push({ id, sessionId })
         },
       }),
     })
 
-    const result = await useCase.execute({ userId: 1, importActivityIds: [10, 20] })
+    const result = await useCase.execute({ userId: 1, importSessionIds: [10, 20] })
 
     assert.equal(result.completed, 2)
     assert.equal(result.failed, 0)
@@ -212,10 +219,10 @@ test.group('ImportActivities', () => {
     assert.equal(setImportedCalls[0].sessionId, 999)
   })
 
-  test('continue et incremente failed si une activite echoue (AC#4)', async ({ assert }) => {
+  test('continue et incremente failed si une session echoue (AC#4)', async ({ assert }) => {
     let callCount = 0
     const connector = makeConnector(42, {
-      getActivityDetail: async (externalId) => {
+      getSessionDetail: async (externalId) => {
         callCount++
         if (callCount === 1) throw new Error('Strava API error')
         return {
@@ -235,10 +242,10 @@ test.group('ImportActivities', () => {
     const useCase = makeUseCase({
       connectorFactory: makeConnectorFactory(connector),
       sportRepo: makeSportRepository([{ id: 2, name: 'Vélo', slug: 'velo' }]),
-      mapper: makeActivityMapper('velo'),
+      mapper: makeSessionMapper('velo'),
     })
 
-    const result = await useCase.execute({ userId: 1, importActivityIds: [10, 20] })
+    const result = await useCase.execute({ userId: 1, importSessionIds: [10, 20] })
 
     assert.equal(result.failed, 1)
     assert.equal(result.completed, 1)
@@ -250,7 +257,7 @@ test.group('ImportActivities', () => {
     })
 
     try {
-      await useCase.execute({ userId: 1, importActivityIds: [1] })
+      await useCase.execute({ userId: 1, importSessionIds: [1] })
       assert.fail('Should have thrown')
     } catch (error) {
       assert.instanceOf(error, Error)
@@ -284,7 +291,7 @@ test.group('ImportActivities', () => {
       }),
     })
 
-    await useCase.execute({ userId: 5, importActivityIds: [10] })
+    await useCase.execute({ userId: 5, importSessionIds: [10] })
 
     assert.equal(createdSessions.length, 1)
     assert.equal(createdSessions[0].importedFrom, 'strava')
@@ -294,12 +301,65 @@ test.group('ImportActivities', () => {
   test('incremente failed si le sport slug est inconnu', async ({ assert }) => {
     const useCase = makeUseCase({
       sportRepo: makeSportRepository([{ id: 99, name: 'Natation', slug: 'natation' }]),
-      mapper: makeActivityMapper('running'),
+      mapper: makeSessionMapper('running'),
     })
 
-    const result = await useCase.execute({ userId: 1, importActivityIds: [10] })
+    const result = await useCase.execute({ userId: 1, importSessionIds: [10] })
 
     assert.equal(result.failed, 1)
     assert.equal(result.completed, 0)
+  })
+
+  test("AC#2 story 10.2 — DailyRateLimitError stoppe l'import et retourne dailyLimitReached", async ({
+    assert,
+  }) => {
+    const connector = makeConnector(42, {
+      getSessionDetail: async () => {
+        throw new DailyRateLimitError()
+      },
+    })
+
+    const useCase = makeUseCase({
+      connectorFactory: makeConnectorFactory(connector),
+    })
+
+    const result = await useCase.execute({ userId: 1, importSessionIds: [10, 20, 30] })
+
+    assert.isTrue(result.dailyLimitReached)
+    assert.equal(result.completed, 0)
+    assert.equal(result.total, 3)
+  })
+
+  test('AC#2 story 10.2 — sessions partiellement importées avant DailyRateLimitError', async ({
+    assert,
+  }) => {
+    let callCount = 0
+    const connector = makeConnector(42, {
+      getSessionDetail: async (externalId) => {
+        callCount++
+        if (callCount >= 2) throw new DailyRateLimitError()
+        return {
+          externalId,
+          name: 'Run',
+          sportType: 'Run',
+          startDate: '2026-01-01T08:00:00',
+          durationSeconds: 3600,
+          distanceMeters: null,
+          averageHeartRate: null,
+          metrics: {},
+          notes: null,
+        }
+      },
+    })
+
+    const useCase = makeUseCase({
+      connectorFactory: makeConnectorFactory(connector),
+    })
+
+    const result = await useCase.execute({ userId: 1, importSessionIds: [10, 20, 30] })
+
+    assert.isTrue(result.dailyLimitReached)
+    assert.equal(result.completed, 1)
+    assert.equal(result.total, 3)
   })
 })

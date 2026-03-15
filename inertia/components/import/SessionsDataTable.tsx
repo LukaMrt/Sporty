@@ -20,6 +20,7 @@ import { formatDuration } from '~/lib/format'
 
 interface SessionsDataTableProps {
   sessions: StagingSession[]
+  connectorError?: boolean
   initialAfter?: string
   initialBefore?: string
 }
@@ -38,6 +39,7 @@ const columnHelper = createColumnHelper<StagingSession>()
 
 export default function SessionsDataTable({
   sessions,
+  connectorError = false,
   initialAfter,
   initialBefore,
 }: SessionsDataTableProps) {
@@ -66,7 +68,7 @@ export default function SessionsDataTable({
       router.get(
         '/connectors/strava',
         { after: dateFrom, before: dateTo },
-        { preserveState: true, only: ['activities', 'initialAfter', 'initialBefore'] }
+        { preserveState: true, only: ['sessions', 'initialAfter', 'initialBefore'] }
       )
     }, 600)
     return () => clearTimeout(timer)
@@ -74,7 +76,12 @@ export default function SessionsDataTable({
 
   const importOne = useCallback(
     async (id: number) => {
-      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s)))
+      let prevStatus: StagingSession['status'] = 'new'
+      setLocalSessions((cur) => {
+        const found = cur.find((s) => s.id === id)
+        if (found) prevStatus = found.status
+        return cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s))
+      })
       setImportingIds((prev) => new Set(prev).add(id))
 
       try {
@@ -91,18 +98,32 @@ export default function SessionsDataTable({
             'X-Requested-With': 'XMLHttpRequest',
             ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
           },
-          body: JSON.stringify({ importActivityIds: [id] }),
+          body: JSON.stringify({ importSessionIds: [id] }),
         })
 
         if (!res.ok) {
-          setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
+          )
           pushToast(t('import.batch.error'), 'error')
           return
         }
 
-        const data = (await res.json()) as { failed: number }
-        if (data.failed > 0) {
-          setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+        const data = (await res.json()) as {
+          failed: number
+          completed: number
+          total: number
+          dailyLimitReached?: boolean
+        }
+        if (data.dailyLimitReached) {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
+          )
+          pushToast(t('import.rateLimit.daily'), 'error')
+        } else if (data.failed > 0) {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
+          )
           pushToast(t('import.batch.error'), 'error')
         } else {
           setLocalSessions((cur) =>
@@ -111,7 +132,7 @@ export default function SessionsDataTable({
           pushToast(t('import.batch.success'), 'success')
         }
       } catch {
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s)))
         pushToast(t('import.batch.error'), 'error')
       } finally {
         setImportingIds((prev) => {
@@ -154,15 +175,20 @@ export default function SessionsDataTable({
 
   const ignoreOne = useCallback(
     async (id: number) => {
-      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s)))
+      let prevStatus: StagingSession['status'] = 'new'
+      setLocalSessions((cur) => {
+        const found = cur.find((s) => s.id === id)
+        if (found) prevStatus = found.status
+        return cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s))
+      })
       setPendingIds((s) => new Set(s).add(id))
       const ok = await postAction(
-        `/import/activities/${id}/ignore`,
+        `/import/sessions/${id}/ignore`,
         'import.ignore.success',
         'import.ignore.error'
       )
       if (!ok)
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s)))
       setPendingIds((s) => {
         const n = new Set(s)
         n.delete(id)
@@ -177,7 +203,7 @@ export default function SessionsDataTable({
       setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
       setPendingIds((s) => new Set(s).add(id))
       const ok = await postAction(
-        `/import/activities/${id}/restore`,
+        `/import/sessions/${id}/restore`,
         'import.restore.success',
         'import.restore.error'
       )
@@ -261,12 +287,12 @@ export default function SessionsDataTable({
           const isImporting = importingIds.has(id)
           const isPending = pendingIds.has(id)
 
-          if (status === 'new') {
+          if (status === 'new' || status === 'failed') {
             return (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => void importOne(id)}
-                  disabled={isImporting || isPending}
+                  disabled={isImporting || isPending || connectorError}
                   className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isImporting ? t('import.batch.importing') : t('import.batch.button')}
@@ -300,7 +326,7 @@ export default function SessionsDataTable({
         enableSorting: false,
       }),
     ],
-    [t, formatDate, importingIds, pendingIds, importOne, ignoreOne, restoreOne]
+    [t, formatDate, importingIds, pendingIds, importOne, ignoreOne, restoreOne, connectorError]
   )
 
   const table = useReactTable({
@@ -433,7 +459,7 @@ export default function SessionsDataTable({
             return (
               <div key={row.id} className={`space-y-2 ${status === 'ignored' ? 'opacity-50' : ''}`}>
                 <StagingSessionCard session={row.original} />
-                {status === 'new' && (
+                {(status === 'new' || status === 'failed') && (
                   <div className="flex gap-2">
                     <button
                       onClick={() => void importOne(id)}

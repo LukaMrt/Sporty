@@ -2,7 +2,7 @@ import { DateTime } from 'luxon'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import type { ListSessionsOptions } from '#domain/interfaces/session_repository'
+import type { ListSessionsOptions, SessionExternalRef } from '#domain/interfaces/session_repository'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import SessionModel from '#models/session'
 
@@ -136,6 +136,18 @@ export default class LucidSessionRepository extends SessionRepository {
       .preload('sport')
       .orderBy('date', 'asc')
     return models.map((m) => this.#toEntity(m))
+  }
+
+  async findByUserAndExternalIds(
+    userId: number,
+    externalIds: string[]
+  ): Promise<SessionExternalRef[]> {
+    if (externalIds.length === 0) return []
+    const models = await SessionModel.query()
+      .where('userId', userId)
+      .whereIn('external_id', externalIds)
+      .whereNotNull('external_id')
+    return models.map((m) => ({ externalId: m.externalId!, id: m.id }))
   }
 
   #toEntity(model: SessionModel): TrainingSession {

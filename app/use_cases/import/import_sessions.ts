@@ -1,38 +1,40 @@
 import { inject } from '@adonisjs/core'
-import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
+import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import { ActivityMapper } from '#domain/interfaces/activity_mapper'
+import { SessionMapper } from '#domain/interfaces/session_mapper'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
+import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
 
 export { ConnectorNotConnectedError }
 
-export interface ImportActivitiesInput {
+export interface ImportSessionsInput {
   userId: number
-  importActivityIds: number[]
+  importSessionIds: number[]
 }
 
-export interface ImportActivitiesResult {
+export interface ImportSessionsResult {
   total: number
   completed: number
   failed: number
   errors: string[]
+  dailyLimitReached?: boolean
 }
 
 @inject()
-export default class ImportActivities {
+export default class ImportSessions {
   constructor(
-    private importActivityRepository: ImportActivityRepository,
+    private importSessionRepository: ImportSessionRepository,
     private connectorFactory: ConnectorFactory,
     private sportRepository: SportRepository,
     private sessionRepository: SessionRepository,
-    private activityMapper: ActivityMapper
+    private sessionMapper: SessionMapper
   ) {}
 
-  async execute(input: ImportActivitiesInput): Promise<ImportActivitiesResult> {
-    const { userId, importActivityIds } = input
-    const total = importActivityIds.length
+  async execute(input: ImportSessionsInput): Promise<ImportSessionsResult> {
+    const { userId, importSessionIds } = input
+    const total = importSessionIds.length
     let completed = 0
     let failed = 0
     const errors: string[] = []
@@ -45,10 +47,10 @@ export default class ImportActivities {
     const sports = await this.sportRepository.findAll()
     const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
 
-    const records = await this.importActivityRepository.findByIds(importActivityIds, connector.id)
+    const records = await this.importSessionRepository.findByIds(importSessionIds, connector.id)
     const recordById = new Map(records.map((r) => [r.id, r]))
 
-    for (const id of importActivityIds) {
+    for (const id of importSessionIds) {
       const record = recordById.get(id)
       if (!record) {
         failed++
@@ -57,8 +59,8 @@ export default class ImportActivities {
       }
 
       try {
-        const detail = await connector.getActivityDetail(record.externalId)
-        const mapped = this.activityMapper.map(detail)
+        const detail = await connector.getSessionDetail(record.externalId)
+        const mapped = this.sessionMapper.map(detail)
 
         const sportId = sportBySlug.get(mapped.sportSlug)
         if (!sportId) {
@@ -83,9 +85,13 @@ export default class ImportActivities {
           externalId: mapped.externalId,
         })
 
-        await this.importActivityRepository.setImported(id, session.id)
+        await this.importSessionRepository.setImported(id, session.id)
         completed++
       } catch (err) {
+        if (err instanceof DailyRateLimitError) {
+          failed += importSessionIds.length - completed - failed
+          return { total, completed, failed, errors, dailyLimitReached: true }
+        }
         failed++
         errors.push(
           `id=${id} externalId=${record.externalId}: ${err instanceof Error ? err.message : String(err)}`

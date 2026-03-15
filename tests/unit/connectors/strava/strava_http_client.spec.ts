@@ -24,6 +24,13 @@ function makeConnectorRepository(
   }> = {}
 ): ConnectorRepository {
   class Mock extends ConnectorRepository {
+    async findById() {
+      return null
+    }
+    async updateLastSyncAt() {}
+    async findAllAutoImportEnabled() {
+      return []
+    }
     async upsert() {}
     async findFullByUserAndProvider(): Promise<null> {
       return null
@@ -34,6 +41,10 @@ function makeConnectorRepository(
     async disconnect() {}
     async updateTokens() {}
     async setStatus() {}
+    async updateSettings() {}
+    async findSettings() {
+      return null
+    }
   }
   return Object.assign(new Mock(), overrides)
 }

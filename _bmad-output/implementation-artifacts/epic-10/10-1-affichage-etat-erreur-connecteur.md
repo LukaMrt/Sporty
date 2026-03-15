@@ -1,6 +1,6 @@
 # Story 10.1 : Affichage etat erreur connecteur
 
-Status: draft
+Status: review
 
 ## Story
 
@@ -17,17 +17,17 @@ so that **je ne suis jamais dans le doute sur l'etat de mes imports** (FR23).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Affichage erreur page Connecteurs (AC: #1)
-  - [ ] Badge orange "Erreur" sur ConnectorCard
-  - [ ] Message explicatif contextuel
-  - [ ] Bouton "Reconnecter"
-- [ ] Task 2 : Bandeau avertissement page Import (AC: #2)
-  - [ ] Bandeau en haut de page si connecteur en erreur
-  - [ ] Lien vers la page Connecteurs
-  - [ ] Bouton Importer desactive
-- [ ] Task 3 : Distinction erreurs temporaires vs permanentes (AC: #3, #4)
-  - [ ] 500/503 = temporaire, ne change pas le status
-  - [ ] 401 + refresh echoue = permanent, status -> error
+- [x] Task 1 : Affichage erreur page Connecteurs (AC: #1)
+  - [x] Badge orange "Erreur" sur ConnectorCard
+  - [x] Message explicatif contextuel
+  - [x] Bouton "Reconnecter"
+- [x] Task 2 : Bandeau avertissement page Import (AC: #2)
+  - [x] Bandeau en haut de page si connecteur en erreur
+  - [x] Lien vers la page Connecteurs
+  - [x] Bouton Importer desactive
+- [x] Task 3 : Distinction erreurs temporaires vs permanentes (AC: #3, #4)
+  - [x] 500/503 = temporaire, ne change pas le status
+  - [x] 401 + refresh echoue = permanent, status -> error
 
 ## Dev Notes
 
@@ -44,3 +44,26 @@ so that **je ne suis jamais dans le doute sur l'etat de mes imports** (FR23).
 ### References
 
 - [Source: _bmad-output/planning-artifacts/epics-import-connectors.md#Story 10.1]
+
+## Dev Agent Record
+
+### File List
+
+- `inertia/pages/Connectors/Show.tsx` — message explicatif + bandeau d'avertissement + prop connectorError
+- `inertia/components/import/SessionsDataTable.tsx` — prop connectorError, bouton import désactivé, gestion dailyLimitReached
+- `app/use_cases/import/get_staged_activities.ts` — nouveau use case lecture staging sans appel connecteur
+- `app/controllers/connectors/strava_connector_controller.ts` — activités staging visibles en état error
+- `resources/lang/fr/connectors.json` — clés errorMessage, errorBannerTitle, errorBannerText
+- `resources/lang/en/connectors.json` — idem en anglais
+- `tests/functional/import/import_activities.spec.ts` — test AC#2 mis à jour
+- `tests/unit/use_cases/import/get_staged_activities.spec.ts` — nouveau test
+
+### Completion Notes
+
+- Task 1 : badge et bouton déjà présents, message explicatif ajouté sous le badge dans Show.tsx
+- Task 2 : GetStagedActivities use case créé pour lire le staging sans appeler Strava ; bandeau orange avec lien /connectors ; bouton import désactivé via prop connectorError
+- Task 3 : déjà implémenté dans strava_http_client.ts (500/503 retry, 401+refresh KO → setStatus error)
+
+### Change Log
+
+- Implémentation stories 10.1, 10.2, 10.3 (2026-03-15)

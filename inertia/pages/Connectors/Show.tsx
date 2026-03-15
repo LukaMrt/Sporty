@@ -8,10 +8,12 @@ import {
   RefreshCw,
   ChevronLeft,
   TriangleAlert,
+  AlertTriangle,
 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import stravaLogo from '~/assets/strava-logo.svg'
 import { useTranslation } from '~/hooks/use_translation'
+import { pushToast } from '~/hooks/use_toast'
 import {
   Dialog,
   DialogContent,
@@ -21,6 +23,9 @@ import {
   DialogFooter,
   DialogClose,
 } from '~/components/ui/dialog'
+import { Switch } from '~/components/ui/switch'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import SessionsDataTable from '~/components/import/SessionsDataTable'
 import type { StagingSession } from '~/types/staging_session'
 
@@ -29,20 +34,59 @@ type ConnectorStatus = 'connected' | 'error'
 interface ConnectorsShowProps {
   stravaStatus: ConnectorStatus | null
   stravaConfigured: boolean
-  activities: StagingSession[] | null
+  sessions: StagingSession[] | null
+  connectorError: boolean
   initialAfter?: string
   initialBefore?: string
+  autoImportEnabled: boolean
+  pollingIntervalMinutes: number
 }
 
 export default function ConnectorsShow({
   stravaStatus,
   stravaConfigured,
-  activities,
+  sessions,
+  connectorError,
   initialAfter,
   initialBefore,
+  autoImportEnabled,
+  pollingIntervalMinutes,
 }: ConnectorsShowProps) {
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [optimisticEnabled, setOptimisticEnabled] = useState(autoImportEnabled)
+  const [interval, setInterval] = useState(pollingIntervalMinutes)
+  const intervalDirty = interval !== pollingIntervalMinutes
+
+  const isConnected = stravaStatus === 'connected'
+
+  function submitSettings(enabled: boolean, minutes: number) {
+    router.post(
+      '/connectors/strava/settings',
+      { auto_import_enabled: enabled, polling_interval_minutes: minutes },
+      {
+        preserveScroll: true,
+        showProgress: false,
+        onSuccess: () => pushToast(t('connectors.settings.updated')),
+        onError: () => {
+          setOptimisticEnabled(autoImportEnabled)
+          setInterval(pollingIntervalMinutes)
+          pushToast(t('connectors.settings.error'), 'error')
+        },
+      }
+    )
+  }
+
+  function handleToggle(checked: boolean) {
+    setOptimisticEnabled(checked)
+    submitSettings(checked, interval)
+  }
+
+  function handleIntervalSave() {
+    const clamped = Math.min(60, Math.max(5, interval))
+    setInterval(clamped)
+    submitSettings(optimisticEnabled, clamped)
+  }
 
   function connectStrava() {
     window.location.href = '/connectors/strava/authorize'
@@ -103,6 +147,9 @@ export default function ConnectorsShow({
                   <AlertCircle className="h-4 w-4" />
                   {t('connectors.strava.statusError')}
                 </span>
+                <p className="text-xs text-orange-700 max-w-xs text-right">
+                  {t('connectors.strava.errorMessage')}
+                </p>
                 <button
                   onClick={connectStrava}
                   disabled={!stravaConfigured}
@@ -127,12 +174,78 @@ export default function ConnectorsShow({
         </div>
       </div>
 
-      {/* Liste des activités en staging */}
-      {activities !== null && (
+      {/* Settings auto import */}
+      <div className="px-6 pb-4">
+        <div className="flex items-center gap-6 rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <Switch
+              id="auto-import"
+              checked={optimisticEnabled}
+              onCheckedChange={handleToggle}
+              disabled={!isConnected}
+            />
+            <Label
+              htmlFor="auto-import"
+              className={!isConnected ? 'text-muted-foreground' : undefined}
+            >
+              {t('connectors.settings.autoImport')}
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="polling-interval"
+              className={!isConnected ? 'text-muted-foreground' : undefined}
+            >
+              {t('connectors.settings.interval')}
+            </Label>
+            <Input
+              id="polling-interval"
+              type="number"
+              min={5}
+              max={60}
+              value={interval}
+              onChange={(e) => setInterval(Number(e.target.value))}
+              onKeyDown={(e) => e.key === 'Enter' && handleIntervalSave()}
+              disabled={!isConnected}
+              className="w-20"
+            />
+            <span className={`text-sm ${!isConnected ? 'text-muted-foreground' : ''}`}>min</span>
+            <button
+              onClick={handleIntervalSave}
+              disabled={!intervalDirty || !isConnected}
+              className="cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t('common.actions.save')}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bandeau d'avertissement quand connecteur en erreur */}
+      {connectorError && (
+        <div className="mx-6 mb-4 flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-orange-800">
+              {t('connectors.strava.errorBannerTitle')}
+            </p>
+            <p className="mt-0.5 text-sm text-orange-700">
+              {t('connectors.strava.errorBannerText')}{' '}
+              <Link href="/connectors" className="underline hover:no-underline">
+                {t('connectors.title')}
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Liste des sessions en staging */}
+      {sessions !== null && (
         <div className="px-6 pb-6">
           <h2 className="text-lg font-semibold text-foreground">{t('import.title')}</h2>
           <SessionsDataTable
-            sessions={activities}
+            sessions={sessions}
+            connectorError={connectorError}
             initialAfter={initialAfter}
             initialBefore={initialBefore}
           />

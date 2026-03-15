@@ -6,13 +6,13 @@ export interface ConnectorTokens {
   expiresAt: number
 }
 
-export interface ActivityFilters {
+export interface SessionFilters {
   after?: Date
   before?: Date
   perPage?: number
 }
 
-export interface ActivitySummary {
+export interface SessionSummary {
   externalId: string
   name: string
   sportType: string
@@ -22,7 +22,7 @@ export interface ActivitySummary {
   averageHeartRate: number | null
 }
 
-export interface ActivityDetail extends ActivitySummary {
+export interface SessionDetail extends SessionSummary {
   metrics: Record<string, unknown>
   notes: string | null
 }
@@ -30,8 +30,8 @@ export interface ActivityDetail extends ActivitySummary {
 export abstract class Connector {
   abstract readonly id: number
   abstract authenticate(): Promise<ConnectorTokens>
-  abstract listActivities(filters: ActivityFilters): Promise<ActivitySummary[]>
-  abstract getActivityDetail(externalId: string): Promise<ActivityDetail>
+  abstract listSessions(filters: SessionFilters): Promise<SessionSummary[]>
+  abstract getSessionDetail(externalId: string): Promise<SessionDetail>
   abstract getConnectionStatus(): Promise<ConnectorStatus>
   abstract disconnect(): Promise<void>
 }

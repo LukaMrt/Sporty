@@ -9,6 +9,11 @@ export type ListSessionsOptions = {
   sortOrder?: 'asc' | 'desc'
 }
 
+export interface SessionExternalRef {
+  externalId: string
+  id: number
+}
+
 export abstract class SessionRepository {
   abstract create(
     data: Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
@@ -31,4 +36,8 @@ export abstract class SessionRepository {
     startDate: string,
     endDate: string
   ): Promise<TrainingSession[]>
+  abstract findByUserAndExternalIds(
+    userId: number,
+    externalIds: string[]
+  ): Promise<SessionExternalRef[]>
 }

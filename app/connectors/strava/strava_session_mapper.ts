@@ -1,7 +1,7 @@
 import { StravaSportMapper } from '#connectors/strava/strava_sport_mapper'
 import type { SportySportSlug } from '#connectors/strava/strava_sport_mapper'
 
-export interface StravaDetailedActivity {
+export interface StravaDetailedSession {
   id: number
   name: string
   sport_type: string
@@ -16,7 +16,7 @@ export interface StravaDetailedActivity {
   device_name?: string | null
 }
 
-export interface MappedActivity {
+export interface MappedSession {
   name: string
   sportSlug: SportySportSlug
   date: string
@@ -36,33 +36,33 @@ export interface MappedActivity {
 
 const CYCLING_SLUGS: SportySportSlug[] = ['cycling']
 
-export class StravaActivityMapper {
+export class StravaSessionMapper {
   #sportMapper = new StravaSportMapper()
 
-  map(activity: StravaDetailedActivity): MappedActivity {
-    const sportSlug = this.#sportMapper.map(activity.sport_type)
+  map(session: StravaDetailedSession): MappedSession {
+    const sportSlug = this.#sportMapper.map(session.sport_type)
     const distanceKm =
-      activity.distance !== null && activity.distance !== undefined && activity.distance > 0
-        ? activity.distance / 1000
+      session.distance !== null && session.distance !== undefined && session.distance > 0
+        ? session.distance / 1000
         : null
-    const avgHeartRate = activity.average_heartrate ?? null
-    const allure = this.#computeAllure(activity.average_speed ?? null, sportSlug)
+    const avgHeartRate = session.average_heartrate ?? null
+    const allure = this.#computeAllure(session.average_speed ?? null, sportSlug)
 
     return {
-      name: activity.name,
+      name: session.name,
       sportSlug,
-      date: activity.start_date_local,
-      durationMinutes: Math.round(activity.moving_time / 60),
+      date: session.start_date_local,
+      durationMinutes: Math.round(session.moving_time / 60),
       distanceKm,
       avgHeartRate,
       importedFrom: 'strava',
-      externalId: activity.id,
+      externalId: session.id,
       sportMetrics: {
         allure,
-        calories: activity.calories ?? null,
-        elevationGain: activity.total_elevation_gain ?? null,
-        maxHeartRate: activity.max_heartrate ?? null,
-        deviceName: activity.device_name ?? null,
+        calories: session.calories ?? null,
+        elevationGain: session.total_elevation_gain ?? null,
+        maxHeartRate: session.max_heartrate ?? null,
+        deviceName: session.device_name ?? null,
       },
     }
   }

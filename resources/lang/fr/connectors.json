@@ -10,6 +10,9 @@
     "disconnect": "Déconnecter",
     "status": "Connecté",
     "statusError": "Erreur",
+    "errorMessage": "Votre accès Strava a expiré ou a été révoqué. Reconnectez votre compte pour reprendre l'import automatique.",
+    "errorBannerTitle": "Connecteur Strava en erreur",
+    "errorBannerText": "L'import automatique est suspendu. Reconnectez votre compte pour importer de nouvelles activités.",
     "disconnected": "Strava déconnecté avec succès",
     "connected": "Strava connecté avec succès",
     "denied": "Autorisation Strava refusée",
@@ -17,5 +20,13 @@
     "missingConfig": "Configuration Strava manquante",
     "error": "Erreur lors de la connexion à Strava",
     "sessionCount": "{count} session(s) trouvée(s)"
+  },
+  "settings": {
+    "updated": "Paramètres du connecteur mis à jour",
+    "providerNotFound": "Provider invalide",
+    "connectorNotFound": "Connecteur introuvable",
+    "autoImport": "Import automatique",
+    "interval": "Intervalle",
+    "error": "Erreur lors de la mise à jour des paramètres"
   }
 }

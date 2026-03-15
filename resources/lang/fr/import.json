@@ -5,7 +5,8 @@
     "new": "Nouvelle",
     "importing": "En cours…",
     "imported": "Importée",
-    "ignored": "Ignorée"
+    "ignored": "Ignorée",
+    "failed": "Non supporté"
   },
   "table": {
     "date": "Date",
@@ -38,5 +39,9 @@
     "button": "Restaurer",
     "success": "Activité restaurée.",
     "error": "Échec de la restauration."
+  },
+  "rateLimit": {
+    "daily": "Limite journalière Strava atteinte — reprise demain.",
+    "partialImport": "{completed}/{total} activités importées, limite journalière atteinte."
   }
 }

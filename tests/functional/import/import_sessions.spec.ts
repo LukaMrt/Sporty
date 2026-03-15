@@ -5,7 +5,7 @@ import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import { getUser } from '#tests/helpers'
 
-test.group('Import / Activities', (group) => {
+test.group('Import / Sessions', (group) => {
   group.each.setup(async () => testUtils.db().wrapInGlobalTransaction())
 
   test('GET /connectors/strava — redirige si non authentifié', async ({ client }) => {
@@ -13,7 +13,7 @@ test.group('Import / Activities', (group) => {
     response.assertStatus(302)
   })
 
-  test('GET /connectors/strava — activities null si pas de connecteur', async ({
+  test('GET /connectors/strava — sessions null si pas de connecteur', async ({
     client,
     assert,
   }) => {
@@ -26,12 +26,12 @@ test.group('Import / Activities', (group) => {
       .header('X-Inertia-Version', '1')
 
     response.assertStatus(200)
-    const body = response.body() as { props: { stravaStatus: null; activities: null } }
+    const body = response.body() as { props: { stravaStatus: null; sessions: null } }
     assert.isNull(body.props.stravaStatus)
-    assert.isNull(body.props.activities)
+    assert.isNull(body.props.sessions)
   })
 
-  test('GET /connectors/strava — activities null si connecteur en erreur', async ({
+  test('GET /connectors/strava — sessions tableau vide et connectorError=true si connecteur en erreur (AC#2 story 10.1)', async ({
     client,
     assert,
   }) => {
@@ -55,8 +55,11 @@ test.group('Import / Activities', (group) => {
 
     delete process.env['CONNECTOR_ENCRYPTION_KEY']
     response.assertStatus(200)
-    const body = response.body() as { props: { stravaStatus: string; activities: null } }
+    const body = response.body() as {
+      props: { stravaStatus: string; sessions: unknown[] | null; connectorError: boolean }
+    }
     assert.equal(body.props.stravaStatus, 'error')
-    assert.isNull(body.props.activities)
+    assert.isArray(body.props.sessions) // tableau (vide car aucune session en staging)
+    assert.isTrue(body.props.connectorError)
   })
 })

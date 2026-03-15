@@ -1,6 +1,6 @@
 # Story 10.2 : Rate limit manager avance
 
-Status: draft
+Status: review
 
 ## Story
 
@@ -17,16 +17,16 @@ so that **les imports massifs respectent les limites sans intervention utilisate
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : File d'attente RateLimitManager (AC: #1, #2)
-  - [ ] Attente automatique si budget 15min epuise
-  - [ ] Rejet si budget journalier epuise
-  - [ ] Calcul du prochain interval naturel de reset
-- [ ] Task 2 : Integration avec import batch (AC: #3)
-  - [ ] Pause/reprise automatique pendant l'import
-  - [ ] Mise a jour de la progression ("En pause...")
-- [ ] Task 3 : Abandon apres 3 echecs 429 (AC: #4)
-  - [ ] Compteur d'echecs consecutifs
-  - [ ] Abandon et activite reste en status `new`
+- [x] Task 1 : File d'attente RateLimitManager (AC: #1, #2)
+  - [x] Attente automatique si budget 15min epuise
+  - [x] Rejet si budget journalier epuise
+  - [x] Calcul du prochain interval naturel de reset
+- [x] Task 2 : Integration avec import batch (AC: #3)
+  - [x] Pause/reprise automatique pendant l'import
+  - [x] Mise a jour de la progression ("En pause...")
+- [x] Task 3 : Abandon apres 3 echecs 429 (AC: #4)
+  - [x] Compteur d'echecs consecutifs
+  - [x] Abandon et activite reste en status `new`
 
 ## Dev Notes
 
@@ -44,3 +44,27 @@ const waitMs = (nextQuarter - minutes) * 60 * 1000 - now.getSeconds() * 1000
 ### References
 
 - [Source: _bmad-output/planning-artifacts/epics-import-connectors.md#Story 10.2]
+
+## Dev Agent Record
+
+### File List
+
+- `app/domain/errors/daily_rate_limit_error.ts` — nouvelle erreur domaine
+- `app/connectors/rate_limit_manager.ts` — DailyRateLimitError throw au lieu de sleep, méthode msUntilNextQuarter()
+- `app/use_cases/import/import_activities.ts` — catch DailyRateLimitError, dailyLimitReached dans le résultat
+- `inertia/components/import/SessionsDataTable.tsx` — toast "Limite journalière atteinte" sur dailyLimitReached
+- `resources/lang/fr/import.json` — clés rateLimit.daily, rateLimit.partialImport
+- `resources/lang/en/import.json` — idem en anglais
+- `tests/unit/connectors/rate_limit_manager.spec.ts` — test DailyRateLimitError mis à jour
+- `tests/unit/use_cases/import/import_activities.spec.ts` — tests AC#2
+
+### Completion Notes
+
+- AC#1 (15min wait) : déjà implémenté, waitIfNeeded() sleep jusqu'au prochain quart
+- AC#2 (daily reject) : DailyRateLimitError throw + catch dans ImportActivities + toast frontend
+- AC#3 (pause/reprise) : transparent via waitIfNeeded() interne ; dailyLimitReached dans le résultat pour feedback UI
+- AC#4 (429 abandon) : déjà implémenté avec MAX_RETRIES=3 dans StravaHttpClient
+
+### Change Log
+
+- Implémentation stories 10.1, 10.2, 10.3 (2026-03-15)

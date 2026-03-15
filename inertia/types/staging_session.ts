@@ -1,4 +1,4 @@
-export type StagingSessionStatus = 'new' | 'imported' | 'ignored' | 'importing'
+export type StagingSessionStatus = 'new' | 'imported' | 'ignored' | 'importing' | 'failed'
 
 export interface StagingSession {
   id: number

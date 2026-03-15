@@ -22,5 +22,8 @@ export default function SessionStatusBadge({ status }: SessionStatusBadgeProps) 
   if (status === 'ignored') {
     return <Badge variant="gray">{t('import.status.ignored')}</Badge>
   }
+  if (status === 'failed') {
+    return <Badge variant="orange">{t('import.status.failed')}</Badge>
+  }
   return <Badge variant="blue">{t('import.status.new')}</Badge>
 }

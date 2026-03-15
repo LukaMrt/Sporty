@@ -1,9 +1,9 @@
 import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
-  ActivityFilters,
-  ActivitySummary,
-  ActivityDetail,
+  SessionFilters,
+  SessionSummary,
+  SessionDetail,
 } from '#domain/interfaces/connector'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { StravaHttpClient } from '#connectors/strava/strava_http_client'
@@ -29,7 +29,7 @@ export class StravaConnector extends Connector {
     this.id = connectorId
   }
 
-  async listActivities(filters: ActivityFilters): Promise<ActivitySummary[]> {
+  async listSessions(filters: SessionFilters): Promise<SessionSummary[]> {
     const client = new StravaHttpClient(
       this.userId,
       ConnectorProvider.Strava,
@@ -49,15 +49,15 @@ export class StravaConnector extends Connector {
       url.searchParams.set('before', String(Math.floor(filters.before.getTime() / 1000)))
     }
 
-    const raw = await client.get<RawStravaSummaryActivity[]>(url.toString())
-    return raw.map(toActivitySummary)
+    const raw = await client.get<RawStravaSummarySession[]>(url.toString())
+    return raw.map(toSessionSummary)
   }
 
   async authenticate(): Promise<ConnectorTokens> {
     return this.tokens
   }
 
-  async getActivityDetail(externalId: string): Promise<ActivityDetail> {
+  async getSessionDetail(externalId: string): Promise<SessionDetail> {
     const client = new StravaHttpClient(
       this.userId,
       ConnectorProvider.Strava,
@@ -69,7 +69,7 @@ export class StravaConnector extends Connector {
     )
 
     const url = `${STRAVA_API_BASE}/activities/${externalId}`
-    const raw = await client.get<RawStravaDetailedActivity>(url)
+    const raw = await client.get<RawStravaDetailedSession>(url)
 
     return {
       externalId: String(raw.id),
@@ -99,7 +99,7 @@ export class StravaConnector extends Connector {
   }
 }
 
-interface RawStravaDetailedActivity {
+interface RawStravaDetailedSession {
   id: number
   name: string
   sport_type: string
@@ -114,7 +114,7 @@ interface RawStravaDetailedActivity {
   device_name?: string | null
 }
 
-interface RawStravaSummaryActivity {
+interface RawStravaSummarySession {
   id: number
   name: string
   sport_type: string
@@ -124,7 +124,7 @@ interface RawStravaSummaryActivity {
   average_heartrate?: number | null
 }
 
-function toActivitySummary(raw: RawStravaSummaryActivity): ActivitySummary {
+function toSessionSummary(raw: RawStravaSummarySession): SessionSummary {
   return {
     externalId: String(raw.id),
     name: raw.name,

@@ -6,11 +6,31 @@ import type {
   ConnectorRecord,
   ConnectorFullRecord,
   UpdateTokensInput,
+  UpdateSettingsInput,
+  ConnectorSettingsRecord,
+  ActiveConnectorRecord,
+  ConnectorByIdRecord,
 } from '#domain/interfaces/connector_repository'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 
 export default class LucidConnectorRepository extends ConnectorRepository {
+  async findById(id: number): Promise<ConnectorByIdRecord | null> {
+    const connector = await ConnectorModel.find(id)
+    if (!connector) return null
+    return {
+      id: connector.id,
+      userId: connector.userId,
+      provider: connector.provider,
+      status: connector.status,
+      autoImportEnabled: connector.autoImportEnabled,
+    }
+  }
+
+  async updateLastSyncAt(id: number): Promise<void> {
+    await ConnectorModel.query().where('id', id).update({ lastSyncAt: DateTime.now() })
+  }
+
   async findFullByUserAndProvider(
     userId: number,
     provider: ConnectorProvider
@@ -84,5 +104,42 @@ export default class LucidConnectorRepository extends ConnectorRepository {
       .where('user_id', userId)
       .where('provider', provider)
       .update({ status })
+  }
+
+  async updateSettings(
+    userId: number,
+    provider: ConnectorProvider,
+    data: UpdateSettingsInput
+  ): Promise<void> {
+    await ConnectorModel.query().where('user_id', userId).where('provider', provider).update({
+      autoImportEnabled: data.autoImportEnabled,
+      pollingIntervalMinutes: data.pollingIntervalMinutes,
+    })
+  }
+
+  async findAllAutoImportEnabled(): Promise<ActiveConnectorRecord[]> {
+    const connectors = await ConnectorModel.query()
+      .where('auto_import_enabled', true)
+      .where('status', 'connected')
+    return connectors.map((c) => ({
+      id: c.id,
+      userId: c.userId,
+      pollingIntervalMinutes: c.pollingIntervalMinutes,
+    }))
+  }
+
+  async findSettings(
+    userId: number,
+    provider: ConnectorProvider
+  ): Promise<ConnectorSettingsRecord | null> {
+    const connector = await ConnectorModel.query()
+      .where('user_id', userId)
+      .where('provider', provider)
+      .first()
+    if (!connector) return null
+    return {
+      autoImportEnabled: connector.autoImportEnabled,
+      pollingIntervalMinutes: connector.pollingIntervalMinutes,
+    }
   }
 }

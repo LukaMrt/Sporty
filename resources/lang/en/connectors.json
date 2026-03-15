@@ -1,6 +1,6 @@
 {
   "title": "Connectors",
-  "description": "Connect your third-party apps to import your activities.",
+  "description": "Connect your third-party apps to import your sessions.",
   "notConfigured": "Connectors are not enabled on this instance.",
   "strava": {
     "tagline": "Sports social network",
@@ -10,6 +10,9 @@
     "disconnect": "Disconnect",
     "status": "Connected",
     "statusError": "Error",
+    "errorMessage": "Your Strava access has expired or been revoked. Reconnect your account to resume automatic import.",
+    "errorBannerTitle": "Strava connector error",
+    "errorBannerText": "Automatic import is suspended. Reconnect your account to import new sessions.",
     "disconnected": "Strava disconnected successfully",
     "connected": "Strava connected successfully",
     "denied": "Strava authorization denied",
@@ -17,5 +20,13 @@
     "missingConfig": "Strava configuration missing",
     "error": "Error connecting to Strava",
     "sessionCount": "{count} session(s) found"
+  },
+  "settings": {
+    "updated": "Connector settings updated",
+    "providerNotFound": "Invalid provider",
+    "connectorNotFound": "Connector not found",
+    "autoImport": "Auto import",
+    "interval": "Interval",
+    "error": "Failed to update settings"
   }
 }

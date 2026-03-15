@@ -5,11 +5,14 @@ import env from '#start/env'
 import ConnectStrava from '#use_cases/connectors/connect_strava'
 import DisconnectStrava from '#use_cases/connectors/disconnect_strava'
 import GetStravaConnector from '#use_cases/connectors/get_strava_connector'
-import ListPreImportActivities, {
+import { ConnectorRepository } from '#domain/interfaces/connector_repository'
+import { ConnectorProvider } from '#domain/value_objects/connector_provider'
+import ListPreImportSessions, {
   ConnectorNotConnectedError,
-} from '#use_cases/import/list_pre_import_activities'
+} from '#use_cases/import/list_pre_import_sessions'
+import GetStagedSessions from '#use_cases/import/get_staged_sessions'
 
-interface RawActivityData {
+interface RawSessionData {
   name?: string
   sportType?: string
   startDate?: string
@@ -17,7 +20,7 @@ interface RawActivityData {
   durationSeconds?: number
 }
 
-interface StagingActivityDto {
+interface StagingSessionDto {
   id: number
   externalId: string
   status: string
@@ -34,7 +37,9 @@ export default class StravaConnectorController {
     private connectStrava: ConnectStrava,
     private disconnectStrava: DisconnectStrava,
     private getStravaConnector: GetStravaConnector,
-    private listPreImportActivities: ListPreImportActivities
+    private listPreImportSessions: ListPreImportSessions,
+    private getStagedSessions: GetStagedSessions,
+    private connectorRepository: ConnectorRepository
   ) {}
 
   async show({ inertia, auth, request }: HttpContext) {
@@ -55,14 +60,19 @@ export default class StravaConnectorController {
     const after = afterParam ? new Date(afterParam) : undefined
     const before = beforeParam ? new Date(beforeParam) : undefined
 
+    const settings = await this.connectorRepository.findSettings(
+      auth.user!.id,
+      ConnectorProvider.Strava
+    )
+
     try {
-      const records = await this.listPreImportActivities.execute({
+      const records = await this.listPreImportSessions.execute({
         userId: auth.user!.id,
         after,
         before,
       })
-      const activities: StagingActivityDto[] = records.map((r) => {
-        const raw = (r.rawData ?? {}) as unknown as RawActivityData
+      const sessions: StagingSessionDto[] = records.map((r) => {
+        const raw = (r.rawData ?? {}) as unknown as RawSessionData
         const distanceM = raw.distanceMeters ?? null
         return {
           id: r.id,
@@ -78,18 +88,49 @@ export default class StravaConnectorController {
       return inertia.render('Connectors/Show', {
         stravaStatus,
         stravaConfigured,
-        activities,
+        sessions,
+        connectorError: false,
         initialAfter: afterParam,
         initialBefore: beforeParam,
+        autoImportEnabled: settings?.autoImportEnabled ?? false,
+        pollingIntervalMinutes: settings?.pollingIntervalMinutes ?? 15,
       })
     } catch (error) {
       if (error instanceof ConnectorNotConnectedError) {
+        // En état error : on montre les sessions en staging déjà présentes (AC#2 story 10.1)
+        // sans appeler l'API Strava, avec le bouton import désactivé
+        const connectorError = stravaStatus === 'error'
+        let sessions: StagingSessionDto[] | null = null
+        if (connectorError) {
+          const records = await this.getStagedSessions.execute(
+            auth.user!.id,
+            ConnectorProvider.Strava
+          )
+          sessions = records.map((r) => {
+            const raw = (r.rawData ?? {}) as unknown as RawSessionData
+            const distanceM = raw.distanceMeters ?? null
+            return {
+              id: r.id,
+              externalId: r.externalId,
+              status: r.status,
+              date: raw.startDate ?? '',
+              name: raw.name ?? r.externalId,
+              sportType: raw.sportType ?? '',
+              durationMinutes: raw.durationSeconds ? raw.durationSeconds / 60 : 0,
+              distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
+            }
+          })
+        }
+
         return inertia.render('Connectors/Show', {
           stravaStatus,
           stravaConfigured,
-          activities: null,
+          sessions,
+          connectorError,
           initialAfter: afterParam,
           initialBefore: beforeParam,
+          autoImportEnabled: settings?.autoImportEnabled ?? false,
+          pollingIntervalMinutes: settings?.pollingIntervalMinutes ?? 15,
         })
       }
       throw error

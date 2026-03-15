@@ -1,11 +1,12 @@
 {
-  "title": "Activities to import",
-  "empty": "No activities in this date range.",
+  "title": "Sessions to import",
+  "empty": "No sessions in this date range.",
   "status": {
     "new": "New",
     "importing": "Importing…",
     "imported": "Imported",
-    "ignored": "Ignored"
+    "ignored": "Ignored",
+    "failed": "Unsupported"
   },
   "table": {
     "date": "Date",
@@ -31,12 +32,16 @@
   },
   "ignore": {
     "button": "Ignore",
-    "success": "Activity ignored.",
+    "success": "Session ignored.",
     "error": "Operation failed."
   },
   "restore": {
     "button": "Restore",
-    "success": "Activity restored.",
+    "success": "Session restored.",
     "error": "Restore failed."
+  },
+  "rateLimit": {
+    "daily": "Strava daily limit reached — retry tomorrow.",
+    "partialImport": "{completed}/{total} sessions imported, daily limit reached."
   }
 }
