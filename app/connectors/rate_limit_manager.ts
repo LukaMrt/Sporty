@@ -1,6 +1,8 @@
 import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
+import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
 
 export { RateLimitManager }
+export { DailyRateLimitError }
 
 type Sleeper = (ms: number) => Promise<void>
 
@@ -32,18 +34,19 @@ export class StravaRateLimitManager extends RateLimitManager {
     this.#usageDaily = usageDaily
   }
 
+  msUntilNextQuarter(): number {
+    const now = new Date()
+    const secondsInCurrentQuarter = (now.getUTCMinutes() % 15) * 60 + now.getUTCSeconds()
+    return (15 * 60 - secondsInCurrentQuarter) * 1000 - now.getUTCMilliseconds()
+  }
+
   async waitIfNeeded(): Promise<void> {
     if (this.#usageDaily >= this.#limitDaily) {
-      const now = new Date()
-      const midnight = new Date(now)
-      midnight.setUTCHours(24, 0, 0, 0)
-      await this.#sleeper(midnight.getTime() - now.getTime())
-    } else if (this.#usage15min >= this.#limit15min) {
-      const now = new Date()
-      const secondsInCurrentQuarter = (now.getUTCMinutes() % 15) * 60 + now.getUTCSeconds()
-      const msUntilNextQuarter =
-        (15 * 60 - secondsInCurrentQuarter) * 1000 - now.getUTCMilliseconds()
-      await this.#sleeper(msUntilNextQuarter)
+      throw new DailyRateLimitError()
+    }
+
+    if (this.#usage15min >= this.#limit15min) {
+      await this.#sleeper(this.msUntilNextQuarter())
     }
   }
 }

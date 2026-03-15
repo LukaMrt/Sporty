@@ -5,6 +5,7 @@ import { ImportActivityRepository } from '#domain/interfaces/import_activity_rep
 import type {
   StagingActivityInput,
   StagingActivityRecord,
+  ImportedActivityRef,
 } from '#domain/interfaces/import_activity_repository'
 
 // ─── Mock ────────────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ function makeImportActivityRepository(
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
+    async markImportedBulk(_connectorId: number, _refs: ImportedActivityRef[]): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }

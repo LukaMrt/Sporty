@@ -8,6 +8,7 @@ import {
   RefreshCw,
   ChevronLeft,
   TriangleAlert,
+  AlertTriangle,
 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import stravaLogo from '~/assets/strava-logo.svg'
@@ -34,6 +35,7 @@ interface ConnectorsShowProps {
   stravaStatus: ConnectorStatus | null
   stravaConfigured: boolean
   activities: StagingSession[] | null
+  connectorError: boolean
   initialAfter?: string
   initialBefore?: string
   autoImportEnabled: boolean
@@ -44,6 +46,7 @@ export default function ConnectorsShow({
   stravaStatus,
   stravaConfigured,
   activities,
+  connectorError,
   initialAfter,
   initialBefore,
   autoImportEnabled,
@@ -144,6 +147,9 @@ export default function ConnectorsShow({
                   <AlertCircle className="h-4 w-4" />
                   {t('connectors.strava.statusError')}
                 </span>
+                <p className="text-xs text-orange-700 max-w-xs text-right">
+                  {t('connectors.strava.errorMessage')}
+                </p>
                 <button
                   onClick={connectStrava}
                   disabled={!stravaConfigured}
@@ -215,12 +221,31 @@ export default function ConnectorsShow({
         </div>
       </div>
 
+      {/* Bandeau d'avertissement quand connecteur en erreur */}
+      {connectorError && (
+        <div className="mx-6 mb-4 flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-orange-800">
+              {t('connectors.strava.errorBannerTitle')}
+            </p>
+            <p className="mt-0.5 text-sm text-orange-700">
+              {t('connectors.strava.errorBannerText')}{' '}
+              <Link href="/connectors" className="underline hover:no-underline">
+                {t('connectors.title')}
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Liste des activités en staging */}
       {activities !== null && (
         <div className="px-6 pb-6">
           <h2 className="text-lg font-semibold text-foreground">{t('import.title')}</h2>
           <SessionsDataTable
             sessions={activities}
+            connectorError={connectorError}
             initialAfter={initialAfter}
             initialBefore={initialBefore}
           />

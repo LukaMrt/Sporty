@@ -1,5 +1,5 @@
 import { test } from '@japa/runner'
-import { StravaRateLimitManager } from '#connectors/rate_limit_manager'
+import { StravaRateLimitManager, DailyRateLimitError } from '#connectors/rate_limit_manager'
 
 test.group('RateLimitManager — StravaRateLimitManager', () => {
   test('AC#5 — waitIfNeeded ne bloque pas si les deux budgets sont disponibles', async ({
@@ -49,15 +49,18 @@ test.group('RateLimitManager — StravaRateLimitManager', () => {
     assert.isTrue(slept, 'doit appeler le sleeper si budget 15min épuisé')
   })
 
-  test('AC#5 — waitIfNeeded bloque si le budget journalier est épuisé', async ({ assert }) => {
-    let slept = false
-    const manager = new StravaRateLimitManager({
-      sleeper: async () => {
-        slept = true
-      },
-    })
+  test('AC#2 story 10.2 — waitIfNeeded lève DailyRateLimitError si budget journalier épuisé', async ({
+    assert,
+  }) => {
+    const manager = new StravaRateLimitManager()
     manager.update(50, 1000) // budget journalier épuisé
-    await manager.waitIfNeeded()
-    assert.isTrue(slept, 'doit appeler le sleeper si budget journalier épuisé')
+    await assert.rejects(() => manager.waitIfNeeded(), DailyRateLimitError)
+  })
+
+  test('AC#1 story 10.2 — msUntilNextQuarter retourne une valeur positive', ({ assert }) => {
+    const manager = new StravaRateLimitManager()
+    const ms = manager.msUntilNextQuarter()
+    assert.isAbove(ms, 0)
+    assert.isAtMost(ms, 15 * 60 * 1000)
   })
 })

@@ -10,6 +10,7 @@ import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import ListPreImportActivities, {
   ConnectorNotConnectedError,
 } from '#use_cases/import/list_pre_import_activities'
+import GetStagedActivities from '#use_cases/import/get_staged_activities'
 
 interface RawActivityData {
   name?: string
@@ -37,6 +38,7 @@ export default class StravaConnectorController {
     private disconnectStrava: DisconnectStrava,
     private getStravaConnector: GetStravaConnector,
     private listPreImportActivities: ListPreImportActivities,
+    private getStagedActivities: GetStagedActivities,
     private connectorRepository: ConnectorRepository
   ) {}
 
@@ -87,6 +89,7 @@ export default class StravaConnectorController {
         stravaStatus,
         stravaConfigured,
         activities,
+        connectorError: false,
         initialAfter: afterParam,
         initialBefore: beforeParam,
         autoImportEnabled: settings?.autoImportEnabled ?? false,
@@ -94,10 +97,36 @@ export default class StravaConnectorController {
       })
     } catch (error) {
       if (error instanceof ConnectorNotConnectedError) {
+        // En état error : on montre les activités en staging déjà présentes (AC#2 story 10.1)
+        // sans appeler l'API Strava, avec le bouton import désactivé
+        const connectorError = stravaStatus === 'error'
+        let activities: StagingActivityDto[] | null = null
+        if (connectorError) {
+          const records = await this.getStagedActivities.execute(
+            auth.user!.id,
+            ConnectorProvider.Strava
+          )
+          activities = records.map((r) => {
+            const raw = (r.rawData ?? {}) as unknown as RawActivityData
+            const distanceM = raw.distanceMeters ?? null
+            return {
+              id: r.id,
+              externalId: r.externalId,
+              status: r.status,
+              date: raw.startDate ?? '',
+              name: raw.name ?? r.externalId,
+              sportType: raw.sportType ?? '',
+              durationMinutes: raw.durationSeconds ? raw.durationSeconds / 60 : 0,
+              distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
+            }
+          })
+        }
+
         return inertia.render('Connectors/Show', {
           stravaStatus,
           stravaConfigured,
-          activities: null,
+          activities,
+          connectorError,
           initialAfter: afterParam,
           initialBefore: beforeParam,
           autoImportEnabled: settings?.autoImportEnabled ?? false,

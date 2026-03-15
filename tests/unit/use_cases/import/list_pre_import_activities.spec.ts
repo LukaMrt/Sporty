@@ -6,6 +6,7 @@ import { ImportActivityRepository } from '#domain/interfaces/import_activity_rep
 import type {
   StagingActivityInput,
   StagingActivityRecord,
+  ImportedActivityRef,
 } from '#domain/interfaces/import_activity_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { Connector } from '#domain/interfaces/connector'
@@ -17,6 +18,10 @@ import type {
 } from '#domain/interfaces/connector'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
+import { SessionRepository } from '#domain/interfaces/session_repository'
+import type { SessionExternalRef } from '#domain/interfaces/session_repository'
+import type { TrainingSession } from '#domain/entities/training_session'
+import type { PaginatedResult } from '#domain/entities/pagination'
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -67,6 +72,46 @@ function makeImportActivityRepository(
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
+    async markImportedBulk(_connectorId: number, _refs: ImportedActivityRef[]): Promise<void> {}
+  }
+  return Object.assign(new Mock(), overrides)
+}
+
+function makeSessionRepository(
+  overrides: Partial<{
+    findByUserAndExternalIds: (
+      userId: number,
+      externalIds: string[]
+    ) => Promise<SessionExternalRef[]>
+  }> = {}
+): SessionRepository {
+  class Mock extends SessionRepository {
+    async create(): Promise<TrainingSession> {
+      throw new Error('not implemented')
+    }
+    async findAllByUserId(): Promise<PaginatedResult<TrainingSession>> {
+      return { data: [], meta: { total: 0, perPage: 10, page: 1, lastPage: 1 } }
+    }
+    async findById(): Promise<TrainingSession | null> {
+      return null
+    }
+    async findByIdIncludingTrashed(): Promise<TrainingSession | null> {
+      return null
+    }
+    async update(): Promise<TrainingSession> {
+      throw new Error('not implemented')
+    }
+    async findTrashedByUserId(): Promise<TrainingSession[]> {
+      return []
+    }
+    async softDelete(): Promise<void> {}
+    async restore(): Promise<void> {}
+    async findByUserIdAndDateRange(): Promise<TrainingSession[]> {
+      return []
+    }
+    async findByUserAndExternalIds(): Promise<SessionExternalRef[]> {
+      return []
+    }
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -98,7 +143,8 @@ test.group('ListPreImportActivities', () => {
   test('throws ConnectorNotConnectedError quand connecteur absent (AC#4)', async ({ assert }) => {
     const useCase = new ListPreImportActivities(
       makeImportActivityRepository(),
-      makeConnectorFactory(null)
+      makeConnectorFactory(null),
+      makeSessionRepository()
     )
 
     await assert.rejects(() => useCase.execute({ userId: 1 }), ConnectorNotConnectedError)
@@ -118,7 +164,8 @@ test.group('ListPreImportActivities', () => {
 
     const useCase = new ListPreImportActivities(
       makeImportActivityRepository(),
-      makeConnectorFactory(connector)
+      makeConnectorFactory(connector),
+      makeSessionRepository()
     )
 
     const before = Date.now()
@@ -147,7 +194,11 @@ test.group('ListPreImportActivities', () => {
       ],
     })
 
-    const useCase = new ListPreImportActivities(importRepo, makeConnectorFactory(connector))
+    const useCase = new ListPreImportActivities(
+      importRepo,
+      makeConnectorFactory(connector),
+      makeSessionRepository()
+    )
     const result = await useCase.execute({ userId: 1 })
 
     assert.equal(upserted.length, 1)
@@ -172,7 +223,11 @@ test.group('ListPreImportActivities', () => {
       findByConnectorId: async () => existingRecords,
     })
 
-    const useCase = new ListPreImportActivities(importRepo, makeConnectorFactory(connector))
+    const useCase = new ListPreImportActivities(
+      importRepo,
+      makeConnectorFactory(connector),
+      makeSessionRepository()
+    )
     const result = await useCase.execute({ userId: 1 })
 
     assert.equal(result[0].status, ImportActivityStatus.Imported)
@@ -191,7 +246,8 @@ test.group('ListPreImportActivities', () => {
 
     const useCase = new ListPreImportActivities(
       makeImportActivityRepository(),
-      makeConnectorFactory(connector)
+      makeConnectorFactory(connector),
+      makeSessionRepository()
     )
 
     const afterDate = new Date('2026-01-01')
@@ -200,5 +256,67 @@ test.group('ListPreImportActivities', () => {
 
     assert.deepEqual(capturedFilters!.after, afterDate)
     assert.deepEqual(capturedFilters!.before, beforeDate)
+  })
+
+  test('AC#3 story 10.3 — marque comme importées les activités déjà présentes en session', async ({
+    assert,
+  }) => {
+    const connector = makeConnector(42, {
+      listActivities: async () => MOCK_ACTIVITIES,
+    })
+
+    const markImportedCalls: { connectorId: number; refs: ImportedActivityRef[] }[] = []
+    const importRepo = makeImportActivityRepository({
+      markImportedBulk: async (connectorId, refs) => {
+        markImportedCalls.push({ connectorId, refs })
+      },
+      findByConnectorId: async () => [
+        { id: 1, externalId: '101', status: ImportActivityStatus.New, rawData: null },
+        { id: 2, externalId: '102', status: ImportActivityStatus.New, rawData: null },
+      ],
+    })
+
+    const sessionRepo = makeSessionRepository({
+      findByUserAndExternalIds: async () => [
+        { externalId: '101', id: 55 }, // activité 101 déjà importée en session #55
+      ],
+    })
+
+    const useCase = new ListPreImportActivities(
+      importRepo,
+      makeConnectorFactory(connector),
+      sessionRepo
+    )
+    await useCase.execute({ userId: 1 })
+
+    assert.equal(markImportedCalls.length, 1)
+    assert.equal(markImportedCalls[0].connectorId, 42)
+    assert.equal(markImportedCalls[0].refs.length, 1)
+    assert.equal(markImportedCalls[0].refs[0].externalId, '101')
+    assert.equal(markImportedCalls[0].refs[0].sessionId, 55)
+  })
+
+  test('AC#3 story 10.3 — ne fait pas markImportedBulk si aucune session existante', async ({
+    assert,
+  }) => {
+    const connector = makeConnector(42, {
+      listActivities: async () => MOCK_ACTIVITIES,
+    })
+
+    const markImportedCalls: unknown[] = []
+    const importRepo = makeImportActivityRepository({
+      markImportedBulk: async (_connectorId, _refs) => {
+        markImportedCalls.push(true)
+      },
+    })
+
+    const useCase = new ListPreImportActivities(
+      importRepo,
+      makeConnectorFactory(connector),
+      makeSessionRepository()
+    )
+    await useCase.execute({ userId: 1 })
+
+    assert.equal(markImportedCalls.length, 0)
   })
 })

@@ -20,6 +20,7 @@ import { formatDuration } from '~/lib/format'
 
 interface SessionsDataTableProps {
   sessions: StagingSession[]
+  connectorError?: boolean
   initialAfter?: string
   initialBefore?: string
 }
@@ -38,6 +39,7 @@ const columnHelper = createColumnHelper<StagingSession>()
 
 export default function SessionsDataTable({
   sessions,
+  connectorError = false,
   initialAfter,
   initialBefore,
 }: SessionsDataTableProps) {
@@ -107,8 +109,18 @@ export default function SessionsDataTable({
           return
         }
 
-        const data = (await res.json()) as { failed: number }
-        if (data.failed > 0) {
+        const data = (await res.json()) as {
+          failed: number
+          completed: number
+          total: number
+          dailyLimitReached?: boolean
+        }
+        if (data.dailyLimitReached) {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
+          )
+          pushToast(t('import.rateLimit.daily'), 'error')
+        } else if (data.failed > 0) {
           setLocalSessions((cur) =>
             cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
           )
@@ -280,7 +292,7 @@ export default function SessionsDataTable({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => void importOne(id)}
-                  disabled={isImporting || isPending}
+                  disabled={isImporting || isPending || connectorError}
                   className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isImporting ? t('import.batch.importing') : t('import.batch.button')}
@@ -314,7 +326,7 @@ export default function SessionsDataTable({
         enableSorting: false,
       }),
     ],
-    [t, formatDate, importingIds, pendingIds, importOne, ignoreOne, restoreOne]
+    [t, formatDate, importingIds, pendingIds, importOne, ignoreOne, restoreOne, connectorError]
   )
 
   const table = useReactTable({

@@ -3,6 +3,7 @@ import { ImportActivityRepository } from '#domain/interfaces/import_activity_rep
 import type {
   StagingActivityInput,
   StagingActivityRecord,
+  ImportedActivityRef,
 } from '#domain/interfaces/import_activity_repository'
 import { ImportActivityStatus } from '#domain/value_objects/import_activity_status'
 
@@ -68,5 +69,17 @@ export default class LucidImportActivityRepository extends ImportActivityReposit
     await ImportActivityModel.query()
       .where('id', id)
       .update({ status: ImportActivityStatus.Failed })
+  }
+
+  async markImportedBulk(connectorId: number, refs: ImportedActivityRef[]): Promise<void> {
+    if (refs.length === 0) return
+    await Promise.all(
+      refs.map((ref) =>
+        ImportActivityModel.query()
+          .where('connector_id', connectorId)
+          .where('external_id', ref.externalId)
+          .update({ status: ImportActivityStatus.Imported, importedSessionId: ref.sessionId })
+      )
+    )
   }
 }

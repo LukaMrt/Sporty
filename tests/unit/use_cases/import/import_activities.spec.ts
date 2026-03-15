@@ -4,7 +4,9 @@ import { ImportActivityRepository } from '#domain/interfaces/import_activity_rep
 import type {
   StagingActivityInput,
   StagingActivityRecord,
+  ImportedActivityRef,
 } from '#domain/interfaces/import_activity_repository'
+import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { Connector } from '#domain/interfaces/connector'
 import type {
@@ -93,6 +95,7 @@ function makeImportActivityRepository(
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
+    async markImportedBulk(_connectorId: number, _refs: ImportedActivityRef[]): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -137,6 +140,9 @@ function makeSessionRepository(overrides: Partial<SessionRepository> = {}): Sess
     async softDelete(): Promise<void> {}
     async restore(): Promise<void> {}
     async findByUserIdAndDateRange(): Promise<TrainingSession[]> {
+      return []
+    }
+    async findByUserAndExternalIds(): Promise<{ externalId: string; id: number }[]> {
       return []
     }
   }
@@ -302,5 +308,58 @@ test.group('ImportActivities', () => {
 
     assert.equal(result.failed, 1)
     assert.equal(result.completed, 0)
+  })
+
+  test("AC#2 story 10.2 — DailyRateLimitError stoppe l'import et retourne dailyLimitReached", async ({
+    assert,
+  }) => {
+    const connector = makeConnector(42, {
+      getActivityDetail: async () => {
+        throw new DailyRateLimitError()
+      },
+    })
+
+    const useCase = makeUseCase({
+      connectorFactory: makeConnectorFactory(connector),
+    })
+
+    const result = await useCase.execute({ userId: 1, importActivityIds: [10, 20, 30] })
+
+    assert.isTrue(result.dailyLimitReached)
+    assert.equal(result.completed, 0)
+    assert.equal(result.total, 3)
+  })
+
+  test('AC#2 story 10.2 — activités partiellement importées avant DailyRateLimitError', async ({
+    assert,
+  }) => {
+    let callCount = 0
+    const connector = makeConnector(42, {
+      getActivityDetail: async (externalId) => {
+        callCount++
+        if (callCount >= 2) throw new DailyRateLimitError()
+        return {
+          externalId,
+          name: 'Run',
+          sportType: 'Run',
+          startDate: '2026-01-01T08:00:00',
+          durationSeconds: 3600,
+          distanceMeters: null,
+          averageHeartRate: null,
+          metrics: {},
+          notes: null,
+        }
+      },
+    })
+
+    const useCase = makeUseCase({
+      connectorFactory: makeConnectorFactory(connector),
+    })
+
+    const result = await useCase.execute({ userId: 1, importActivityIds: [10, 20, 30] })
+
+    assert.isTrue(result.dailyLimitReached)
+    assert.equal(result.completed, 1)
+    assert.equal(result.total, 3)
   })
 })

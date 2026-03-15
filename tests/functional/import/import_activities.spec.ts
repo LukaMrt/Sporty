@@ -31,7 +31,7 @@ test.group('Import / Activities', (group) => {
     assert.isNull(body.props.activities)
   })
 
-  test('GET /connectors/strava — activities null si connecteur en erreur', async ({
+  test('GET /connectors/strava — activities tableau vide et connectorError=true si connecteur en erreur (AC#2 story 10.1)', async ({
     client,
     assert,
   }) => {
@@ -55,8 +55,11 @@ test.group('Import / Activities', (group) => {
 
     delete process.env['CONNECTOR_ENCRYPTION_KEY']
     response.assertStatus(200)
-    const body = response.body() as { props: { stravaStatus: string; activities: null } }
+    const body = response.body() as {
+      props: { stravaStatus: string; activities: unknown[] | null; connectorError: boolean }
+    }
     assert.equal(body.props.stravaStatus, 'error')
-    assert.isNull(body.props.activities)
+    assert.isArray(body.props.activities) // tableau (vide car aucune activité en staging)
+    assert.isTrue(body.props.connectorError)
   })
 })

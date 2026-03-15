@@ -1,8 +1,12 @@
 import { test } from '@japa/runner'
 import testUtils from '@adonisjs/core/services/test_utils'
 import Connector from '#models/connector'
+import Session from '#models/session'
+import Sport from '#models/sport'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
+import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import { getUser } from '#tests/helpers'
+import { DateTime } from 'luxon'
 
 // ConnectorStatus utilisé pour créer les fixtures (connected / error)
 
@@ -117,6 +121,63 @@ test.group('Connectors / Strava Disconnect', (group) => {
 
     response.assertStatus(200)
     assert.include(response.text(), 'connected')
+  })
+
+  // ─── AC#1 story 10.3 — sessions survivent à la déconnexion ──────────────
+
+  test('POST /connectors/strava/disconnect — les sessions importées restent intactes (AC#1 story 10.3)', async ({
+    client,
+    assert,
+  }) => {
+    const user = await getUser()
+    process.env['CONNECTOR_ENCRYPTION_KEY'] = 'test_encryption_key_32_bytes_long!!'
+
+    const connector = await Connector.create({
+      userId: user.id,
+      provider: ConnectorProvider.Strava,
+      status: ConnectorStatus.Connected,
+      encryptedAccessToken: 'access_token',
+      encryptedRefreshToken: 'refresh_token',
+      autoImportEnabled: false,
+      pollingIntervalMinutes: 60,
+    })
+
+    // Créer une session importée depuis ce connecteur
+    const sport = await Sport.firstOrFail()
+    const session = await Session.create({
+      userId: user.id,
+      sportId: sport.id,
+      date: DateTime.now(),
+      durationMinutes: 45,
+      distanceKm: 10,
+      avgHeartRate: null,
+      perceivedEffort: null,
+      sportMetrics: {},
+      notes: null,
+      importedFrom: 'strava',
+      externalId: 'ext-999',
+    })
+
+    const originalFetch = global.fetch
+    global.fetch = async () => new Response('{}', { status: 200 })
+
+    await client.post('/connectors/strava/disconnect').loginAs(user).redirects(0)
+
+    global.fetch = originalFetch
+    delete process.env['CONNECTOR_ENCRYPTION_KEY']
+
+    // Le connecteur est supprimé
+    const connectorAfter = await Connector.findBy('user_id', user.id)
+    assert.isNull(connectorAfter)
+
+    // Mais la session reste intacte
+    const sessionAfter = await Session.find(session.id)
+    assert.isNotNull(sessionAfter)
+    assert.equal(sessionAfter!.importedFrom, 'strava')
+    assert.equal(sessionAfter!.externalId, 'ext-999')
+
+    // La FK connector n'affecte pas les sessions (pas de cascade)
+    void connector // used
   })
 
   // ─── AC#3 — page connecteurs expose stravaStatus (error) ─────────────────

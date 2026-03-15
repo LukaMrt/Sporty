@@ -2,6 +2,7 @@ import { inject } from '@adonisjs/core'
 import { ImportActivityRepository } from '#domain/interfaces/import_activity_repository'
 import type { StagingActivityRecord } from '#domain/interfaces/import_activity_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
+import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
 
 export { ConnectorNotConnectedError }
@@ -18,7 +19,8 @@ export interface ListPreImportActivitiesInput {
 export default class ListPreImportActivities {
   constructor(
     private importActivityRepository: ImportActivityRepository,
-    private connectorFactory: ConnectorFactory
+    private connectorFactory: ConnectorFactory,
+    private sessionRepository: SessionRepository
   ) {}
 
   async execute(input: ListPreImportActivitiesInput): Promise<StagingActivityRecord[]> {
@@ -45,6 +47,19 @@ export default class ListPreImportActivities {
         rawData: a as unknown as Record<string, unknown>,
       }))
     )
+
+    // Story 10.3 AC#3 — marquer comme importées les activités déjà présentes en sessions
+    const externalIds = activities.map((a) => a.externalId)
+    const existingSessions = await this.sessionRepository.findByUserAndExternalIds(
+      input.userId,
+      externalIds
+    )
+    if (existingSessions.length > 0) {
+      await this.importActivityRepository.markImportedBulk(
+        connector.id,
+        existingSessions.map((s) => ({ externalId: s.externalId, sessionId: s.id }))
+      )
+    }
 
     const allRecords = await this.importActivityRepository.findByConnectorId(connector.id)
 

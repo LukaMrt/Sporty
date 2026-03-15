@@ -57,6 +57,10 @@ export function makeMockSessionRepository(
     async findByUserIdAndDateRange(): Promise<TrainingSession[]> {
       return []
     }
+
+    async findByUserAndExternalIds(): Promise<{ externalId: string; id: number }[]> {
+      return []
+    }
   }
 
   return Object.assign(new MockRepository(), overrides)

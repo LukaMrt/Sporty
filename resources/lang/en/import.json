@@ -39,5 +39,9 @@
     "button": "Restore",
     "success": "Activity restored.",
     "error": "Restore failed."
+  },
+  "rateLimit": {
+    "daily": "Strava daily limit reached — retry tomorrow.",
+    "partialImport": "{completed}/{total} activities imported, daily limit reached."
   }
 }

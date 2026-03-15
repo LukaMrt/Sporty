@@ -12,6 +12,11 @@ export interface StagingActivityRecord {
   rawData: Record<string, unknown> | null
 }
 
+export interface ImportedActivityRef {
+  externalId: string
+  sessionId: number
+}
+
 export abstract class ImportActivityRepository {
   abstract upsertMany(connectorId: number, activities: StagingActivityInput[]): Promise<void>
   abstract findByConnectorId(connectorId: number): Promise<StagingActivityRecord[]>
@@ -20,4 +25,5 @@ export abstract class ImportActivityRepository {
   abstract setIgnored(id: number, userId: number): Promise<void>
   abstract setNew(id: number, userId: number): Promise<void>
   abstract setFailed(id: number, reason: string): Promise<void>
+  abstract markImportedBulk(connectorId: number, refs: ImportedActivityRef[]): Promise<void>
 }

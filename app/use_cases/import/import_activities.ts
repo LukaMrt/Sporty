@@ -5,6 +5,7 @@ import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ActivityMapper } from '#domain/interfaces/activity_mapper'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
+import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
 
 export { ConnectorNotConnectedError }
 
@@ -18,6 +19,7 @@ export interface ImportActivitiesResult {
   completed: number
   failed: number
   errors: string[]
+  dailyLimitReached?: boolean
 }
 
 @inject()
@@ -86,6 +88,10 @@ export default class ImportActivities {
         await this.importActivityRepository.setImported(id, session.id)
         completed++
       } catch (err) {
+        if (err instanceof DailyRateLimitError) {
+          failed += importActivityIds.length - completed - failed
+          return { total, completed, failed, errors, dailyLimitReached: true }
+        }
         failed++
         errors.push(
           `id=${id} externalId=${record.externalId}: ${err instanceof Error ? err.message : String(err)}`

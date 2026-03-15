@@ -7,6 +7,7 @@ import { ImportActivityRepository } from '#domain/interfaces/import_activity_rep
 import type {
   StagingActivityInput,
   StagingActivityRecord,
+  ImportedActivityRef,
 } from '#domain/interfaces/import_activity_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
@@ -148,6 +149,7 @@ function makeImportActivityRepo(
     async setIgnored(_id: number, _userId: number) {}
     async setNew(_id: number, _userId: number) {}
     async setFailed(_id: number, _reason: string) {}
+    async markImportedBulk(_connectorId: number, _refs: ImportedActivityRef[]): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -214,6 +216,9 @@ function makeSessionRepo(overrides: Partial<SessionRepository> = {}): SessionRep
     async softDelete() {}
     async restore() {}
     async findByUserIdAndDateRange() {
+      return []
+    }
+    async findByUserAndExternalIds() {
       return []
     }
   }
