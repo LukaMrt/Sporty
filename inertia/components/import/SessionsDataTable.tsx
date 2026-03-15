@@ -74,7 +74,12 @@ export default function SessionsDataTable({
 
   const importOne = useCallback(
     async (id: number) => {
-      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s)))
+      let prevStatus: StagingSession['status'] = 'new'
+      setLocalSessions((cur) => {
+        const found = cur.find((s) => s.id === id)
+        if (found) prevStatus = found.status
+        return cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s))
+      })
       setImportingIds((prev) => new Set(prev).add(id))
 
       try {
@@ -95,14 +100,18 @@ export default function SessionsDataTable({
         })
 
         if (!res.ok) {
-          setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
+          )
           pushToast(t('import.batch.error'), 'error')
           return
         }
 
         const data = (await res.json()) as { failed: number }
         if (data.failed > 0) {
-          setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
+          )
           pushToast(t('import.batch.error'), 'error')
         } else {
           setLocalSessions((cur) =>
@@ -111,7 +120,7 @@ export default function SessionsDataTable({
           pushToast(t('import.batch.success'), 'success')
         }
       } catch {
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s)))
         pushToast(t('import.batch.error'), 'error')
       } finally {
         setImportingIds((prev) => {
@@ -154,7 +163,12 @@ export default function SessionsDataTable({
 
   const ignoreOne = useCallback(
     async (id: number) => {
-      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s)))
+      let prevStatus: StagingSession['status'] = 'new'
+      setLocalSessions((cur) => {
+        const found = cur.find((s) => s.id === id)
+        if (found) prevStatus = found.status
+        return cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s))
+      })
       setPendingIds((s) => new Set(s).add(id))
       const ok = await postAction(
         `/import/activities/${id}/ignore`,
@@ -162,7 +176,7 @@ export default function SessionsDataTable({
         'import.ignore.error'
       )
       if (!ok)
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s)))
       setPendingIds((s) => {
         const n = new Set(s)
         n.delete(id)
@@ -261,7 +275,7 @@ export default function SessionsDataTable({
           const isImporting = importingIds.has(id)
           const isPending = pendingIds.has(id)
 
-          if (status === 'new') {
+          if (status === 'new' || status === 'failed') {
             return (
               <div className="flex items-center gap-2">
                 <button
@@ -433,7 +447,7 @@ export default function SessionsDataTable({
             return (
               <div key={row.id} className={`space-y-2 ${status === 'ignored' ? 'opacity-50' : ''}`}>
                 <StagingSessionCard session={row.original} />
-                {status === 'new' && (
+                {(status === 'new' || status === 'failed') && (
                   <div className="flex gap-2">
                     <button
                       onClick={() => void importOne(id)}

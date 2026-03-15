@@ -63,4 +63,10 @@ export default class LucidImportActivityRepository extends ImportActivityReposit
       })
       .update({ status: ImportActivityStatus.New })
   }
+
+  async setFailed(id: number, _reason: string): Promise<void> {
+    await ImportActivityModel.query()
+      .where('id', id)
+      .update({ status: ImportActivityStatus.Failed })
+  }
 }

@@ -94,7 +94,13 @@ export default class SyncConnector {
           const detail = await connector.getActivityDetail(stagingRecord.externalId)
           const mapped = mapper.map(detail)
           const sportId = sportBySlug.get(mapped.sportSlug)
-          if (!sportId) continue
+          if (!sportId) {
+            await this.importActivityRepository.setFailed(
+              stagingRecord.id,
+              `unsupported_sport:${mapped.sportSlug}`
+            )
+            continue
+          }
 
           const session = await this.sessionRepository.create({
             userId,

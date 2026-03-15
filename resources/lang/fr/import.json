@@ -5,7 +5,8 @@
     "new": "Nouvelle",
     "importing": "En cours…",
     "imported": "Importée",
-    "ignored": "Ignorée"
+    "ignored": "Ignorée",
+    "failed": "Non supporté"
   },
   "table": {
     "date": "Date",

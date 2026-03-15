@@ -66,6 +66,7 @@ function makeImportActivityRepository(
     async setImported(): Promise<void> {}
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
+    async setFailed(): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }

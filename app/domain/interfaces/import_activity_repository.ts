@@ -19,4 +19,5 @@ export abstract class ImportActivityRepository {
   abstract setImported(id: number, sessionId: number): Promise<void>
   abstract setIgnored(id: number, userId: number): Promise<void>
   abstract setNew(id: number, userId: number): Promise<void>
+  abstract setFailed(id: number, reason: string): Promise<void>
 }

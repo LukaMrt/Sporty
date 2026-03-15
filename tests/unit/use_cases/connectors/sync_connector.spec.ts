@@ -147,6 +147,7 @@ function makeImportActivityRepo(
     async setImported(_id: number, _sessionId: number) {}
     async setIgnored(_id: number, _userId: number) {}
     async setNew(_id: number, _userId: number) {}
+    async setFailed(_id: number, _reason: string) {}
   }
   return Object.assign(new Mock(), overrides)
 }
