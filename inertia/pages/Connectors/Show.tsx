@@ -53,6 +53,7 @@ export default function ConnectorsShow({
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [optimisticEnabled, setOptimisticEnabled] = useState(autoImportEnabled)
   const [interval, setInterval] = useState(pollingIntervalMinutes)
+  const intervalDirty = interval !== pollingIntervalMinutes
 
   const isConnected = stravaStatus === 'connected'
 
@@ -78,7 +79,7 @@ export default function ConnectorsShow({
     submitSettings(checked, interval)
   }
 
-  function handleIntervalBlur() {
+  function handleIntervalSave() {
     const clamped = Math.min(60, Math.max(5, interval))
     setInterval(clamped)
     submitSettings(optimisticEnabled, clamped)
@@ -198,11 +199,18 @@ export default function ConnectorsShow({
               max={60}
               value={interval}
               onChange={(e) => setInterval(Number(e.target.value))}
-              onBlur={handleIntervalBlur}
+              onKeyDown={(e) => e.key === 'Enter' && handleIntervalSave()}
               disabled={!isConnected}
               className="w-20"
             />
             <span className={`text-sm ${!isConnected ? 'text-muted-foreground' : ''}`}>min</span>
+            <button
+              onClick={handleIntervalSave}
+              disabled={!intervalDirty || !isConnected}
+              className="cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t('common.actions.save')}
+            </button>
           </div>
         </div>
       </div>
