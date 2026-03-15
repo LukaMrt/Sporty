@@ -147,6 +147,21 @@ test.group('SyncScheduler', (group) => {
     assert.equal(scheduler.timers.size, 1)
   })
 
+  test('une exception dans syncFn ne supprime pas le timer', async ({ assert }) => {
+    const fn: SyncFn = async () => {
+      throw new Error('unexpected')
+    }
+    scheduler = new SyncScheduler(fn, makeLoadFn())
+
+    scheduler.addConnector(1, 10, 60)
+
+    // @ts-expect-error accès privé pour test
+    await scheduler.runSync(1)
+
+    // @ts-expect-error accès privé pour test
+    assert.equal(scheduler.timers.size, 1)
+  })
+
   test('un success ne supprime pas le timer', async ({ assert }) => {
     const { fn } = makeSyncFn('success')
     scheduler = new SyncScheduler(fn, makeLoadFn())

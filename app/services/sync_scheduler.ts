@@ -62,9 +62,13 @@ export class SyncScheduler extends ConnectorScheduler {
   }
 
   private async runSync(connectorId: number): Promise<void> {
-    const result = await this.syncFn(connectorId)
-    if (result.outcome === 'permanent_error') {
-      this.removeConnector(connectorId)
+    try {
+      const result = await this.syncFn(connectorId)
+      if (result.outcome === 'permanent_error') {
+        this.removeConnector(connectorId)
+      }
+    } catch {
+      // Unexpected error: keep timer alive for next attempt
     }
   }
 }

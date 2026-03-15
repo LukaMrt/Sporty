@@ -294,6 +294,22 @@ test.group('SyncConnector', () => {
     assert.isFalse(apiCalled)
   })
 
+  test('AC#3 — disconnected ne modifie pas le status en BD', async ({ assert }) => {
+    let statusSet: ConnectorStatusType | null = null
+    const record = makeConnectorRecord({ status: ConnectorStatus.Disconnected })
+    const useCase = makeUseCase({
+      record,
+      connectorRepoOverrides: {
+        async setStatus(_userId, _provider, status) {
+          statusSet = status
+        },
+      },
+    })
+    const result = await useCase.execute({ connectorId: 1 })
+    assert.equal(result.outcome, 'permanent_error')
+    assert.isNull(statusSet)
+  })
+
   test('AC#3 — met le status à error dans la BD', async ({ assert }) => {
     let statusSet: ConnectorStatusType | null = null
     const record = makeConnectorRecord({ status: ConnectorStatus.Error })

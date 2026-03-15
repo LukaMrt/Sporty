@@ -38,10 +38,10 @@ export default class SyncConnector {
 
     try {
       // AC#3 — vérifier l'état avant tout appel API
-      if (
-        record.status === ConnectorStatus.Error ||
-        record.status === ConnectorStatus.Disconnected
-      ) {
+      if (record.status === ConnectorStatus.Disconnected) {
+        return { outcome: 'permanent_error', reason: 'Connector is disconnected' }
+      }
+      if (record.status === ConnectorStatus.Error) {
         throw new ConnectorAuthError(record.provider)
       }
 
