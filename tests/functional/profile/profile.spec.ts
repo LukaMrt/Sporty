@@ -131,6 +131,50 @@ test.group('Profile / Consultation & Modification', (group) => {
     assert.equal(updated.email, newEmail)
   })
 
+  test('PUT /profile FC max valide → persistée en DB', async ({ client, assert }) => {
+    const { user, profile } = await createUserWithProfile()
+
+    await client.put('/profile').form({ max_heart_rate: '185' }).loginAs(user).redirects(0)
+
+    const updated = await UserProfile.findOrFail(profile.id)
+    assert.equal(updated.maxHeartRate, 185)
+  })
+
+  test('PUT /profile VMA valide → persistée en DB', async ({ client, assert }) => {
+    const { user, profile } = await createUserWithProfile()
+
+    await client.put('/profile').form({ vma: '14.5' }).loginAs(user).redirects(0)
+
+    const updated = await UserProfile.findOrFail(profile.id)
+    assert.approximately(updated.vma!, 14.5, 0.01)
+  })
+
+  test('PUT /profile FC max invalide (< 100) → erreur validation', async ({ client }) => {
+    const { user } = await createUserWithProfile()
+
+    const response = await client
+      .put('/profile')
+      .form({ max_heart_rate: '50' })
+      .loginAs(user)
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertFlashMessage('errorsBag', {
+      E_VALIDATION_ERROR: 'The form could not be saved. Please check the errors below.',
+    })
+  })
+
+  test('PUT /profile VMA invalide (> 30) → erreur validation', async ({ client }) => {
+    const { user } = await createUserWithProfile()
+
+    const response = await client.put('/profile').form({ vma: '35' }).loginAs(user).redirects(0)
+
+    response.assertStatus(302)
+    response.assertFlashMessage('errorsBag', {
+      E_VALIDATION_ERROR: 'The form could not be saved. Please check the errors below.',
+    })
+  })
+
   test('PUT /profile email soi-même → pas dupliqué', async ({ client, assert }) => {
     const admin = await getAdmin()
 

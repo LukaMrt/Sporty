@@ -21,4 +21,6 @@ export interface UserProfile {
   level: UserLevel | null
   objective: UserObjective | null
   preferences: UserPreferences
+  maxHeartRate: number | null
+  vma: number | null
 }

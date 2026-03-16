@@ -40,6 +40,8 @@ export default class CompleteOnboarding {
         dateFormat: input.preferences.dateFormat,
         locale: input.preferences.locale,
       },
+      maxHeartRate: null,
+      vma: null,
     })
 
     await this.userRepository.markOnboardingCompleted(input.userId)

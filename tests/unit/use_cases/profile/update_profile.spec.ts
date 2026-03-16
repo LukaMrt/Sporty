@@ -19,6 +19,8 @@ const DEFAULT_PROFILE: UserProfile = {
     dateFormat: 'DD/MM/YYYY',
     locale: 'fr',
   },
+  maxHeartRate: null,
+  vma: null,
 }
 
 function makeMockProfileRepository(
@@ -177,5 +179,53 @@ test.group('UpdateProfile — use case', () => {
 
     assert.equal(result.user.fullName, 'Luka')
     assert.equal(result.profile?.level, UserLevel.Advanced)
+  })
+
+  test('persiste la FC max dans le profil', async ({ assert }) => {
+    let capturedProfileUpdate: Partial<Omit<UserProfile, 'id' | 'userId'>> = {}
+    const profileRepo = makeMockProfileRepository({
+      update: async (userId, data) => {
+        capturedProfileUpdate = data
+        return { ...DEFAULT_PROFILE, ...data, userId }
+      },
+    })
+    const userRepo = makeMockUserRepository()
+    const useCase = new UpdateProfile(userRepo, profileRepo)
+
+    await useCase.execute(42, { maxHeartRate: 185 })
+
+    assert.equal(capturedProfileUpdate.maxHeartRate, 185)
+  })
+
+  test('persiste la VMA dans le profil', async ({ assert }) => {
+    let capturedProfileUpdate: Partial<Omit<UserProfile, 'id' | 'userId'>> = {}
+    const profileRepo = makeMockProfileRepository({
+      update: async (userId, data) => {
+        capturedProfileUpdate = data
+        return { ...DEFAULT_PROFILE, ...data, userId }
+      },
+    })
+    const userRepo = makeMockUserRepository()
+    const useCase = new UpdateProfile(userRepo, profileRepo)
+
+    await useCase.execute(42, { vma: 14.5 })
+
+    assert.equal(capturedProfileUpdate.vma, 14.5)
+  })
+
+  test('accepte null pour réinitialiser la FC max', async ({ assert }) => {
+    let capturedProfileUpdate: Partial<Omit<UserProfile, 'id' | 'userId'>> = {}
+    const profileRepo = makeMockProfileRepository({
+      update: async (userId, data) => {
+        capturedProfileUpdate = data
+        return { ...DEFAULT_PROFILE, ...data, userId }
+      },
+    })
+    const userRepo = makeMockUserRepository()
+    const useCase = new UpdateProfile(userRepo, profileRepo)
+
+    await useCase.execute(42, { maxHeartRate: null })
+
+    assert.isNull(capturedProfileUpdate.maxHeartRate)
   })
 })

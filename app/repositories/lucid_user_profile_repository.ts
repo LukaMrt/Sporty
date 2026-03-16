@@ -32,6 +32,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         level: model.level,
         objective: model.objective as UserObjective | null,
         preferences: model.preferences,
+        maxHeartRate: model.maxHeartRate,
+        vma: model.vma,
       }
     })
   }
@@ -52,6 +54,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       level: model.level,
       objective: model.objective as UserObjective | null,
       preferences: model.preferences,
+      maxHeartRate: model.maxHeartRate,
+      vma: model.vma,
     }
   }
 
@@ -67,6 +71,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       if (data.level !== undefined) model.level = data.level
       if (data.objective !== undefined) model.objective = data.objective
       if (data.preferences !== undefined) model.preferences = data.preferences
+      if (data.maxHeartRate !== undefined) model.maxHeartRate = data.maxHeartRate
+      if (data.vma !== undefined) model.vma = data.vma
       await model.save()
 
       let sportId: number
@@ -91,6 +97,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         level: model.level,
         objective: model.objective as UserObjective | null,
         preferences: model.preferences,
+        maxHeartRate: model.maxHeartRate,
+        vma: model.vma,
       }
     })
   }

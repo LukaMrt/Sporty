@@ -32,6 +32,8 @@ interface ProfileData {
     dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY'
     locale: 'fr' | 'en'
   }
+  maxHeartRate: number | null
+  vma: number | null
 }
 
 interface EditProps {
@@ -54,6 +56,8 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     week_starts_on: profile?.preferences.weekStartsOn ?? ('monday' as 'monday' | 'sunday'),
     date_format: profile?.preferences.dateFormat ?? ('DD/MM/YYYY' as 'DD/MM/YYYY' | 'MM/DD/YYYY'),
     locale: profile?.preferences.locale ?? (locale as 'fr' | 'en'),
+    max_heart_rate: profile?.maxHeartRate ?? (null as number | null),
+    vma: profile?.vma ?? (null as number | null),
   })
 
   const LEVELS = [
@@ -331,6 +335,77 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                   ))}
                 </div>
               </FormField>
+            </div>
+
+            {/* Paramètres physiologiques */}
+            <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
+              <h2 className="text-sm font-semibold">{t('profile.physiological.title')}</h2>
+
+              {/* FC max */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="max_heart_rate" className="text-sm font-medium">
+                    {t('profile.physiological.maxHeartRate')}{' '}
+                    <span className="font-normal text-muted-foreground">
+                      ({t('profile.physiological.maxHeartRateUnit')})
+                    </span>
+                  </label>
+                  <a
+                    href="/physiology/how-to-measure"
+                    className="text-xs text-primary underline underline-offset-2"
+                  >
+                    {t('profile.physiological.howToMeasure')}
+                  </a>
+                </div>
+                <Input
+                  id="max_heart_rate"
+                  type="number"
+                  min={100}
+                  max={250}
+                  value={form.data.max_heart_rate ?? ''}
+                  onChange={(e) =>
+                    form.setData(
+                      'max_heart_rate',
+                      e.target.value === '' ? null : Number(e.target.value)
+                    )
+                  }
+                  placeholder={t('profile.physiological.maxHeartRatePlaceholder')}
+                />
+                {form.errors.max_heart_rate && (
+                  <p className="text-xs text-destructive">{form.errors.max_heart_rate}</p>
+                )}
+              </div>
+
+              {/* VMA */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="vma" className="text-sm font-medium">
+                    {t('profile.physiological.vma')}{' '}
+                    <span className="font-normal text-muted-foreground">
+                      ({t('profile.physiological.vmaUnit')})
+                    </span>
+                  </label>
+                  <a
+                    href="/physiology/how-to-measure"
+                    className="text-xs text-primary underline underline-offset-2"
+                  >
+                    {t('profile.physiological.howToMeasure')}
+                  </a>
+                </div>
+                <Input
+                  id="vma"
+                  type="number"
+                  min={5}
+                  max={30}
+                  step={0.1}
+                  value={form.data.vma ?? ''}
+                  onChange={(e) =>
+                    form.setData('vma', e.target.value === '' ? null : Number(e.target.value))
+                  }
+                  placeholder={t('profile.physiological.vmaPlaceholder')}
+                />
+                {form.errors.vma && <p className="text-xs text-destructive">{form.errors.vma}</p>}
+              </div>
             </div>
 
             <Button

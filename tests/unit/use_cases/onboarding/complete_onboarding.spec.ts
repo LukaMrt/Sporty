@@ -30,6 +30,8 @@ function makeUserProfileRepository(
           dateFormat: 'DD/MM/YYYY',
           locale: 'fr',
         },
+        maxHeartRate: null,
+        vma: null,
       }
     }
   }

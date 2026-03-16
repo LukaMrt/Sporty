@@ -85,7 +85,7 @@
     "@adonisjs/lucid": "~22.1.1",
     "@adonisjs/session": "~8.0.0",
     "@adonisjs/shield": "~9.0.0",
-    "@adonisjs/static": "~2.0.0",
+    "@adonisjs/static": "~2.0.1",
     "@adonisjs/vite": "~5.1.0",
     "@inertiajs/react": "^2.3.18",
     "@radix-ui/react-avatar": "^1.1.11",

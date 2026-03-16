@@ -62,6 +62,16 @@
     "title": "Administration",
     "link": "Gérer les utilisateurs"
   },
+  "physiological": {
+    "title": "Paramètres physiologiques",
+    "maxHeartRate": "FC max",
+    "maxHeartRateUnit": "bpm",
+    "maxHeartRatePlaceholder": "Ex: 190",
+    "vma": "VMA",
+    "vmaUnit": "km/h",
+    "vmaPlaceholder": "Ex: 16",
+    "howToMeasure": "Comment mesurer ?"
+  },
   "flash": {
     "updated": "Profil mis à jour",
     "passwordChanged": "Mot de passe modifié",
