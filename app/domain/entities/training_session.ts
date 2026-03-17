@@ -12,6 +12,7 @@ export interface TrainingSession {
   notes: string | null
   importedFrom?: string | null
   externalId?: string | null
+  gpxFilePath?: string | null
   createdAt: string
   deletedAt?: string | null
 }
