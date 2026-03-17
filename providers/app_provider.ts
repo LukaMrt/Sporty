@@ -11,6 +11,7 @@ import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import { SessionMapper } from '#domain/interfaces/session_mapper'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
+import { GpxParser } from '#domain/interfaces/gpx_parser'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -100,6 +101,11 @@ export default class AppProvider {
         rateLimiter: rateLimitMgr,
       })
       return registry
+    })
+
+    this.app.container.bind(GpxParser, async () => {
+      const { GpxParserService } = await import('#services/gpx_parser_service')
+      return new GpxParserService()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {

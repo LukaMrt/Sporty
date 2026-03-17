@@ -1,6 +1,6 @@
 # Story 11.5 : Parser GPX
 
-Status: pending
+Status: review
 
 ## Story
 
@@ -16,46 +16,46 @@ so that **l'import GPX produit des `RunMetrics` completes**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Port domain (AC: #1, #2, #3)
-  - [ ] Creer `app/domain/interfaces/gpx_parser.ts`
-  - [ ] Abstract class `GpxParser` avec methode `parse(content: string): GpxParseResult`
-  - [ ] Type `GpxParseResult` avec toutes les donnees extraites + metriques calculees
-- [ ] Task 2 : Installer `fast-xml-parser` (AC: #1)
-  - [ ] `pnpm add fast-xml-parser`
-- [ ] Task 3 : Service GPX — extraction trackpoints (AC: #1, #2)
-  - [ ] Creer `app/services/gpx_parser_service.ts`
-  - [ ] Parser le XML avec `fast-xml-parser`
-  - [ ] Extraire les trackpoints : lat, lon, ele, time, hr, cad (extensions optionnelles)
-  - [ ] Gerer les cas : extensions absentes, points sans elevation, points sans timestamp
-- [ ] Task 4 : Service GPX — calculs de distance et allure (AC: #1)
-  - [ ] Formule Haversine pour distance entre 2 points GPS
-  - [ ] Distance totale = somme des distances entre points consecutifs
-  - [ ] Allure instantanee = delta temps / delta distance entre points
-  - [ ] Lissage allure sur fenetre glissante de 30 secondes
-- [ ] Task 5 : Service GPX — reechantillonnage (AC: #1)
-  - [ ] Reechantillonner toutes les courbes a 15 secondes d'intervalle
-  - [ ] Interpolation lineaire entre les deux points les plus proches du timestamp cible
-  - [ ] Produire `DataPoint[]` pour FC, allure, altitude
-  - [ ] Produire `GpsPoint[]` pour le trace GPS
-- [ ] Task 6 : Service GPX — splits au km (AC: #1)
-  - [ ] Calculer la distance cumulee point par point
-  - [ ] A chaque passage de km, enregistrer le split : km, allure (secondes), FC moyenne du split, denivele du split
-- [ ] Task 7 : Service GPX — denivele (AC: #1)
-  - [ ] Somme des deltas positifs d'altitude = denivele +
-  - [ ] Somme des deltas negatifs = denivele -
-  - [ ] Seuil de bruit : ignorer les deltas < 2m pour filtrer le bruit GPS
-- [ ] Task 8 : Service GPX — validation et erreurs (AC: #3)
-  - [ ] Verifier la presence de `<trk>` et `<trkseg>` et `<trkpt>`
-  - [ ] Erreur si < 2 trackpoints
-  - [ ] Erreur si XML invalide
-  - [ ] Creer `app/domain/errors/gpx_parse_error.ts`
-- [ ] Task 9 : Binding IoC
-  - [ ] Enregistrer `GpxParserService` dans `providers/app_provider.ts`
-- [ ] Task 10 : Tests unitaires (AC: #1, #2, #3)
-  - [ ] Fichier GPX de reference avec FC + cadence + elevation
-  - [ ] Fichier GPX minimal (lat/lon/time seulement)
-  - [ ] Fichier GPX invalide
-  - [ ] Verifier : distance ±1%, FC identiques, splits corrects, denivele coherent
+- [x] Task 1 : Port domain (AC: #1, #2, #3)
+  - [x] Creer `app/domain/interfaces/gpx_parser.ts`
+  - [x] Abstract class `GpxParser` avec methode `parse(content: string): GpxParseResult`
+  - [x] Type `GpxParseResult` avec toutes les donnees extraites + metriques calculees
+- [x] Task 2 : Installer `fast-xml-parser` (AC: #1)
+  - [x] `pnpm add fast-xml-parser`
+- [x] Task 3 : Service GPX — extraction trackpoints (AC: #1, #2)
+  - [x] Creer `app/services/gpx_parser_service.ts`
+  - [x] Parser le XML avec `fast-xml-parser`
+  - [x] Extraire les trackpoints : lat, lon, ele, time, hr, cad (extensions optionnelles)
+  - [x] Gerer les cas : extensions absentes, points sans elevation, points sans timestamp
+- [x] Task 4 : Service GPX — calculs de distance et allure (AC: #1)
+  - [x] Formule Haversine pour distance entre 2 points GPS
+  - [x] Distance totale = somme des distances entre points consecutifs
+  - [x] Allure instantanee = delta temps / delta distance entre points
+  - [x] Lissage allure sur fenetre glissante de 30 secondes
+- [x] Task 5 : Service GPX — reechantillonnage (AC: #1)
+  - [x] Reechantillonner toutes les courbes a 15 secondes d'intervalle
+  - [x] Interpolation lineaire entre les deux points les plus proches du timestamp cible
+  - [x] Produire `DataPoint[]` pour FC, allure, altitude
+  - [x] Produire `GpsPoint[]` pour le trace GPS
+- [x] Task 6 : Service GPX — splits au km (AC: #1)
+  - [x] Calculer la distance cumulee point par point
+  - [x] A chaque passage de km, enregistrer le split : km, allure (secondes), FC moyenne du split, denivele du split
+- [x] Task 7 : Service GPX — denivele (AC: #1)
+  - [x] Somme des deltas positifs d'altitude = denivele +
+  - [x] Somme des deltas negatifs = denivele -
+  - [x] Seuil de bruit : ignorer les deltas < 2m pour filtrer le bruit GPS
+- [x] Task 8 : Service GPX — validation et erreurs (AC: #3)
+  - [x] Verifier la presence de `<trk>` et `<trkseg>` et `<trkpt>`
+  - [x] Erreur si < 2 trackpoints
+  - [x] Erreur si XML invalide
+  - [x] Creer `app/domain/errors/gpx_parse_error.ts`
+- [x] Task 9 : Binding IoC
+  - [x] Enregistrer `GpxParserService` dans `providers/app_provider.ts`
+- [x] Task 10 : Tests unitaires (AC: #1, #2, #3)
+  - [x] Fichier GPX de reference avec FC + cadence + elevation
+  - [x] Fichier GPX minimal (lat/lon/time seulement)
+  - [x] Fichier GPX invalide
+  - [x] Verifier : distance ±1%, FC identiques, splits corrects, denivele coherent
 
 ## Dev Notes
 
@@ -110,3 +110,29 @@ Les altitudes GPS sont imprecises (±5-10m). Un seuil de 2m pour le calcul du de
 
 - [Source: _bmad-output/epics/epic-11-donnees-course-enrichies-gpx.md#Story 11.5]
 - GPX schema : https://www.topografix.com/GPX/1/1/
+
+## Dev Agent Record
+
+### Completion Notes
+
+- `GpxParserService` implémente `GpxParser` (abstract class) — parsing XML via `fast-xml-parser`
+- Extensions FC/cadence cherchées de manière flexible (tous namespaces : `gpxtpx:hr`, `hr`, etc.)
+- Allure calculée par Haversine + lissage fenêtre glissante 30s avant rééchantillonnage 15s
+- Interpolation linéaire pour toutes les courbes (FC, allure, altitude, GPS)
+- Seuil de bruit 2m pour dénivelé ; splits au km avec interpolation du timestamp de passage
+- Fixture réelle Apple Watch (sans FC) utilisée pour les tests AC#2
+- 400 tests passent (dont 17 nouveaux pour ce service)
+
+## File List
+
+- `app/domain/interfaces/gpx_parser.ts` (créé)
+- `app/domain/errors/gpx_parse_error.ts` (créé)
+- `app/services/gpx_parser_service.ts` (créé)
+- `providers/app_provider.ts` (modifié — binding GpxParser)
+- `tests/unit/services/gpx_parser_service.spec.ts` (créé)
+- `tests/unit/services/fixtures/gpx_fixture.gpx` (créé)
+- `package.json` / `pnpm-lock.yaml` (fast-xml-parser ajouté)
+
+## Change Log
+
+- 2026-03-17 : Implémentation complète story 11.5 — parser GPX avec extraction trackpoints, Haversine, lissage allure, rééchantillonnage 15s, splits, dénivelé, binding IoC, tests unitaires
