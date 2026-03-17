@@ -140,4 +140,40 @@ test.group('UpdateSession — use case', () => {
     assert.isNull(capturedData!.notes)
     assert.deepEqual(capturedData!.sportMetrics, {})
   })
+
+  test('les métriques RunMetrics sont mergées dans sportMetrics lors de la mise à jour', async ({
+    assert,
+  }) => {
+    let capturedData: Partial<
+      Omit<TrainingSession, 'id' | 'userId' | 'createdAt' | 'sportName'>
+    > | null = null
+
+    const repo = makeMockSessionRepository({
+      findById: async () => ({ ...BASE_SESSION }),
+      update: async (_id, data) => {
+        capturedData = data
+        return { ...BASE_SESSION, ...data }
+      },
+    })
+
+    const useCase = new UpdateSession(repo)
+    await useCase.execute(1, 42, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      minHeartRate: 60,
+      maxHeartRate: 180,
+      cadenceAvg: 172,
+      elevationGain: 150,
+      elevationLoss: 120,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {
+      minHeartRate: 60,
+      maxHeartRate: 180,
+      cadenceAvg: 172,
+      elevationGain: 150,
+      elevationLoss: 120,
+    })
+  })
 })

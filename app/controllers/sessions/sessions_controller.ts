@@ -138,6 +138,11 @@ export default class SessionsController {
         perceivedEffort: data.perceived_effort,
         sportMetrics: data.sport_metrics as Record<string, unknown> | undefined,
         notes: data.notes,
+        minHeartRate: data.min_heart_rate,
+        maxHeartRate: data.max_heart_rate,
+        cadenceAvg: data.cadence_avg,
+        elevationGain: data.elevation_gain,
+        elevationLoss: data.elevation_loss,
       })
       session.flash('success', i18n.t('sessions.flash.updated'))
       return response.redirect(`/sessions/${params.id}`)
@@ -191,6 +196,11 @@ export default class SessionsController {
       perceivedEffort: data.perceived_effort,
       sportMetrics: data.sport_metrics as Record<string, unknown> | undefined,
       notes: data.notes,
+      minHeartRate: data.min_heart_rate,
+      maxHeartRate: data.max_heart_rate,
+      cadenceAvg: data.cadence_avg,
+      elevationGain: data.elevation_gain,
+      elevationLoss: data.elevation_loss,
     })
 
     session.flash('success', i18n.t('sessions.flash.created'))

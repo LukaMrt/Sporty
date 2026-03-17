@@ -103,4 +103,79 @@ test.group('CreateSession — use case', () => {
     assert.equal(capturedData!.notes, 'Belle sortie')
     assert.deepEqual(capturedData!.sportMetrics, { elevation_gain: 200 })
   })
+
+  test('les métriques RunMetrics sont mergées dans sportMetrics', async ({ assert }) => {
+    let capturedData: SessionData | null = null
+    const repo = makeMockSessionRepository({
+      create: async (data) => {
+        capturedData = data
+        return { id: 1, sportName: '', createdAt: '', ...data }
+      },
+    })
+
+    const useCase = new CreateSession(repo)
+    await useCase.execute(1, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      minHeartRate: 55,
+      maxHeartRate: 178,
+      cadenceAvg: 170,
+      elevationGain: 200,
+      elevationLoss: 180,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {
+      minHeartRate: 55,
+      maxHeartRate: 178,
+      cadenceAvg: 170,
+      elevationGain: 200,
+      elevationLoss: 180,
+    })
+  })
+
+  test('les champs RunMetrics null sont ignorés dans sportMetrics', async ({ assert }) => {
+    let capturedData: SessionData | null = null
+    const repo = makeMockSessionRepository({
+      create: async (data) => {
+        capturedData = data
+        return { id: 1, sportName: '', createdAt: '', ...data }
+      },
+    })
+
+    const useCase = new CreateSession(repo)
+    await useCase.execute(1, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      minHeartRate: null,
+      maxHeartRate: null,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {})
+  })
+
+  test('RunMetrics est mergé avec sportMetrics existant', async ({ assert }) => {
+    let capturedData: SessionData | null = null
+    const repo = makeMockSessionRepository({
+      create: async (data) => {
+        capturedData = data
+        return { id: 1, sportName: '', createdAt: '', ...data }
+      },
+    })
+
+    const useCase = new CreateSession(repo)
+    await useCase.execute(1, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      sportMetrics: { someExistingKey: 'value' },
+      elevationGain: 300,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {
+      someExistingKey: 'value',
+      elevationGain: 300,
+    })
+  })
 })

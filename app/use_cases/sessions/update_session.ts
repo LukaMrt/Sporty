@@ -13,6 +13,11 @@ export interface UpdateSessionInput {
   perceivedEffort?: number | null
   sportMetrics?: Record<string, unknown>
   notes?: string | null
+  minHeartRate?: number | null
+  maxHeartRate?: number | null
+  cadenceAvg?: number | null
+  elevationGain?: number | null
+  elevationLoss?: number | null
 }
 
 @inject()
@@ -28,6 +33,18 @@ export default class UpdateSession {
     if (!existing) throw new SessionNotFoundError(sessionId)
     if (existing.userId !== userId) throw new SessionForbiddenError()
 
+    const runMetrics: Record<string, unknown> = {}
+    if (data.minHeartRate !== null && data.minHeartRate !== undefined)
+      runMetrics.minHeartRate = data.minHeartRate
+    if (data.maxHeartRate !== null && data.maxHeartRate !== undefined)
+      runMetrics.maxHeartRate = data.maxHeartRate
+    if (data.cadenceAvg !== null && data.cadenceAvg !== undefined)
+      runMetrics.cadenceAvg = data.cadenceAvg
+    if (data.elevationGain !== null && data.elevationGain !== undefined)
+      runMetrics.elevationGain = data.elevationGain
+    if (data.elevationLoss !== null && data.elevationLoss !== undefined)
+      runMetrics.elevationLoss = data.elevationLoss
+
     return this.sessionRepository.update(sessionId, {
       sportId: data.sportId,
       date: data.date,
@@ -35,7 +52,7 @@ export default class UpdateSession {
       distanceKm: data.distanceKm ?? null,
       avgHeartRate: data.avgHeartRate ?? null,
       perceivedEffort: data.perceivedEffort ?? null,
-      sportMetrics: data.sportMetrics ?? {},
+      sportMetrics: { ...(data.sportMetrics ?? {}), ...runMetrics },
       notes: data.notes ?? null,
     })
   }

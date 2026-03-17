@@ -15,6 +15,14 @@ interface Sport {
   slug: string
 }
 
+interface RunMetrics {
+  minHeartRate?: number | null
+  maxHeartRate?: number | null
+  cadenceAvg?: number | null
+  elevationGain?: number | null
+  elevationLoss?: number | null
+}
+
 interface TrainingSession {
   id: number
   sportId: number
@@ -24,6 +32,7 @@ interface TrainingSession {
   avgHeartRate: number | null
   perceivedEffort: number | null
   notes: string | null
+  sportMetrics?: RunMetrics | null
 }
 
 interface SessionFormProps {
@@ -40,8 +49,8 @@ function todayIso() {
 }
 
 function computeSpeed(
-  durationMinutes: number | '',
-  distanceKm: number | '',
+  durationMinutes: number | string,
+  distanceKm: number | string,
   speedUnit: 'min_km' | 'km_h'
 ): string | null {
   const dur = Number(durationMinutes)
@@ -87,9 +96,35 @@ export default function SessionForm({
         ? String(session.perceivedEffort)
         : '',
     notes: session?.notes ?? '',
+    min_heart_rate:
+      session?.sportMetrics?.minHeartRate !== null &&
+      session?.sportMetrics?.minHeartRate !== undefined
+        ? String(session.sportMetrics.minHeartRate)
+        : '',
+    max_heart_rate:
+      session?.sportMetrics?.maxHeartRate !== null &&
+      session?.sportMetrics?.maxHeartRate !== undefined
+        ? String(session.sportMetrics.maxHeartRate)
+        : '',
+    cadence_avg:
+      session?.sportMetrics?.cadenceAvg !== null && session?.sportMetrics?.cadenceAvg !== undefined
+        ? String(session.sportMetrics.cadenceAvg)
+        : '',
+    elevation_gain:
+      session?.sportMetrics?.elevationGain !== null &&
+      session?.sportMetrics?.elevationGain !== undefined
+        ? String(session.sportMetrics.elevationGain)
+        : '',
+    elevation_loss:
+      session?.sportMetrics?.elevationLoss !== null &&
+      session?.sportMetrics?.elevationLoss !== undefined
+        ? String(session.sportMetrics.elevationLoss)
+        : '',
   })
 
   const pace = computeSpeed(form.data.duration_minutes, form.data.distance_km, speedUnit)
+  const selectedSport = sports.find((s) => s.id === form.data.sport_id)
+  const isRunning = selectedSport?.slug === 'running'
 
   function handleCancel() {
     if (onClose) {
@@ -110,6 +145,11 @@ export default function SessionForm({
       perceived_effort:
         form.data.perceived_effort !== '' ? Number(form.data.perceived_effort) : null,
       notes: form.data.notes !== '' ? form.data.notes : null,
+      min_heart_rate: form.data.min_heart_rate !== '' ? Number(form.data.min_heart_rate) : null,
+      max_heart_rate: form.data.max_heart_rate !== '' ? Number(form.data.max_heart_rate) : null,
+      cadence_avg: form.data.cadence_avg !== '' ? Number(form.data.cadence_avg) : null,
+      elevation_gain: form.data.elevation_gain !== '' ? Number(form.data.elevation_gain) : null,
+      elevation_loss: form.data.elevation_loss !== '' ? Number(form.data.elevation_loss) : null,
     }
     if (mode === 'create') {
       form.transform(() => payload)
@@ -202,6 +242,87 @@ export default function SessionForm({
 
       {detailsOpen && (
         <div className="space-y-4 border-l-2 border-muted pl-3">
+          {/* Champs spécifiques course à pied */}
+          {isRunning && (
+            <>
+              <FormField
+                label={t('sessions.form.minHeartRate')}
+                htmlFor="min_heart_rate"
+                error={form.errors.min_heart_rate}
+              >
+                <Input
+                  id="min_heart_rate"
+                  type="number"
+                  min={30}
+                  max={250}
+                  placeholder="ex: 55"
+                  value={form.data.min_heart_rate}
+                  onChange={(e) => form.setData('min_heart_rate', e.target.value)}
+                />
+              </FormField>
+              <FormField
+                label={t('sessions.form.maxHeartRate')}
+                htmlFor="max_heart_rate"
+                error={form.errors.max_heart_rate}
+              >
+                <Input
+                  id="max_heart_rate"
+                  type="number"
+                  min={30}
+                  max={250}
+                  placeholder="ex: 175"
+                  value={form.data.max_heart_rate}
+                  onChange={(e) => form.setData('max_heart_rate', e.target.value)}
+                />
+              </FormField>
+              <FormField
+                label={t('sessions.form.cadenceAvg')}
+                htmlFor="cadence_avg"
+                error={form.errors.cadence_avg}
+              >
+                <Input
+                  id="cadence_avg"
+                  type="number"
+                  min={50}
+                  max={250}
+                  placeholder="ex: 170"
+                  value={form.data.cadence_avg}
+                  onChange={(e) => form.setData('cadence_avg', e.target.value)}
+                />
+              </FormField>
+              <FormField
+                label={t('sessions.form.elevationGain')}
+                htmlFor="elevation_gain"
+                error={form.errors.elevation_gain}
+              >
+                <Input
+                  id="elevation_gain"
+                  type="number"
+                  min={0}
+                  max={10000}
+                  placeholder="ex: 150"
+                  value={form.data.elevation_gain}
+                  onChange={(e) => form.setData('elevation_gain', e.target.value)}
+                />
+              </FormField>
+              <FormField
+                label={t('sessions.form.elevationLoss')}
+                htmlFor="elevation_loss"
+                error={form.errors.elevation_loss}
+              >
+                <Input
+                  id="elevation_loss"
+                  type="number"
+                  min={0}
+                  max={10000}
+                  placeholder="ex: 150"
+                  value={form.data.elevation_loss}
+                  onChange={(e) => form.setData('elevation_loss', e.target.value)}
+                />
+              </FormField>
+            </>
+          )}
+
           {/* FC moyenne */}
           <FormField
             label={t('sessions.form.heartRate')}
