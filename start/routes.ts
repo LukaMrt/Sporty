@@ -20,6 +20,7 @@ const DashboardController = () => import('#controllers/dashboard/dashboard_contr
 const AdminUsersController = () => import('#controllers/admin/users_controller')
 const PasswordController = () => import('#controllers/profile/password_controller')
 const ProfileController = () => import('#controllers/profile/profile_controller')
+const PhysiologyGuideController = () => import('#controllers/profile/physiology_guide_controller')
 const ConnectorsController = () => import('#controllers/connectors/connectors_controller')
 const StravaConnectorController = () =>
   import('#controllers/connectors/strava_connector_controller')
@@ -59,6 +60,7 @@ router
     router.get('/profile', [ProfileController, 'show'])
     router.put('/profile', [ProfileController, 'update'])
     router.put('/profile/password', [PasswordController, 'update'])
+    router.get('/profile/physiology-guide', [PhysiologyGuideController, 'show'])
     router.post('/logout', [LogoutController, 'logout'])
     router.get('/connectors', [ConnectorsController, 'index'])
     router.get('/connectors/strava', [StravaConnectorController, 'show'])

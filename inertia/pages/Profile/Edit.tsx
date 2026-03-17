@@ -351,7 +351,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                     </span>
                   </label>
                   <a
-                    href="/physiology/how-to-measure"
+                    href="/profile/physiology-guide"
                     className="text-xs text-primary underline underline-offset-2"
                   >
                     {t('profile.physiological.howToMeasure')}
@@ -386,7 +386,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                     </span>
                   </label>
                   <a
-                    href="/physiology/how-to-measure"
+                    href="/profile/physiology-guide"
                     className="text-xs text-primary underline underline-offset-2"
                   >
                     {t('profile.physiological.howToMeasure')}

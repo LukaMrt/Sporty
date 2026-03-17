@@ -72,6 +72,67 @@
     "vmaPlaceholder": "Ex: 16",
     "howToMeasure": "Comment mesurer ?"
   },
+  "physiologyGuide": {
+    "pageTitle": "Comment mesurer FC max et VMA ?",
+    "backToProfile": "Retour au profil",
+    "title": "Comment mesurer FC max et VMA ?",
+    "subtitle": "Des valeurs précises rendent les calculs d'intensité et les plans d'entraînement vraiment personnalisés.",
+    "collapse": "cliquer pour plier",
+    "hrMax": {
+      "sectionTitle": "❤️ Fréquence cardiaque maximale (FC max)",
+      "tanakaTitle": "Formule estimative — Tanaka (2001)",
+      "tanakaFormula": "FC max = 208 − 0,7 × âge",
+      "tanakaDescription": "Plus précise que l'ancienne formule « 220 − âge », mais reste une estimation statistique : l'écart-type est d'environ ±10 bpm.",
+      "tanakaWarning": "La formule peut être inexacte de 10 à 15 bpm selon les individus. Pour un entraînement précis, préférez le test terrain.",
+      "fieldTestTitle": "Test terrain — la référence",
+      "fieldTestIntro": "Protocole simple sur une côte ou une piste :",
+      "step1Bold": "Échauffement 15 min",
+      "step1Rest": " — footing facile, progressif",
+      "step2Bold": "3 répétitions de 2 min en côte",
+      "step2Rest": " à effort maximal, récupération 1 min entre chaque",
+      "step3Bold": "Relevez la FC pic",
+      "step3Rest": " sur votre montre durant ou juste après la dernière répétition",
+      "fieldTestInfo": "Ce test sollicite intensément le système cardiovasculaire. Ne le réalisez pas si vous débutez ou reprenez après une longue période d'inactivité."
+    },
+    "mas": {
+      "sectionTitle": "🏃 Vitesse maximale aérobie (VMA)",
+      "description": "La VMA est la vitesse minimale à laquelle vous consommez votre maximum d'oxygène (VO₂max). Elle sert de référence pour calibrer les allures d'entraînement par zones.",
+      "halfCooperTitle": "Test demi-Cooper — 6 minutes",
+      "halfCooperIntro": "Courez aussi vite que possible pendant 6 minutes sur un parcours plat et mesurez la distance parcourue.",
+      "halfCooperFormula": "VMA (km/h) = distance (km) × 10",
+      "halfCooperExample": "Exemple : 1,5 km en 6 min → VMA = 15 km/h",
+      "cooperTitle": "Test Cooper — 12 minutes",
+      "cooperIntro": "Courez aussi vite que possible pendant 12 minutes.",
+      "cooperFormula": "VMA (km/h) = distance (m) ÷ 200",
+      "cooperExample": "Exemple : 2 800 m en 12 min → VMA = 14 km/h",
+      "vamevalTitle": "Test VAMEVAL",
+      "vamevalDescription": "Test progressif sur piste, avec des paliers de +0,5 km/h toutes les minutes (signalés par des bips). Vous courez jusqu'à épuisement : votre VMA correspond à la vitesse du dernier palier complété. Ce test est souvent utilisé en club et donne des résultats très fiables."
+    },
+    "sources": {
+      "title": "Sources scientifiques",
+      "hrMaxSection": "FC max",
+      "masSection": "VMA",
+      "study": "Étude",
+      "guide": "Guide",
+      "synthesis": "Synthèse",
+      "protocol": "Protocole"
+    },
+    "calc": {
+      "yourAge": "Votre âge",
+      "agePlaceholder": "Ex : 35",
+      "distanceKm": "Distance (km)",
+      "distanceKmPlaceholder": "Ex : 1.5",
+      "distanceM": "Distance (m)",
+      "distanceMPlaceholder": "Ex : 2800",
+      "result": "Résultat estimé",
+      "saveHr": "Sauvegarder comme FC max",
+      "saveMas": "Sauvegarder comme VMA",
+      "saving": "Sauvegarde...",
+      "saved": "Sauvegardé ✓",
+      "currentHr": "FC max actuelle : {value} bpm",
+      "currentMas": "VMA actuelle : {value} km/h"
+    }
+  },
   "flash": {
     "updated": "Profil mis à jour",
     "passwordChanged": "Mot de passe modifié",

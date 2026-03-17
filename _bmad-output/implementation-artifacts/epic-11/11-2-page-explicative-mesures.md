@@ -1,6 +1,6 @@
 # Story 11.2 : Page explicative — Mesurer FC max et VMA
 
-Status: pending
+Status: done
 
 ## Story
 
