@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import type { DataPoint } from '../../../app/domain/value_objects/run_metrics'
 import { formatPaceMinSec, paceToKmh } from '~/lib/format'
+import { useTranslation } from '~/hooks/use_translation'
 
 interface ChartDataPoint {
   time: number // secondes
@@ -121,6 +122,8 @@ export default function SessionCurvesChart({
   altitudeCurve,
   speedUnit,
 }: SessionCurvesChartProps) {
+  const { t } = useTranslation()
+
   const hasCurves =
     (heartRateCurve && heartRateCurve.length > 0) ||
     (paceCurve && paceCurve.length > 0) ||
@@ -143,19 +146,19 @@ export default function SessionCurvesChart({
         {hasHR && (
           <span className="flex items-center gap-1.5">
             <span className="inline-block w-6 h-0.5 rounded bg-orange-500" />
-            FC (bpm)
+            {t('sessions.show.curveLegendHr')}
           </span>
         )}
         {hasPace && (
           <span className="flex items-center gap-1.5">
             <span className="inline-block w-6 h-0.5 rounded bg-blue-500" />
-            Allure ({paceLabel})
+            {t('sessions.show.curveLegendPace', { unit: paceLabel })}
           </span>
         )}
         {hasAlt && (
           <span className="flex items-center gap-1.5">
             <span className="inline-block w-6 h-2 rounded bg-gray-400 dark:bg-gray-500" />
-            Altitude (m)
+            {t('sessions.show.curveLegendAltitude')}
           </span>
         )}
       </div>

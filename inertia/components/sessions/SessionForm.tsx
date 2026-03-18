@@ -1,4 +1,6 @@
-import React, { useRef, useState } from 'react'
+import React, { Suspense, useRef, useState } from 'react'
+
+const SessionMap = React.lazy(() => import('~/components/sessions/SessionMap'))
 import { router, useForm } from '@inertiajs/react'
 import { ChevronDown, ChevronUp, Upload, Loader2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -6,7 +8,6 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
 import FormField from '~/components/forms/FormField'
-import GpsTrackPreview from '~/components/sessions/GpsTrackPreview'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { useTranslation } from '~/hooks/use_translation'
 
@@ -39,6 +40,8 @@ interface TrainingSession {
 interface GpsPoint {
   lat: number
   lon: number
+  ele?: number
+  time: number
 }
 
 interface SessionFormProps {
@@ -345,11 +348,17 @@ export default function SessionForm({
             </p>
           )}
           {gpsTrack && gpsTrack.length > 1 && (
-            <GpsTrackPreview
-              track={gpsTrack}
-              label={t('sessions.form.gpxMapPreview')}
-              className="mt-2"
-            />
+            <div className="mt-2">
+              <Suspense
+                fallback={
+                  <div className="flex h-80 items-center justify-center rounded-lg bg-muted/30">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  </div>
+                }
+              >
+                <SessionMap gpsTrack={gpsTrack} />
+              </Suspense>
+            </div>
           )}
         </div>
       )}

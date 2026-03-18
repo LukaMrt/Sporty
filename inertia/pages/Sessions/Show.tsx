@@ -1,4 +1,6 @@
-import React, { useRef, useState } from 'react'
+import React, { Suspense, useRef, useState } from 'react'
+
+const SessionMap = React.lazy(() => import('~/components/sessions/SessionMap'))
 import { Head, Link, router } from '@inertiajs/react'
 import { ChevronLeft, Pencil, Trash2, Upload, Loader2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
@@ -18,7 +20,7 @@ import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 import SessionCurvesChart from '~/components/sessions/SessionCurvesChart'
 import MetricInsight, { METRIC_INSIGHTS } from '~/components/sessions/MetricInsight'
-import type { DataPoint, KmSplit } from '../../../app/domain/value_objects/run_metrics'
+import type { DataPoint, GpsPoint, KmSplit } from '../../../app/domain/value_objects/run_metrics'
 
 const METRIC_LABELS: Record<string, string> = {
   minHeartRate: 'FC min',
@@ -51,7 +53,7 @@ interface SportMetricsWithCurves {
   altitudeCurve?: DataPoint[]
   splits?: KmSplit[]
   hrZones?: unknown
-  gpsTrack?: unknown
+  gpsTrack?: GpsPoint[]
   [key: string]: unknown
 }
 
@@ -133,11 +135,12 @@ export default function SessionShow({ session }: ShowProps) {
       : null
   const pace = rawPaceMinPerKm !== null ? formatSpeed(rawPaceMinPerKm) : null
 
-  const { heartRateCurve, paceCurve, altitudeCurve, splits, ...scalarMetrics } =
+  const { heartRateCurve, paceCurve, altitudeCurve, splits, gpsTrack, ...scalarMetrics } =
     session.sportMetrics
   const primitiveMetrics = Object.entries(scalarMetrics).filter(
     ([, v]) => typeof v === 'number' || typeof v === 'string'
   )
+  const hasGpsTrack = Array.isArray(gpsTrack) && gpsTrack.length > 1
   const hasSportMetrics = primitiveMetrics.length > 0
   const hasSplits = splits && splits.length > 0
   const hasCurves =
@@ -402,6 +405,29 @@ export default function SessionShow({ session }: ShowProps) {
                 {t('sessions.show.splitsPartialNote')}
               </p>
             )}
+          </div>
+        )}
+
+        {/* Carte GPS du parcours */}
+        {hasGpsTrack && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              {t('sessions.show.map')}
+            </h2>
+            <Suspense
+              fallback={
+                <div className="flex h-80 items-center justify-center rounded-lg bg-muted/30">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              }
+            >
+              <SessionMap
+                gpsTrack={gpsTrack ?? []}
+                heartRateCurve={heartRateCurve}
+                paceCurve={paceCurve}
+                altitudeCurve={altitudeCurve}
+              />
+            </Suspense>
           </div>
         )}
 
