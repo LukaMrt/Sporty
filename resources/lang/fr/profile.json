@@ -67,6 +67,8 @@
     "maxHeartRate": "FC max",
     "maxHeartRateUnit": "bpm",
     "maxHeartRatePlaceholder": "Ex: 190",
+    "restingHeartRate": "FC repos",
+    "restingHeartRatePlaceholder": "Ex: 60",
     "vma": "VMA",
     "vmaUnit": "km/h",
     "vmaPlaceholder": "Ex: 16",

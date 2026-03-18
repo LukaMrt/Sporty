@@ -25,6 +25,9 @@ export default class UserProfile extends BaseModel {
   declare maxHeartRate: number | null
 
   @column()
+  declare restingHeartRate: number | null
+
+  @column()
   declare vma: number | null
 
   @belongsTo(() => User)

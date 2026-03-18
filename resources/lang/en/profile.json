@@ -67,6 +67,8 @@
     "maxHeartRate": "Max heart rate",
     "maxHeartRateUnit": "bpm",
     "maxHeartRatePlaceholder": "E.g. 190",
+    "restingHeartRate": "Resting heart rate",
+    "restingHeartRatePlaceholder": "E.g. 60",
     "vma": "MAS",
     "vmaUnit": "km/h",
     "vmaPlaceholder": "E.g. 16",

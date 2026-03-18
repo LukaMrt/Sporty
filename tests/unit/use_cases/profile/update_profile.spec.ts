@@ -20,6 +20,7 @@ const DEFAULT_PROFILE: UserProfile = {
     locale: 'fr',
   },
   maxHeartRate: null,
+  restingHeartRate: null,
   vma: null,
 }
 

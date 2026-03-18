@@ -31,6 +31,7 @@ function makeUserProfileRepository(
           locale: 'fr',
         },
         maxHeartRate: null,
+        restingHeartRate: null,
         vma: null,
       }
     }

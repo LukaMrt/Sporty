@@ -33,6 +33,7 @@ interface ProfileData {
     locale: 'fr' | 'en'
   }
   maxHeartRate: number | null
+  restingHeartRate: number | null
   vma: number | null
 }
 
@@ -57,6 +58,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     date_format: profile?.preferences.dateFormat ?? ('DD/MM/YYYY' as 'DD/MM/YYYY' | 'MM/DD/YYYY'),
     locale: profile?.preferences.locale ?? (locale as 'fr' | 'en'),
     max_heart_rate: profile?.maxHeartRate ?? (null as number | null),
+    resting_heart_rate: profile?.restingHeartRate ?? (null as number | null),
     vma: profile?.vma ?? (null as number | null),
   })
 
@@ -373,6 +375,35 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                 />
                 {form.errors.max_heart_rate && (
                   <p className="text-xs text-destructive">{form.errors.max_heart_rate}</p>
+                )}
+              </div>
+
+              {/* FC repos */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <label htmlFor="resting_heart_rate" className="text-sm font-medium">
+                    {t('profile.physiological.restingHeartRate')}{' '}
+                    <span className="font-normal text-muted-foreground">
+                      ({t('profile.physiological.maxHeartRateUnit')})
+                    </span>
+                  </label>
+                </div>
+                <Input
+                  id="resting_heart_rate"
+                  type="number"
+                  min={20}
+                  max={120}
+                  value={form.data.resting_heart_rate ?? ''}
+                  onChange={(e) =>
+                    form.setData(
+                      'resting_heart_rate',
+                      e.target.value === '' ? null : Number(e.target.value)
+                    )
+                  }
+                  placeholder={t('profile.physiological.restingHeartRatePlaceholder')}
+                />
+                {form.errors.resting_heart_rate && (
+                  <p className="text-xs text-destructive">{form.errors.resting_heart_rate}</p>
                 )}
               </div>
 

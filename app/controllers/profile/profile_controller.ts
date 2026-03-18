@@ -30,6 +30,7 @@ export default class ProfileController {
             preferredUnit: profile.preferences.speedUnit,
             preferences: profile.preferences,
             maxHeartRate: profile.maxHeartRate,
+            restingHeartRate: profile.restingHeartRate,
             vma: profile.vma,
           }
         : null,
@@ -68,6 +69,7 @@ export default class ProfileController {
       objective: data.objective as UserObjective | null | undefined,
       preferences: mergedPreferences,
       maxHeartRate: data.max_heart_rate,
+      restingHeartRate: data.resting_heart_rate,
       vma: data.vma,
     })
 

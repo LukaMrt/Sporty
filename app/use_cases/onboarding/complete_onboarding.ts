@@ -41,6 +41,7 @@ export default class CompleteOnboarding {
         locale: input.preferences.locale,
       },
       maxHeartRate: null,
+      restingHeartRate: null,
       vma: null,
     })
 

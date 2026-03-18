@@ -30,6 +30,7 @@ function makeMockProfileRepository(
           locale: 'fr',
         },
         maxHeartRate: null,
+        restingHeartRate: null,
         vma: null,
       }
     }
@@ -61,6 +62,7 @@ test.group('GetProfile — use case', () => {
         locale: 'fr',
       },
       maxHeartRate: null,
+      restingHeartRate: null,
       vma: null,
     }
     const repo = makeMockProfileRepository({ findByUserId: async () => profile })

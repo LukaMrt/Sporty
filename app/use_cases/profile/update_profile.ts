@@ -13,6 +13,7 @@ export interface UpdateProfileInput {
   objective?: UserProfile['objective']
   preferences?: UserProfile['preferences']
   maxHeartRate?: number | null
+  restingHeartRate?: number | null
   vma?: number | null
 }
 
@@ -48,6 +49,7 @@ export default class UpdateProfile {
     if (data.objective !== undefined) profileUpdate.objective = data.objective
     if (data.preferences !== undefined) profileUpdate.preferences = data.preferences
     if (data.maxHeartRate !== undefined) profileUpdate.maxHeartRate = data.maxHeartRate
+    if (data.restingHeartRate !== undefined) profileUpdate.restingHeartRate = data.restingHeartRate
     if (data.vma !== undefined) profileUpdate.vma = data.vma
 
     let profile: UserProfile | null = null
@@ -63,6 +65,7 @@ export default class UpdateProfile {
           objective: profileUpdate.objective ?? null,
           preferences: profileUpdate.preferences ?? DEFAULT_USER_PREFERENCES,
           maxHeartRate: profileUpdate.maxHeartRate ?? null,
+          restingHeartRate: profileUpdate.restingHeartRate ?? null,
           vma: profileUpdate.vma ?? null,
         })
       }

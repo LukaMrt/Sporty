@@ -30,6 +30,7 @@ export const updateProfileValidator = vine.create(
       .nullable()
       .optional(),
     max_heart_rate: vine.number().withoutDecimals().min(100).max(250).optional().nullable(),
+    resting_heart_rate: vine.number().withoutDecimals().min(20).max(120).optional().nullable(),
     vma: vine.number().min(5).max(30).optional().nullable(),
     preferred_unit: vine.enum(['km_h', 'min_km'] as const).optional(),
     distance_unit: vine.enum(['km', 'mi'] as const).optional(),
