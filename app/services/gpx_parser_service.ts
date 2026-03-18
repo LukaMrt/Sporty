@@ -113,9 +113,12 @@ export class GpxParserService extends GpxParser {
     // Splits au km
     const splits = this.computeSplits(rawPoints)
 
+    const startTime = new Date(rawPoints[0].timeMs).toISOString()
+
     return {
       durationSeconds,
       distanceMeters,
+      startTime,
       minHeartRate,
       avgHeartRate,
       maxHeartRate,

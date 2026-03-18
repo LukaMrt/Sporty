@@ -16,6 +16,9 @@ database/schema.ts
 # Test coverage
 coverage
 
+# User-uploaded files (GPX tracks, etc.)
+storage/
+
 # Local env overrides (non tracked)
 .env.local
 .env.production.local

@@ -1,6 +1,6 @@
 # Story 11.6 : Upload et import GPX sur une seance
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -18,34 +18,34 @@ so that **ma seance est automatiquement enrichie avec toutes les donnees du fich
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Backend — route et controller upload (AC: #1, #5)
-  - [ ] Route POST `/sessions/parse-gpx` pour parser un GPX sans creer de seance (retourne les donnees extraites)
-  - [ ] Route POST `/sessions/:id/enrich-gpx` pour enrichir une seance existante (AC #4)
-  - [ ] Validation : fichier `.gpx`, taille max 10 Mo
-  - [ ] Retourner les donnees parsees au frontend pour pre-remplissage
-- [ ] Task 2 : Backend — stockage fichier GPX (AC: #3)
-  - [ ] Utiliser AdonisJS Drive pour stocker le fichier dans `storage/gpx/{userId}/{sessionId}.gpx`
-  - [ ] Sauvegarder `gpxFilePath` en base apres creation/enrichissement de la seance
-  - [ ] Ne stocker que pour les imports manuels (pas pour les imports Strava)
-- [ ] Task 3 : Backend — use case creation avec GPX (AC: #2, #3)
-  - [ ] Etendre le use case de creation de seance pour accepter des `RunMetrics` completes depuis le parsing GPX
-  - [ ] Merger les valeurs GPX avec les valeurs saisies par l'utilisateur
-- [ ] Task 4 : Backend — use case enrichissement retroactif (AC: #4)
-  - [ ] Creer use case `EnrichSessionWithGpx` dans `app/use_cases/sessions/`
-  - [ ] Charger la seance existante, parser le GPX, merger les donnees
-  - [ ] Regle de merge : GPX ecrase tout sauf `perceivedEffort` et `notes`
-- [ ] Task 5 : Frontend — bouton "Importer un GPX" dans SessionForm (AC: #1, #2)
-  - [ ] Input file hidden + bouton stylise, accept `.gpx`
-  - [ ] Au changement : upload vers `/sessions/parse-gpx`
-  - [ ] Pre-remplir les champs du formulaire avec les donnees retournees
-  - [ ] Afficher un apercu de la carte (mini-carte Leaflet avec le trace)
-  - [ ] Indicateur de chargement pendant le parsing
-- [ ] Task 6 : Frontend — bouton "Enrichir avec un GPX" sur le detail (AC: #4)
-  - [ ] Bouton visible uniquement si la seance n'a pas de GPX
-  - [ ] Meme flow d'upload, puis rafraichir la page au succes
-- [ ] Task 7 : Frontend — gestion erreurs (AC: #5)
-  - [ ] Afficher un toast d'erreur si le GPX est invalide
-  - [ ] Afficher un toast d'erreur si le fichier est trop gros (> 10 Mo)
+- [x] Task 1 : Backend — route et controller upload (AC: #1, #5)
+  - [x] Route POST `/sessions/parse-gpx` pour parser un GPX sans creer de seance (retourne les donnees extraites)
+  - [x] Route POST `/sessions/:id/enrich-gpx` pour enrichir une seance existante (AC #4)
+  - [x] Validation : fichier `.gpx`, taille max 10 Mo
+  - [x] Retourner les donnees parsees au frontend pour pre-remplissage
+- [x] Task 2 : Backend — stockage fichier GPX (AC: #3)
+  - [x] Utiliser AdonisJS Drive pour stocker le fichier dans `storage/gpx/{userId}/{sessionId}.gpx`
+  - [x] Sauvegarder `gpxFilePath` en base apres creation/enrichissement de la seance
+  - [x] Ne stocker que pour les imports manuels (pas pour les imports Strava)
+- [x] Task 3 : Backend — use case creation avec GPX (AC: #2, #3)
+  - [x] Etendre le use case de creation de seance pour accepter des `RunMetrics` completes depuis le parsing GPX
+  - [x] Merger les valeurs GPX avec les valeurs saisies par l'utilisateur
+- [x] Task 4 : Backend — use case enrichissement retroactif (AC: #4)
+  - [x] Creer use case `EnrichSessionWithGpx` dans `app/use_cases/sessions/`
+  - [x] Charger la seance existante, parser le GPX, merger les donnees
+  - [x] Regle de merge : GPX ecrase tout sauf `perceivedEffort` et `notes`
+- [x] Task 5 : Frontend — bouton "Importer un GPX" dans SessionForm (AC: #1, #2)
+  - [x] Input file hidden + bouton stylise, accept `.gpx`
+  - [x] Au changement : upload vers `/sessions/parse-gpx`
+  - [x] Pre-remplir les champs du formulaire avec les donnees retournees
+  - [x] Afficher un apercu de la carte (mini-carte Leaflet avec le trace)
+  - [x] Indicateur de chargement pendant le parsing
+- [x] Task 6 : Frontend — bouton "Enrichir avec un GPX" sur le detail (AC: #4)
+  - [x] Bouton visible uniquement si la seance n'a pas de GPX
+  - [x] Meme flow d'upload, puis rafraichir la page au succes
+- [x] Task 7 : Frontend — gestion erreurs (AC: #5)
+  - [x] Afficher un toast d'erreur si le GPX est invalide
+  - [x] Afficher un toast d'erreur si le fichier est trop gros (> 10 Mo)
 
 ## Dev Notes
 

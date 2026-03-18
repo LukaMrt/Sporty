@@ -12,6 +12,7 @@ import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import { SessionMapper } from '#domain/interfaces/session_mapper'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { GpxParser } from '#domain/interfaces/gpx_parser'
+import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -106,6 +107,11 @@ export default class AppProvider {
     this.app.container.bind(GpxParser, async () => {
       const { GpxParserService } = await import('#services/gpx_parser_service')
       return new GpxParserService()
+    })
+
+    this.app.container.bind(GpxFileStorage, async () => {
+      const { LocalGpxFileStorage } = await import('#services/local_gpx_file_storage')
+      return new LocalGpxFileStorage()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {

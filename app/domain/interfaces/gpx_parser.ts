@@ -5,6 +5,9 @@ export interface GpxParseResult {
   durationSeconds: number
   distanceMeters: number
 
+  // Date/heure de début (ISO 8601)
+  startTime?: string
+
   // Métriques FC
   minHeartRate?: number
   avgHeartRate?: number

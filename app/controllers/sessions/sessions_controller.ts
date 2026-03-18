@@ -9,6 +9,7 @@ import ListSessions from '#use_cases/sessions/list_sessions'
 import GetSession from '#use_cases/sessions/get_session'
 import ListSports from '#use_cases/sports/list_sports'
 import GetProfile from '#use_cases/profile/get_profile'
+import SetSessionGpxFilePath from '#use_cases/sessions/set_session_gpx_file_path'
 import { createSessionValidator } from '#validators/sessions/create_session_validator'
 import { updateSessionValidator } from '#validators/sessions/update_session_validator'
 import { listSessionsValidator } from '#validators/sessions/list_sessions_validator'
@@ -27,7 +28,8 @@ export default class SessionsController {
     private listTrashedSessions: ListTrashedSessions,
     private getSession: GetSession,
     private listSports: ListSports,
-    private getProfile: GetProfile
+    private getProfile: GetProfile,
+    private setSessionGpxFilePath: SetSessionGpxFilePath
   ) {}
 
   async trash({ inertia, auth }: HttpContext) {
@@ -99,7 +101,9 @@ export default class SessionsController {
   async show({ params, inertia, auth, response, session, i18n }: HttpContext) {
     try {
       const trainingSession = await this.getSession.execute(Number(params.id), auth.user!.id)
-      return inertia.render('Sessions/Show', { session: trainingSession })
+      return inertia.render('Sessions/Show', {
+        session: { ...trainingSession, gpxFilePath: trainingSession.gpxFilePath ?? null },
+      })
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
         session.flash('error', i18n.t('sessions.flash.notFound'))
@@ -187,7 +191,7 @@ export default class SessionsController {
     const data = await request.validateUsing(createSessionValidator)
     const user = auth.user!
 
-    await this.createSession.execute(user.id, {
+    const createdSession = await this.createSession.execute(user.id, {
       sportId: data.sport_id,
       date: data.date.toISOString().split('T')[0],
       durationMinutes: data.duration_minutes,
@@ -202,6 +206,15 @@ export default class SessionsController {
       elevationGain: data.elevation_gain,
       elevationLoss: data.elevation_loss,
     })
+
+    // Déplacement du fichier GPX temporaire si importé depuis un GPX
+    if (data.gpx_temp_id) {
+      try {
+        await this.setSessionGpxFilePath.execute(createdSession.id, user.id, data.gpx_temp_id)
+      } catch {
+        // Non bloquant : la séance est créée même si le déplacement du fichier échoue
+      }
+    }
 
     session.flash('success', i18n.t('sessions.flash.created'))
     return response.redirect('/sessions')

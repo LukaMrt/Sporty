@@ -16,6 +16,7 @@ export interface CreateSessionInput {
   cadenceAvg?: number | null
   elevationGain?: number | null
   elevationLoss?: number | null
+  gpxFilePath?: string | null
 }
 
 @inject()
@@ -45,6 +46,7 @@ export default class CreateSession {
       perceivedEffort: input.perceivedEffort ?? null,
       sportMetrics: { ...(input.sportMetrics ?? {}), ...runMetrics },
       notes: input.notes ?? null,
+      gpxFilePath: input.gpxFilePath ?? null,
     })
   }
 }

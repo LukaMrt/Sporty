@@ -28,6 +28,7 @@ const ConnectorSettingsController = () =>
   import('#controllers/connectors/connector_settings_controller')
 const ImportController = () => import('#controllers/import/import_controller')
 const ImportSessionsController = () => import('#controllers/import/import_sessions_controller')
+const GpxController = () => import('#controllers/sessions/gpx_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
@@ -51,6 +52,8 @@ router
     router.get('/sessions/create', [SessionsController, 'create'])
     router.get('/sessions/trash', [SessionsController, 'trash'])
     router.post('/sessions', [SessionsController, 'store'])
+    router.post('/sessions/parse-gpx', [GpxController, 'parseGpx'])
+    router.post('/sessions/:id/enrich-gpx', [GpxController, 'enrichGpx'])
     router.get('/sessions/:id', [SessionsController, 'show'])
     router.get('/sessions/:id/edit', [SessionsController, 'edit'])
     router.put('/sessions/:id', [SessionsController, 'update'])

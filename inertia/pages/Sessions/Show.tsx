@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Head, Link, router } from '@inertiajs/react'
-import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, Upload, Loader2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { formatDate, formatDuration, formatMetricKey } from '~/lib/format'
@@ -30,6 +30,7 @@ interface TrainingSessionProps {
   sportMetrics: Record<string, unknown>
   notes: string | null
   importedFrom: string | null
+  gpxFilePath: string | null
   createdAt: string
 }
 
@@ -39,8 +40,55 @@ interface ShowProps {
 
 export default function SessionShow({ session }: ShowProps) {
   const [open, setOpen] = useState(false)
+  const [enriching, setEnriching] = useState(false)
+  const [enrichError, setEnrichError] = useState<string | null>(null)
+  const enrichFileRef = useRef<HTMLInputElement>(null)
   const { formatSpeed, formatDistanceParts } = useUnitConversion()
   const { t } = useTranslation()
+
+  async function handleEnrichGpxChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setEnrichError(null)
+
+    if (file.size > 10 * 1024 * 1024) {
+      setEnrichError(t('sessions.form.gpxTooLarge'))
+      return
+    }
+
+    setEnriching(true)
+    try {
+      const formData = new FormData()
+      formData.append('gpx_file', file)
+      const csrfToken =
+        document.cookie
+          .split(';')
+          .map((c) => c.trim())
+          .find((c) => c.startsWith('XSRF-TOKEN='))
+          ?.split('=')[1] ?? ''
+
+      const res = await fetch(`/sessions/${session.id}/enrich-gpx`, {
+        method: 'POST',
+        headers: { 'X-XSRF-TOKEN': decodeURIComponent(csrfToken) },
+        body: formData,
+      })
+
+      if (res.redirected) {
+        router.reload()
+        return
+      }
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        setEnrichError(body.error ?? t('sessions.form.gpxError'))
+      }
+    } catch {
+      setEnrichError(t('sessions.form.gpxError'))
+    } finally {
+      setEnriching(false)
+      if (enrichFileRef.current) enrichFileRef.current.value = ''
+    }
+  }
   const rawPaceMinPerKm =
     session.distanceKm && session.distanceKm > 0
       ? session.durationMinutes / session.distanceKm
@@ -86,6 +134,47 @@ export default function SessionShow({ session }: ShowProps) {
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
+        {/* Bouton enrichissement GPX (visible uniquement si pas de GPX) */}
+        {!session.gpxFilePath && (
+          <div className="space-y-1">
+            <input
+              ref={enrichFileRef}
+              type="file"
+              accept=".gpx"
+              className="hidden"
+              onChange={(e) => {
+                void handleEnrichGpxChange(e)
+              }}
+              aria-label={t('sessions.form.enrichGpx')}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => enrichFileRef.current?.click()}
+              disabled={enriching}
+            >
+              {enriching ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  {t('sessions.form.gpxParsing')}
+                </>
+              ) : (
+                <>
+                  <Upload size={14} />
+                  {t('sessions.form.enrichGpx')}
+                </>
+              )}
+            </Button>
+            {enrichError && (
+              <p className="text-sm text-destructive" role="alert">
+                {enrichError}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Badge source d'import */}
         {session.importedFrom && (
           <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-800 dark:bg-orange-900/20">

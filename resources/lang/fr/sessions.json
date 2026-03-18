@@ -42,7 +42,16 @@
     "notesPlaceholder": "Quelques notes sur cette séance...",
     "saving": "Enregistrement...",
     "save": "Enregistrer",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "importGpx": "Importer un GPX ou glisser-déposer",
+    "gpxDrop": "Déposer le fichier ici",
+    "gpxParsing": "Analyse en cours...",
+    "gpxImported": "Fichier GPX importé",
+    "gpxInvalid": "Format GPX invalide",
+    "gpxTooLarge": "Fichier trop volumineux (max 10 Mo)",
+    "gpxError": "Erreur lors de l'import GPX",
+    "gpxMapPreview": "Aperçu du tracé GPS",
+    "enrichGpx": "Enrichir avec un GPX"
   },
   "show": {
     "primaryMetrics": "Métriques principales",
@@ -82,6 +91,7 @@
     "deleted": "Séance supprimée",
     "restored": "Séance restaurée",
     "notFound": "Séance introuvable",
-    "forbidden": "Séance introuvable ou accès refusé"
+    "forbidden": "Séance introuvable ou accès refusé",
+    "gpxEnriched": "Séance enrichie avec le fichier GPX"
   }
 }

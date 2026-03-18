@@ -42,7 +42,16 @@
     "notesPlaceholder": "Some notes about this session...",
     "saving": "Saving...",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "importGpx": "Import a GPX or drag & drop",
+    "gpxDrop": "Drop file here",
+    "gpxParsing": "Analyzing...",
+    "gpxImported": "GPX file imported",
+    "gpxInvalid": "Invalid GPX format",
+    "gpxTooLarge": "File too large (max 10 MB)",
+    "gpxError": "Error importing GPX",
+    "gpxMapPreview": "GPS track preview",
+    "enrichGpx": "Enrich with a GPX"
   },
   "show": {
     "primaryMetrics": "Main metrics",
@@ -82,6 +91,7 @@
     "deleted": "Session deleted",
     "restored": "Session restored",
     "notFound": "Session not found",
-    "forbidden": "Session not found or access denied"
+    "forbidden": "Session not found or access denied",
+    "gpxEnriched": "Session enriched with GPX file"
   }
 }
