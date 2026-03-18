@@ -85,11 +85,18 @@ interface TrainingSessionProps {
   createdAt: string
 }
 
-interface ShowProps {
-  session: TrainingSessionProps
+interface HrZoneThreshold {
+  zone: number
+  minBpm: number
+  maxBpm: number
 }
 
-export default function SessionShow({ session }: ShowProps) {
+interface ShowProps {
+  session: TrainingSessionProps
+  hrZoneThresholds: HrZoneThreshold[] | null
+}
+
+export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
   const [open, setOpen] = useState(false)
   const [enriching, setEnriching] = useState(false)
   const [enrichError, setEnrichError] = useState<string | null>(null)
@@ -398,7 +405,10 @@ export default function SessionShow({ session }: ShowProps) {
                 <h3 className="text-xs font-medium text-muted-foreground mb-2">
                   {t('sessions.show.hrZones')}
                 </h3>
-                <HeartRateZonesChart hrZones={hrZones} />
+                <HeartRateZonesChart
+                  hrZones={hrZones}
+                  hrZoneThresholds={hrZoneThresholds ?? undefined}
+                />
               </div>
             )}
 
@@ -470,6 +480,7 @@ export default function SessionShow({ session }: ShowProps) {
               paceCurve={paceCurve}
               altitudeCurve={altitudeCurve}
               speedUnit={speedUnit}
+              hrZoneThresholds={hrZoneThresholds ?? undefined}
             />
           </div>
         )}

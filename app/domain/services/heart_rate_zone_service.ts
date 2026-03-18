@@ -70,6 +70,27 @@ export function calculateZones(
 }
 
 /**
+ * Retourne les seuils de chaque zone en bpm absolu.
+ * Utilise Karvonen si fcRest est fourni, sinon % FCmax simple.
+ */
+export function getZoneThresholdsBpm(
+  fcMax: number,
+  fcRest?: number | null
+): Array<{ zone: number; minBpm: number; maxBpm: number }> {
+  return ZONE_THRESHOLDS.map(([lo, hi], i) => {
+    if (fcRest !== undefined && fcRest !== null) {
+      const reserve = fcMax - fcRest
+      return {
+        zone: i + 1,
+        minBpm: Math.round(fcRest + lo * reserve),
+        maxBpm: Math.round(fcRest + hi * reserve),
+      }
+    }
+    return { zone: i + 1, minBpm: Math.round(lo * fcMax), maxBpm: Math.round(hi * fcMax) }
+  })
+}
+
+/**
  * Calcule le drift cardiaque (%) en comparant la FC moyenne de la 1ère et 2ème moitié.
  * drift = (FCmoy2 - FCmoy1) / FCmoy1 × 100
  */

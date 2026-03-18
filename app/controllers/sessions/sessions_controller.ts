@@ -16,6 +16,7 @@ import { listSessionsValidator } from '#validators/sessions/list_sessions_valida
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
+import { getZoneThresholdsBpm } from '#domain/services/heart_rate_zone_service'
 
 @inject()
 export default class SessionsController {
@@ -100,9 +101,16 @@ export default class SessionsController {
 
   async show({ params, inertia, auth, response, session, i18n }: HttpContext) {
     try {
-      const trainingSession = await this.getSession.execute(Number(params.id), auth.user!.id)
+      const [trainingSession, profile] = await Promise.all([
+        this.getSession.execute(Number(params.id), auth.user!.id),
+        this.getProfile.execute(auth.user!.id),
+      ])
+      const hrZoneThresholds = profile?.maxHeartRate
+        ? getZoneThresholdsBpm(profile.maxHeartRate, profile.restingHeartRate)
+        : null
       return inertia.render('Sessions/Show', {
         session: { ...trainingSession, gpxFilePath: trainingSession.gpxFilePath ?? null },
+        hrZoneThresholds,
       })
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {

@@ -7,7 +7,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  ReferenceArea,
 } from 'recharts'
+import { useState } from 'react'
 import type { DataPoint } from '../../../app/domain/value_objects/run_metrics'
 import { formatPaceMinSec, paceToKmh } from '~/lib/format'
 import { useTranslation } from '~/hooks/use_translation'
@@ -21,11 +23,26 @@ interface ChartDataPoint {
   km?: number
 }
 
+const ZONE_COLORS: Record<number, string> = {
+  1: '#9ca3af',
+  2: '#60a5fa',
+  3: '#34d399',
+  4: '#fb923c',
+  5: '#f87171',
+}
+
+interface HrZoneThreshold {
+  zone: number
+  minBpm: number
+  maxBpm: number
+}
+
 interface SessionCurvesChartProps {
   heartRateCurve?: DataPoint[]
   paceCurve?: DataPoint[]
   altitudeCurve?: DataPoint[]
   speedUnit: 'min_km' | 'km_h'
+  hrZoneThresholds?: HrZoneThreshold[]
 }
 
 function formatTime(seconds: number): string {
@@ -121,8 +138,10 @@ export default function SessionCurvesChart({
   paceCurve,
   altitudeCurve,
   speedUnit,
+  hrZoneThresholds,
 }: SessionCurvesChartProps) {
   const { t } = useTranslation()
+  const [showAltitude, setShowAltitude] = useState(true)
 
   const hasCurves =
     (heartRateCurve && heartRateCurve.length > 0) ||
@@ -136,6 +155,16 @@ export default function SessionCurvesChart({
   const hasHR = heartRateCurve && heartRateCurve.length > 0
   const hasPace = paceCurve && paceCurve.length > 0
   const hasAlt = altitudeCurve && altitudeCurve.length > 0
+
+  const hrDomain: [number | string, number | string] = (() => {
+    if (!hasHR || !hrZoneThresholds) return ['auto', 'auto']
+    const hrValues = heartRateCurve!.map((p) => p.value)
+    const dataMin = Math.min(...hrValues)
+    const dataMax = Math.max(...hrValues)
+    const zoneMin = Math.min(...hrZoneThresholds.map((z) => z.minBpm))
+    const zoneMax = Math.max(...hrZoneThresholds.map((z) => z.maxBpm))
+    return [Math.min(dataMin, zoneMin), Math.max(dataMax, zoneMax)]
+  })()
 
   const paceLabel = speedUnit === 'km_h' ? 'km/h' : 'min/km'
 
@@ -156,12 +185,32 @@ export default function SessionCurvesChart({
           </span>
         )}
         {hasAlt && (
-          <span className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setShowAltitude((v) => !v)}
+            className={`flex items-center gap-1.5 transition-opacity cursor-pointer ${showAltitude ? '' : 'opacity-40'}`}
+          >
             <span className="inline-block w-6 h-2 rounded bg-gray-400 dark:bg-gray-500" />
             {t('sessions.show.curveLegendAltitude')}
-          </span>
+          </button>
         )}
       </div>
+
+      {/* Légende zones FC */}
+      {hasHR && hrZoneThresholds && hrZoneThresholds.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 px-1">
+          {hrZoneThresholds.map((z) => (
+            <span key={z.zone} className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span
+                className="inline-block h-2 w-3 rounded-sm"
+                style={{ backgroundColor: ZONE_COLORS[z.zone], opacity: 0.8 }}
+              />
+              <span className="font-medium text-foreground">Z{z.zone}</span>
+              {z.minBpm}–{z.maxBpm} bpm
+            </span>
+          ))}
+        </div>
+      )}
 
       <ResponsiveContainer width="100%" height={220}>
         <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
@@ -180,7 +229,7 @@ export default function SessionCurvesChart({
             <YAxis
               yAxisId="hr"
               orientation="left"
-              domain={['auto', 'auto']}
+              domain={hrDomain}
               tick={{ fontSize: 11, fill: '#f97316' }}
               tickLine={false}
               axisLine={false}
@@ -208,8 +257,22 @@ export default function SessionCurvesChart({
             />
           )}
 
+          {/* Bandes de zones FC en arrière-plan */}
+          {hasHR &&
+            hrZoneThresholds?.map((z) => (
+              <ReferenceArea
+                key={z.zone}
+                yAxisId="hr"
+                y1={z.minBpm}
+                y2={z.maxBpm}
+                fill={ZONE_COLORS[z.zone]}
+                fillOpacity={0.25}
+                strokeOpacity={0}
+              />
+            ))}
+
           {/* Altitude en arrière-plan */}
-          {hasAlt && (
+          {hasAlt && showAltitude && (
             <Area
               yAxisId={hasHR ? 'hr' : hasPace ? 'pace' : 'hr'}
               dataKey="altitude"
