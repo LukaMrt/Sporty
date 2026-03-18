@@ -1,6 +1,6 @@
 # Story 11.7 : Metriques calculees (zones FC, drift, TRIMP)
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -18,27 +18,27 @@ so that **je comprends la qualite et la charge de mes entrainements**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Service domain — calcul zones FC (AC: #1, #2, #3)
-  - [ ] Creer `app/domain/services/heart_rate_zone_service.ts`
-  - [ ] Methode `calculateZones(fcMax: number, heartRateCurve: DataPoint[]): HeartRateZones` — repartition temporelle
-  - [ ] Methode `getZoneForHr(fcMax: number, hr: number): number` — zone unique pour FC moy
-  - [ ] Zones : Z1=50-60%, Z2=60-70%, Z3=70-80%, Z4=80-90%, Z5=90-100%
-- [ ] Task 2 : Service domain — drift cardiaque (AC: #4)
-  - [ ] Methode `calculateDrift(heartRateCurve: DataPoint[]): number`
-  - [ ] Diviser la courbe en 2 moities egales par duree
-  - [ ] Retourner le % de drift
-- [ ] Task 3 : Service domain — TRIMP (AC: #5)
-  - [ ] Methode `calculateTrimp(durationMinutes: number, hrZones: HeartRateZones): number`
-  - [ ] Ponderation : temps Z1×1 + temps Z2×2 + temps Z3×3 + temps Z4×4 + temps Z5×5
-  - [ ] Si pas de courbe FC : utiliser la zone de la FC moy × duree totale
-- [ ] Task 4 : Integration — calcul automatique a la sauvegarde (AC: #1, #4, #5)
-  - [ ] Etendre les use cases de creation/modification/enrichissement de seance
-  - [ ] Si FC max profil disponible : calculer zones + drift + TRIMP
-  - [ ] Stocker dans `sportMetrics` au format `RunMetrics`
-- [ ] Task 5 : Tests unitaires
-  - [ ] Test zones FC avec courbe connue → verifier repartition %
-  - [ ] Test drift : courbe plate → drift ~0%, courbe montante → drift > 0%
-  - [ ] Test TRIMP : seance Z2 pure 60min → TRIMP = 120
+- [x] Task 1 : Service domain — calcul zones FC (AC: #1, #2, #3)
+  - [x] Creer `app/domain/services/heart_rate_zone_service.ts`
+  - [x] Methode `calculateZones(fcMax: number, heartRateCurve: DataPoint[]): HeartRateZones` — repartition temporelle
+  - [x] Methode `getZoneForHr(fcMax: number, hr: number): number` — zone unique pour FC moy
+  - [x] Zones : Z1=50-60%, Z2=60-70%, Z3=70-80%, Z4=80-90%, Z5=90-100%
+- [x] Task 2 : Service domain — drift cardiaque (AC: #4)
+  - [x] Methode `calculateDrift(heartRateCurve: DataPoint[]): number`
+  - [x] Diviser la courbe en 2 moities egales par duree
+  - [x] Retourner le % de drift
+- [x] Task 3 : Service domain — TRIMP (AC: #5)
+  - [x] Methode `calculateTrimp(durationMinutes: number, hrZones: HeartRateZones): number`
+  - [x] Ponderation : temps Z1×1 + temps Z2×2 + temps Z3×3 + temps Z4×4 + temps Z5×5
+  - [x] Si pas de courbe FC : utiliser la zone de la FC moy × duree totale
+- [x] Task 4 : Integration — calcul automatique a la sauvegarde (AC: #1, #4, #5)
+  - [x] Etendre les use cases de creation/modification/enrichissement de seance
+  - [x] Si FC max profil disponible : calculer zones + drift + TRIMP
+  - [x] Stocker dans `sportMetrics` au format `RunMetrics`
+- [x] Task 5 : Tests unitaires
+  - [x] Test zones FC avec courbe connue → verifier repartition %
+  - [x] Test drift : courbe plate → drift ~0%, courbe montante → drift > 0%
+  - [x] Test TRIMP : seance Z2 pure 60min → TRIMP = 120
 
 ## Dev Notes
 

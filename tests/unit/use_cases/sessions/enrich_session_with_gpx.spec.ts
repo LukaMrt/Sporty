@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import EnrichSessionWithGpx from '#use_cases/sessions/enrich_session_with_gpx'
 import { makeMockSessionRepository } from '#tests/helpers/mock_session_repository'
+import { makeMockUserProfileRepository } from '#tests/helpers/mock_user_profile_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
@@ -75,6 +76,7 @@ test.group('EnrichSessionWithGpx — use case', () => {
 
     const useCase = new EnrichSessionWithGpx(
       repo,
+      makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
       makeMockGpxFileStorage()
     )
@@ -101,6 +103,7 @@ test.group('EnrichSessionWithGpx — use case', () => {
 
     const useCase = new EnrichSessionWithGpx(
       repo,
+      makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
       makeMockGpxFileStorage()
     )
@@ -128,6 +131,7 @@ test.group('EnrichSessionWithGpx — use case', () => {
 
     const useCase = new EnrichSessionWithGpx(
       repo,
+      makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
       makeMockGpxFileStorage()
     )
@@ -152,6 +156,7 @@ test.group('EnrichSessionWithGpx — use case', () => {
 
     const useCase = new EnrichSessionWithGpx(
       repo,
+      makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult({ startTime: '2026-03-01T08:00:00Z' })),
       makeMockGpxFileStorage()
     )
@@ -166,6 +171,7 @@ test.group('EnrichSessionWithGpx — use case', () => {
 
     const useCase = new EnrichSessionWithGpx(
       repo,
+      makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
       makeMockGpxFileStorage()
     )
@@ -181,6 +187,7 @@ test.group('EnrichSessionWithGpx — use case', () => {
 
     const useCase = new EnrichSessionWithGpx(
       repo,
+      makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
       makeMockGpxFileStorage()
     )

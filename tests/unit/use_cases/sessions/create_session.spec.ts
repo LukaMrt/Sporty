@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import CreateSession from '#use_cases/sessions/create_session'
 import { makeMockSessionRepository } from '#tests/helpers/mock_session_repository'
+import { makeMockUserProfileRepository } from '#tests/helpers/mock_user_profile_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 
 type SessionData = Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
@@ -15,7 +16,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     const result = await useCase.execute(42, {
       sportId: 1,
       date: '2026-02-25',
@@ -40,7 +41,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(99, {
       sportId: 1,
       date: '2026-01-01',
@@ -59,7 +60,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, {
       sportId: 1,
       date: '2026-02-25',
@@ -84,7 +85,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, {
       sportId: 2,
       date: '2026-02-25',
@@ -113,7 +114,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, {
       sportId: 1,
       date: '2026-02-25',
@@ -143,7 +144,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, {
       sportId: 1,
       date: '2026-02-25',
@@ -164,7 +165,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, {
       sportId: 1,
       date: '2026-02-25',

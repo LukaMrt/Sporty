@@ -1,15 +1,22 @@
 import { inject } from '@adonisjs/core'
 import { SessionRepository } from '#domain/interfaces/session_repository'
+import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { GpxParser } from '#domain/interfaces/gpx_parser'
 import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 import type { TrainingSession } from '#domain/entities/training_session'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
+import {
+  calculateZones,
+  calculateDrift,
+  calculateTrimp,
+} from '#domain/services/heart_rate_zone_service'
 
 @inject()
 export default class EnrichSessionWithGpx {
   constructor(
     private sessionRepository: SessionRepository,
+    private userProfileRepository: UserProfileRepository,
     private gpxParser: GpxParser,
     private gpxFileStorage: GpxFileStorage
   ) {}
@@ -39,10 +46,30 @@ export default class EnrichSessionWithGpx {
     if (gpx.elevationGain !== undefined) mergedSportMetrics.elevationGain = gpx.elevationGain
     if (gpx.elevationLoss !== undefined) mergedSportMetrics.elevationLoss = gpx.elevationLoss
 
+    // Métriques calculées si FC max profil disponible et courbe FC présente
+    if (gpx.heartRateCurve && gpx.heartRateCurve.length > 0) {
+      const profile = await this.userProfileRepository.findByUserId(userId)
+      if (profile?.maxHeartRate) {
+        const durationMinutes = Math.round(gpx.durationSeconds / 60)
+        const hrZones = calculateZones(
+          profile.maxHeartRate,
+          gpx.heartRateCurve,
+          profile.restingHeartRate ?? undefined
+        )
+        const cardiacDrift = calculateDrift(gpx.heartRateCurve)
+        const trimp = calculateTrimp(durationMinutes, hrZones)
+
+        mergedSportMetrics.hrZones = hrZones
+        mergedSportMetrics.cardiacDrift = cardiacDrift
+        mergedSportMetrics.trimp = trimp
+      }
+    }
+
+    const avgHeartRate = gpx.avgHeartRate ?? existing.avgHeartRate
     return this.sessionRepository.update(sessionId, {
       durationMinutes: Math.round(gpx.durationSeconds / 60),
       distanceKm: Math.round((gpx.distanceMeters / 1000) * 100) / 100,
-      avgHeartRate: gpx.avgHeartRate ?? existing.avgHeartRate,
+      avgHeartRate,
       // date conservée (l'utilisateur peut l'avoir corrigée)
       // perceivedEffort conservé (valeur manuelle)
       // notes conservées (valeur manuelle)
