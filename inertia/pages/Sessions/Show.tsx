@@ -20,7 +20,16 @@ import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 import SessionCurvesChart from '~/components/sessions/SessionCurvesChart'
 import MetricInsight, { METRIC_INSIGHTS } from '~/components/sessions/MetricInsight'
-import type { DataPoint, GpsPoint, KmSplit } from '../../../app/domain/value_objects/run_metrics'
+import HeartRateZonesChart from '~/components/sessions/HeartRateZonesChart'
+import CardiacDriftIndicator from '~/components/sessions/CardiacDriftIndicator'
+import TrimpIndicator from '~/components/sessions/TrimpIndicator'
+import SplitsTable from '~/components/sessions/SplitsTable'
+import type {
+  DataPoint,
+  GpsPoint,
+  KmSplit,
+  HeartRateZones,
+} from '../../../app/domain/value_objects/run_metrics'
 
 const METRIC_LABELS: Record<string, string> = {
   minHeartRate: 'FC min',
@@ -52,7 +61,9 @@ interface SportMetricsWithCurves {
   paceCurve?: DataPoint[]
   altitudeCurve?: DataPoint[]
   splits?: KmSplit[]
-  hrZones?: unknown
+  hrZones?: HeartRateZones
+  cardiacDrift?: number
+  trimp?: number
   gpsTrack?: GpsPoint[]
   [key: string]: unknown
 }
@@ -135,14 +146,25 @@ export default function SessionShow({ session }: ShowProps) {
       : null
   const pace = rawPaceMinPerKm !== null ? formatSpeed(rawPaceMinPerKm) : null
 
-  const { heartRateCurve, paceCurve, altitudeCurve, splits, gpsTrack, ...scalarMetrics } =
-    session.sportMetrics
+  const {
+    heartRateCurve,
+    paceCurve,
+    altitudeCurve,
+    splits,
+    hrZones,
+    cardiacDrift,
+    trimp,
+    gpsTrack,
+    ...scalarMetrics
+  } = session.sportMetrics
   const primitiveMetrics = Object.entries(scalarMetrics).filter(
     ([, v]) => typeof v === 'number' || typeof v === 'string'
   )
   const hasGpsTrack = Array.isArray(gpsTrack) && gpsTrack.length > 1
   const hasSportMetrics = primitiveMetrics.length > 0
   const hasSplits = splits && splits.length > 0
+  const hasAnalysis = !!hrZones || hasSplits
+  const showHrZoneInvite = !hrZones && session.avgHeartRate !== null
   const hasCurves =
     (heartRateCurve && heartRateCurve.length > 0) ||
     (paceCurve && paceCurve.length > 0) ||
@@ -353,57 +375,63 @@ export default function SessionShow({ session }: ShowProps) {
           </div>
         )}
 
-        {/* Splits au km */}
-        {hasSplits && (
-          <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              {t('sessions.show.splits')}
+        {/* Section Analyse : zones FC, drift, TRIMP, splits */}
+        {(hasAnalysis || showHrZoneInvite) && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm space-y-5">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              {t('sessions.show.analysis')}
             </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-muted-foreground border-b">
-                    <th className="text-left pb-2 font-medium">Km</th>
-                    <th className="text-right pb-2 font-medium">Allure</th>
-                    {splits.some((s) => s.avgHeartRate) && (
-                      <th className="text-right pb-2 font-medium">FC moy.</th>
-                    )}
-                    {splits.some((s) => s.elevationGain) && (
-                      <th className="text-right pb-2 font-medium">D+</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {splits.map((split) => (
-                    <tr key={split.km} className="border-b last:border-0">
-                      <td className="py-1.5 text-foreground font-medium">
-                        {split.km}
-                        {split.partial && (
-                          <span className="ml-1 text-xs text-muted-foreground">*</span>
-                        )}
-                      </td>
-                      <td className="py-1.5 text-right text-foreground">
-                        {formatSpeed(split.paceSeconds / 60)}
-                      </td>
-                      {splits.some((s) => s.avgHeartRate) && (
-                        <td className="py-1.5 text-right text-muted-foreground">
-                          {split.avgHeartRate ? `${split.avgHeartRate} bpm` : '—'}
-                        </td>
-                      )}
-                      {splits.some((s) => s.elevationGain) && (
-                        <td className="py-1.5 text-right text-muted-foreground">
-                          {split.elevationGain ? `+${split.elevationGain} m` : '—'}
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {splits.some((s) => s.partial) && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                {t('sessions.show.splitsPartialNote')}
+
+            {/* Invitation à configurer FC max si pas de zones mais FC présente */}
+            {showHrZoneInvite && (
+              <p className="text-sm text-muted-foreground">
+                {t('sessions.show.hrZoneInvite')}{' '}
+                <Link href="/profile" className="underline hover:text-foreground transition-colors">
+                  {t('sessions.show.hrZoneInviteLink')}
+                </Link>
               </p>
+            )}
+
+            {/* Zones FC */}
+            {hrZones && (
+              <div>
+                <h3 className="text-xs font-medium text-muted-foreground mb-2">
+                  {t('sessions.show.hrZones')}
+                </h3>
+                <HeartRateZonesChart hrZones={hrZones} />
+              </div>
+            )}
+
+            {/* Drift cardiaque + TRIMP */}
+            {(cardiacDrift !== undefined || trimp !== undefined) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {cardiacDrift !== undefined && (
+                  <div>
+                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                      {t('sessions.show.cardiacDrift')}
+                    </h3>
+                    <CardiacDriftIndicator value={cardiacDrift} />
+                  </div>
+                )}
+                {trimp !== undefined && (
+                  <div>
+                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                      {t('sessions.show.trimp')}
+                    </h3>
+                    <TrimpIndicator value={trimp} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Splits */}
+            {hasSplits && (
+              <div>
+                <h3 className="text-xs font-medium text-muted-foreground mb-2">
+                  {t('sessions.show.splits')}
+                </h3>
+                <SplitsTable splits={splits} />
+              </div>
             )}
           </div>
         )}

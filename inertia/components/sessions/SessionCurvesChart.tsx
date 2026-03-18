@@ -180,6 +180,7 @@ export default function SessionCurvesChart({
             <YAxis
               yAxisId="hr"
               orientation="left"
+              domain={['auto', 'auto']}
               tick={{ fontSize: 11, fill: '#f97316' }}
               tickLine={false}
               axisLine={false}
