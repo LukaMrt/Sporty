@@ -6,7 +6,9 @@ import { GpxParserService } from '#services/gpx_parser_service'
 import { GpxParseError } from '#domain/errors/gpx_parse_error'
 
 const CURRENT_DIR = dirname(fileURLToPath(import.meta.url))
-const GPX_FIXTURE_NO_HR = readFileSync(join(CURRENT_DIR, 'fixtures/gpx_fixture.gpx'), 'utf-8')
+const GPX_FIXTURE_WITH_HR = readFileSync(join(CURRENT_DIR, 'fixtures/gpx_fixture.gpx'), 'utf-8')
+// Alias conservé pour les tests existants
+const GPX_FIXTURE_NO_HR = GPX_FIXTURE_WITH_HR
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -192,26 +194,26 @@ test.group('GpxParserService', () => {
     assert.isArray(result.splits)
   })
 
-  // ── Tests avec le fichier GPX réel Apple Watch (sans FC) ─────────────────
+  // ── Tests avec la fixture GPX réaliste (avec FC, ~20 minutes) ─────────────
 
-  test('fixture réelle — durée correcte (290s)', ({ assert }) => {
+  test('fixture réelle — durée correcte (1200s)', ({ assert }) => {
     const result = parser.parse(GPX_FIXTURE_NO_HR)
-    assert.equal(result.durationSeconds, 290)
+    assert.equal(result.durationSeconds, 1200)
   })
 
   test('fixture réelle — distance > 0 et cohérente', ({ assert }) => {
     const result = parser.parse(GPX_FIXTURE_NO_HR)
-    // Course de ~5 minutes : distance raisonnable entre 500m et 2000m
-    assert.isAbove(result.distanceMeters, 500)
-    assert.isBelow(result.distanceMeters, 2000)
+    // Course de ~20 minutes : distance raisonnable entre 2000m et 4000m
+    assert.isAbove(result.distanceMeters, 2000)
+    assert.isBelow(result.distanceMeters, 4000)
   })
 
-  test('fixture réelle — pas de FC ni cadence (AC#2)', ({ assert }) => {
+  test('fixture réelle — FC présente (données Garmin)', ({ assert }) => {
     const result = parser.parse(GPX_FIXTURE_NO_HR)
-    assert.isUndefined(result.heartRateCurve)
-    assert.isUndefined(result.cadenceAvg)
-    assert.isUndefined(result.minHeartRate)
-    assert.isUndefined(result.maxHeartRate)
+    assert.isDefined(result.heartRateCurve)
+    assert.isAbove(result.heartRateCurve!.length, 0)
+    assert.isDefined(result.minHeartRate)
+    assert.isDefined(result.maxHeartRate)
   })
 
   test('fixture réelle — tracé GPS et allure présents', ({ assert }) => {
@@ -232,8 +234,8 @@ test.group('GpxParserService', () => {
 
   test('fixture réelle — courbes rééchantillonnées toutes les 15s', ({ assert }) => {
     const result = parser.parse(GPX_FIXTURE_NO_HR)
-    // 290s / 15s ≈ 20 points
-    const expectedPoints = Math.floor(290 / 15) + 1
+    // 1200s / 15s ≈ 81 points
+    const expectedPoints = Math.floor(1200 / 15) + 1
     assert.closeTo(result.paceCurve!.length, expectedPoints, 2)
   })
 })

@@ -70,7 +70,30 @@
     "deleteDescription": "This action can be undone within 5 seconds after deletion.",
     "deleteConfirm": "Delete",
     "deleteCancel": "Cancel",
-    "importedFrom": "Imported from {source}"
+    "importedFrom": "Imported from {source}",
+    "curves": "HR / Pace curves",
+    "splits": "Km splits",
+    "splitsPartialNote": "* partial km — extrapolated pace",
+    "insights": {
+      "cardiacDrift": {
+        "description": "Cardiac drift measures the deviation of HR over the session duration at constant effort. A high value indicates fatigue or dehydration.",
+        "zones": {
+          "excellent": "Excellent",
+          "normal": "Normal",
+          "high": "High",
+          "critical": "Critical"
+        }
+      },
+      "trimp": {
+        "description": "TRIMP (Training Impulse) quantifies training load by combining duration and cardiac intensity. Useful for gauging the recovery needed.",
+        "zones": {
+          "light": "Light",
+          "moderate": "Moderate",
+          "intense": "Intense",
+          "veryIntense": "Very intense"
+        }
+      }
+    }
   },
   "edit": {
     "title": "Edit session",

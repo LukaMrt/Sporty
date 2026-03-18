@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { ChevronLeft, Pencil, Trash2, Upload, Loader2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { EFFORT_EMOJIS } from '~/lib/effort'
-import { formatDate, formatDuration, formatMetricKey } from '~/lib/format'
+import { formatDate, formatDuration } from '~/lib/format'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import {
   Dialog,
@@ -16,6 +16,44 @@ import {
 } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
+import SessionCurvesChart from '~/components/sessions/SessionCurvesChart'
+import MetricInsight, { METRIC_INSIGHTS } from '~/components/sessions/MetricInsight'
+import type { DataPoint, KmSplit } from '../../../app/domain/value_objects/run_metrics'
+
+const METRIC_LABELS: Record<string, string> = {
+  minHeartRate: 'FC min',
+  maxHeartRate: 'FC max',
+  cadenceAvg: 'Cadence moy.',
+  elevationGain: 'Dénivelé +',
+  elevationLoss: 'Dénivelé −',
+  cardiacDrift: 'Drift cardiaque',
+  trimp: 'TRIMP',
+  avgPacePerKm: 'Allure moy.',
+}
+
+const METRIC_UNITS: Record<string, string> = {
+  minHeartRate: ' bpm',
+  maxHeartRate: ' bpm',
+  cadenceAvg: ' spm',
+  elevationGain: ' m',
+  elevationLoss: ' m',
+  cardiacDrift: ' %',
+}
+
+function formatMetricValue(key: string, value: number | string): string {
+  const unit = METRIC_UNITS[key] ?? ''
+  return `${value}${unit}`
+}
+
+interface SportMetricsWithCurves {
+  heartRateCurve?: DataPoint[]
+  paceCurve?: DataPoint[]
+  altitudeCurve?: DataPoint[]
+  splits?: KmSplit[]
+  hrZones?: unknown
+  gpsTrack?: unknown
+  [key: string]: unknown
+}
 
 interface TrainingSessionProps {
   id: number
@@ -27,7 +65,7 @@ interface TrainingSessionProps {
   distanceKm: number | null
   avgHeartRate: number | null
   perceivedEffort: number | null
-  sportMetrics: Record<string, unknown>
+  sportMetrics: SportMetricsWithCurves
   notes: string | null
   importedFrom: string | null
   gpxFilePath: string | null
@@ -43,7 +81,7 @@ export default function SessionShow({ session }: ShowProps) {
   const [enriching, setEnriching] = useState(false)
   const [enrichError, setEnrichError] = useState<string | null>(null)
   const enrichFileRef = useRef<HTMLInputElement>(null)
-  const { formatSpeed, formatDistanceParts } = useUnitConversion()
+  const { formatSpeed, formatDistanceParts, speedUnit } = useUnitConversion()
   const { t } = useTranslation()
 
   async function handleEnrichGpxChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -94,7 +132,18 @@ export default function SessionShow({ session }: ShowProps) {
       ? session.durationMinutes / session.distanceKm
       : null
   const pace = rawPaceMinPerKm !== null ? formatSpeed(rawPaceMinPerKm) : null
-  const hasSportMetrics = Object.keys(session.sportMetrics).length > 0
+
+  const { heartRateCurve, paceCurve, altitudeCurve, splits, ...scalarMetrics } =
+    session.sportMetrics
+  const primitiveMetrics = Object.entries(scalarMetrics).filter(
+    ([, v]) => typeof v === 'number' || typeof v === 'string'
+  )
+  const hasSportMetrics = primitiveMetrics.length > 0
+  const hasSplits = splits && splits.length > 0
+  const hasCurves =
+    (heartRateCurve && heartRateCurve.length > 0) ||
+    (paceCurve && paceCurve.length > 0) ||
+    (altitudeCurve && altitudeCurve.length > 0)
 
   function handleDelete() {
     router.delete(`/sessions/${session.id}`)
@@ -284,13 +333,90 @@ export default function SessionShow({ session }: ShowProps) {
               {t('sessions.show.specificMetrics')}
             </h2>
             <div className="space-y-2">
-              {Object.entries(session.sportMetrics).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{formatMetricKey(key)}</span>
-                  <span className="text-sm font-medium text-foreground">{String(value)}</span>
+              {primitiveMetrics.map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-muted-foreground">{METRIC_LABELS[key] ?? key}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">
+                      {formatMetricValue(key, value as number | string)}
+                    </span>
+                    {METRIC_INSIGHTS[key] && typeof value === 'number' && (
+                      <MetricInsight metricKey={key} value={value} />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Splits au km */}
+        {hasSplits && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              {t('sessions.show.splits')}
+            </h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-muted-foreground border-b">
+                    <th className="text-left pb-2 font-medium">Km</th>
+                    <th className="text-right pb-2 font-medium">Allure</th>
+                    {splits.some((s) => s.avgHeartRate) && (
+                      <th className="text-right pb-2 font-medium">FC moy.</th>
+                    )}
+                    {splits.some((s) => s.elevationGain) && (
+                      <th className="text-right pb-2 font-medium">D+</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {splits.map((split) => (
+                    <tr key={split.km} className="border-b last:border-0">
+                      <td className="py-1.5 text-foreground font-medium">
+                        {split.km}
+                        {split.partial && (
+                          <span className="ml-1 text-xs text-muted-foreground">*</span>
+                        )}
+                      </td>
+                      <td className="py-1.5 text-right text-foreground">
+                        {formatSpeed(split.paceSeconds / 60)}
+                      </td>
+                      {splits.some((s) => s.avgHeartRate) && (
+                        <td className="py-1.5 text-right text-muted-foreground">
+                          {split.avgHeartRate ? `${split.avgHeartRate} bpm` : '—'}
+                        </td>
+                      )}
+                      {splits.some((s) => s.elevationGain) && (
+                        <td className="py-1.5 text-right text-muted-foreground">
+                          {split.elevationGain ? `+${split.elevationGain} m` : '—'}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {splits.some((s) => s.partial) && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t('sessions.show.splitsPartialNote')}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Graphique courbes FC / allure / altitude */}
+        {hasCurves && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              {t('sessions.show.curves')}
+            </h2>
+            <SessionCurvesChart
+              heartRateCurve={heartRateCurve}
+              paceCurve={paceCurve}
+              altitudeCurve={altitudeCurve}
+              speedUnit={speedUnit}
+            />
           </div>
         )}
       </div>

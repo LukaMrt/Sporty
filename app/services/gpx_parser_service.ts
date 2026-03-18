@@ -204,13 +204,13 @@ export class GpxParserService extends GpxParser {
     return total
   }
 
-  /** Retourne allure en s/m pour chaque point (0 pour le premier) */
+  /** Retourne allure en s/km pour chaque point (0 pour le premier) */
   private computeRawPace(points: RawTrackpoint[]): number[] {
     const paces: number[] = [0]
     for (let i = 1; i < points.length; i++) {
       const dt = (points[i].timeMs - points[i - 1].timeMs) / 1000
       const dd = this.haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon)
-      paces.push(dd > 0.5 ? dt / dd : 0)
+      paces.push(dd > 0.5 ? (dt / dd) * 1000 : 0)
     }
     return paces
   }
@@ -376,6 +376,31 @@ export class GpxParserService extends GpxParser {
         splitStartIdx = i
         currentKm++
       }
+    }
+
+    // Dernier km partiel
+    const remainingDist = cumDistance - lastKmBoundary
+    if (remainingDist > 50) {
+      const lastPoints = points.slice(splitStartIdx)
+      const splitDuration = (points[points.length - 1].timeMs - points[splitStartIdx].timeMs) / 1000
+      // Extrapoler l'allure au km complet
+      const paceSeconds = Math.round((splitDuration / remainingDist) * 1000)
+
+      let avgHeartRate: number | undefined
+      const splitHr = lastPoints.filter((p) => p.hr !== undefined)
+      if (splitHr.length > 0) {
+        avgHeartRate = Math.round(
+          splitHr.reduce((a, p) => a + (p.hr as number), 0) / splitHr.length
+        )
+      }
+
+      let elevationGain: number | undefined
+      if (lastPoints.some((p) => p.ele !== undefined)) {
+        const { gain } = this.computeElevation(lastPoints)
+        elevationGain = gain
+      }
+
+      splits.push({ km: currentKm, paceSeconds, avgHeartRate, elevationGain, partial: true })
     }
 
     return splits

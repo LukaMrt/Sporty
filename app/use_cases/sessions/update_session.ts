@@ -4,8 +4,10 @@ import { UserProfileRepository } from '#domain/interfaces/user_profile_repositor
 import type { TrainingSession } from '#domain/entities/training_session'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
-import { getZoneForHr, calculateTrimp } from '#domain/services/heart_rate_zone_service'
-import type { HeartRateZones } from '#domain/value_objects/run_metrics'
+import {
+  buildScalarRunMetrics,
+  buildMonoZoneHrMetrics,
+} from '#domain/services/heart_rate_zone_service'
 
 export interface UpdateSessionInput {
   sportId: number
@@ -39,32 +41,18 @@ export default class UpdateSession {
     if (!existing) throw new SessionNotFoundError(sessionId)
     if (existing.userId !== userId) throw new SessionForbiddenError()
 
-    const runMetrics: Record<string, unknown> = {}
-    if (data.minHeartRate !== null && data.minHeartRate !== undefined)
-      runMetrics.minHeartRate = data.minHeartRate
-    if (data.maxHeartRate !== null && data.maxHeartRate !== undefined)
-      runMetrics.maxHeartRate = data.maxHeartRate
-    if (data.cadenceAvg !== null && data.cadenceAvg !== undefined)
-      runMetrics.cadenceAvg = data.cadenceAvg
-    if (data.elevationGain !== null && data.elevationGain !== undefined)
-      runMetrics.elevationGain = data.elevationGain
-    if (data.elevationLoss !== null && data.elevationLoss !== undefined)
-      runMetrics.elevationLoss = data.elevationLoss
+    const runMetrics: Record<string, unknown> = { ...buildScalarRunMetrics(data) }
 
     if (data.avgHeartRate) {
       const profile = await this.userProfileRepository.findByUserId(userId)
       if (profile?.maxHeartRate) {
-        const zone = getZoneForHr(
+        const result = buildMonoZoneHrMetrics(
           profile.maxHeartRate,
+          profile.restingHeartRate ?? undefined,
           data.avgHeartRate,
-          profile.restingHeartRate ?? undefined
+          data.durationMinutes
         )
-        if (zone >= 1) {
-          const hrZones: HeartRateZones = { z1: 0, z2: 0, z3: 0, z4: 0, z5: 0 }
-          ;(hrZones as unknown as Record<string, number>)[`z${zone}`] = 100
-          runMetrics.hrZones = hrZones
-          runMetrics.trimp = calculateTrimp(data.durationMinutes, hrZones)
-        }
+        if (result) Object.assign(runMetrics, result)
       }
     }
 

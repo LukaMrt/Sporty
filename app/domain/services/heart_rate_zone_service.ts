@@ -105,6 +105,49 @@ export function calculateDrift(heartRateCurve: DataPoint[]): number {
 }
 
 /**
+ * Construit la map de métriques scalaires optionnelles issues d'un formulaire ou d'un GPX
+ * (minHeartRate, maxHeartRate, cadenceAvg, elevationGain, elevationLoss).
+ * N'inclut que les valeurs définies et non nulles.
+ */
+export function buildScalarRunMetrics(input: {
+  minHeartRate?: number | null
+  maxHeartRate?: number | null
+  cadenceAvg?: number | null
+  elevationGain?: number | null
+  elevationLoss?: number | null
+}): Record<string, number> {
+  const metrics: Record<string, number> = {}
+  if (input.minHeartRate !== null && input.minHeartRate !== undefined)
+    metrics.minHeartRate = input.minHeartRate
+  if (input.maxHeartRate !== null && input.maxHeartRate !== undefined)
+    metrics.maxHeartRate = input.maxHeartRate
+  if (input.cadenceAvg !== null && input.cadenceAvg !== undefined)
+    metrics.cadenceAvg = input.cadenceAvg
+  if (input.elevationGain !== null && input.elevationGain !== undefined)
+    metrics.elevationGain = input.elevationGain
+  if (input.elevationLoss !== null && input.elevationLoss !== undefined)
+    metrics.elevationLoss = input.elevationLoss
+  return metrics
+}
+
+/**
+ * Calcule hrZones + TRIMP depuis une FC moyenne unique (saisie manuelle, pas de courbe).
+ * Renvoie null si le profil ne permet pas le calcul (pas de FCmax).
+ */
+export function buildMonoZoneHrMetrics(
+  fcMax: number,
+  fcRest: number | undefined,
+  avgHr: number,
+  durationMinutes: number
+): { hrZones: HeartRateZones; trimp: number } | null {
+  const zone = getZoneForHr(fcMax, avgHr, fcRest)
+  if (zone < 1) return null
+  const hrZones: HeartRateZones = { z1: 0, z2: 0, z3: 0, z4: 0, z5: 0 }
+  ;(hrZones as unknown as Record<string, number>)[`z${zone}`] = 100
+  return { hrZones, trimp: calculateTrimp(durationMinutes, hrZones) }
+}
+
+/**
  * Calcule le TRIMP (Training Impulse) simplifié de Banister.
  * TRIMP = Σ (temps en zone Z_i × coefficient_i)
  * Coefficients : Z1=1, Z2=2, Z3=3, Z4=4, Z5=5

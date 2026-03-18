@@ -15,6 +15,7 @@ export interface KmSplit {
   paceSeconds: number
   avgHeartRate?: number
   elevationGain?: number
+  partial?: boolean
 }
 
 export interface HeartRateZones {
