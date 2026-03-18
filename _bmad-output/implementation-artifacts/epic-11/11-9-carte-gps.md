@@ -1,6 +1,6 @@
 # Story 11.9 : Carte GPS du parcours
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -17,32 +17,32 @@ so that **je visualise le trace de ma sortie**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Installer Leaflet (AC: #1)
-  - [ ] `pnpm add leaflet react-leaflet`
-  - [ ] `pnpm add -D @types/leaflet`
-  - [ ] Configurer le CSS Leaflet (import dans le layout ou lazy)
-- [ ] Task 2 : Composant React — carte parcours (AC: #1, #4)
-  - [ ] Creer `inertia/components/sessions/SessionMap.tsx`
-  - [ ] `MapContainer` avec `TileLayer` OpenStreetMap
-  - [ ] `Polyline` avec les coordonnees `gpsTrack`
-  - [ ] Auto-zoom via `fitBounds` sur l'ensemble des points
-  - [ ] Marqueur depart (icone vert) et arrivee (icone rouge)
-  - [ ] Ne rendre le composant que si `gpsTrack` existe et a > 1 point
-- [ ] Task 3 : Polyline coloree par gradient (AC: #2)
-  - [ ] Decouper la polyline en segments
-  - [ ] Colorer chaque segment selon l'altitude (gradient bleu bas → rouge haut)
-  - [ ] Option : toggle pour colorer par allure ou FC (boutons au-dessus de la carte)
-- [ ] Task 4 : Popup interactif (AC: #3)
-  - [ ] Au clic sur un point du trace, afficher un popup Leaflet
-  - [ ] Contenu : km (distance cumulee), allure, FC (si dispo), altitude
-  - [ ] Trouver le point le plus proche du clic dans `gpsTrack`
-- [ ] Task 5 : Lazy loading (AC: #1)
-  - [ ] Charger Leaflet en lazy import (`React.lazy` + `Suspense`)
-  - [ ] Ne pas inclure Leaflet dans le bundle principal
-  - [ ] Fallback de chargement : placeholder avec spinner
-- [ ] Task 6 : Integration dans la page detail seance (AC: #1, #4)
-  - [ ] Ajouter `SessionMap` dans la page detail, au-dessus des courbes
-  - [ ] Passer les props : `gpsTrack`, `heartRateCurve`, `paceCurve`, `altitudeCurve`
+- [x] Task 1 : Installer Leaflet (AC: #1)
+  - [x] `pnpm add leaflet react-leaflet`
+  - [x] `pnpm add -D @types/leaflet`
+  - [x] Configurer le CSS Leaflet (import dans le layout ou lazy)
+- [x] Task 2 : Composant React — carte parcours (AC: #1, #4)
+  - [x] Creer `inertia/components/sessions/SessionMap.tsx`
+  - [x] `MapContainer` avec `TileLayer` OpenStreetMap
+  - [x] `Polyline` avec les coordonnees `gpsTrack`
+  - [x] Auto-zoom via `fitBounds` sur l'ensemble des points
+  - [x] Marqueur depart (icone vert) et arrivee (icone rouge)
+  - [x] Ne rendre le composant que si `gpsTrack` existe et a > 1 point
+- [x] Task 3 : Polyline coloree par gradient (AC: #2)
+  - [x] Decouper la polyline en segments
+  - [x] Colorer chaque segment selon l'altitude (gradient bleu bas → rouge haut)
+  - [x] Option : toggle pour colorer par allure ou FC (boutons au-dessus de la carte)
+- [x] Task 4 : Popup interactif (AC: #3)
+  - [x] Au clic sur un point du trace, afficher un popup Leaflet
+  - [x] Contenu : km (distance cumulee), allure, FC (si dispo), altitude
+  - [x] Trouver le point le plus proche du clic dans `gpsTrack`
+- [x] Task 5 : Lazy loading (AC: #1)
+  - [x] Charger Leaflet en lazy import (`React.lazy` + `Suspense`)
+  - [x] Ne pas inclure Leaflet dans le bundle principal
+  - [x] Fallback de chargement : placeholder avec spinner
+- [x] Task 6 : Integration dans la page detail seance (AC: #1, #4)
+  - [x] Ajouter `SessionMap` dans la page detail, au-dessus des courbes
+  - [x] Passer les props : `gpsTrack`, `heartRateCurve`, `paceCurve`, `altitudeCurve`
 
 ## Dev Notes
 
@@ -90,3 +90,30 @@ interface GpsPoint {
 - [Source: _bmad-output/epics/epic-11-donnees-course-enrichies-gpx.md#Story 11.9]
 - react-leaflet : https://react-leaflet.js.org/
 - OpenStreetMap : https://www.openstreetmap.org/
+
+## Dev Agent Record
+
+### Completion Notes
+
+Implémentation complète via commit a0beed8 (2026-03-18).
+
+- `SessionMap.tsx` (252 lignes) : MapContainer OpenStreetMap, polyline multi-segments colorée par allure ou FC (gradient bleu→rouge), marqueurs départ (vert) / arrivée (rouge), popup interactif au clic (km, allure, FC, altitude), toggle allure/FC/altitude au-dessus de la carte
+- Lazy-load via `React.lazy` + `Suspense` — Leaflet hors bundle principal
+- Intégration dans `Show.tsx` (au-dessus des courbes) et `SessionForm` (aperçu immédiat après import GPX)
+- Légendes des courbes traduites dans `SessionCurvesChart`
+- Clés i18n ajoutées : `map`, `mapColorPace`, `mapColorHr`, `curveLegendHr`, `curveLegendPace`, `curveLegendAltitude` (FR + EN)
+
+### File List
+
+- `inertia/components/sessions/SessionMap.tsx` (nouveau)
+- `inertia/components/sessions/SessionCurvesChart.tsx` (modifié)
+- `inertia/components/sessions/SessionForm.tsx` (modifié)
+- `inertia/pages/Sessions/Show.tsx` (modifié)
+- `package.json` (modifié — ajout leaflet, react-leaflet, @types/leaflet)
+- `pnpm-lock.yaml` (modifié)
+- `resources/lang/fr/sessions.json` (modifié)
+- `resources/lang/en/sessions.json` (modifié)
+
+### Change Log
+
+- 2026-03-18 : Implémentation complète Story 11.9 — Carte GPS Leaflet

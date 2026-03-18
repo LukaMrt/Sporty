@@ -1,6 +1,6 @@
 # Story 11.10 : Affichage zones FC et metriques calculees dans le detail
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -16,33 +16,33 @@ so that **j'evalue la qualite de mon entrainement d'un coup d'oeil**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Composant — bar chart zones FC (AC: #1)
-  - [ ] Creer `inertia/components/sessions/HeartRateZonesChart.tsx`
-  - [ ] Bar chart horizontal Recharts avec 5 barres (Z1 a Z5)
-  - [ ] Chaque barre : couleur de zone, label (Z1-Z5), % du temps, duree en minutes
-  - [ ] Couleurs : Z1 gris, Z2 bleu, Z3 vert, Z4 orange, Z5 rouge
-- [ ] Task 2 : Composant — drift cardiaque (AC: #1)
-  - [ ] Creer `inertia/components/sessions/CardiacDriftIndicator.tsx`
-  - [ ] Affichage : valeur en %, icone et couleur selon seuil
-  - [ ] < 5% : gris/neutre "Normal"
-  - [ ] 5-10% : orange "Fatigue moderee"
-  - [ ] > 10% : orange fonce "Fatigue significative"
-- [ ] Task 3 : Composant — TRIMP (AC: #1)
-  - [ ] Creer `inertia/components/sessions/TrimpIndicator.tsx`
-  - [ ] Affichage : valeur numerique + echelle qualitative
-  - [ ] < 50 : "Leger" | 50-100 : "Modere" | 100-200 : "Dur" | > 200 : "Tres dur"
-- [ ] Task 4 : Composant — tableau des splits (AC: #2)
-  - [ ] Creer `inertia/components/sessions/SplitsTable.tsx`
-  - [ ] Colonnes : km, allure (formatee selon pref), FC moy (si dispo), denivele
-  - [ ] Ligne du split le plus rapide mise en evidence (background accent)
-  - [ ] Allure formatee selon la preference utilisateur
-- [ ] Task 5 : Section "Analyse" dans la page detail (AC: #1, #3)
-  - [ ] Ajouter la section sous les metriques de base et au-dessus des courbes
-  - [ ] Condition d'affichage : au moins `hrZones` ou `splits` present dans `sportMetrics`
-  - [ ] Si pas de FC max configuree : afficher message d'invitation avec lien vers le profil
-- [ ] Task 6 : Responsive mobile (AC: #1, #2)
-  - [ ] Bar chart zones : empile verticalement sur mobile
-  - [ ] Tableau splits : scroll horizontal sur mobile si necessaire
+- [x] Task 1 : Composant — bar chart zones FC (AC: #1)
+  - [x] Creer `inertia/components/sessions/HeartRateZonesChart.tsx`
+  - [x] Bar chart horizontal Recharts avec 5 barres (Z1 a Z5)
+  - [x] Chaque barre : couleur de zone, label (Z1-Z5), % du temps, duree en minutes
+  - [x] Couleurs : Z1 gris, Z2 bleu, Z3 vert, Z4 orange, Z5 rouge
+- [x] Task 2 : Composant — drift cardiaque (AC: #1)
+  - [x] Creer `inertia/components/sessions/CardiacDriftIndicator.tsx`
+  - [x] Affichage : valeur en %, icone et couleur selon seuil
+  - [x] < 5% : gris/neutre "Normal"
+  - [x] 5-10% : orange "Fatigue moderee"
+  - [x] > 10% : orange fonce "Fatigue significative"
+- [x] Task 3 : Composant — TRIMP (AC: #1)
+  - [x] Creer `inertia/components/sessions/TrimpIndicator.tsx`
+  - [x] Affichage : valeur numerique + echelle qualitative
+  - [x] < 50 : "Leger" | 50-100 : "Modere" | 100-200 : "Dur" | > 200 : "Tres dur"
+- [x] Task 4 : Composant — tableau des splits (AC: #2)
+  - [x] Creer `inertia/components/sessions/SplitsTable.tsx`
+  - [x] Colonnes : km, allure (formatee selon pref), FC moy (si dispo), denivele
+  - [x] Ligne du split le plus rapide mise en evidence (background accent)
+  - [x] Allure formatee selon la preference utilisateur
+- [x] Task 5 : Section "Analyse" dans la page detail (AC: #1, #3)
+  - [x] Ajouter la section sous les metriques de base et au-dessus des courbes
+  - [x] Condition d'affichage : au moins `hrZones` ou `splits` present dans `sportMetrics`
+  - [x] Si pas de FC max configuree : afficher message d'invitation avec lien vers le profil
+- [x] Task 6 : Responsive mobile (AC: #1, #2)
+  - [x] Bar chart zones : empile verticalement sur mobile
+  - [x] Tableau splits : scroll horizontal sur mobile si necessaire
 
 ## Dev Notes
 
@@ -71,3 +71,32 @@ Identifier le split avec la valeur `paceSeconds` la plus basse. Le mettre en evi
 ### References
 
 - [Source: _bmad-output/epics/epic-11-donnees-course-enrichies-gpx.md#Story 11.10]
+
+## Dev Agent Record
+
+### Completion Notes
+
+Implémentation complète via commit 12e823f (2026-03-18).
+
+- `HeartRateZonesChart.tsx` (64 lignes) : bar chart horizontal Recharts, 5 zones (Z1 gris, Z2 bleu, Z3 vert, Z4 orange, Z5 rouge), % du temps + durée en minutes
+- `CardiacDriftIndicator.tsx` (33 lignes) : seuils normal (< 5%) / fatigue modérée (5–10%) / significative (> 10%), i18n FR/EN
+- `TrimpIndicator.tsx` (33 lignes) : échelle léger / modéré / dur / très dur, i18n FR/EN
+- `SplitsTable.tsx` (74 lignes) : colonnes km/allure/FC moy/dénivelé, split le plus rapide mis en évidence avec icône ⚡
+- Section "Analyse" intégrée dans `Show.tsx` entre métriques de base et courbes ; message d'invitation profil si FC max absente
+- Axe Y FC curve en domain auto pour mieux coller aux valeurs
+- Traductions FR/EN complètes pour tous les composants
+
+### File List
+
+- `inertia/components/sessions/HeartRateZonesChart.tsx` (nouveau)
+- `inertia/components/sessions/CardiacDriftIndicator.tsx` (nouveau)
+- `inertia/components/sessions/TrimpIndicator.tsx` (nouveau)
+- `inertia/components/sessions/SplitsTable.tsx` (nouveau)
+- `inertia/components/sessions/SessionCurvesChart.tsx` (modifié)
+- `inertia/pages/Sessions/Show.tsx` (modifié)
+- `resources/lang/fr/sessions.json` (modifié)
+- `resources/lang/en/sessions.json` (modifié)
+
+### Change Log
+
+- 2026-03-18 : Implémentation complète Story 11.10 — Section Analyse (zones FC, drift, TRIMP, splits)
