@@ -158,7 +158,7 @@ export default function SessionCurvesChart({
 
   const hrDomain: [number | string, number | string] = (() => {
     if (!hasHR || !hrZoneThresholds) return ['auto', 'auto']
-    const hrValues = heartRateCurve!.map((p) => p.value)
+    const hrValues = heartRateCurve.map((p) => p.value)
     const dataMin = Math.min(...hrValues)
     const dataMax = Math.max(...hrValues)
     const zoneMin = Math.min(...hrZoneThresholds.map((z) => z.minBpm))
