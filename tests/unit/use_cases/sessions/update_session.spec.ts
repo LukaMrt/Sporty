@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import UpdateSession from '#use_cases/sessions/update_session'
 import { makeMockSessionRepository } from '#tests/helpers/mock_session_repository'
+import { makeMockUserProfileRepository } from '#tests/helpers/mock_user_profile_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
@@ -36,7 +37,7 @@ test.group('UpdateSession — use case', () => {
       },
     })
 
-    const useCase = new UpdateSession(repo)
+    const useCase = new UpdateSession(repo, makeMockUserProfileRepository())
     const result = await useCase.execute(1, 42, {
       sportId: 1,
       date: '2026-02-26',
@@ -56,7 +57,7 @@ test.group('UpdateSession — use case', () => {
       findById: async () => null,
     })
 
-    const useCase = new UpdateSession(repo)
+    const useCase = new UpdateSession(repo, makeMockUserProfileRepository())
 
     try {
       await useCase.execute(999, 42, {
@@ -75,7 +76,7 @@ test.group('UpdateSession — use case', () => {
       findById: async () => ({ ...BASE_SESSION, userId: 99 }),
     })
 
-    const useCase = new UpdateSession(repo)
+    const useCase = new UpdateSession(repo, makeMockUserProfileRepository())
 
     try {
       await useCase.execute(1, 42, {
@@ -102,7 +103,7 @@ test.group('UpdateSession — use case', () => {
       },
     })
 
-    const useCase = new UpdateSession(repo)
+    const useCase = new UpdateSession(repo, makeMockUserProfileRepository())
     const result = await useCase.execute(1, 42, {
       sportId: 1,
       date: '2026-02-25',
@@ -127,7 +128,7 @@ test.group('UpdateSession — use case', () => {
       },
     })
 
-    const useCase = new UpdateSession(repo)
+    const useCase = new UpdateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, 42, {
       sportId: 1,
       date: '2026-02-25',
@@ -139,5 +140,41 @@ test.group('UpdateSession — use case', () => {
     assert.isNull(capturedData!.perceivedEffort)
     assert.isNull(capturedData!.notes)
     assert.deepEqual(capturedData!.sportMetrics, {})
+  })
+
+  test('les métriques RunMetrics sont mergées dans sportMetrics lors de la mise à jour', async ({
+    assert,
+  }) => {
+    let capturedData: Partial<
+      Omit<TrainingSession, 'id' | 'userId' | 'createdAt' | 'sportName'>
+    > | null = null
+
+    const repo = makeMockSessionRepository({
+      findById: async () => ({ ...BASE_SESSION }),
+      update: async (_id, data) => {
+        capturedData = data
+        return { ...BASE_SESSION, ...data }
+      },
+    })
+
+    const useCase = new UpdateSession(repo, makeMockUserProfileRepository())
+    await useCase.execute(1, 42, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      minHeartRate: 60,
+      maxHeartRate: 180,
+      cadenceAvg: 172,
+      elevationGain: 150,
+      elevationLoss: 120,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {
+      minHeartRate: 60,
+      maxHeartRate: 180,
+      cadenceAvg: 172,
+      elevationGain: 150,
+      elevationLoss: 120,
+    })
   })
 })

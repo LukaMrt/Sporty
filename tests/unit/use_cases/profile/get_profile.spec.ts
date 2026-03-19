@@ -29,6 +29,9 @@ function makeMockProfileRepository(
           dateFormat: 'DD/MM/YYYY',
           locale: 'fr',
         },
+        maxHeartRate: null,
+        restingHeartRate: null,
+        vma: null,
       }
     }
   }
@@ -58,6 +61,9 @@ test.group('GetProfile — use case', () => {
         dateFormat: 'DD/MM/YYYY',
         locale: 'fr',
       },
+      maxHeartRate: null,
+      restingHeartRate: null,
+      vma: null,
     }
     const repo = makeMockProfileRepository({ findByUserId: async () => profile })
     const useCase = new GetProfile(repo)

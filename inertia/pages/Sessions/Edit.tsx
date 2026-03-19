@@ -15,6 +15,7 @@ interface TrainingSessionProps {
   avgHeartRate: number | null
   perceivedEffort: number | null
   notes: string | null
+  sportMetrics: Record<string, unknown> | null
 }
 
 interface Sport {
@@ -59,6 +60,7 @@ export default function SessionEdit({ session, sports }: EditProps) {
             avgHeartRate: session.avgHeartRate,
             perceivedEffort: session.perceivedEffort,
             notes: session.notes,
+            sportMetrics: session.sportMetrics,
           }}
           sports={sports}
         />

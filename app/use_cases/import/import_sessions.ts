@@ -3,7 +3,8 @@ import { ImportSessionRepository } from '#domain/interfaces/import_session_repos
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import { SessionMapper } from '#domain/interfaces/session_mapper'
+import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import type { MappingContext } from '#domain/interfaces/connector'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
 import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
 
@@ -29,8 +30,15 @@ export default class ImportSessions {
     private connectorFactory: ConnectorFactory,
     private sportRepository: SportRepository,
     private sessionRepository: SessionRepository,
-    private sessionMapper: SessionMapper
+    private userProfileRepository: UserProfileRepository
   ) {}
+
+  async reimport(input: { id: number; userId: number }): Promise<ImportSessionsResult | null> {
+    const oldSessionId = await this.importSessionRepository.resetForReimport(input.id, input.userId)
+    if (oldSessionId === null) return null
+    await this.sessionRepository.forceDelete(oldSessionId)
+    return this.execute({ userId: input.userId, importSessionIds: [input.id] })
+  }
 
   async execute(input: ImportSessionsInput): Promise<ImportSessionsResult> {
     const { userId, importSessionIds } = input
@@ -47,6 +55,12 @@ export default class ImportSessions {
     const sports = await this.sportRepository.findAll()
     const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
 
+    const profile = await this.userProfileRepository.findByUserId(userId)
+    const context: MappingContext = {
+      maxHeartRate: profile?.maxHeartRate ?? undefined,
+      restingHeartRate: profile?.restingHeartRate ?? undefined,
+    }
+
     const records = await this.importSessionRepository.findByIds(importSessionIds, connector.id)
     const recordById = new Map(records.map((r) => [r.id, r]))
 
@@ -59,8 +73,7 @@ export default class ImportSessions {
       }
 
       try {
-        const detail = await connector.getSessionDetail(record.externalId)
-        const mapped = this.sessionMapper.map(detail)
+        const mapped = await connector.getSessionDetail(record.externalId, context)
 
         const sportId = sportBySlug.get(mapped.sportSlug)
         if (!sportId) {

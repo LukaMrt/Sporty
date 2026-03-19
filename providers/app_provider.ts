@@ -9,8 +9,9 @@ import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
-import { SessionMapper } from '#domain/interfaces/session_mapper'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
+import { GpxParser } from '#domain/interfaces/gpx_parser'
+import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -70,17 +71,9 @@ export default class AppProvider {
       return new StravaRateLimitManager()
     })
 
-    this.app.container.bind(SessionMapper, async () => {
-      const { StravaDetailedSessionMapper } =
-        await import('#connectors/strava/strava_detailed_session_mapper')
-      return new StravaDetailedSessionMapper()
-    })
-
     this.app.container.singleton(ConnectorRegistry, async (resolver) => {
       const { InMemoryConnectorRegistry } = await import('#connectors/in_memory_connector_registry')
       const { StravaConnectorFactory } = await import('#connectors/strava/strava_connector_factory')
-      const { StravaDetailedSessionMapper } =
-        await import('#connectors/strava/strava_detailed_session_mapper')
       const { default: env } = await import('#start/env')
       const connectorRepo = await resolver.make(ConnectorRepository)
       const rateLimitMgr = await resolver.make(RateLimitManager)
@@ -92,14 +85,19 @@ export default class AppProvider {
         clientId,
         clientSecret
       )
-      const stravaMapper = new StravaDetailedSessionMapper()
       const registry = new InMemoryConnectorRegistry()
-      registry.register('strava', {
-        factory: stravaFactory,
-        mapper: stravaMapper,
-        rateLimiter: rateLimitMgr,
-      })
+      registry.register('strava', { factory: stravaFactory, rateLimiter: rateLimitMgr })
       return registry
+    })
+
+    this.app.container.bind(GpxParser, async () => {
+      const { GpxParserService } = await import('#services/gpx_parser_service')
+      return new GpxParserService()
+    })
+
+    this.app.container.bind(GpxFileStorage, async () => {
+      const { LocalGpxFileStorage } = await import('#services/local_gpx_file_storage')
+      return new LocalGpxFileStorage()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {

@@ -1,5 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import User from '#models/user'
+import UserProfile from '#models/user_profile'
+import { UserLevel } from '#domain/entities/user_profile'
 
 export const SEEDED_ADMIN_EMAIL = 'admin@example.com'
 export const SEEDED_USER_EMAIL = 'user@example.com'
@@ -39,6 +41,25 @@ export default class UserSeeder extends BaseSeeder {
         password: SEEDED_PASSWORD,
         role: 'user',
         onboardingCompleted: true,
+      }
+    )
+
+    const admin = await User.findByOrFail('email', SEEDED_ADMIN_EMAIL)
+    await UserProfile.updateOrCreate(
+      { userId: admin.id },
+      {
+        level: UserLevel.Intermediate,
+        objective: 'prepare_competition',
+        preferences: {
+          speedUnit: 'min_km',
+          distanceUnit: 'km',
+          weightUnit: 'kg',
+          weekStartsOn: 'monday',
+          dateFormat: 'DD/MM/YYYY',
+          locale: 'fr',
+        },
+        maxHeartRate: 185,
+        vma: 16,
       }
     )
 

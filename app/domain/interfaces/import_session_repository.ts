@@ -26,4 +26,6 @@ export abstract class ImportSessionRepository {
   abstract setNew(id: number, userId: number): Promise<void>
   abstract setFailed(id: number, reason: string): Promise<void>
   abstract markImportedBulk(connectorId: number, refs: ImportedSessionRef[]): Promise<void>
+  /** Resets an imported session to 'new' and returns the old importedSessionId (or null). */
+  abstract resetForReimport(id: number, userId: number): Promise<number | null>
 }

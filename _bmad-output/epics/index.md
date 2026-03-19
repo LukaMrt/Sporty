@@ -28,6 +28,7 @@ Ce dossier contient le decoupage par epic du projet Sporty. Chaque fichier corre
 | [epic-8-import-manuel-seances.md](epic-8-import-manuel-seances.md) | Import Manuel de Seances | 8.1 - 8.7 |
 | [epic-9-import-automatique.md](epic-9-import-automatique.md) | Import Automatique | 9.1 - 9.3 |
 | [epic-10-resilience-gestion-erreurs.md](epic-10-resilience-gestion-erreurs.md) | Resilience & Gestion d'Erreurs | 10.1 - 10.3 |
+| [epic-11-donnees-course-enrichies-gpx.md](epic-11-donnees-course-enrichies-gpx.md) | Donnees de Course Enrichies & Import GPX | 11.1 - 11.10 |
 
 ## Requirements Inventory
 
@@ -184,3 +185,4 @@ Ce dossier contient le decoupage par epic du projet Sporty. Chaque fichier corre
 | 8    | Import Manuel de Seances                   | FR7-13, FR18-22, FR25, FR29 (import) | 7 stories |
 | 9    | Import Automatique                         | FR14-17 (import)                   | 3 stories |
 | 10   | Resilience & Gestion d'Erreurs             | FR23, FR24, FR26 (import)          | 3 stories |
+| 11   | Donnees de Course Enrichies & Import GPX   | FR10, FR11, FR19, FR23             | 10 stories |

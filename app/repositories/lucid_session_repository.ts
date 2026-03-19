@@ -25,6 +25,7 @@ export default class LucidSessionRepository extends SessionRepository {
       notes: data.notes ?? null,
       importedFrom: data.importedFrom ?? null,
       externalId: data.externalId ?? null,
+      gpxFilePath: data.gpxFilePath ?? null,
     })
     await model.load('sport')
     return this.#toEntity(model)
@@ -91,6 +92,7 @@ export default class LucidSessionRepository extends SessionRepository {
     if (data.perceivedEffort !== undefined) model.perceivedEffort = data.perceivedEffort
     if (data.sportMetrics !== undefined) model.sportMetrics = data.sportMetrics
     if (data.notes !== undefined) model.notes = data.notes
+    if (data.gpxFilePath !== undefined) model.gpxFilePath = data.gpxFilePath
 
     await model.save()
     await model.load('sport')
@@ -138,6 +140,10 @@ export default class LucidSessionRepository extends SessionRepository {
     return models.map((m) => this.#toEntity(m))
   }
 
+  async forceDelete(id: number): Promise<void> {
+    await SessionModel.query().where('id', id).delete()
+  }
+
   async findByUserAndExternalIds(
     userId: number,
     externalIds: string[]
@@ -165,6 +171,7 @@ export default class LucidSessionRepository extends SessionRepository {
       notes: model.notes,
       importedFrom: model.importedFrom ?? null,
       externalId: model.externalId ?? null,
+      gpxFilePath: model.gpxFilePath ?? null,
       createdAt: model.createdAt.toISO() ?? '',
       deletedAt: model.deletedAt?.toISO() ?? null,
     }

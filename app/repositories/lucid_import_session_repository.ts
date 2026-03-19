@@ -69,6 +69,21 @@ export default class LucidImportSessionRepository extends ImportSessionRepositor
     await ImportSessionModel.query().where('id', id).update({ status: ImportSessionStatus.Failed })
   }
 
+  async resetForReimport(id: number, userId: number): Promise<number | null> {
+    const row = await ImportSessionModel.query()
+      .where('id', id)
+      .whereHas('connector', (q) => {
+        void q.where('user_id', userId)
+      })
+      .first()
+    if (!row) return null
+    const oldSessionId = row.importedSessionId
+    row.status = ImportSessionStatus.New
+    row.importedSessionId = null
+    await row.save()
+    return oldSessionId
+  }
+
   async markImportedBulk(connectorId: number, refs: ImportedSessionRef[]): Promise<void> {
     if (refs.length === 0) return
     await Promise.all(

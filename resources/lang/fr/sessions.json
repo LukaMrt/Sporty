@@ -30,6 +30,11 @@
     "speed": "Vitesse",
     "pace": "Allure",
     "moreDetails": "Plus de détails",
+    "minHeartRate": "FC min (bpm)",
+    "maxHeartRate": "FC max (bpm)",
+    "cadenceAvg": "Cadence moyenne (pas/min)",
+    "elevationGain": "Dénivelé + (m)",
+    "elevationLoss": "Dénivelé - (m)",
     "heartRate": "FC moyenne (bpm)",
     "effort": "Ressenti",
     "effortLabel": "Ressenti {value}",
@@ -37,7 +42,16 @@
     "notesPlaceholder": "Quelques notes sur cette séance...",
     "saving": "Enregistrement...",
     "save": "Enregistrer",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "importGpx": "Importer un GPX ou glisser-déposer",
+    "gpxDrop": "Déposer le fichier ici",
+    "gpxParsing": "Analyse en cours...",
+    "gpxImported": "Fichier GPX importé",
+    "gpxInvalid": "Format GPX invalide",
+    "gpxTooLarge": "Fichier trop volumineux (max 10 Mo)",
+    "gpxError": "Erreur lors de l'import GPX",
+    "gpxMapPreview": "Aperçu du tracé GPS",
+    "enrichGpx": "Enrichir avec un GPX"
   },
   "show": {
     "primaryMetrics": "Métriques principales",
@@ -56,7 +70,55 @@
     "deleteDescription": "Cette action peut être annulée dans les 5 secondes après la suppression.",
     "deleteConfirm": "Supprimer",
     "deleteCancel": "Annuler",
-    "importedFrom": "Importé depuis {source}"
+    "importedFrom": "Importé depuis {source}",
+    "map": "Parcours",
+    "mapColorPace": "Allure",
+    "mapColorHr": "FC",
+    "curveLegendHr": "FC (bpm)",
+    "curveLegendPace": "Allure ({unit})",
+    "curveLegendAltitude": "Altitude (m)",
+    "curves": "Courbes FC / Allure",
+    "analysis": "Analyse",
+    "hrZones": "Zones FC",
+    "cardiacDrift": "Drift cardiaque",
+    "trimp": "TRIMP",
+    "splits": "Splits au km",
+    "splitsPartialNote": "* km partiel — allure extrapolée",
+    "hrZoneInvite": "Configure la FC max dans ton profil pour voir les zones cardiaques.",
+    "hrZoneInviteLink": "Configurer le profil",
+    "hrZonesTime": "Temps",
+    "splitsKm": "Km",
+    "splitsPace": "Allure",
+    "splitsHr": "FC moy.",
+    "splitsElevation": "D+",
+    "driftNormal": "Normal",
+    "driftModerate": "Fatigue modérée",
+    "driftHigh": "Fatigue significative",
+    "trimpLight": "Léger",
+    "trimpModerate": "Modéré",
+    "trimpHard": "Dur",
+    "trimpVeryHard": "Très dur",
+    "insights": {
+      "cardiacDrift": {
+        "description": "Le drift cardiaque mesure la dérive de la FC sur la durée de la séance à effort constant. Une valeur élevée indique de la fatigue ou une déshydratation.",
+        "zones": {
+          "excellent": "Excellent",
+          "normal": "Normal",
+          "high": "Élevé",
+          "critical": "Critique"
+        }
+      },
+      "trimp": {
+        "description": "Le TRIMP (Training Impulse) quantifie la charge d'entraînement en combinant durée et intensité cardiaque. Utile pour doser la récupération nécessaire.",
+        "zones": {
+          "light": "Léger",
+          "moderate": "Modéré",
+          "intense": "Intense",
+          "veryIntense": "Très intense"
+        }
+      },
+      "learnMore": "En savoir plus"
+    }
   },
   "edit": {
     "title": "Modifier la séance",
@@ -77,6 +139,7 @@
     "deleted": "Séance supprimée",
     "restored": "Séance restaurée",
     "notFound": "Séance introuvable",
-    "forbidden": "Séance introuvable ou accès refusé"
+    "forbidden": "Séance introuvable ou accès refusé",
+    "gpxEnriched": "Séance enrichie avec le fichier GPX"
   }
 }

@@ -29,6 +29,9 @@ export default class ProfileController {
             objective: profile.objective,
             preferredUnit: profile.preferences.speedUnit,
             preferences: profile.preferences,
+            maxHeartRate: profile.maxHeartRate,
+            restingHeartRate: profile.restingHeartRate,
+            vma: profile.vma,
           }
         : null,
       sports: sports.map((s) => ({ id: s.id, name: s.name })),
@@ -65,6 +68,9 @@ export default class ProfileController {
       level: data.level as UserLevel | undefined,
       objective: data.objective as UserObjective | null | undefined,
       preferences: mergedPreferences,
+      maxHeartRate: data.max_heart_rate,
+      restingHeartRate: data.resting_heart_rate,
+      vma: data.vma,
     })
 
     session.flash('success', i18n.t('profile.flash.updated'))

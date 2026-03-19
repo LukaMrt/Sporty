@@ -104,3 +104,14 @@ development_status:
   7-5-refresh-automatique-tokens: done
   7-6-page-frontend-connecteurs: done
   epic-7-retrospective: optional
+
+  # Epic 11 : Données Course Enrichies & GPX
+  epic-11: in-progress
+  11-1-configuration-fc-max-vma-profil: done
+  11-2-page-explicative-fc-max-vma: done
+  11-3-schema-run-metrics-migration-gpx: done
+  11-4-formulaire-saisie-enrichi: done
+  11-5-parser-gpx: done
+  11-6-upload-import-gpx: done
+  11-7-metriques-calculees: done
+  epic-11-retrospective: optional

@@ -30,6 +30,11 @@
     "speed": "Speed",
     "pace": "Pace",
     "moreDetails": "More details",
+    "minHeartRate": "Min HR (bpm)",
+    "maxHeartRate": "Max HR (bpm)",
+    "cadenceAvg": "Avg. cadence (spm)",
+    "elevationGain": "Elevation gain (m)",
+    "elevationLoss": "Elevation loss (m)",
     "heartRate": "Avg. HR (bpm)",
     "effort": "Perceived effort",
     "effortLabel": "Effort {value}",
@@ -37,7 +42,16 @@
     "notesPlaceholder": "Some notes about this session...",
     "saving": "Saving...",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "importGpx": "Import a GPX or drag & drop",
+    "gpxDrop": "Drop file here",
+    "gpxParsing": "Analyzing...",
+    "gpxImported": "GPX file imported",
+    "gpxInvalid": "Invalid GPX format",
+    "gpxTooLarge": "File too large (max 10 MB)",
+    "gpxError": "Error importing GPX",
+    "gpxMapPreview": "GPS track preview",
+    "enrichGpx": "Enrich with a GPX"
   },
   "show": {
     "primaryMetrics": "Main metrics",
@@ -56,7 +70,55 @@
     "deleteDescription": "This action can be undone within 5 seconds after deletion.",
     "deleteConfirm": "Delete",
     "deleteCancel": "Cancel",
-    "importedFrom": "Imported from {source}"
+    "importedFrom": "Imported from {source}",
+    "map": "Route",
+    "mapColorPace": "Pace",
+    "mapColorHr": "HR",
+    "curveLegendHr": "HR (bpm)",
+    "curveLegendPace": "Pace ({unit})",
+    "curveLegendAltitude": "Altitude (m)",
+    "curves": "HR / Pace curves",
+    "analysis": "Analysis",
+    "hrZones": "HR Zones",
+    "cardiacDrift": "Cardiac drift",
+    "trimp": "TRIMP",
+    "splits": "Km splits",
+    "splitsPartialNote": "* partial km — extrapolated pace",
+    "hrZoneInvite": "Configure your max HR in your profile to see cardiac zones.",
+    "hrZoneInviteLink": "Configure profile",
+    "hrZonesTime": "Time",
+    "splitsKm": "Km",
+    "splitsPace": "Pace",
+    "splitsHr": "Avg. HR",
+    "splitsElevation": "Elev.",
+    "driftNormal": "Normal",
+    "driftModerate": "Moderate fatigue",
+    "driftHigh": "Significant fatigue",
+    "trimpLight": "Light",
+    "trimpModerate": "Moderate",
+    "trimpHard": "Hard",
+    "trimpVeryHard": "Very hard",
+    "insights": {
+      "cardiacDrift": {
+        "description": "Cardiac drift measures the deviation of HR over the session duration at constant effort. A high value indicates fatigue or dehydration.",
+        "zones": {
+          "excellent": "Excellent",
+          "normal": "Normal",
+          "high": "High",
+          "critical": "Critical"
+        }
+      },
+      "trimp": {
+        "description": "TRIMP (Training Impulse) quantifies training load by combining duration and cardiac intensity. Useful for gauging the recovery needed.",
+        "zones": {
+          "light": "Light",
+          "moderate": "Moderate",
+          "intense": "Intense",
+          "veryIntense": "Very intense"
+        }
+      },
+      "learnMore": "Learn more"
+    }
   },
   "edit": {
     "title": "Edit session",
@@ -77,6 +139,7 @@
     "deleted": "Session deleted",
     "restored": "Session restored",
     "notFound": "Session not found",
-    "forbidden": "Session not found or access denied"
+    "forbidden": "Session not found or access denied",
+    "gpxEnriched": "Session enriched with GPX file"
   }
 }

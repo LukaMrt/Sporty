@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { Suspense, useRef, useState } from 'react'
+
+const SessionMap = React.lazy(() => import('~/components/sessions/SessionMap'))
 import { Head, Link, router } from '@inertiajs/react'
-import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, Upload, Loader2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { EFFORT_EMOJIS } from '~/lib/effort'
-import { formatDate, formatDuration, formatMetricKey } from '~/lib/format'
+import { formatDate, formatDuration } from '~/lib/format'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import {
   Dialog,
@@ -16,6 +18,55 @@ import {
 } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
+import SessionCurvesChart from '~/components/sessions/SessionCurvesChart'
+import MetricInsight, { METRIC_INSIGHTS } from '~/components/sessions/MetricInsight'
+import HeartRateZonesChart from '~/components/sessions/HeartRateZonesChart'
+import CardiacDriftIndicator from '~/components/sessions/CardiacDriftIndicator'
+import TrimpIndicator from '~/components/sessions/TrimpIndicator'
+import SplitsTable from '~/components/sessions/SplitsTable'
+import type {
+  DataPoint,
+  GpsPoint,
+  KmSplit,
+  HeartRateZones,
+} from '../../../app/domain/value_objects/run_metrics'
+
+const METRIC_LABELS: Record<string, string> = {
+  minHeartRate: 'FC min',
+  maxHeartRate: 'FC max',
+  cadenceAvg: 'Cadence moy.',
+  elevationGain: 'Dénivelé +',
+  elevationLoss: 'Dénivelé −',
+  cardiacDrift: 'Drift cardiaque',
+  trimp: 'TRIMP',
+  avgPacePerKm: 'Allure moy.',
+}
+
+const METRIC_UNITS: Record<string, string> = {
+  minHeartRate: ' bpm',
+  maxHeartRate: ' bpm',
+  cadenceAvg: ' spm',
+  elevationGain: ' m',
+  elevationLoss: ' m',
+  cardiacDrift: ' %',
+}
+
+function formatMetricValue(key: string, value: number | string): string {
+  const unit = METRIC_UNITS[key] ?? ''
+  return `${value}${unit}`
+}
+
+interface SportMetricsWithCurves {
+  heartRateCurve?: DataPoint[]
+  paceCurve?: DataPoint[]
+  altitudeCurve?: DataPoint[]
+  splits?: KmSplit[]
+  hrZones?: HeartRateZones
+  cardiacDrift?: number
+  trimp?: number
+  gpsTrack?: GpsPoint[]
+  [key: string]: unknown
+}
 
 interface TrainingSessionProps {
   id: number
@@ -27,26 +78,104 @@ interface TrainingSessionProps {
   distanceKm: number | null
   avgHeartRate: number | null
   perceivedEffort: number | null
-  sportMetrics: Record<string, unknown>
+  sportMetrics: SportMetricsWithCurves
   notes: string | null
   importedFrom: string | null
+  gpxFilePath: string | null
   createdAt: string
+}
+
+interface HrZoneThreshold {
+  zone: number
+  minBpm: number
+  maxBpm: number
 }
 
 interface ShowProps {
   session: TrainingSessionProps
+  hrZoneThresholds: HrZoneThreshold[] | null
 }
 
-export default function SessionShow({ session }: ShowProps) {
+export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
   const [open, setOpen] = useState(false)
-  const { formatSpeed, formatDistanceParts } = useUnitConversion()
+  const [enriching, setEnriching] = useState(false)
+  const [enrichError, setEnrichError] = useState<string | null>(null)
+  const enrichFileRef = useRef<HTMLInputElement>(null)
+  const { formatSpeed, formatDistanceParts, speedUnit } = useUnitConversion()
   const { t } = useTranslation()
+
+  async function handleEnrichGpxChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setEnrichError(null)
+
+    if (file.size > 10 * 1024 * 1024) {
+      setEnrichError(t('sessions.form.gpxTooLarge'))
+      return
+    }
+
+    setEnriching(true)
+    try {
+      const formData = new FormData()
+      formData.append('gpx_file', file)
+      const csrfToken =
+        document.cookie
+          .split(';')
+          .map((c) => c.trim())
+          .find((c) => c.startsWith('XSRF-TOKEN='))
+          ?.split('=')[1] ?? ''
+
+      const res = await fetch(`/sessions/${session.id}/enrich-gpx`, {
+        method: 'POST',
+        headers: { 'X-XSRF-TOKEN': decodeURIComponent(csrfToken) },
+        body: formData,
+      })
+
+      if (res.redirected) {
+        router.reload()
+        return
+      }
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        setEnrichError(body.error ?? t('sessions.form.gpxError'))
+      }
+    } catch {
+      setEnrichError(t('sessions.form.gpxError'))
+    } finally {
+      setEnriching(false)
+      if (enrichFileRef.current) enrichFileRef.current.value = ''
+    }
+  }
   const rawPaceMinPerKm =
     session.distanceKm && session.distanceKm > 0
       ? session.durationMinutes / session.distanceKm
       : null
   const pace = rawPaceMinPerKm !== null ? formatSpeed(rawPaceMinPerKm) : null
-  const hasSportMetrics = Object.keys(session.sportMetrics).length > 0
+
+  const {
+    heartRateCurve,
+    paceCurve,
+    altitudeCurve,
+    splits,
+    hrZones,
+    cardiacDrift,
+    trimp,
+    gpsTrack,
+    ...scalarMetrics
+  } = session.sportMetrics
+  const primitiveMetrics = Object.entries(scalarMetrics).filter(
+    ([, v]) => typeof v === 'number' || typeof v === 'string'
+  )
+  const hasGpsTrack = Array.isArray(gpsTrack) && gpsTrack.length > 1
+  const hasSportMetrics = primitiveMetrics.length > 0
+  const hasSplits = splits && splits.length > 0
+  const hasAnalysis = !!hrZones || hasSplits
+  const showHrZoneInvite = !hrZones && session.avgHeartRate !== null
+  const hasCurves =
+    (heartRateCurve && heartRateCurve.length > 0) ||
+    (paceCurve && paceCurve.length > 0) ||
+    (altitudeCurve && altitudeCurve.length > 0)
 
   function handleDelete() {
     router.delete(`/sessions/${session.id}`)
@@ -86,6 +215,47 @@ export default function SessionShow({ session }: ShowProps) {
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
+        {/* Bouton enrichissement GPX (visible uniquement si pas de données GPX) */}
+        {!session.gpxFilePath && !hasCurves && !hasGpsTrack && (
+          <div className="space-y-1">
+            <input
+              ref={enrichFileRef}
+              type="file"
+              accept=".gpx"
+              className="hidden"
+              onChange={(e) => {
+                void handleEnrichGpxChange(e)
+              }}
+              aria-label={t('sessions.form.enrichGpx')}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => enrichFileRef.current?.click()}
+              disabled={enriching}
+            >
+              {enriching ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  {t('sessions.form.gpxParsing')}
+                </>
+              ) : (
+                <>
+                  <Upload size={14} />
+                  {t('sessions.form.enrichGpx')}
+                </>
+              )}
+            </Button>
+            {enrichError && (
+              <p className="text-sm text-destructive" role="alert">
+                {enrichError}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Badge source d'import */}
         {session.importedFrom && (
           <div className="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 dark:border-orange-800 dark:bg-orange-900/20">
@@ -195,13 +365,123 @@ export default function SessionShow({ session }: ShowProps) {
               {t('sessions.show.specificMetrics')}
             </h2>
             <div className="space-y-2">
-              {Object.entries(session.sportMetrics).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">{formatMetricKey(key)}</span>
-                  <span className="text-sm font-medium text-foreground">{String(value)}</span>
+              {primitiveMetrics.map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between gap-4">
+                  <span className="text-sm text-muted-foreground">{METRIC_LABELS[key] ?? key}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">
+                      {formatMetricValue(key, value as number | string)}
+                    </span>
+                    {METRIC_INSIGHTS[key] && typeof value === 'number' && (
+                      <MetricInsight metricKey={key} value={value} />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Section Analyse : zones FC, drift, TRIMP, splits */}
+        {(hasAnalysis || showHrZoneInvite) && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm space-y-5">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              {t('sessions.show.analysis')}
+            </h2>
+
+            {/* Invitation à configurer FC max si pas de zones mais FC présente */}
+            {showHrZoneInvite && (
+              <p className="text-sm text-muted-foreground">
+                {t('sessions.show.hrZoneInvite')}{' '}
+                <Link href="/profile" className="underline hover:text-foreground transition-colors">
+                  {t('sessions.show.hrZoneInviteLink')}
+                </Link>
+              </p>
+            )}
+
+            {/* Zones FC */}
+            {hrZones && (
+              <div>
+                <h3 className="text-xs font-medium text-muted-foreground mb-2">
+                  {t('sessions.show.hrZones')}
+                </h3>
+                <HeartRateZonesChart
+                  hrZones={hrZones}
+                  hrZoneThresholds={hrZoneThresholds ?? undefined}
+                />
+              </div>
+            )}
+
+            {/* Drift cardiaque + TRIMP */}
+            {(cardiacDrift !== undefined || trimp !== undefined) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {cardiacDrift !== undefined && (
+                  <div>
+                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                      {t('sessions.show.cardiacDrift')}
+                    </h3>
+                    <CardiacDriftIndicator value={cardiacDrift} />
+                  </div>
+                )}
+                {trimp !== undefined && (
+                  <div>
+                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                      {t('sessions.show.trimp')}
+                    </h3>
+                    <TrimpIndicator value={trimp} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Splits */}
+            {hasSplits && (
+              <div>
+                <h3 className="text-xs font-medium text-muted-foreground mb-2">
+                  {t('sessions.show.splits')}
+                </h3>
+                <SplitsTable splits={splits} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Carte GPS du parcours */}
+        {hasGpsTrack && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              {t('sessions.show.map')}
+            </h2>
+            <Suspense
+              fallback={
+                <div className="flex h-80 items-center justify-center rounded-lg bg-muted/30">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                </div>
+              }
+            >
+              <SessionMap
+                gpsTrack={gpsTrack ?? []}
+                heartRateCurve={heartRateCurve}
+                paceCurve={paceCurve}
+                altitudeCurve={altitudeCurve}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {/* Graphique courbes FC / allure / altitude */}
+        {hasCurves && (
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+              {t('sessions.show.curves')}
+            </h2>
+            <SessionCurvesChart
+              heartRateCurve={heartRateCurve}
+              paceCurve={paceCurve}
+              altitudeCurve={altitudeCurve}
+              speedUnit={speedUnit}
+              hrZoneThresholds={hrZoneThresholds ?? undefined}
+            />
           </div>
         )}
       </div>

@@ -40,4 +40,5 @@ export abstract class SessionRepository {
     userId: number,
     externalIds: string[]
   ): Promise<SessionExternalRef[]>
+  abstract forceDelete(id: number): Promise<void>
 }

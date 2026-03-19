@@ -41,6 +41,9 @@ export default class Session extends BaseModel {
   @column()
   declare externalId: string | null
 
+  @column()
+  declare gpxFilePath: string | null
+
   @column.dateTime()
   declare deletedAt: DateTime | null
 

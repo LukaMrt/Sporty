@@ -61,6 +61,8 @@ export function makeMockSessionRepository(
     async findByUserAndExternalIds(): Promise<{ externalId: string; id: number }[]> {
       return []
     }
+
+    async forceDelete(): Promise<void> {}
   }
 
   return Object.assign(new MockRepository(), overrides)

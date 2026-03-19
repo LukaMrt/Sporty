@@ -20,6 +20,7 @@ const DashboardController = () => import('#controllers/dashboard/dashboard_contr
 const AdminUsersController = () => import('#controllers/admin/users_controller')
 const PasswordController = () => import('#controllers/profile/password_controller')
 const ProfileController = () => import('#controllers/profile/profile_controller')
+const PhysiologyGuideController = () => import('#controllers/profile/physiology_guide_controller')
 const ConnectorsController = () => import('#controllers/connectors/connectors_controller')
 const StravaConnectorController = () =>
   import('#controllers/connectors/strava_connector_controller')
@@ -27,6 +28,7 @@ const ConnectorSettingsController = () =>
   import('#controllers/connectors/connector_settings_controller')
 const ImportController = () => import('#controllers/import/import_controller')
 const ImportSessionsController = () => import('#controllers/import/import_sessions_controller')
+const GpxController = () => import('#controllers/sessions/gpx_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
@@ -50,6 +52,8 @@ router
     router.get('/sessions/create', [SessionsController, 'create'])
     router.get('/sessions/trash', [SessionsController, 'trash'])
     router.post('/sessions', [SessionsController, 'store'])
+    router.post('/sessions/parse-gpx', [GpxController, 'parseGpx'])
+    router.post('/sessions/:id/enrich-gpx', [GpxController, 'enrichGpx'])
     router.get('/sessions/:id', [SessionsController, 'show'])
     router.get('/sessions/:id/edit', [SessionsController, 'edit'])
     router.put('/sessions/:id', [SessionsController, 'update'])
@@ -59,6 +63,7 @@ router
     router.get('/profile', [ProfileController, 'show'])
     router.put('/profile', [ProfileController, 'update'])
     router.put('/profile/password', [PasswordController, 'update'])
+    router.get('/profile/physiology-guide', [PhysiologyGuideController, 'show'])
     router.post('/logout', [LogoutController, 'logout'])
     router.get('/connectors', [ConnectorsController, 'index'])
     router.get('/connectors/strava', [StravaConnectorController, 'show'])
@@ -68,6 +73,7 @@ router
     router.post('/import/batch', [ImportController, 'batch'])
     router.post('/import/sessions/:id/ignore', [ImportSessionsController, 'ignore'])
     router.post('/import/sessions/:id/restore', [ImportSessionsController, 'restore'])
+    router.post('/import/sessions/:id/reimport', [ImportSessionsController, 'reimport'])
   })
   .use([middleware.auth(), middleware.onboarding()])
 

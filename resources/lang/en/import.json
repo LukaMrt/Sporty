@@ -40,6 +40,12 @@
     "success": "Session restored.",
     "error": "Restore failed."
   },
+  "reimport": {
+    "button": "Reimport",
+    "importing": "Reimporting…",
+    "success": "Session reimported successfully.",
+    "error": "Reimport failed."
+  },
   "rateLimit": {
     "daily": "Strava daily limit reached — retry tomorrow.",
     "partialImport": "{completed}/{total} sessions imported, daily limit reached."

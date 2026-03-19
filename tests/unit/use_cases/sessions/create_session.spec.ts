@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import CreateSession from '#use_cases/sessions/create_session'
 import { makeMockSessionRepository } from '#tests/helpers/mock_session_repository'
+import { makeMockUserProfileRepository } from '#tests/helpers/mock_user_profile_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 
 type SessionData = Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
@@ -15,7 +16,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     const result = await useCase.execute(42, {
       sportId: 1,
       date: '2026-02-25',
@@ -40,7 +41,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(99, {
       sportId: 1,
       date: '2026-01-01',
@@ -59,7 +60,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, {
       sportId: 1,
       date: '2026-02-25',
@@ -84,7 +85,7 @@ test.group('CreateSession — use case', () => {
       },
     })
 
-    const useCase = new CreateSession(repo)
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
     await useCase.execute(1, {
       sportId: 2,
       date: '2026-02-25',
@@ -102,5 +103,80 @@ test.group('CreateSession — use case', () => {
     assert.equal(capturedData!.perceivedEffort, 4)
     assert.equal(capturedData!.notes, 'Belle sortie')
     assert.deepEqual(capturedData!.sportMetrics, { elevation_gain: 200 })
+  })
+
+  test('les métriques RunMetrics sont mergées dans sportMetrics', async ({ assert }) => {
+    let capturedData: SessionData | null = null
+    const repo = makeMockSessionRepository({
+      create: async (data) => {
+        capturedData = data
+        return { id: 1, sportName: '', createdAt: '', ...data }
+      },
+    })
+
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
+    await useCase.execute(1, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      minHeartRate: 55,
+      maxHeartRate: 178,
+      cadenceAvg: 170,
+      elevationGain: 200,
+      elevationLoss: 180,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {
+      minHeartRate: 55,
+      maxHeartRate: 178,
+      cadenceAvg: 170,
+      elevationGain: 200,
+      elevationLoss: 180,
+    })
+  })
+
+  test('les champs RunMetrics null sont ignorés dans sportMetrics', async ({ assert }) => {
+    let capturedData: SessionData | null = null
+    const repo = makeMockSessionRepository({
+      create: async (data) => {
+        capturedData = data
+        return { id: 1, sportName: '', createdAt: '', ...data }
+      },
+    })
+
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
+    await useCase.execute(1, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      minHeartRate: null,
+      maxHeartRate: null,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {})
+  })
+
+  test('RunMetrics est mergé avec sportMetrics existant', async ({ assert }) => {
+    let capturedData: SessionData | null = null
+    const repo = makeMockSessionRepository({
+      create: async (data) => {
+        capturedData = data
+        return { id: 1, sportName: '', createdAt: '', ...data }
+      },
+    })
+
+    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
+    await useCase.execute(1, {
+      sportId: 1,
+      date: '2026-02-25',
+      durationMinutes: 45,
+      sportMetrics: { someExistingKey: 'value' },
+      elevationGain: 300,
+    })
+
+    assert.deepEqual(capturedData!.sportMetrics, {
+      someExistingKey: 'value',
+      elevationGain: 300,
+    })
   })
 })

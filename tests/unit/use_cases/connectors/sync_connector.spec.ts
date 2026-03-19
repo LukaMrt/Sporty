@@ -13,16 +13,17 @@ import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
+import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import type { UserProfile } from '#domain/entities/user_profile'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
-import { SessionMapper } from '#domain/interfaces/session_mapper'
-import type { MappedSessionData } from '#domain/interfaces/session_mapper'
 import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
   SessionFilters,
-  SessionSummary,
-  SessionDetail,
+  MappingContext,
+  MappedSessionSummary,
+  MappedSessionData,
 } from '#domain/interfaces/connector'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import { RateLimitExceededError } from '#domain/errors/rate_limit_exceeded_error'
@@ -50,20 +51,22 @@ function makeConnector(overrides: Partial<Connector> = {}): Connector {
     async authenticate(): Promise<ConnectorTokens> {
       return { accessToken: 'a', refreshToken: 'r', expiresAt: 9999 }
     }
-    async listSessions(_filters: SessionFilters): Promise<SessionSummary[]> {
+    async listSessions(_filters: SessionFilters): Promise<MappedSessionSummary[]> {
       return []
     }
-    async getSessionDetail(_externalId: string): Promise<SessionDetail> {
+    async getSessionDetail(
+      _externalId: string,
+      _context?: MappingContext
+    ): Promise<MappedSessionData> {
       return {
         externalId: 'ext1',
-        name: 'Run',
-        sportType: 'Run',
-        startDate: '2026-03-14',
-        durationSeconds: 3600,
-        distanceMeters: 10000,
-        averageHeartRate: 150,
-        metrics: {},
-        notes: null,
+        sportSlug: 'running',
+        date: '2026-03-14',
+        durationMinutes: 60,
+        distanceKm: 10,
+        avgHeartRate: 150,
+        importedFrom: 'strava',
+        sportMetrics: {},
       }
     }
     async getConnectionStatus(): Promise<ConnectorStatusType> {
@@ -83,25 +86,6 @@ function makeFactory(connector: Connector | null = makeConnector()): ConnectorFa
   return new Mock()
 }
 
-function makeMapper(mapped?: Partial<MappedSessionData>): SessionMapper {
-  class Mock extends SessionMapper {
-    map() {
-      return {
-        sportSlug: 'running',
-        date: '2026-03-14',
-        durationMinutes: 60,
-        distanceKm: 10,
-        avgHeartRate: 150,
-        importedFrom: 'strava',
-        externalId: 'ext1',
-        sportMetrics: {},
-        ...mapped,
-      }
-    }
-  }
-  return new Mock()
-}
-
 function makeRateLimiter(): RateLimitManager {
   class Mock extends RateLimitManager {
     update() {}
@@ -113,19 +97,14 @@ function makeRateLimiter(): RateLimitManager {
 function makeRegistry(
   overrides: {
     connector?: Connector | null
-    mapper?: Partial<MappedSessionData>
   } = {}
 ): ConnectorRegistry {
   const factory = makeFactory(overrides.connector ?? makeConnector())
-  const mapper = makeMapper(overrides.mapper)
   const rateLimiter = makeRateLimiter()
 
   class Mock extends ConnectorRegistry {
     getFactory() {
       return factory
-    }
-    getMapper() {
-      return mapper
     }
     getRateLimitManager() {
       return rateLimiter
@@ -150,6 +129,9 @@ function makeImportSessionRepo(
     async setNew(_id: number, _userId: number) {}
     async setFailed(_id: number, _reason: string) {}
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
+    async resetForReimport(): Promise<null> {
+      return null
+    }
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -221,8 +203,24 @@ function makeSessionRepo(overrides: Partial<SessionRepository> = {}): SessionRep
     async findByUserAndExternalIds() {
       return []
     }
+    async forceDelete(): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
+}
+
+function makeUserProfileRepo(): UserProfileRepository {
+  class Mock extends UserProfileRepository {
+    async create(): Promise<UserProfile> {
+      throw new Error('not implemented')
+    }
+    async findByUserId(): Promise<UserProfile | null> {
+      return null
+    }
+    async update(): Promise<UserProfile> {
+      throw new Error('not implemented')
+    }
+  }
+  return new Mock()
 }
 
 function makeUseCase(
@@ -233,21 +231,18 @@ function makeUseCase(
     importRepoOverrides?: Partial<ImportSessionRepository>
     sports?: SportSummary[]
     sessionRepoOverrides?: Partial<SessionRepository>
-    mapperOverrides?: Partial<MappedSessionData>
   } = {}
 ) {
   return new SyncConnector(
-    makeRegistry({
-      connector: options.connector ?? makeConnector(),
-      mapper: options.mapperOverrides,
-    }),
+    makeRegistry({ connector: options.connector ?? makeConnector() }),
     makeConnectorRepo(
       options.record !== undefined ? options.record : makeConnectorRecord(),
       options.connectorRepoOverrides ?? {}
     ),
     makeImportSessionRepo(options.importRepoOverrides ?? {}),
     makeSportRepo(options.sports ?? []),
-    makeSessionRepo(options.sessionRepoOverrides ?? {})
+    makeSessionRepo(options.sessionRepoOverrides ?? {}),
+    makeUserProfileRepo()
   )
 }
 
@@ -338,7 +333,8 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(record),
       importRepo,
       makeSportRepo([{ id: 5, name: 'Running', slug: 'running' }]),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
@@ -355,7 +351,8 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       importRepo,
       makeSportRepo(),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
@@ -368,11 +365,11 @@ test.group('SyncConnector', () => {
           {
             externalId: 'ext1',
             name: 'Run',
-            sportType: 'Run',
-            startDate: '2026-03-14',
-            durationSeconds: 3600,
-            distanceMeters: 10000,
-            averageHeartRate: 150,
+            sportSlug: 'running',
+            date: '2026-03-14',
+            durationMinutes: 60,
+            distanceKm: 10,
+            avgHeartRate: 150,
           },
         ]
       },
@@ -387,7 +384,8 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       importRepo,
       makeSportRepo([{ id: 5, name: 'Running', slug: 'running' }]),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 1 })
@@ -404,7 +402,8 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       importRepo,
       makeSportRepo([]),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
@@ -428,7 +427,8 @@ test.group('SyncConnector', () => {
       }),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.equal(result.outcome, 'permanent_error')
@@ -446,7 +446,8 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.equal(result.outcome, 'temporary_error')
@@ -463,7 +464,8 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.equal(result.outcome, 'temporary_error')
@@ -481,7 +483,8 @@ test.group('SyncConnector', () => {
       }),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo()
+      makeSessionRepo(),
+      makeUserProfileRepo()
     )
     await uc.execute({ connectorId: 1 })
     assert.isTrue(lastSyncUpdated)

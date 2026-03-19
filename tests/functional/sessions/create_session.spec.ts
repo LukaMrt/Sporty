@@ -109,6 +109,40 @@ test.group('Sessions', (group) => {
     })
   })
 
+  test('POST /sessions avec métriques RunMetrics → stockées dans sport_metrics', async ({
+    client,
+    assert,
+  }) => {
+    const user = await getUser()
+    const sport = await Sport.firstOrFail()
+
+    await client
+      .post('/sessions')
+      .form({
+        sport_id: sport.id,
+        date: '2026-02-25',
+        duration_minutes: 45,
+        min_heart_rate: 55,
+        max_heart_rate: 178,
+        cadence_avg: 170,
+        elevation_gain: 200,
+        elevation_loss: 180,
+      })
+      .loginAs(user)
+      .redirects(0)
+
+    const session = await Session.query()
+      .where('userId', user.id)
+      .orderBy('id', 'desc')
+      .firstOrFail()
+
+    assert.equal((session.sportMetrics as Record<string, number>).minHeartRate, 55)
+    assert.equal((session.sportMetrics as Record<string, number>).maxHeartRate, 178)
+    assert.equal((session.sportMetrics as Record<string, number>).cadenceAvg, 170)
+    assert.equal((session.sportMetrics as Record<string, number>).elevationGain, 200)
+    assert.equal((session.sportMetrics as Record<string, number>).elevationLoss, 180)
+  })
+
   test('POST /sessions sport_id inexistant → redirect back + errors', async ({ client }) => {
     const user = await getUser()
 

@@ -1,4 +1,5 @@
 import { inject } from '@adonisjs/core'
+import logger from '@adonisjs/core/services/logger'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateSession from '#use_cases/sessions/create_session'
 import ListTrashedSessions from '#use_cases/sessions/list_trashed_sessions'
@@ -9,12 +10,14 @@ import ListSessions from '#use_cases/sessions/list_sessions'
 import GetSession from '#use_cases/sessions/get_session'
 import ListSports from '#use_cases/sports/list_sports'
 import GetProfile from '#use_cases/profile/get_profile'
+import SetSessionGpxFilePath from '#use_cases/sessions/set_session_gpx_file_path'
 import { createSessionValidator } from '#validators/sessions/create_session_validator'
 import { updateSessionValidator } from '#validators/sessions/update_session_validator'
 import { listSessionsValidator } from '#validators/sessions/list_sessions_validator'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
+import { getZoneThresholdsBpm } from '#domain/services/heart_rate_zone_service'
 
 @inject()
 export default class SessionsController {
@@ -27,7 +30,8 @@ export default class SessionsController {
     private listTrashedSessions: ListTrashedSessions,
     private getSession: GetSession,
     private listSports: ListSports,
-    private getProfile: GetProfile
+    private getProfile: GetProfile,
+    private setSessionGpxFilePath: SetSessionGpxFilePath
   ) {}
 
   async trash({ inertia, auth }: HttpContext) {
@@ -98,8 +102,17 @@ export default class SessionsController {
 
   async show({ params, inertia, auth, response, session, i18n }: HttpContext) {
     try {
-      const trainingSession = await this.getSession.execute(Number(params.id), auth.user!.id)
-      return inertia.render('Sessions/Show', { session: trainingSession })
+      const [trainingSession, profile] = await Promise.all([
+        this.getSession.execute(Number(params.id), auth.user!.id),
+        this.getProfile.execute(auth.user!.id),
+      ])
+      const hrZoneThresholds = profile?.maxHeartRate
+        ? getZoneThresholdsBpm(profile.maxHeartRate, profile.restingHeartRate)
+        : null
+      return inertia.render('Sessions/Show', {
+        session: { ...trainingSession, gpxFilePath: trainingSession.gpxFilePath ?? null },
+        hrZoneThresholds,
+      })
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
         session.flash('error', i18n.t('sessions.flash.notFound'))
@@ -138,6 +151,11 @@ export default class SessionsController {
         perceivedEffort: data.perceived_effort,
         sportMetrics: data.sport_metrics as Record<string, unknown> | undefined,
         notes: data.notes,
+        minHeartRate: data.min_heart_rate,
+        maxHeartRate: data.max_heart_rate,
+        cadenceAvg: data.cadence_avg,
+        elevationGain: data.elevation_gain,
+        elevationLoss: data.elevation_loss,
       })
       session.flash('success', i18n.t('sessions.flash.updated'))
       return response.redirect(`/sessions/${params.id}`)
@@ -182,7 +200,7 @@ export default class SessionsController {
     const data = await request.validateUsing(createSessionValidator)
     const user = auth.user!
 
-    await this.createSession.execute(user.id, {
+    const createdSession = await this.createSession.execute(user.id, {
       sportId: data.sport_id,
       date: data.date.toISOString().split('T')[0],
       durationMinutes: data.duration_minutes,
@@ -191,7 +209,24 @@ export default class SessionsController {
       perceivedEffort: data.perceived_effort,
       sportMetrics: data.sport_metrics as Record<string, unknown> | undefined,
       notes: data.notes,
+      minHeartRate: data.min_heart_rate,
+      maxHeartRate: data.max_heart_rate,
+      cadenceAvg: data.cadence_avg,
+      elevationGain: data.elevation_gain,
+      elevationLoss: data.elevation_loss,
     })
+
+    // Déplacement du fichier GPX temporaire si importé depuis un GPX
+    if (data.gpx_temp_id) {
+      try {
+        await this.setSessionGpxFilePath.execute(createdSession.id, user.id, data.gpx_temp_id)
+      } catch (error) {
+        logger.warn(
+          { err: error, sessionId: createdSession.id, gpxTempId: data.gpx_temp_id },
+          'Failed to move GPX temp file after session creation'
+        )
+      }
+    }
 
     session.flash('success', i18n.t('sessions.flash.created'))
     return response.redirect('/sessions')
