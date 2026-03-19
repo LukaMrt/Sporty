@@ -215,8 +215,8 @@ export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
-        {/* Bouton enrichissement GPX (visible uniquement si pas de GPX) */}
-        {!session.gpxFilePath && (
+        {/* Bouton enrichissement GPX (visible uniquement si pas de données GPX) */}
+        {!session.gpxFilePath && !hasCurves && !hasGpsTrack && (
           <div className="space-y-1">
             <input
               ref={enrichFileRef}

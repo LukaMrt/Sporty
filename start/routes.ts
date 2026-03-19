@@ -73,6 +73,7 @@ router
     router.post('/import/batch', [ImportController, 'batch'])
     router.post('/import/sessions/:id/ignore', [ImportSessionsController, 'ignore'])
     router.post('/import/sessions/:id/restore', [ImportSessionsController, 'restore'])
+    router.post('/import/sessions/:id/reimport', [ImportSessionsController, 'reimport'])
   })
   .use([middleware.auth(), middleware.onboarding()])
 

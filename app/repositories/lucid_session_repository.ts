@@ -140,6 +140,10 @@ export default class LucidSessionRepository extends SessionRepository {
     return models.map((m) => this.#toEntity(m))
   }
 
+  async forceDelete(id: number): Promise<void> {
+    await SessionModel.query().where('id', id).delete()
+  }
+
   async findByUserAndExternalIds(
     userId: number,
     externalIds: string[]

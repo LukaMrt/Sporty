@@ -33,6 +33,13 @@ export default class ImportSessions {
     private userProfileRepository: UserProfileRepository
   ) {}
 
+  async reimport(input: { id: number; userId: number }): Promise<ImportSessionsResult | null> {
+    const oldSessionId = await this.importSessionRepository.resetForReimport(input.id, input.userId)
+    if (oldSessionId === null) return null
+    await this.sessionRepository.forceDelete(oldSessionId)
+    return this.execute({ userId: input.userId, importSessionIds: [input.id] })
+  }
+
   async execute(input: ImportSessionsInput): Promise<ImportSessionsResult> {
     const { userId, importSessionIds } = input
     const total = importSessionIds.length

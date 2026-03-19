@@ -8,7 +8,7 @@ import {
   useReactTable,
   type SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2, Calendar } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2, Calendar, RefreshCw } from 'lucide-react'
 import { router } from '@inertiajs/react'
 import SessionStatusBadge from '~/components/import/SessionStatusBadge'
 import StagingSessionCard from '~/components/import/StagingSessionCard'
@@ -134,6 +134,71 @@ export default function SessionsDataTable({
       } catch {
         setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s)))
         pushToast(t('import.batch.error'), 'error')
+      } finally {
+        setImportingIds((prev) => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+      }
+    },
+    [t]
+  )
+
+  const reimportOne = useCallback(
+    async (id: number) => {
+      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s)))
+      setImportingIds((prev) => new Set(prev).add(id))
+
+      try {
+        const raw = document.cookie
+          .split('; ')
+          .find((c) => c.startsWith('XSRF-TOKEN='))
+          ?.split('=')[1]
+        const csrfToken = raw ? decodeURIComponent(raw) : undefined
+
+        const res = await fetch(`/import/sessions/${id}/reimport`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
+          },
+        })
+
+        if (!res.ok) {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
+          )
+          pushToast(t('import.reimport.error'), 'error')
+          return
+        }
+
+        const data = (await res.json()) as {
+          failed: number
+          completed: number
+          total: number
+          dailyLimitReached?: boolean
+        }
+        if (data.dailyLimitReached) {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
+          )
+          pushToast(t('import.rateLimit.daily'), 'error')
+        } else if (data.failed > 0) {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
+          )
+          pushToast(t('import.reimport.error'), 'error')
+        } else {
+          setLocalSessions((cur) =>
+            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
+          )
+          pushToast(t('import.reimport.success'), 'success')
+        }
+      } catch {
+        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s)))
+        pushToast(t('import.reimport.error'), 'error')
       } finally {
         setImportingIds((prev) => {
           const next = new Set(prev)
@@ -321,12 +386,35 @@ export default function SessionsDataTable({
             )
           }
 
+          if (status === 'imported') {
+            return (
+              <button
+                onClick={() => void reimportOne(id)}
+                disabled={isImporting || connectorError}
+                className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                {isImporting ? t('import.reimport.importing') : t('import.reimport.button')}
+              </button>
+            )
+          }
+
           return null
         },
         enableSorting: false,
       }),
     ],
-    [t, formatDate, importingIds, pendingIds, importOne, ignoreOne, restoreOne, connectorError]
+    [
+      t,
+      formatDate,
+      importingIds,
+      pendingIds,
+      importOne,
+      reimportOne,
+      ignoreOne,
+      restoreOne,
+      connectorError,
+    ]
   )
 
   const table = useReactTable({
@@ -486,6 +574,16 @@ export default function SessionsDataTable({
                   >
                     <Undo2 className="inline h-4 w-4 mr-1" />
                     {t('import.restore.button')}
+                  </button>
+                )}
+                {status === 'imported' && (
+                  <button
+                    onClick={() => void reimportOne(id)}
+                    disabled={isImporting || connectorError}
+                    className="w-full cursor-pointer rounded-md border border-input px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className="inline h-4 w-4 mr-1" />
+                    {isImporting ? t('import.reimport.importing') : t('import.reimport.button')}
                   </button>
                 )}
               </div>

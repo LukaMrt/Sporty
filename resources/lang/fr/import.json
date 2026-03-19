@@ -40,6 +40,12 @@
     "success": "Activité restaurée.",
     "error": "Échec de la restauration."
   },
+  "reimport": {
+    "button": "Réimporter",
+    "importing": "Réimport…",
+    "success": "Séance réimportée avec succès.",
+    "error": "Échec du réimport."
+  },
   "rateLimit": {
     "daily": "Limite journalière Strava atteinte — reprise demain.",
     "partialImport": "{completed}/{total} activités importées, limite journalière atteinte."
