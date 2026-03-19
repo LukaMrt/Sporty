@@ -1,6 +1,6 @@
 # Story 11-refacto : Fusion Connecteur + Mapper — le connecteur retourne du MappedSessionData
 
-Status: todo
+Status: done
 
 Prerequis: 11.11
 
@@ -31,43 +31,43 @@ so that **le domaine ne voit jamais les formats externes, chaque connecteur enca
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Redefinir les types du port Connector (AC: #1, #2, #3)
-  - [ ] Modifier `app/domain/interfaces/connector.ts`
-  - [ ] `getSessionDetail(externalId: string, context?: MappingContext): Promise<MappedSessionData>`
-  - [ ] Definir `MappingContext { maxHeartRate?: number; restingHeartRate?: number }`
-  - [ ] `listSessions(filters): Promise<MappedSessionSummary[]>`
-  - [ ] Definir `MappedSessionSummary` (externalId, name, sportSlug, date, durationMinutes, distanceKm, avgHeartRate)
-  - [ ] Supprimer `SessionDetail` et `SessionSummary`
-- [ ] Task 2 : Internaliser le mapping dans StravaConnector (AC: #4)
-  - [ ] Absorber la logique de `StravaSessionMapper` + `StravaDetailedSessionMapper` dans le connecteur
-  - [ ] `getSessionDetail` : appel API → mapping sport (StravaSportMapper) → conversion unites → construction `MappedSessionData`
-  - [ ] `listSessions` : appel API → mapping → `MappedSessionSummary[]`
-  - [ ] Supprimer `strava_session_mapper.ts` et `strava_detailed_session_mapper.ts`
-- [ ] Task 3 : Simplifier ConnectorRegistry (AC: #5)
-  - [ ] Retirer `getMapper()` de `ConnectorRegistry` et `InMemoryConnectorRegistry`
-  - [ ] `ProviderEntry` = `{ factory, rateLimiter }` seulement
-  - [ ] Mettre a jour `app_provider.ts` : supprimer le binding `SessionMapper`, simplifier le registry
-- [ ] Task 4 : Supprimer le port SessionMapper (AC: #6)
-  - [ ] Supprimer `app/domain/interfaces/session_mapper.ts`
-  - [ ] Supprimer le binding dans `app_provider.ts`
-- [ ] Task 5 : Mettre a jour ImportSessions (AC: #7)
-  - [ ] Supprimer l'injection de `SessionMapper`
-  - [ ] Ajouter l'injection de `UserProfileRepository`
-  - [ ] Charger le profil une fois, construire le `MappingContext`
-  - [ ] `const mapped = await connector.getSessionDetail(externalId, context)`
-  - [ ] `sessionRepository.create(mapped)` directement
-- [ ] Task 6 : Mettre a jour SyncConnector (AC: #7)
-  - [ ] Supprimer `registry.getMapper()`
-  - [ ] Ajouter l'injection de `UserProfileRepository`
-  - [ ] Charger le profil, construire le `MappingContext`
-  - [ ] `const mapped = await connector.getSessionDetail(externalId, context)`
-- [ ] Task 7 : Mettre a jour ListPreImportSessions (AC: #3)
-  - [ ] Adapter au nouveau type `MappedSessionSummary`
-  - [ ] Le staging `import_sessions.raw_data` continue de stocker la reponse brute (le connecteur peut stocker le brut en interne avant de mapper)
-- [ ] Task 8 : Mettre a jour tous les tests (AC: #8)
-  - [ ] Tests connecteur : verifier retour `MappedSessionData`
-  - [ ] Tests use cases : supprimer mocks de mapper, mocker le connecteur pour retourner du `MappedSessionData`
-  - [ ] Tests registry : adapter a la nouvelle shape `ProviderEntry`
+- [x] Task 1 : Redefinir les types du port Connector (AC: #1, #2, #3)
+  - [x] Modifier `app/domain/interfaces/connector.ts`
+  - [x] `getSessionDetail(externalId: string, context?: MappingContext): Promise<MappedSessionData>`
+  - [x] Definir `MappingContext { maxHeartRate?: number; restingHeartRate?: number }`
+  - [x] `listSessions(filters): Promise<MappedSessionSummary[]>`
+  - [x] Definir `MappedSessionSummary` (externalId, name, sportSlug, date, durationMinutes, distanceKm, avgHeartRate)
+  - [x] Supprimer `SessionDetail` et `SessionSummary`
+- [x] Task 2 : Internaliser le mapping dans StravaConnector (AC: #4)
+  - [x] Absorber la logique de `StravaSessionMapper` + `StravaDetailedSessionMapper` dans le connecteur
+  - [x] `getSessionDetail` : appel API → mapping sport (StravaSportMapper) → conversion unites → construction `MappedSessionData`
+  - [x] `listSessions` : appel API → mapping → `MappedSessionSummary[]`
+  - [x] Supprimer `strava_session_mapper.ts` et `strava_detailed_session_mapper.ts`
+- [x] Task 3 : Simplifier ConnectorRegistry (AC: #5)
+  - [x] Retirer `getMapper()` de `ConnectorRegistry` et `InMemoryConnectorRegistry`
+  - [x] `ProviderEntry` = `{ factory, rateLimiter }` seulement
+  - [x] Mettre a jour `app_provider.ts` : supprimer le binding `SessionMapper`, simplifier le registry
+- [x] Task 4 : Supprimer le port SessionMapper (AC: #6)
+  - [x] Supprimer `app/domain/interfaces/session_mapper.ts`
+  - [x] Supprimer le binding dans `app_provider.ts`
+- [x] Task 5 : Mettre a jour ImportSessions (AC: #7)
+  - [x] Supprimer l'injection de `SessionMapper`
+  - [x] Ajouter l'injection de `UserProfileRepository`
+  - [x] Charger le profil une fois, construire le `MappingContext`
+  - [x] `const mapped = await connector.getSessionDetail(externalId, context)`
+  - [x] `sessionRepository.create(mapped)` directement
+- [x] Task 6 : Mettre a jour SyncConnector (AC: #7)
+  - [x] Supprimer `registry.getMapper()`
+  - [x] Ajouter l'injection de `UserProfileRepository`
+  - [x] Charger le profil, construire le `MappingContext`
+  - [x] `const mapped = await connector.getSessionDetail(externalId, context)`
+- [x] Task 7 : Mettre a jour ListPreImportSessions (AC: #3)
+  - [x] Adapter au nouveau type `MappedSessionSummary`
+  - [x] Le staging `import_sessions.raw_data` continue de stocker la reponse brute (le connecteur peut stocker le brut en interne avant de mapper)
+- [x] Task 8 : Mettre a jour tous les tests (AC: #8)
+  - [x] Tests connecteur : verifier retour `MappedSessionData`
+  - [x] Tests use cases : supprimer mocks de mapper, mocker le connecteur pour retourner du `MappedSessionData`
+  - [x] Tests registry : adapter a la nouvelle shape `ProviderEntry`
 
 ## Dev Notes
 

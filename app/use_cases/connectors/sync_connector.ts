@@ -4,6 +4,8 @@ import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
+import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import type { MappingContext } from '#domain/interfaces/connector'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import { RateLimitExceededError } from '#domain/errors/rate_limit_exceeded_error'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
@@ -25,7 +27,8 @@ export default class SyncConnector {
     private connectorRepository: ConnectorRepository,
     private importSessionRepository: ImportSessionRepository,
     private sportRepository: SportRepository,
-    private sessionRepository: SessionRepository
+    private sessionRepository: SessionRepository,
+    private userProfileRepository: UserProfileRepository
   ) {}
 
   async execute(input: SyncConnectorInput): Promise<SyncConnectorResult> {
@@ -84,15 +87,19 @@ export default class SyncConnector {
         return { outcome: 'success', imported: 0 }
       }
 
-      const mapper = this.registry.getMapper(provider)
+      const profile = await this.userProfileRepository.findByUserId(userId)
+      const context: MappingContext = {
+        maxHeartRate: profile?.maxHeartRate ?? undefined,
+        restingHeartRate: profile?.restingHeartRate ?? undefined,
+      }
+
       const sports = await this.sportRepository.findAll()
       const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
       let imported = 0
 
       for (const stagingRecord of newSessions) {
         try {
-          const detail = await connector.getSessionDetail(stagingRecord.externalId)
-          const mapped = mapper.map(detail)
+          const mapped = await connector.getSessionDetail(stagingRecord.externalId, context)
           const sportId = sportBySlug.get(mapped.sportSlug)
           if (!sportId) {
             await this.importSessionRepository.setFailed(

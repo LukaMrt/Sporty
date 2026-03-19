@@ -13,8 +13,9 @@ import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
   SessionFilters,
-  SessionSummary,
-  SessionDetail,
+  MappingContext,
+  MappedSessionSummary,
+  MappedSessionData,
 } from '#domain/interfaces/connector'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
@@ -27,17 +28,20 @@ import type { PaginatedResult } from '#domain/entities/pagination'
 
 function makeConnector(
   id: number,
-  overrides: Partial<{ listSessions: (f: SessionFilters) => Promise<SessionSummary[]> }> = {}
+  overrides: Partial<{ listSessions: (f: SessionFilters) => Promise<MappedSessionSummary[]> }> = {}
 ): Connector {
   class Mock extends Connector {
     readonly id = id
     async authenticate(): Promise<ConnectorTokens> {
       return { accessToken: '', refreshToken: '', expiresAt: 0 }
     }
-    async listSessions(): Promise<SessionSummary[]> {
+    async listSessions(): Promise<MappedSessionSummary[]> {
       return []
     }
-    async getSessionDetail(): Promise<SessionDetail> {
+    async getSessionDetail(
+      _externalId: string,
+      _context?: MappingContext
+    ): Promise<MappedSessionData> {
       throw new Error('Not implemented')
     }
     async getConnectionStatus(): Promise<ConnectorStatus> {
@@ -116,24 +120,24 @@ function makeSessionRepository(
   return Object.assign(new Mock(), overrides)
 }
 
-const MOCK_SESSIONS: SessionSummary[] = [
+const MOCK_SESSIONS: MappedSessionSummary[] = [
   {
     externalId: '101',
     name: 'Run 1',
-    sportType: 'Run',
-    startDate: '2026-01-01T08:00:00',
-    durationSeconds: 3600,
-    distanceMeters: null,
-    averageHeartRate: null,
+    sportSlug: 'running',
+    date: '2026-01-01T08:00:00',
+    durationMinutes: 60,
+    distanceKm: null,
+    avgHeartRate: null,
   },
   {
     externalId: '102',
     name: 'Ride 1',
-    sportType: 'Ride',
-    startDate: '2026-01-02T09:00:00',
-    durationSeconds: 7200,
-    distanceMeters: null,
-    averageHeartRate: null,
+    sportSlug: 'cycling',
+    date: '2026-01-02T09:00:00',
+    durationMinutes: 120,
+    distanceKm: null,
+    avgHeartRate: null,
   },
 ]
 

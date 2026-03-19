@@ -12,26 +12,40 @@ export interface SessionFilters {
   perPage?: number
 }
 
-export interface SessionSummary {
-  externalId: string
-  name: string
-  sportType: string
-  startDate: string
-  durationSeconds: number
-  distanceMeters: number | null
-  averageHeartRate: number | null
+export interface MappingContext {
+  maxHeartRate?: number
+  restingHeartRate?: number
 }
 
-export interface SessionDetail extends SessionSummary {
-  metrics: Record<string, unknown>
-  notes: string | null
+export interface MappedSessionSummary {
+  externalId: string
+  name: string
+  sportSlug: string
+  date: string
+  durationMinutes: number
+  distanceKm: number | null
+  avgHeartRate: number | null
+}
+
+export interface MappedSessionData {
+  sportSlug: string
+  date: string
+  durationMinutes: number
+  distanceKm: number | null
+  avgHeartRate: number | null
+  importedFrom: string
+  externalId: string
+  sportMetrics: Record<string, unknown>
 }
 
 export abstract class Connector {
   abstract readonly id: number
   abstract authenticate(): Promise<ConnectorTokens>
-  abstract listSessions(filters: SessionFilters): Promise<SessionSummary[]>
-  abstract getSessionDetail(externalId: string): Promise<SessionDetail>
+  abstract listSessions(filters: SessionFilters): Promise<MappedSessionSummary[]>
+  abstract getSessionDetail(
+    externalId: string,
+    context?: MappingContext
+  ): Promise<MappedSessionData>
   abstract getConnectionStatus(): Promise<ConnectorStatus>
   abstract disconnect(): Promise<void>
 }

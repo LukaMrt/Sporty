@@ -12,8 +12,9 @@ import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
   SessionFilters,
-  SessionSummary,
-  SessionDetail,
+  MappingContext,
+  MappedSessionSummary,
+  MappedSessionData,
 } from '#domain/interfaces/connector'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { SessionRepository } from '#domain/interfaces/session_repository'
@@ -21,41 +22,43 @@ import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
-import { SessionMapper } from '#domain/interfaces/session_mapper'
-import type { MappedSessionData } from '#domain/interfaces/session_mapper'
+import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import type { UserProfile } from '#domain/entities/user_profile'
 import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 function makeConnector(
   id: number,
-  overrides: Partial<{ getSessionDetail: (externalId: string) => Promise<SessionDetail> }> = {}
+  overrides: Partial<{ getSessionDetail: (externalId: string) => Promise<MappedSessionData> }> = {}
 ): Connector {
   class Mock extends Connector {
     readonly id = id
     async authenticate(): Promise<ConnectorTokens> {
       return { accessToken: '', refreshToken: '', expiresAt: 0 }
     }
-    async listSessions(_f: SessionFilters): Promise<SessionSummary[]> {
+    async listSessions(_f: SessionFilters): Promise<MappedSessionSummary[]> {
       return []
     }
-    async getSessionDetail(externalId: string): Promise<SessionDetail> {
+    async getSessionDetail(
+      externalId: string,
+      _context?: MappingContext
+    ): Promise<MappedSessionData> {
       return {
         externalId,
-        name: 'Test Run',
-        sportType: 'Run',
-        startDate: '2026-01-01T08:00:00',
-        durationSeconds: 3600,
-        distanceMeters: 10000,
-        averageHeartRate: 150,
-        metrics: {
-          averageSpeed: 2.78,
+        sportSlug: 'running',
+        date: '2026-01-01',
+        durationMinutes: 60,
+        distanceKm: 10,
+        avgHeartRate: 150,
+        importedFrom: 'strava',
+        sportMetrics: {
+          allure: null,
           calories: null,
-          totalElevationGain: null,
-          maxHeartrate: null,
+          elevationGain: null,
+          maxHeartRate: null,
           deviceName: null,
         },
-        notes: null,
       }
     }
     async getConnectionStatus(): Promise<ConnectorStatus> {
@@ -158,19 +161,16 @@ function makeSportRepository(sports: SportSummary[] = []): SportRepository {
   return new Mock()
 }
 
-function makeSessionMapper(sportSlug = 'running'): SessionMapper {
-  class Mock extends SessionMapper {
-    map(detail: SessionDetail): MappedSessionData {
-      return {
-        sportSlug,
-        date: detail.startDate.slice(0, 10),
-        durationMinutes: detail.durationSeconds / 60,
-        distanceKm: detail.distanceMeters ? detail.distanceMeters / 1000 : null,
-        avgHeartRate: detail.averageHeartRate,
-        importedFrom: 'strava',
-        externalId: detail.externalId,
-        sportMetrics: {},
-      }
+function makeUserProfileRepository(profile: UserProfile | null = null): UserProfileRepository {
+  class Mock extends UserProfileRepository {
+    async create(): Promise<UserProfile> {
+      throw new Error('not implemented')
+    }
+    async findByUserId(): Promise<UserProfile | null> {
+      return profile
+    }
+    async update(): Promise<UserProfile> {
+      throw new Error('not implemented')
     }
   }
   return new Mock()
@@ -182,7 +182,7 @@ function makeUseCase(
     connectorFactory?: ConnectorFactory
     sportRepo?: SportRepository
     sessionRepo?: SessionRepository
-    mapper?: SessionMapper
+    userProfileRepo?: UserProfileRepository
   } = {}
 ): ImportSessions {
   return new ImportSessions(
@@ -190,7 +190,7 @@ function makeUseCase(
     overrides.connectorFactory ?? makeConnectorFactory(makeConnector(42)),
     overrides.sportRepo ?? makeSportRepository([{ id: 1, name: 'Running', slug: 'running' }]),
     overrides.sessionRepo ?? makeSessionRepository(),
-    overrides.mapper ?? makeSessionMapper()
+    overrides.userProfileRepo ?? makeUserProfileRepository()
   )
 }
 
@@ -227,22 +227,20 @@ test.group('ImportSessions', () => {
         if (callCount === 1) throw new Error('Strava API error')
         return {
           externalId,
-          name: 'Ride',
-          sportType: 'Ride',
-          startDate: '2026-01-02T09:00:00',
-          durationSeconds: 7200,
-          distanceMeters: 30000,
-          averageHeartRate: null,
-          metrics: {},
-          notes: null,
+          sportSlug: 'cycling',
+          date: '2026-01-02',
+          durationMinutes: 120,
+          distanceKm: 30,
+          avgHeartRate: null,
+          importedFrom: 'strava',
+          sportMetrics: {},
         }
       },
     })
 
     const useCase = makeUseCase({
       connectorFactory: makeConnectorFactory(connector),
-      sportRepo: makeSportRepository([{ id: 2, name: 'Vélo', slug: 'velo' }]),
-      mapper: makeSessionMapper('velo'),
+      sportRepo: makeSportRepository([{ id: 2, name: 'Vélo', slug: 'cycling' }]),
     })
 
     const result = await useCase.execute({ userId: 1, importSessionIds: [10, 20] })
@@ -301,7 +299,6 @@ test.group('ImportSessions', () => {
   test('incremente failed si le sport slug est inconnu', async ({ assert }) => {
     const useCase = makeUseCase({
       sportRepo: makeSportRepository([{ id: 99, name: 'Natation', slug: 'natation' }]),
-      mapper: makeSessionMapper('running'),
     })
 
     const result = await useCase.execute({ userId: 1, importSessionIds: [10] })
@@ -340,14 +337,13 @@ test.group('ImportSessions', () => {
         if (callCount >= 2) throw new DailyRateLimitError()
         return {
           externalId,
-          name: 'Run',
-          sportType: 'Run',
-          startDate: '2026-01-01T08:00:00',
-          durationSeconds: 3600,
-          distanceMeters: null,
-          averageHeartRate: null,
-          metrics: {},
-          notes: null,
+          sportSlug: 'running',
+          date: '2026-01-01',
+          durationMinutes: 60,
+          distanceKm: null,
+          avgHeartRate: null,
+          importedFrom: 'strava',
+          sportMetrics: {},
         }
       },
     })

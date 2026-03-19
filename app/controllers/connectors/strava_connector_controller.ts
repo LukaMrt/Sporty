@@ -14,10 +14,10 @@ import GetStagedSessions from '#use_cases/import/get_staged_sessions'
 
 interface RawSessionData {
   name?: string
-  sportType?: string
-  startDate?: string
-  distanceMeters?: number | null
-  durationSeconds?: number
+  sportSlug?: string
+  date?: string
+  distanceKm?: number | null
+  durationMinutes?: number
 }
 
 interface StagingSessionDto {
@@ -73,16 +73,15 @@ export default class StravaConnectorController {
       })
       const sessions: StagingSessionDto[] = records.map((r) => {
         const raw = (r.rawData ?? {}) as unknown as RawSessionData
-        const distanceM = raw.distanceMeters ?? null
         return {
           id: r.id,
           externalId: r.externalId,
           status: r.status,
-          date: raw.startDate ?? '',
+          date: raw.date ?? '',
           name: raw.name ?? r.externalId,
-          sportType: raw.sportType ?? '',
-          durationMinutes: raw.durationSeconds ? raw.durationSeconds / 60 : 0,
-          distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
+          sportType: raw.sportSlug ?? '',
+          durationMinutes: raw.durationMinutes ?? 0,
+          distanceKm: raw.distanceKm ?? null,
         }
       })
       return inertia.render('Connectors/Show', {
@@ -108,16 +107,15 @@ export default class StravaConnectorController {
           )
           sessions = records.map((r) => {
             const raw = (r.rawData ?? {}) as unknown as RawSessionData
-            const distanceM = raw.distanceMeters ?? null
             return {
               id: r.id,
               externalId: r.externalId,
               status: r.status,
-              date: raw.startDate ?? '',
+              date: raw.date ?? '',
               name: raw.name ?? r.externalId,
-              sportType: raw.sportType ?? '',
-              durationMinutes: raw.durationSeconds ? raw.durationSeconds / 60 : 0,
-              distanceKm: distanceM && distanceM > 0 ? distanceM / 1000 : null,
+              sportType: raw.sportSlug ?? '',
+              durationMinutes: raw.durationMinutes ?? 0,
+              distanceKm: raw.distanceKm ?? null,
             }
           })
         }
