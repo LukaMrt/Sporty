@@ -25,16 +25,13 @@ export default function HeartRateZonesChart({
   hrZoneThresholds,
 }: HeartRateZonesChartProps) {
   const { t } = useTranslation()
-  const totalSeconds = ZONES.reduce((sum, z) => sum + hrZones[z.key], 0)
 
   const thresholdMap = new Map(hrZoneThresholds?.map((z) => [z.zone, z]))
 
   const data = ZONES.map((z, i) => {
-    const seconds = hrZones[z.key]
-    const percent = totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0
-    const minutes = Math.round(seconds / 60)
+    const percent = hrZones[z.key]
     const threshold = thresholdMap.get(i + 1)
-    return { ...z, seconds, percent, minutes, threshold }
+    return { ...z, percent, threshold }
   })
 
   return (
@@ -45,7 +42,7 @@ export default function HeartRateZonesChart({
           zone.percent > 0 ? (
             <div
               key={zone.key}
-              title={`${zone.label} — ${Math.round(zone.percent)}% (${zone.minutes} min)${zone.threshold ? ` · ${zone.threshold.minBpm}–${zone.threshold.maxBpm} bpm` : ''}`}
+              title={`${zone.label} — ${Math.round(zone.percent)}%${zone.threshold ? ` · ${zone.threshold.minBpm}–${zone.threshold.maxBpm} bpm` : ''}`}
               style={{ width: `${zone.percent}%`, backgroundColor: zone.color }}
             />
           ) : null
@@ -67,14 +64,11 @@ export default function HeartRateZonesChart({
               </span>
             )}
             <span className="font-medium text-foreground">{Math.round(zone.percent)}%</span>
-            <span className="text-muted-foreground/60">({zone.minutes} min)</span>
           </div>
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {t('sessions.show.hrZonesTime')} : {Math.round(totalSeconds / 60)} min
-      </p>
+      <p className="text-xs text-muted-foreground">{t('sessions.show.hrZonesTime')}</p>
     </div>
   )
 }

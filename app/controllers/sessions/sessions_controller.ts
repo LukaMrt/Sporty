@@ -1,4 +1,5 @@
 import { inject } from '@adonisjs/core'
+import logger from '@adonisjs/core/services/logger'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateSession from '#use_cases/sessions/create_session'
 import ListTrashedSessions from '#use_cases/sessions/list_trashed_sessions'
@@ -219,8 +220,11 @@ export default class SessionsController {
     if (data.gpx_temp_id) {
       try {
         await this.setSessionGpxFilePath.execute(createdSession.id, user.id, data.gpx_temp_id)
-      } catch {
-        // Non bloquant : la séance est créée même si le déplacement du fichier échoue
+      } catch (error) {
+        logger.warn(
+          { err: error, sessionId: createdSession.id, gpxTempId: data.gpx_temp_id },
+          'Failed to move GPX temp file after session creation'
+        )
       }
     }
 

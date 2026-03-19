@@ -115,15 +115,17 @@ export default function MetricInsight({ metricKey, value }: MetricInsightProps) 
         <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${zone.color}`}>
           {t(zone.labelKey)}
         </span>
-        {/* Icône info au survol */}
-        <div
+        <button
+          type="button"
           className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
-          aria-label="En savoir plus"
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          aria-label={t('sessions.show.insights.learnMore')}
         >
           <Info size={14} />
-        </div>
+        </button>
       </div>
 
       {open && (

@@ -17,8 +17,8 @@ export default function SplitsTable({ splits }: SplitsTableProps) {
   const fullSplits = splits.filter((s) => !s.partial)
   const fastestPace = fullSplits.length > 0 ? Math.min(...fullSplits.map((s) => s.paceSeconds)) : -1
 
-  const hasHr = splits.some((s) => s.avgHeartRate)
-  const hasElevation = splits.some((s) => s.elevationGain)
+  const hasHr = splits.some((s) => s.avgHeartRate !== undefined)
+  const hasElevation = splits.some((s) => s.elevationGain !== undefined)
 
   return (
     <div className="overflow-x-auto">
@@ -53,12 +53,12 @@ export default function SplitsTable({ splits }: SplitsTableProps) {
                 </td>
                 {hasHr && (
                   <td className="py-1.5 text-right text-muted-foreground">
-                    {split.avgHeartRate ? `${split.avgHeartRate} bpm` : '—'}
+                    {split.avgHeartRate !== undefined ? `${split.avgHeartRate} bpm` : '—'}
                   </td>
                 )}
                 {hasElevation && (
                   <td className="py-1.5 text-right text-muted-foreground">
-                    {split.elevationGain ? `+${split.elevationGain} m` : '—'}
+                    {split.elevationGain !== undefined ? `+${split.elevationGain} m` : '—'}
                   </td>
                 )}
               </tr>

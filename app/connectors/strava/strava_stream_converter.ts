@@ -52,7 +52,9 @@ export function stravaStreamsToTrackpoints(streams: StravaStreams): RawTrackpoin
   const cadData = streams.cadence?.data
   const distData = streams.distance?.data
 
-  return timeData.map((timeSec, i) => {
+  const length = Math.min(timeData.length, latlngData.length)
+
+  return timeData.slice(0, length).map((timeSec, i) => {
     const point: RawTrackpoint = {
       timeMs: timeSec * 1000,
       lat: latlngData[i][0],

@@ -60,7 +60,7 @@ export default function SessionEdit({ session, sports }: EditProps) {
             avgHeartRate: session.avgHeartRate,
             perceivedEffort: session.perceivedEffort,
             notes: session.notes,
-            sportMetrics: session.sportMetrics as Record<string, number | null> | null,
+            sportMetrics: session.sportMetrics,
           }}
           sports={sports}
         />
