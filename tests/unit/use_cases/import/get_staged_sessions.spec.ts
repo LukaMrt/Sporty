@@ -63,6 +63,9 @@ function makeImportRepo(records: StagingSessionRecord[] = []): ImportSessionRepo
     async setNew() {}
     async setFailed() {}
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]) {}
+    async resetForReimport(): Promise<null> {
+      return null
+    }
   }
   return new Mock()
 }

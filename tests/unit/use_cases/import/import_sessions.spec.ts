@@ -99,6 +99,9 @@ function makeImportSessionRepository(
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
+    async resetForReimport(): Promise<null> {
+      return null
+    }
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -148,6 +151,7 @@ function makeSessionRepository(overrides: Partial<SessionRepository> = {}): Sess
     async findByUserAndExternalIds(): Promise<{ externalId: string; id: number }[]> {
       return []
     }
+    async forceDelete(): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }

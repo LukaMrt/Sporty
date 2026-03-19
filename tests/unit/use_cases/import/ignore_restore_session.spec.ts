@@ -26,6 +26,9 @@ function makeImportSessionRepository(
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
+    async resetForReimport(): Promise<null> {
+      return null
+    }
   }
   return Object.assign(new Mock(), overrides)
 }

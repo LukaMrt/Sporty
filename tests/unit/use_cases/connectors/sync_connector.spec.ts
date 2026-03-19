@@ -129,6 +129,9 @@ function makeImportSessionRepo(
     async setNew(_id: number, _userId: number) {}
     async setFailed(_id: number, _reason: string) {}
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
+    async resetForReimport(): Promise<null> {
+      return null
+    }
   }
   return Object.assign(new Mock(), overrides)
 }
@@ -200,6 +203,7 @@ function makeSessionRepo(overrides: Partial<SessionRepository> = {}): SessionRep
     async findByUserAndExternalIds() {
       return []
     }
+    async forceDelete(): Promise<void> {}
   }
   return Object.assign(new Mock(), overrides)
 }
