@@ -13,9 +13,22 @@ import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { RateLimitManager } from '#connectors/rate_limit_manager'
 import { StravaSportMapper } from '#connectors/strava/strava_sport_mapper'
 import type { SportySportSlug } from '#connectors/strava/strava_sport_mapper'
+import {
+  indexStravaStreams,
+  stravaStreamsToTrackpoints,
+} from '#connectors/strava/strava_stream_converter'
+import type { RawStravaStream } from '#connectors/strava/strava_stream_converter'
+import { analyze } from '#lib/track_analyzer'
+import {
+  calculateZones,
+  calculateDrift,
+  calculateTrimp,
+} from '#domain/services/heart_rate_zone_service'
 
 const STRAVA_API_BASE = 'https://www.strava.com/api/v3'
 const CYCLING_SLUGS: SportySportSlug[] = ['cycling']
+const RUNNING_SLUGS: SportySportSlug[] = ['running']
+const STREAMS_KEYS = 'time,heartrate,latlng,altitude,velocity_smooth,distance,cadence'
 
 type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>
 
@@ -59,14 +72,59 @@ export class StravaConnector extends Connector {
     return this.tokens
   }
 
-  async getSessionDetail(
-    externalId: string,
-    _context?: MappingContext
-  ): Promise<MappedSessionData> {
+  async getSessionDetail(externalId: string, context?: MappingContext): Promise<MappedSessionData> {
     const client = this.#makeClient()
     const url = `${STRAVA_API_BASE}/activities/${externalId}`
     const raw = await client.get<RawStravaDetailedSession>(url)
-    return this.#toMappedSessionData(raw)
+
+    const sportSlug = this.#sportMapper.map(raw.sport_type)
+    const base = this.#toMappedSessionData(raw, sportSlug)
+
+    if (!RUNNING_SLUGS.includes(sportSlug)) {
+      return base
+    }
+
+    let trackpoints: ReturnType<typeof stravaStreamsToTrackpoints> = []
+    try {
+      const streamsUrl = `${STRAVA_API_BASE}/activities/${externalId}/streams?keys=${STREAMS_KEYS}`
+      const rawStreams = await client.get<RawStravaStream[]>(streamsUrl)
+      trackpoints = stravaStreamsToTrackpoints(indexStravaStreams(rawStreams))
+    } catch {
+      // Graceful degradation : streams indisponibles → session basique
+    }
+
+    if (trackpoints.length === 0) {
+      return base
+    }
+
+    const analysis = analyze(trackpoints)
+
+    const enriched: Record<string, unknown> = {
+      ...base.sportMetrics,
+      minHeartRate: analysis.minHeartRate,
+      maxHeartRate: analysis.maxHeartRate ?? base.sportMetrics.maxHeartRate,
+      cadenceAvg: analysis.cadenceAvg,
+      elevationGain: analysis.elevationGain ?? base.sportMetrics.elevationGain,
+      elevationLoss: analysis.elevationLoss,
+      heartRateCurve: analysis.heartRateCurve,
+      paceCurve: analysis.paceCurve,
+      altitudeCurve: analysis.altitudeCurve,
+      gpsTrack: analysis.gpsTrack,
+      splits: analysis.splits,
+    }
+
+    if (context?.maxHeartRate && analysis.heartRateCurve) {
+      const hrZones = calculateZones(
+        context.maxHeartRate,
+        analysis.heartRateCurve,
+        context.restingHeartRate
+      )
+      enriched.hrZones = hrZones
+      enriched.cardiacDrift = calculateDrift(analysis.heartRateCurve)
+      enriched.trimp = calculateTrimp(base.durationMinutes, hrZones)
+    }
+
+    return { ...base, sportMetrics: enriched }
   }
 
   async getConnectionStatus(): Promise<ConnectorStatus> {
@@ -106,8 +164,10 @@ export class StravaConnector extends Connector {
     }
   }
 
-  #toMappedSessionData(raw: RawStravaDetailedSession): MappedSessionData {
-    const sportSlug = this.#sportMapper.map(raw.sport_type)
+  #toMappedSessionData(
+    raw: RawStravaDetailedSession,
+    sportSlug: SportySportSlug
+  ): MappedSessionData {
     const distanceKm =
       raw.distance !== null && raw.distance !== undefined && raw.distance > 0
         ? raw.distance / 1000
