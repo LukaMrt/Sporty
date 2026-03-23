@@ -1,6 +1,7 @@
 import React from 'react'
-import { Head } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
+import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 
 export default function PlanningIndex() {
@@ -9,9 +10,12 @@ export default function PlanningIndex() {
   return (
     <>
       <Head title={t('planning.title')} />
-      <div className="p-4">
+      <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
         <h1 className="text-2xl font-bold text-foreground">{t('planning.title')}</h1>
-        <p className="mt-2 text-muted-foreground">{t('planning.description')}</p>
+        <p className="text-muted-foreground">{t('planning.noActivePlan')}</p>
+        <Button onClick={() => router.visit('/planning/goal')}>
+          {t('planning.defineGoalCta')}
+        </Button>
       </div>
     </>
   )

@@ -1,6 +1,119 @@
 {
   "title": "Planning",
   "description": "Votre planning apparaîtra ici.",
+  "noActivePlan": "Vous n'avez pas encore de plan actif.",
+  "defineGoalCta": "Définir un objectif",
+  "wizard": {
+    "title": "Définir mon objectif",
+    "steps": {
+      "goal": "Objectif",
+      "vdotEstimation": "Niveau",
+      "vdotConfirmation": "Confirmation",
+      "parameters": "Paramètres",
+      "summary": "Résumé"
+    },
+    "nav": {
+      "next": "Suivant",
+      "back": "Retour",
+      "generate": "Générer mon plan",
+      "generating": "Génération en cours…"
+    },
+    "step1": {
+      "title": "Quel est votre objectif ?",
+      "distance": "Distance",
+      "distancePlaceholder": "ex. 10",
+      "distanceUnit": "km",
+      "shortcuts": {
+        "label": "Raccourcis"
+      },
+      "targetTime": "Temps cible (optionnel)",
+      "targetTimePlaceholder": "ex. 55",
+      "targetTimeHint": "Laissez vide si vous n'avez pas d'objectif de temps.",
+      "eventDate": "Date de course (optionnel)",
+      "eventDateHint": "La durée du plan sera calculée automatiquement."
+    },
+    "step2": {
+      "title": "Estimation de votre niveau",
+      "autoTitle": "Niveau estimé depuis votre historique",
+      "autoConfirm": "Confirmer ce niveau",
+      "autoAdjust": "Ajuster manuellement",
+      "methodRecent": "Depuis une performance récente",
+      "methodVma": "Depuis ma VMA",
+      "methodQuestionnaire": "Questionnaire",
+      "recentDistance": "Distance",
+      "recentTime": "Temps réalisé",
+      "recentTimePlaceholder": "ex. 55",
+      "vmaLabel": "VMA (km/h)",
+      "vmaPlaceholder": "ex. 15.5",
+      "questionnaire": {
+        "frequency": "Fréquence d'entraînement",
+        "experience": "Ancienneté en course",
+        "distance": "Distance typique par séance",
+        "frequencyOptions": {
+          "occasional": "Occasionnel (< 2×/sem)",
+          "regular": "Régulier (2–3×/sem)",
+          "frequent": "Fréquent (4+×/sem)"
+        },
+        "experienceOptions": {
+          "beginner": "Débutant (< 1 an)",
+          "intermediate": "Intermédiaire (1–3 ans)",
+          "experienced": "Expérimenté (3+ ans)"
+        },
+        "distanceOptions": {
+          "less_5k": "Moins de 5 km",
+          "5k_to_10k": "5 à 10 km",
+          "more_10k": "Plus de 10 km"
+        }
+      },
+      "estimating": "Calcul en cours…",
+      "estimateBtn": "Estimer mon niveau"
+    },
+    "step3": {
+      "title": "Confirmation de votre niveau",
+      "subtitle": "Ajustez si nécessaire. Ces zones guideront la génération de votre plan.",
+      "vdotLabel": "VDOT",
+      "adjustHint": "Ajustez avec le curseur (±5 autour de l'estimation)",
+      "reassurance": "Votre plan s'adaptera automatiquement à ce niveau. Vous pourrez toujours l'ajuster plus tard.",
+      "paceZones": "Zones d'allure correspondantes"
+    },
+    "step4": {
+      "title": "Paramétrage du plan",
+      "sessionsPerWeek": "Séances par semaine",
+      "preferredDays": "Jours préférés",
+      "preferredDaysHint": "Sélectionnez {{n}} jours.",
+      "planDuration": "Durée du plan (semaines)",
+      "planDurationLocked": "Calculée depuis la date de l'événement",
+      "planDurationWarning": "Attention : une durée inférieure à 8 semaines est trop courte pour un plan efficace.",
+      "defaultsBtn": "Tout par défaut",
+      "recommendation": "Recommandé pour votre objectif",
+      "days": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam",
+        "sun": "Dim"
+      }
+    },
+    "step5": {
+      "title": "Résumé",
+      "goalSection": "Objectif",
+      "levelSection": "Niveau estimé",
+      "planSection": "Plan",
+      "distance": "Distance",
+      "targetTime": "Temps cible",
+      "eventDate": "Date de course",
+      "vdot": "VDOT",
+      "sessionsPerWeek": "Séances / semaine",
+      "preferredDays": "Jours préférés",
+      "planDuration": "Durée",
+      "planDurationWeeks": "{{n}} semaines",
+      "noTargetTime": "Non défini",
+      "noEventDate": "Non définie",
+      "successToast": "Plan généré avec succès !"
+    }
+  },
   "athlete": {
     "pageTitle": "Mon profil athlète",
     "sections": {
