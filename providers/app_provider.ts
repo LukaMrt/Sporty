@@ -13,6 +13,7 @@ import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { GpxParser } from '#domain/interfaces/gpx_parser'
 import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
+import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -105,6 +106,12 @@ export default class AppProvider {
       const { TrainingLoadCalculatorImpl } =
         await import('#services/training/training_load_calculator_impl')
       return new TrainingLoadCalculatorImpl()
+    })
+
+    this.app.container.bind(FitnessProfileCalculator, async () => {
+      const { BanisterFitnessCalculator } =
+        await import('#services/training/banister_fitness_calculator')
+      return new BanisterFitnessCalculator()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {
