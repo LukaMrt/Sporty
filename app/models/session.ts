@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column, scope } from '@adonisjs/lucid/orm'
+import type { SportMetrics } from '#domain/value_objects/sport_metrics'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import Sport from '#models/sport'
@@ -30,7 +31,7 @@ export default class Session extends BaseModel {
   declare perceivedEffort: number | null
 
   @column()
-  declare sportMetrics: Record<string, unknown>
+  declare sportMetrics: SportMetrics
 
   @column()
   declare notes: string | null

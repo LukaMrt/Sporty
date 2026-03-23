@@ -1,4 +1,5 @@
 import type { UserPreferences } from '#domain/entities/user_preferences'
+import type { BiologicalSex, TrainingState } from '#domain/value_objects/planning_types'
 
 export enum UserLevel {
   Beginner = 'beginner',
@@ -24,4 +25,6 @@ export interface UserProfile {
   maxHeartRate: number | null
   restingHeartRate: number | null
   vma: number | null
+  sex: BiologicalSex | null
+  trainingState: TrainingState
 }

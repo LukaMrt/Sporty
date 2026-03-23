@@ -1,4 +1,5 @@
 import { inject } from '@adonisjs/core'
+import emitter from '@adonisjs/core/services/emitter'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
@@ -9,7 +10,8 @@ import {
   calculateDrift,
   calculateTrimp,
 } from '#domain/services/heart_rate_zone_service'
-import type { DataPoint } from '#domain/value_objects/run_metrics'
+import type { SportMetrics } from '#domain/value_objects/sport_metrics'
+import { isRunMetrics } from '#domain/value_objects/sport_metrics'
 
 export interface CreateSessionInput {
   sportId: number
@@ -18,7 +20,7 @@ export interface CreateSessionInput {
   distanceKm?: number | null
   avgHeartRate?: number | null
   perceivedEffort?: number | null
-  sportMetrics?: Record<string, unknown>
+  sportMetrics?: SportMetrics
   notes?: string | null
   minHeartRate?: number | null
   maxHeartRate?: number | null
@@ -37,7 +39,10 @@ export default class CreateSession {
 
   async execute(userId: number, input: CreateSessionInput): Promise<TrainingSession> {
     const runMetrics: Record<string, unknown> = { ...buildScalarRunMetrics(input) }
-    const heartRateCurve = input.sportMetrics?.heartRateCurve as DataPoint[] | undefined
+    const heartRateCurve =
+      input.sportMetrics && isRunMetrics(input.sportMetrics)
+        ? input.sportMetrics.heartRateCurve
+        : undefined
 
     if (heartRateCurve && heartRateCurve.length > 0) {
       // Courbe FC disponible (import GPX) — calculs précis
@@ -66,7 +71,7 @@ export default class CreateSession {
       }
     }
 
-    return this.sessionRepository.create({
+    const session = await this.sessionRepository.create({
       userId,
       sportId: input.sportId,
       date: input.date,
@@ -78,5 +83,7 @@ export default class CreateSession {
       notes: input.notes ?? null,
       gpxFilePath: input.gpxFilePath ?? null,
     })
+    await emitter.emit('session:completed', { sessionId: session.id, userId: session.userId })
+    return session
   }
 }

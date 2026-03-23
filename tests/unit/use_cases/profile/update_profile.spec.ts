@@ -3,6 +3,7 @@ import UpdateProfile from '#use_cases/profile/update_profile'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { UserProfile } from '#domain/entities/user_profile'
 import { UserLevel, UserObjective } from '#domain/entities/user_profile'
+import { TrainingState } from '#domain/value_objects/planning_types'
 import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -22,6 +23,8 @@ const DEFAULT_PROFILE: UserProfile = {
   maxHeartRate: null,
   restingHeartRate: null,
   vma: null,
+  sex: null,
+  trainingState: TrainingState.Idle,
 }
 
 function makeMockProfileRepository(
