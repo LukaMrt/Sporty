@@ -89,6 +89,15 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
           <h1 className="text-xl font-semibold">{t('profile.title')}</h1>
         </div>
         <div className="w-full max-w-md space-y-6">
+          {/* Lien profil athlète */}
+          <Link
+            href="/profile/athlete"
+            className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 text-sm hover:bg-muted/50 transition-colors"
+          >
+            <span>Profil athlète — VDOT & zones d'allure</span>
+            <span className="text-muted-foreground">→</span>
+          </Link>
+
           {/* Formulaire principal : infos perso + profil sportif */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Informations personnelles */}

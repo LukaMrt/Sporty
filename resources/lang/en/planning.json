@@ -1,4 +1,121 @@
 {
   "title": "Planning",
-  "description": "Your planning will appear here."
+  "description": "Your planning will appear here.",
+  "athlete": {
+    "pageTitle": "My athlete profile",
+    "sections": {
+      "estimatedLevel": "Estimated level",
+      "paceZones": "Pace zones",
+      "trainingState": "Training state",
+      "technicalData": "Technical data",
+      "personalInfo": "Personal information"
+    },
+    "vdot": {
+      "label": "VDOT",
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "loading": "Estimating…",
+      "noData": "No data available to estimate your VDOT.",
+      "estimateCta": "Estimate my level",
+      "methods": {
+        "history": "Calculated from your history",
+        "vma": "Calculated from your MAS",
+        "questionnaire": "Estimated from questionnaire"
+      },
+      "description": "VDOT is an aerobic performance index derived from VO₂max, developed by Jack Daniels. It reflects your ability to use oxygen during effort and determines your optimal training paces.",
+      "interpretation": "The higher the VDOT, the better your endurance. A beginner runner is around 30–35, intermediate between 40–50, elite athletes above 60."
+    },
+    "zones": {
+      "easy": {
+        "name": "Easy",
+        "description": "Easy conversational run. Builds aerobic base, improves running economy and supports active recovery. Should represent 70–80% of your total volume."
+      },
+      "marathon": {
+        "name": "Marathon",
+        "description": "Target marathon race pace. Stimulates metabolic efficiency at high aerobic intensity and trains the body to use fat as fuel."
+      },
+      "threshold": {
+        "name": "Tempo",
+        "description": "Lactate threshold pace — comfortably hard effort. Pushes back the anaerobic threshold, allowing you to sustain faster paces for longer."
+      },
+      "interval": {
+        "name": "Intervals",
+        "description": "VO₂max pace — very intense effort, 3–5 min. Develops your maximum cardiovascular capacity. Demanding sessions, use sparingly."
+      },
+      "repetition": {
+        "name": "Repetitions",
+        "description": "Short sprint pace — maximal effort, 30–90 s. Improves running economy, stride mechanics and neuromuscular coordination."
+      }
+    },
+    "trainingState": {
+      "idle": "No active plan",
+      "preparation": "In preparation",
+      "transition": "In transition",
+      "maintenance": "Maintenance"
+    },
+    "fitness": {
+      "ctl": {
+        "label": "CTL",
+        "name": "Fitness",
+        "description": "Chronic Training Load — 42-day exponentially weighted average. Represents your accumulated long-term fitness level.",
+        "interpretation": "Ideally between 40 and 80 for a regular runner. Below 20: low fitness. Above 100: very high load (advanced athletes)."
+      },
+      "atl": {
+        "label": "ATL",
+        "name": "Fatigue",
+        "description": "Acute Training Load — 7-day exponentially weighted average. Reflects recently accumulated fatigue.",
+        "interpretation": "High ATL relative to CTL indicates overtraining risk. It rises quickly during heavy weeks and drops fast with rest."
+      },
+      "tsb": {
+        "label": "TSB",
+        "name": "Freshness",
+        "description": "Training Stress Balance — difference CTL − ATL. Measures your current form and recovery state.",
+        "interpretation": "Between −10 and +5: optimal training state. Above +10: well rested (peak form or detraining). Below −20: risk of excessive fatigue."
+      },
+      "acwr": {
+        "label": "ACWR",
+        "name": "Load ratio",
+        "description": "Acute:Chronic Workload Ratio (ATL ÷ CTL). Injury risk indicator linked to too-rapid load increases.",
+        "interpretation": "The 'green zone' is between 0.8 and 1.3. Below: underload (detraining). Above 1.5: red zone, significantly increased injury risk."
+      },
+      "badges": {
+        "acwr": {
+          "low": "Underload",
+          "optimal": "Optimal ✓",
+          "high": "High load ⚡"
+        },
+        "tsb": {
+          "tired": "Tired",
+          "slightlyTired": "Slightly tired",
+          "neutral": "Neutral",
+          "fresh": "Fresh"
+        }
+      }
+    },
+    "personalInfo": {
+      "sex": "Sex (for load calculation)",
+      "sexOptions": {
+        "unset": "Not specified",
+        "male": "Male",
+        "female": "Female"
+      },
+      "maxHr": "Max HR (bpm)",
+      "restHr": "Resting HR (bpm)",
+      "vma": "MAS (km/h)",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "toggle": {
+      "technicalData": "Technical data"
+    },
+    "sources": {
+      "title": "Sources & calculation methods",
+      "badges": {
+        "study": "Study",
+        "book": "Book",
+        "guide": "Guide"
+      }
+    }
+  }
 }

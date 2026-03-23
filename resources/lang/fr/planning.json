@@ -1,4 +1,121 @@
 {
   "title": "Planning",
-  "description": "Votre planning apparaîtra ici."
+  "description": "Votre planning apparaîtra ici.",
+  "athlete": {
+    "pageTitle": "Mon profil athlète",
+    "sections": {
+      "estimatedLevel": "Niveau estimé",
+      "paceZones": "Zones d'allure",
+      "trainingState": "État d'entraînement",
+      "technicalData": "Données techniques",
+      "personalInfo": "Informations personnelles"
+    },
+    "vdot": {
+      "label": "VDOT",
+      "edit": "Modifier",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "loading": "Estimation en cours…",
+      "noData": "Aucune donnée disponible pour estimer votre VDOT.",
+      "estimateCta": "Estimer mon niveau",
+      "methods": {
+        "history": "Calculé depuis votre historique",
+        "vma": "Calculé depuis votre VMA",
+        "questionnaire": "Estimé depuis le questionnaire"
+      },
+      "description": "Le VDOT est un indice de performance aérobie dérivé du VO₂max, développé par Jack Daniels. Il reflète votre capacité à utiliser l'oxygène à l'effort et détermine vos allures d'entraînement optimales.",
+      "interpretation": "Plus le VDOT est élevé, meilleure est votre endurance. Un coureur débutant se situe autour de 30–35, un coureur intermédiaire entre 40–50, un athlète élite au-delà de 60."
+    },
+    "zones": {
+      "easy": {
+        "name": "Endurance",
+        "description": "Course facile, conversation possible. Développe la base aérobie, améliore l'économie de course et favorise la récupération active. Représente 70–80 % de votre volume total."
+      },
+      "marathon": {
+        "name": "Marathon",
+        "description": "Allure cible pour un marathon. Stimule l'efficacité métabolique à haute intensité aérobie et entraîne le corps à utiliser les graisses comme carburant."
+      },
+      "threshold": {
+        "name": "Tempo",
+        "description": "Allure seuil lactique — effort confortablement difficile. Repousse le seuil anaérobie, permettant de maintenir des allures plus élevées plus longtemps."
+      },
+      "interval": {
+        "name": "Intervalles",
+        "description": "Allure VO₂max — effort très intense, 3–5 min. Développe votre capacité cardiovasculaire maximale. Séances exigeantes, à intégrer avec parcimonie."
+      },
+      "repetition": {
+        "name": "Répétitions",
+        "description": "Allure sprint court — effort maximal, 30–90 s. Améliore l'économie de course, la foulée et la coordination neuromusculaire."
+      }
+    },
+    "trainingState": {
+      "idle": "Pas de plan en cours",
+      "preparation": "En préparation",
+      "transition": "En transition",
+      "maintenance": "En maintien"
+    },
+    "fitness": {
+      "ctl": {
+        "label": "CTL",
+        "name": "Forme",
+        "description": "Charge d'entraînement chronique — moyenne pondérée sur 42 jours. Représente votre niveau de forme physique accumulé sur le long terme.",
+        "interpretation": "Idéalement entre 40 et 80 pour un coureur régulier. Sous 20 : faible condition. Au-dessus de 100 : charge très élevée (athlètes avancés)."
+      },
+      "atl": {
+        "label": "ATL",
+        "name": "Fatigue",
+        "description": "Charge d'entraînement aiguë — moyenne pondérée sur 7 jours. Reflète la fatigue accumulée récemment.",
+        "interpretation": "Une ATL élevée par rapport au CTL indique un risque de surmenage. Elle augmente rapidement lors des semaines chargées et diminue vite au repos."
+      },
+      "tsb": {
+        "label": "TSB",
+        "name": "Fraîcheur",
+        "description": "Balance de stress d'entraînement — différence CTL − ATL. Mesure votre état de forme et de récupération au moment présent.",
+        "interpretation": "Entre −10 et +5 : état optimal pour s'entraîner. Au-dessus de +10 : bien reposé (pic de forme ou désentraînement). En dessous de −20 : risque de fatigue excessive."
+      },
+      "acwr": {
+        "label": "ACWR",
+        "name": "Ratio charge",
+        "description": "Ratio charge aiguë / charge chronique (ATL ÷ CTL). Indicateur de risque de blessure lié à une augmentation trop rapide de la charge.",
+        "interpretation": "La « zone verte » se situe entre 0,8 et 1,3. En dessous : sous-charge (désentraînement). Au-dessus de 1,5 : zone rouge, risque de blessure significativement accru."
+      },
+      "badges": {
+        "acwr": {
+          "low": "Sous-charge",
+          "optimal": "Optimal ✓",
+          "high": "Charge élevée ⚡"
+        },
+        "tsb": {
+          "tired": "Fatigué",
+          "slightlyTired": "Légèrement fatigué",
+          "neutral": "Frais neutre",
+          "fresh": "Frais"
+        }
+      }
+    },
+    "personalInfo": {
+      "sex": "Sexe (pour le calcul de charge)",
+      "sexOptions": {
+        "unset": "Non renseigné",
+        "male": "Homme",
+        "female": "Femme"
+      },
+      "maxHr": "FC max (bpm)",
+      "restHr": "FC repos (bpm)",
+      "vma": "VMA (km/h)",
+      "save": "Sauvegarder",
+      "saving": "Enregistrement…"
+    },
+    "toggle": {
+      "technicalData": "Données techniques"
+    },
+    "sources": {
+      "title": "Sources & méthodes de calcul",
+      "badges": {
+        "study": "Étude",
+        "book": "Livre",
+        "guide": "Guide"
+      }
+    }
+  }
 }

@@ -400,16 +400,18 @@ export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {cardiacDrift !== undefined && (
                   <div>
-                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                    <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
                       {t('sessions.show.cardiacDrift')}
+                      <MetricInsight metricKey="cardiacDrift" value={cardiacDrift} iconOnly />
                     </h3>
                     <CardiacDriftIndicator value={cardiacDrift} />
                   </div>
                 )}
                 {trimp !== undefined && (
                   <div>
-                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                    <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
                       {t('sessions.show.trimp')}
+                      <MetricInsight metricKey="trimp" value={trimp} iconOnly />
                     </h3>
                     <TrimpIndicator value={trimp} />
                   </div>

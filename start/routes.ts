@@ -28,6 +28,7 @@ const ConnectorSettingsController = () =>
   import('#controllers/connectors/connector_settings_controller')
 const ImportController = () => import('#controllers/import/import_controller')
 const ImportSessionsController = () => import('#controllers/import/import_sessions_controller')
+const AthleteProfileController = () => import('#controllers/planning/athlete_profile_controller')
 const GpxController = () => import('#controllers/sessions/gpx_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
@@ -60,6 +61,10 @@ router
     router.delete('/sessions/:id', [SessionsController, 'destroy'])
     router.post('/sessions/:id/restore', [SessionsController, 'restore'])
     router.on('/planning').renderInertia('Planning/Index', {})
+    router.get('/profile/athlete', [AthleteProfileController, 'show'])
+    router.get('/profile/athlete/estimate-vdot', [AthleteProfileController, 'estimateVdot'])
+    router.post('/profile/athlete/confirm-vdot', [AthleteProfileController, 'confirmVdot'])
+    router.put('/profile/athlete', [AthleteProfileController, 'updateProfile'])
     router.get('/profile', [ProfileController, 'show'])
     router.put('/profile', [ProfileController, 'update'])
     router.put('/profile/password', [PasswordController, 'update'])
