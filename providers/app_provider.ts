@@ -12,6 +12,7 @@ import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { GpxParser } from '#domain/interfaces/gpx_parser'
 import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
+import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -98,6 +99,12 @@ export default class AppProvider {
     this.app.container.bind(GpxFileStorage, async () => {
       const { LocalGpxFileStorage } = await import('#services/local_gpx_file_storage')
       return new LocalGpxFileStorage()
+    })
+
+    this.app.container.bind(TrainingLoadCalculator, async () => {
+      const { TrainingLoadCalculatorImpl } =
+        await import('#services/training/training_load_calculator_impl')
+      return new TrainingLoadCalculatorImpl()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {
