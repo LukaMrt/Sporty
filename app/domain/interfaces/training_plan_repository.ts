@@ -6,6 +6,7 @@ export abstract class TrainingPlanRepository {
   abstract create(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<TrainingPlan>
   abstract findById(id: number): Promise<TrainingPlan | null>
   abstract findByUserId(userId: number): Promise<TrainingPlan[]>
+  abstract findActiveByGoalId(goalId: number): Promise<TrainingPlan | null>
   abstract update(
     id: number,
     data: Partial<Omit<TrainingPlan, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>

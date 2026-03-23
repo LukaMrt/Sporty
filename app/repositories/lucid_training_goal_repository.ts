@@ -20,6 +20,14 @@ export default class LucidTrainingGoalRepository extends TrainingGoalRepository 
     return model ? this.#toEntity(model) : null
   }
 
+  async findActiveByUserId(userId: number): Promise<TrainingGoal | null> {
+    const model = await TrainingGoalModel.query()
+      .where('userId', userId)
+      .where('status', 'active')
+      .first()
+    return model ? this.#toEntity(model) : null
+  }
+
   async findByUserId(userId: number): Promise<TrainingGoal[]> {
     const models = await TrainingGoalModel.query()
       .where('userId', userId)
