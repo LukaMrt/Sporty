@@ -1,7 +1,11 @@
 import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
-import type { PlanMethodology, PlanType, PlanStatus } from '#domain/entities/training_plan'
+import type {
+  TrainingMethodology,
+  PlanType,
+  PlanStatus,
+} from '#domain/value_objects/planning_types'
 import TrainingGoal from '#models/training_goal'
 import PlannedWeek from '#models/planned_week'
 import PlannedSession from '#models/planned_session'
@@ -17,10 +21,10 @@ export default class TrainingPlan extends BaseModel {
   declare goalId: number | null
 
   @column()
-  declare methodology: PlanMethodology
+  declare methodology: TrainingMethodology
 
-  @column()
-  declare planType: PlanType
+  @column({ columnName: 'plan_type' })
+  declare level: PlanType
 
   @column()
   declare status: PlanStatus

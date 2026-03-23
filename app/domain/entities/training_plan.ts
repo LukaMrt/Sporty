@@ -1,13 +1,17 @@
-export type PlanMethodology = 'vdot' | 'custom'
-export type PlanType = 'base' | 'intermediate' | 'advanced'
-export type PlanStatus = 'active' | 'paused' | 'completed' | 'archived'
+import type {
+  TrainingMethodology,
+  PlanType,
+  PlanStatus,
+} from '#domain/value_objects/planning_types'
+
+export type { TrainingMethodology, PlanType, PlanStatus }
 
 export interface TrainingPlan {
   id: number
   userId: number
   goalId: number | null
-  methodology: PlanMethodology
-  planType: PlanType
+  methodology: TrainingMethodology
+  level: PlanType
   status: PlanStatus
   autoRecalibrate: boolean
   vdotAtCreation: number

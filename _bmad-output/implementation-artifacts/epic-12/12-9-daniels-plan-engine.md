@@ -1,6 +1,6 @@
 # Story 12.9 : DanielsPlanEngine — Generation de plan
 
-Status: pending
+Status: review
 
 ## Story
 
@@ -23,58 +23,58 @@ So that **le systeme genere des plans structures et scientifiquement fondes**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 0 : Alignement des enums existantes (prerequis)
-  - [ ] Ajouter `Daniels = 'daniels'` a l'enum `TrainingMethodology` dans `planning_types.ts`
-  - [ ] Aligner `SessionType` enum : easy, long_run, tempo, marathon_pace, interval, repetition, recovery, race, cross_training, rest
-  - [ ] Migrer `planned_session.ts` : remplacer les types litteraux par les enums de `planning_types.ts`
-  - [ ] Migrer `planned_week.ts` : idem
-  - [ ] Migrer `training_plan.ts` : remplacer types litteraux par enums, renommer `planType` → `level`
-  - [ ] Verifier que les models Lucid et migrations sont coherents avec les nouvelles valeurs
-- [ ] Task 1 : Port TrainingPlanEngine (AC: prerequis)
-  - [ ] Creer `app/domain/interfaces/training_plan_engine.ts`
-  - [ ] Abstract class avec `generatePlan`, `recalibrate`, `generateMaintenancePlan`, `generateTransitionPlan`
-  - [ ] Types intermediaires `GeneratedPlan`, `GeneratedWeek`, `GeneratedSession` dans le port
-- [ ] Task 2 : Value objects d'entree (AC: prerequis)
-  - [ ] Creer `app/domain/value_objects/plan_request.ts`
-  - [ ] Creer `app/domain/value_objects/recalibration_context.ts`
-  - [ ] Creer `app/domain/value_objects/maintenance_plan_request.ts`
-  - [ ] Creer `app/domain/value_objects/transition_plan_request.ts`
-- [ ] Task 3 : DanielsPlanEngine — generation (AC: #1, #2, #3, #4, #5)
-  - [ ] Creer `app/services/training/daniels_plan_engine.ts`
-  - [ ] Repartition des semaines en 4 phases
-  - [ ] Matrice phase × distance cible → mix de seances qualite (voir Dev Notes)
-  - [ ] Placement des seances qualite par phase (FI: E+strides, EQ: R+T, TQ: I+T, FQ: variable selon distance)
-  - [ ] Regles de volume Daniels (en minutes)
-  - [ ] Progression +10%/semaine max
-  - [ ] Semaines de recuperation
-- [ ] Task 4 : Generation des intervalles (AC: #6)
-  - [ ] Templates d'intervalles hardcodes par type de seance (I, T, R, M)
-  - [ ] Echauffement 15min E + blocs travail + retour 10min E
-  - [ ] Convention Daniels : E et long run en duree, I et R en distance
-  - [ ] Parametres de recuperation par type (voir Dev Notes) : I = jog meme duree, R = repos 2-4× duree, T cruise = 1min repos
-  - [ ] Templates de long run variables par phase : E pur (FI/EQ), E + T finish (TQ), E + M portions (FQ marathon)
-- [ ] Task 5 : Taper (AC: #7)
-  - [ ] Reduction progressive non-lineaire du volume (40-60%)
-  - [ ] Intensite maintenue
-  - [ ] Duree taper selon distance (10-14j pour 5K-10K, 14-21j pour semi/marathon)
-- [ ] Task 6 : Plans secondaires (AC: #8, #9)
-  - [ ] `generateMaintenancePlan()` — cycles 4-Week (30-40% pic, 2 structurees + 1 easy)
-  - [ ] `generateTransitionPlan()` — 2-4 semaines post-course (volume reduit, intensite moderee)
-- [ ] Task 7 : Recalibration (AC: #10)
-  - [ ] `recalibrate()` — regenere les seances restantes avec nouvelles allures
-- [ ] Task 8 : Binding IoC
-  - [ ] `TrainingPlanEngine` → `DanielsPlanEngine` dans `providers/app_provider.ts`
-- [ ] Task 9 : Tests unitaires
-  - [ ] Test generation plan : 4 phases presentes
-  - [ ] Test regles de volume respectees
-  - [ ] Test progression ≤ +10%/semaine
-  - [ ] Test semaines de recuperation placees
-  - [ ] Test taper applique si date evenement
-  - [ ] Test intervalles bien structures (dont recuperation type/duree)
-  - [ ] Test mix seances qualite par distance cible (5K vs marathon)
-  - [ ] Test long run variable par phase (E pur en FI vs E+T en TQ)
-  - [ ] Test maintenance : cycle 4 semaines
-  - [ ] Test transition : duree selon distance
+- [x] Task 0 : Alignement des enums existantes (prerequis)
+  - [x] Ajouter `Daniels = 'daniels'` a l'enum `TrainingMethodology` dans `planning_types.ts`
+  - [x] Aligner `SessionType` enum : easy, long_run, tempo, marathon_pace, interval, repetition, recovery, race, cross_training, rest
+  - [x] Migrer `planned_session.ts` : remplacer les types litteraux par les enums de `planning_types.ts`
+  - [x] Migrer `planned_week.ts` : idem
+  - [x] Migrer `training_plan.ts` : remplacer types litteraux par enums, renommer `planType` → `level`
+  - [x] Verifier que les models Lucid et migrations sont coherents avec les nouvelles valeurs
+- [x] Task 1 : Port TrainingPlanEngine (AC: prerequis)
+  - [x] Creer `app/domain/interfaces/training_plan_engine.ts`
+  - [x] Abstract class avec `generatePlan`, `recalibrate`, `generateMaintenancePlan`, `generateTransitionPlan`
+  - [x] Types intermediaires `GeneratedPlan`, `GeneratedWeek`, `GeneratedSession` dans le port
+- [x] Task 2 : Value objects d'entree (AC: prerequis)
+  - [x] Creer `app/domain/value_objects/plan_request.ts`
+  - [x] Creer `app/domain/value_objects/recalibration_context.ts`
+  - [x] Creer `app/domain/value_objects/maintenance_plan_request.ts`
+  - [x] Creer `app/domain/value_objects/transition_plan_request.ts`
+- [x] Task 3 : DanielsPlanEngine — generation (AC: #1, #2, #3, #4, #5)
+  - [x] Creer `app/services/training/daniels_plan_engine.ts`
+  - [x] Repartition des semaines en 4 phases
+  - [x] Matrice phase × distance cible → mix de seances qualite (voir Dev Notes)
+  - [x] Placement des seances qualite par phase (FI: E+strides, EQ: R+T, TQ: I+T, FQ: variable selon distance)
+  - [x] Regles de volume Daniels (en minutes)
+  - [x] Progression +10%/semaine max
+  - [x] Semaines de recuperation
+- [x] Task 4 : Generation des intervalles (AC: #6)
+  - [x] Templates d'intervalles hardcodes par type de seance (I, T, R, M)
+  - [x] Echauffement 15min E + blocs travail + retour 10min E
+  - [x] Convention Daniels : E et long run en duree, I et R en distance
+  - [x] Parametres de recuperation par type (voir Dev Notes) : I = jog meme duree, R = repos 2-4× duree, T cruise = 1min repos
+  - [x] Templates de long run variables par phase : E pur (FI/EQ), E + T finish (TQ), E + M portions (FQ marathon)
+- [x] Task 5 : Taper (AC: #7)
+  - [x] Reduction progressive non-lineaire du volume (40-60%)
+  - [x] Intensite maintenue
+  - [x] Duree taper selon distance (10-14j pour 5K-10K, 14-21j pour semi/marathon)
+- [x] Task 6 : Plans secondaires (AC: #8, #9)
+  - [x] `generateMaintenancePlan()` — cycles 4-Week (30-40% pic, 2 structurees + 1 easy)
+  - [x] `generateTransitionPlan()` — 2-4 semaines post-course (volume reduit, intensite moderee)
+- [x] Task 7 : Recalibration (AC: #10)
+  - [x] `recalibrate()` — regenere les seances restantes avec nouvelles allures
+- [x] Task 8 : Binding IoC
+  - [x] `TrainingPlanEngine` → `DanielsPlanEngine` dans `providers/app_provider.ts`
+- [x] Task 9 : Tests unitaires
+  - [x] Test generation plan : 4 phases presentes
+  - [x] Test regles de volume respectees
+  - [x] Test progression ≤ +10%/semaine
+  - [x] Test semaines de recuperation placees
+  - [x] Test taper applique si date evenement
+  - [x] Test intervalles bien structures (dont recuperation type/duree)
+  - [x] Test mix seances qualite par distance cible (5K vs marathon)
+  - [x] Test long run variable par phase (E pur en FI vs E+T en TQ)
+  - [x] Test maintenance : cycle 4 semaines
+  - [x] Test transition : duree selon distance
 
 ## Dev Notes
 

@@ -5,8 +5,8 @@ import type {
   SessionType,
   IntensityZone,
   PlannedSessionStatus,
-  IntervalBlock,
-} from '#domain/entities/planned_session'
+} from '#domain/value_objects/planning_types'
+import type { IntervalBlock } from '#domain/entities/planned_session'
 import TrainingPlan from '#models/training_plan'
 
 export default class PlannedSession extends BaseModel {

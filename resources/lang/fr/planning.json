@@ -230,5 +230,28 @@
         "guide": "Guide"
       }
     }
+  },
+  "sessions": {
+    "types": {
+      "easy": "Course facile",
+      "long_run": "Sortie longue",
+      "tempo": "Séance au seuil",
+      "marathon_pace": "Allure marathon",
+      "interval": "Intervalles VO₂max",
+      "repetition": "Répétitions vitesse",
+      "recovery": "Récupération",
+      "race": "Course / compétition",
+      "cross_training": "Cross-training",
+      "rest": "Repos"
+    },
+    "withStrides": "{{session}} + strides"
+  },
+  "phases": {
+    "FI": "Fondation",
+    "EQ": "Introduction vitesse",
+    "TQ": "Phase intensive",
+    "FQ": "Affûtage",
+    "MAINT": "Maintenance",
+    "TRANS": "Transition"
   }
 }

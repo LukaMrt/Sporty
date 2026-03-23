@@ -16,6 +16,7 @@ import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calcula
 import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -126,6 +127,11 @@ export default class AppProvider {
       const { default: LucidTrainingPlanRepository } =
         await import('#repositories/lucid_training_plan_repository')
       return new LucidTrainingPlanRepository()
+    })
+
+    this.app.container.bind(TrainingPlanEngine, async () => {
+      const { default: DanielsPlanEngine } = await import('#services/training/daniels_plan_engine')
+      return new DanielsPlanEngine()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {

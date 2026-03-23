@@ -2,7 +2,7 @@ import { inject } from '@adonisjs/core'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import { TrainingState } from '#domain/value_objects/planning_types'
+import { PlanStatus, TrainingState } from '#domain/value_objects/planning_types'
 
 @inject()
 export default class AbandonGoal {
@@ -17,7 +17,7 @@ export default class AbandonGoal {
 
     const activePlan = await this.planRepository.findActiveByGoalId(goalId)
     if (activePlan) {
-      await this.planRepository.update(activePlan.id, { status: 'archived' })
+      await this.planRepository.update(activePlan.id, { status: PlanStatus.Abandoned })
     }
 
     await this.userProfileRepository.update(userId, {

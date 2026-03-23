@@ -2,6 +2,7 @@ export enum TrainingMethodology {
   Polarized = 'polarized',
   Pyramidal = 'pyramidal',
   Threshold = 'threshold',
+  Daniels = 'daniels',
 }
 
 export enum BiologicalSex {
@@ -37,11 +38,15 @@ export enum GoalStatus {
 
 export enum SessionType {
   Easy = 'easy',
+  LongRun = 'long_run',
   Tempo = 'tempo',
+  MarathonPace = 'marathon_pace',
   Interval = 'interval',
-  Long = 'long',
+  Repetition = 'repetition',
+  Recovery = 'recovery',
+  Race = 'race',
+  CrossTraining = 'cross_training',
   Rest = 'rest',
-  Other = 'other',
 }
 
 export enum IntensityZone {
@@ -53,15 +58,16 @@ export enum IntensityZone {
 }
 
 export enum PlannedSessionStatus {
-  Planned = 'planned',
+  Pending = 'pending',
   Completed = 'completed',
   Skipped = 'skipped',
-  Missed = 'missed',
 }
 
 export enum IntervalBlockType {
+  Warmup = 'warmup',
   Work = 'work',
   Recovery = 'recovery',
+  Cooldown = 'cooldown',
 }
 
 export enum LoadMethod {

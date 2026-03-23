@@ -13,7 +13,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       userId: data.userId,
       goalId: data.goalId ?? null,
       methodology: data.methodology,
-      planType: data.planType,
+      level: data.level,
       status: data.status,
       autoRecalibrate: data.autoRecalibrate,
       vdotAtCreation: data.vdotAtCreation,
@@ -56,7 +56,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     const model = await TrainingPlanModel.findOrFail(id)
     if (data.goalId !== undefined) model.goalId = data.goalId
     if (data.methodology !== undefined) model.methodology = data.methodology
-    if (data.planType !== undefined) model.planType = data.planType
+    if (data.level !== undefined) model.level = data.level
     if (data.status !== undefined) model.status = data.status
     if (data.autoRecalibrate !== undefined) model.autoRecalibrate = data.autoRecalibrate
     if (data.currentVdot !== undefined) model.currentVdot = data.currentVdot
@@ -121,7 +121,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       userId: model.userId,
       goalId: model.goalId,
       methodology: model.methodology,
-      planType: model.planType,
+      level: model.level,
       status: model.status,
       autoRecalibrate: model.autoRecalibrate,
       vdotAtCreation: model.vdotAtCreation,

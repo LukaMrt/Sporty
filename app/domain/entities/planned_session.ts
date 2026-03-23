@@ -1,22 +1,20 @@
-export type SessionType =
-  | 'easy'
-  | 'long_run'
-  | 'tempo'
-  | 'intervals'
-  | 'recovery'
-  | 'race'
-  | 'cross_training'
+import type {
+  SessionType,
+  IntensityZone,
+  PlannedSessionStatus,
+} from '#domain/value_objects/planning_types'
 
-export type IntensityZone = 'z1' | 'z2' | 'z3' | 'z4' | 'z5'
-
-export type PlannedSessionStatus = 'pending' | 'completed' | 'skipped'
+export type { SessionType, IntensityZone, PlannedSessionStatus }
 
 export interface IntervalBlock {
-  repetitions: number
+  type: 'warmup' | 'work' | 'recovery' | 'cooldown'
+  durationMinutes: number | null
   distanceMeters: number | null
-  durationSeconds: number | null
-  targetPacePerKm: string | null
-  recoverySeconds: number | null
+  targetPace: string | null
+  intensityZone: IntensityZone
+  repetitions: number
+  recoveryDurationMinutes: number | null
+  recoveryType: 'jog' | 'rest' | null
 }
 
 export interface PlannedSession {
