@@ -14,6 +14,8 @@ import { GpxParser } from '#domain/interfaces/gpx_parser'
 import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
 import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
+import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
+import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -112,6 +114,18 @@ export default class AppProvider {
       const { BanisterFitnessCalculator } =
         await import('#services/training/banister_fitness_calculator')
       return new BanisterFitnessCalculator()
+    })
+
+    this.app.container.bind(TrainingGoalRepository, async () => {
+      const { default: LucidTrainingGoalRepository } =
+        await import('#repositories/lucid_training_goal_repository')
+      return new LucidTrainingGoalRepository()
+    })
+
+    this.app.container.bind(TrainingPlanRepository, async () => {
+      const { default: LucidTrainingPlanRepository } =
+        await import('#repositories/lucid_training_plan_repository')
+      return new LucidTrainingPlanRepository()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {
