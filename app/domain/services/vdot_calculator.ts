@@ -52,31 +52,24 @@ function velocityToPaceMinPerKm(velocityMperMin: number): number {
 }
 
 /**
- * Trouve la vitesse (m/min) correspondant à un VDOT cible sur une distance standard.
- * On utilise une durée standard de 20 min pour l'inversion (zone de référence Daniels).
- * Résolution numérique par dichotomie.
+ * Trouve la vitesse (m/min) correspondant à un VO₂ cible.
+ * Résolution quadratique directe de l'Équation 1 : VO₂ = -4.6 + 0.182258v + 0.000104v²
+ * Pas de durée implicite — résolution pure de la relation VO₂ ↔ vitesse.
  */
-function velocityForVdot(targetVdot: number, distanceMeters = 5000): number {
-  let lo = 50 // ~3 km/h (très lent)
-  let hi = 700 // ~42 km/h (sprint)
-
-  for (let i = 0; i < 60; i++) {
-    const mid = (lo + hi) / 2
-    const duration = distanceMeters / mid
-    const vdot = calculateVdot(distanceMeters, duration)
-    if (vdot < targetVdot) {
-      lo = mid
-    } else {
-      hi = mid
-    }
-  }
-
-  return (lo + hi) / 2
+function velocityForVO2(targetVO2: number): number {
+  // 0.000104v² + 0.182258v + (-4.6 - targetVO2) = 0
+  const a = 0.000104
+  const b = 0.182258
+  const c = -4.6 - targetVO2
+  const discriminant = b * b - 4 * a * c
+  if (discriminant < 0) return 200 // fallback (ne devrait pas arriver pour des VDOT raisonnables)
+  return (-b + Math.sqrt(discriminant)) / (2 * a)
 }
 
 function buildZoneRange(vdot: number, pctMin: number, pctMax: number): PaceZoneRange {
-  const vMin = velocityForVdot(vdot * pctMin)
-  const vMax = velocityForVdot(vdot * pctMax)
+  // VO₂ cible = %zone × VDOT → résolution directe VO₂ → vitesse
+  const vMin = velocityForVO2(vdot * pctMin)
+  const vMax = velocityForVO2(vdot * pctMax)
   return {
     minPacePerKm: velocityToPaceMinPerKm(vMax), // allure min = vitesse max
     maxPacePerKm: velocityToPaceMinPerKm(vMin), // allure max = vitesse min

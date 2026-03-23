@@ -85,6 +85,45 @@ test.group('valeurs Banister — historique connu', () => {
   })
 })
 
+// ── Interpolation jours manquants ────────────────────────────────────────────
+
+test.group('interpolation jours manquants — décroissance EMA', () => {
+  test('10 jours entre 2 séances → CTL/ATL décroissent (jours repos interpolés)', ({ assert }) => {
+    const history = [
+      { date: '2024-01-01', load: { value: 100, method: 'rtss' as const } },
+      { date: '2024-01-11', load: { value: 100, method: 'rtss' as const } },
+    ]
+    const result = calc.calculate(history)
+
+    // Sans interpolation (2 entrées consécutives) : CTL après jour 1 = 100/42 ≈ 2.38,
+    // puis jour 2 = 2.38 + (100-2.38)/42 ≈ 4.70 → CTL trop haut
+    // Avec interpolation (10 jours de repos entre) : CTL décroît pendant 9 jours avant le 2e TSS
+    // CTL final devrait être significativement plus bas qu'une série dense de 2×100
+    const denseHistory = makeHistory(2, 100)
+    const denseResult = calc.calculate(denseHistory)
+
+    // Avec interpolation, le CTL doit être PLUS BAS car 9 jours de repos font décroître
+    assert.isBelow(result.chronicTrainingLoad, denseResult.chronicTrainingLoad)
+  })
+
+  test('historique avec trous → ATL plus bas que sans trous', ({ assert }) => {
+    // 3 séances espacées d'une semaine
+    const sparse = [
+      { date: '2024-01-01', load: { value: 80, method: 'rtss' as const } },
+      { date: '2024-01-08', load: { value: 80, method: 'rtss' as const } },
+      { date: '2024-01-15', load: { value: 80, method: 'rtss' as const } },
+    ]
+    // 15 séances quotidiennes
+    const dense = makeHistory(15, 80)
+
+    const sparseResult = calc.calculate(sparse)
+    const denseResult = calc.calculate(dense)
+
+    // ATL quotidien doit être bien plus haut que 3×/semaine
+    assert.isBelow(sparseResult.acuteTrainingLoad, denseResult.acuteTrainingLoad)
+  })
+})
+
 // ── ACWR — guard division par zéro ────────────────────────────────────────────
 
 test.group('ACWR — protection division par zéro', () => {
