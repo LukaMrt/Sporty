@@ -152,7 +152,18 @@
     },
     "recoveryJog": "jog",
     "recoveryRest": "rest",
-    "close": "Close"
+    "close": "Close",
+    "moveSession": "Move",
+    "editSession": "Edit",
+    "moveTitle": "Move session",
+    "editTitle": "Edit session",
+    "dropHere": "Drop here",
+    "durationLabel": "Duration (min)",
+    "paceLabel": "Target pace (MM:SS)",
+    "save": "Save",
+    "saving": "Saving…",
+    "moveSuccess": "Session moved",
+    "editSuccess": "Session updated"
   },
   "sessions": {
     "types": {

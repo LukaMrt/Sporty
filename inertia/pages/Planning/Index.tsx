@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
-import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import type { PlanOverview, PlannedSession, PlannedWeek } from '~/types/planning'
-import PlannedSessionDetail from '~/components/planning/PlannedSessionDetail'
+import WeekDndView from '~/components/planning/WeekDndView'
 
 interface Props {
   overview: PlanOverview | null
@@ -13,12 +12,6 @@ interface Props {
 
 // Mon=1 … Sat=6, Sun=0 — displayed Mon→Sun
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
-
-/** Convertit "6:30" → 6.5 (min/km) */
-function parsePaceString(pace: string): number {
-  const [min, sec] = pace.split(':').map(Number)
-  return min + (sec ?? 0) / 60
-}
 
 /** Calcule la date réelle d'un jour dans une semaine du plan */
 function sessionDate(planStartDate: string, weekNumber: number, dayOfWeek: number): Date {
@@ -38,81 +31,6 @@ function isDateToday(d: Date) {
     d.getDate() === now.getDate() &&
     d.getMonth() === now.getMonth() &&
     d.getFullYear() === now.getFullYear()
-  )
-}
-
-const ZONE_COLORS: Record<string, string> = {
-  z1: 'bg-emerald-400',
-  z2: 'bg-sky-400',
-  z3: 'bg-amber-400',
-  z4: 'bg-rose-400',
-  z5: 'bg-violet-400',
-}
-
-function SessionCard({
-  session,
-  isToday,
-  isOpen,
-  onClick,
-}: {
-  session: PlannedSession
-  isToday: boolean
-  isOpen: boolean
-  onClick: () => void
-}) {
-  const { t } = useTranslation()
-  const { formatSpeed } = useUnitConversion()
-  const isCompleted = session.status === 'completed'
-  const isSkipped = session.status === 'skipped'
-
-  return (
-    <div>
-      <button
-        onClick={onClick}
-        className={[
-          'cursor-pointer w-full text-left rounded-lg border p-3 flex items-center gap-3 transition-colors',
-          isOpen ? 'rounded-b-none border-b-0' : '',
-          isToday ? 'border-primary' : 'border-border',
-          'bg-card',
-          isSkipped ? 'opacity-50' : '',
-        ].join(' ')}
-      >
-        <span
-          className={[
-            'flex-shrink-0 w-2 h-2 rounded-full',
-            isCompleted ? 'bg-emerald-400' : (ZONE_COLORS[session.intensityZone] ?? 'bg-border'),
-          ].join(' ')}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-foreground leading-tight">
-            {t(`planning.sessions.types.${session.sessionType}`)}
-            {isCompleted && <span className="ml-1 text-emerald-500">✓</span>}
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5 flex gap-2">
-            <span>{session.targetDurationMinutes} min</span>
-            {session.targetDistanceKm && <span>· {session.targetDistanceKm} km</span>}
-            {session.targetPacePerKm && (
-              <span>· {formatSpeed(parsePaceString(session.targetPacePerKm))}</span>
-            )}
-          </div>
-        </div>
-        <span
-          className={[
-            'text-muted-foreground text-xs flex-shrink-0 transition-transform',
-            isOpen ? 'rotate-90' : '',
-          ].join(' ')}
-        >
-          ›
-        </span>
-      </button>
-
-      {isOpen && (
-        <PlannedSessionDetail
-          session={session}
-          borderClass={isToday ? 'border-primary' : 'border-border'}
-        />
-      )}
-    </div>
   )
 }
 
@@ -184,8 +102,25 @@ function WeekCard({
 export default function PlanningIndex({ overview }: Props) {
   const { t, locale } = useTranslation()
   const [selectedWeek, setSelectedWeek] = useState(overview?.currentWeekNumber ?? 1)
-  const [openSessionId, setOpenSessionId] = useState<number | null>(null)
   const [view, setView] = useState<'week' | 'weeks'>('week')
+  // sessionsByWeek local — mis à jour de façon optimiste lors des ajustements
+  const [localSessionsByWeek, setLocalSessionsByWeek] = useState(overview?.sessionsByWeek ?? {})
+
+  // Synchronise le state local quand Inertia recharge les props (post-redirect)
+  useEffect(() => {
+    if (overview?.sessionsByWeek) setLocalSessionsByWeek(overview.sessionsByWeek)
+  }, [overview?.sessionsByWeek])
+
+  function handleSessionUpdated(updated: PlannedSession) {
+    setLocalSessionsByWeek((prev) => {
+      const weekKey = String(updated.weekNumber)
+      const weekSessions = prev[weekKey] ?? []
+      // Retirer l'ancienne version, insérer la nouvelle
+      const without = weekSessions.filter((s) => s.id !== updated.id)
+      // Si la séance a changé de semaine (peu probable ici), gérer proprement
+      return { ...prev, [weekKey]: [...without, updated] }
+    })
+  }
 
   if (!overview) {
     return (
@@ -202,10 +137,10 @@ export default function PlanningIndex({ overview }: Props) {
     )
   }
 
-  const { goal, plan, weeks, currentWeekNumber, sessionsByWeek } = overview
+  const { goal, plan, weeks, currentWeekNumber } = overview
 
   const selectedWeekData = weeks.find((w) => w.weekNumber === selectedWeek)
-  const weekSessions = (sessionsByWeek[String(selectedWeek)] ?? []).sort(
+  const weekSessions = (localSessionsByWeek[String(selectedWeek)] ?? []).sort(
     (a, b) => DAY_ORDER.indexOf(a.dayOfWeek) - DAY_ORDER.indexOf(b.dayOfWeek)
   )
 
@@ -219,9 +154,6 @@ export default function PlanningIndex({ overview }: Props) {
   const eventDaysLeft = goal.eventDate
     ? Math.ceil((new Date(goal.eventDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
-
-  const dayFmt = new Intl.DateTimeFormat(locale, { weekday: 'short' })
-  const dateFmt = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
 
   return (
     <>
@@ -328,49 +260,13 @@ export default function PlanningIndex({ overview }: Props) {
               </button>
             </div>
 
-            <div className="space-y-2">
-              {allDays.map(({ dow, session, date, isToday }) => (
-                <div key={dow}>
-                  <div
-                    className={[
-                      'flex items-center gap-2 mb-1 px-1',
-                      isToday ? 'text-primary' : 'text-muted-foreground',
-                    ].join(' ')}
-                  >
-                    <span className="text-xs font-medium capitalize">{dayFmt.format(date)}</span>
-                    <span className="text-xs">{dateFmt.format(date)}</span>
-                    {isToday && (
-                      <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-medium leading-none">
-                        {t('planning.overview.today')}
-                      </span>
-                    )}
-                  </div>
-
-                  {!session || session.sessionType === 'rest' ? (
-                    <div
-                      className={[
-                        'rounded-lg border px-3 py-2 text-sm text-muted-foreground',
-                        isToday ? 'border-primary/30 bg-primary/5' : 'border-border bg-card',
-                      ].join(' ')}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="flex-shrink-0 w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />
-                        {t('planning.overview.rest')}
-                      </span>
-                    </div>
-                  ) : (
-                    <SessionCard
-                      session={session}
-                      isToday={isToday}
-                      isOpen={openSessionId === session.id}
-                      onClick={() =>
-                        setOpenSessionId(openSessionId === session.id ? null : session.id)
-                      }
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
+            <WeekDndView
+              days={allDays}
+              planStartDate={plan.startDate}
+              selectedWeek={selectedWeek}
+              locale={locale}
+              onSessionUpdated={handleSessionUpdated}
+            />
           </>
         )}
 
@@ -381,7 +277,7 @@ export default function PlanningIndex({ overview }: Props) {
               <WeekCard
                 key={week.weekNumber}
                 week={week}
-                sessions={sessionsByWeek[String(week.weekNumber)] ?? []}
+                sessions={localSessionsByWeek[String(week.weekNumber)] ?? []}
                 planStartDate={plan.startDate}
                 isCurrentWeek={week.weekNumber === currentWeekNumber}
                 isSelected={week.weekNumber === selectedWeek}

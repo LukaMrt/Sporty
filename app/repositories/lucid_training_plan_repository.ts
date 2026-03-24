@@ -105,6 +105,11 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     return this.#sessionToEntity(model)
   }
 
+  async findSessionById(id: number): Promise<PlannedSession | null> {
+    const model = await PlannedSessionModel.find(id)
+    return model ? this.#sessionToEntity(model) : null
+  }
+
   async findSessionsByPlanId(planId: number): Promise<PlannedSession[]> {
     const models = await PlannedSessionModel.query()
       .where('planId', planId)

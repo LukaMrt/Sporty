@@ -70,6 +70,8 @@ router
     router.put('/planning/goals/:id', [GoalsController, 'update'])
     router.post('/planning/goals/:id/abandon', [GoalsController, 'abandon'])
     router.post('/planning/generate', [PlanningController, 'generate'])
+    router.put('/planning/sessions/:id', [PlanningController, 'updateSession'])
+    router.post('/planning/sessions/:id/link', [PlanningController, 'linkSession'])
     router.get('/profile/athlete', [AthleteProfileController, 'show'])
     router.get('/profile/athlete/estimate-vdot', [AthleteProfileController, 'estimateVdot'])
     router.post('/profile/athlete/confirm-vdot', [AthleteProfileController, 'confirmVdot'])

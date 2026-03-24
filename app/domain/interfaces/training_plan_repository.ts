@@ -22,6 +22,7 @@ export abstract class TrainingPlanRepository {
   abstract createSession(
     data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<PlannedSession>
+  abstract findSessionById(id: number): Promise<PlannedSession | null>
   abstract findSessionsByPlanId(planId: number): Promise<PlannedSession[]>
   abstract updateSession(
     id: number,

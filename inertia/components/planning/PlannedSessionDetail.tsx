@@ -13,11 +13,13 @@ function parsePaceString(pace: string): number {
 interface PlannedSessionDetailProps {
   session: PlannedSession
   borderClass?: string
+  onEditClick?: () => void
 }
 
 export default function PlannedSessionDetail({
   session,
   borderClass = 'border-border',
+  onEditClick,
 }: PlannedSessionDetailProps) {
   const { t } = useTranslation()
   const { formatSpeed } = useUnitConversion()
@@ -60,6 +62,15 @@ export default function PlannedSessionDetail({
       )}
 
       {isCompleted && <ComparisonBlock session={session} />}
+
+      {onEditClick && (
+        <button
+          onClick={onEditClick}
+          className="cursor-pointer w-full text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg py-2 transition-colors mt-1"
+        >
+          {t('planning.overview.editSession')}
+        </button>
+      )}
     </div>
   )
 }

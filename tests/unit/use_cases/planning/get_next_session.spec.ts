@@ -98,6 +98,9 @@ function makePlanRepo(
     async createSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async findSessionById(): Promise<PlannedSession | null> {
+      return null
+    }
     async findSessionsByPlanId(): Promise<PlannedSession[]> {
       return sessions
     }

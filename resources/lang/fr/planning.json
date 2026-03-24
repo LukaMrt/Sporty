@@ -286,7 +286,18 @@
     },
     "recoveryJog": "trot",
     "recoveryRest": "repos",
-    "close": "Fermer"
+    "close": "Fermer",
+    "moveSession": "Déplacer",
+    "editSession": "Modifier",
+    "moveTitle": "Déplacer la séance",
+    "editTitle": "Modifier la séance",
+    "dropHere": "Déposer ici",
+    "durationLabel": "Durée (min)",
+    "paceLabel": "Allure cible (MM:SS)",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "moveSuccess": "Séance déplacée",
+    "editSuccess": "Séance modifiée"
   },
   "phases": {
     "FI": "Fondation",

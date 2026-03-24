@@ -1,6 +1,6 @@
 # Story 12.13 : Ajustement manuel du plan
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -18,19 +18,18 @@ So that **je peux adapter le plan a mes contraintes quotidiennes**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Use cases (AC: #1, #2, #3)
-  - [ ] Creer `app/use_cases/planning/adjust_plan.ts` — deplacer ou modifier une seance
-  - [ ] Creer `app/use_cases/planning/link_completed_session.ts` — lier seance planifiee ↔ realisee
-- [ ] Task 2 : Controller (AC: #1-#4)
-  - [ ] `PlanningController.updateSession()` → deplacer, modifier allure/duree
-  - [ ] Route : `PUT /planning/sessions/:id`
-- [ ] Task 3 : Validator
-  - [ ] Validation : dayOfWeek (0-6), targetDurationMinutes (> 0), targetPacePerKm (format MM:SS)
-- [ ] Task 4 : UI — Actions sur carte seance (AC: #1, #2, #4)
-  - [ ] Swipe actions ou menu contextuel sur `PlannedSessionCard`
-  - [ ] Bottom sheet "Deplacer" → date picker (meme semaine)
-  - [ ] Bottom sheet "Modifier" → champs allure, duree
-  - [ ] "Saisie rapide" → formulaire pre-rempli
+- [x] Task 1 : Use cases (AC: #1, #2, #3)
+  - [x] Creer `app/use_cases/planning/adjust_plan.ts` — deplacer ou modifier une seance
+  - [x] Creer `app/use_cases/planning/link_completed_session.ts` — lier seance planifiee ↔ realisee
+- [x] Task 2 : Controller (AC: #1-#4)
+  - [x] `PlanningController.updateSession()` → deplacer, modifier allure/duree
+  - [x] Route : `PUT /planning/sessions/:id`
+- [x] Task 3 : Validator
+  - [x] Validation : dayOfWeek (0-6), targetDurationMinutes (> 0), targetPacePerKm (format MM:SS)
+- [x] Task 4 : UI — Actions sur carte seance (AC: #1, #2, #4)
+  - [x] Drag & drop (@dnd-kit/core) sur `WeekDndView` — drop uniquement sur jours de repos
+  - [x] Bottom sheet "Modifier" → champs allure, duree (`EditSessionSheet`)
+  - [x] Mise a jour optimiste + rollback sur erreur serveur
 
 ## Dev Notes
 

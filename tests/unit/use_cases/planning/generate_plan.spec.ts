@@ -176,6 +176,9 @@ function makePlanRepo(existingActivePlan: TrainingPlan | null): TrainingPlanRepo
         updatedAt: new Date().toISOString(),
       }
     }
+    async findSessionById(): Promise<PlannedSession | null> {
+      return null
+    }
     async findSessionsByPlanId(): Promise<PlannedSession[]> {
       return []
     }
