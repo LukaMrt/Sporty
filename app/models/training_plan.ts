@@ -41,7 +41,11 @@ export default class TrainingPlan extends BaseModel {
   @column()
   declare sessionsPerWeek: number
 
-  @column()
+  @column({
+    prepare: (value: number[]) => JSON.stringify(value),
+    consume: (value: string | number[]) =>
+      typeof value === 'string' ? (JSON.parse(value) as number[]) : value,
+  })
   declare preferredDays: number[]
 
   @column.date()

@@ -165,7 +165,6 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       weekNumber: model.weekNumber,
       dayOfWeek: model.dayOfWeek,
       sessionType: model.sessionType,
-      description: model.description,
       targetDurationMinutes: model.targetDurationMinutes,
       targetDistanceKm: model.targetDistanceKm,
       targetPacePerKm: model.targetPacePerKm,

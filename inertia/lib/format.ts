@@ -16,6 +16,16 @@ export function toMinSec(decimalMinutes: number): { minutes: number; seconds: nu
   return { minutes, seconds }
 }
 
+/** Formate une durée en minutes pouvant être fractionnaire (ex: 0.33 → "20s", 1.5 → "1min 30s", 45 → "45min") */
+export function formatBlockDuration(minutes: number): string {
+  const totalSeconds = Math.round(minutes * 60)
+  if (totalSeconds < 60) return `${totalSeconds}s`
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  if (s === 0) return `${m}min`
+  return `${m}min ${s}s`
+}
+
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = Math.round(minutes % 60)

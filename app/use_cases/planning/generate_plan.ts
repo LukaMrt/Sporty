@@ -164,7 +164,6 @@ export default class GeneratePlan {
           weekNumber: week.weekNumber,
           dayOfWeek: session.dayOfWeek,
           sessionType: session.sessionType,
-          description: `${session.sessionType} — semaine ${week.weekNumber}`,
           targetDurationMinutes: session.targetDurationMinutes,
           targetDistanceKm: session.targetDistanceKm,
           targetPacePerKm: session.targetPacePerKm,

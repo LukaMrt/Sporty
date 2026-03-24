@@ -246,6 +246,48 @@
     },
     "withStrides": "{{session}} + strides"
   },
+  "overview": {
+    "weekLabel": "Semaine {n}",
+    "weekProgress": "Sem. {current}/{total}",
+    "allWeeks": "Toutes les semaines",
+    "inProgress": "en cours",
+    "recoveryWeek": "récupération",
+    "sessionCount": "{n} séances",
+    "eventIn": "Course dans {n} jours",
+    "eventPassed": "Course passée",
+    "noEventDate": "Pas de date de course",
+    "historyLink": "Historique des plans",
+    "week": "Semaine",
+    "of": "sur",
+    "phase": "Phase",
+    "totalVolume": "Volume total",
+    "sessions": "séances",
+    "load": {
+      "label": "Charge",
+      "low": "Légère",
+      "moderate": "Modérée",
+      "high": "Élevée"
+    },
+    "today": "Aujourd'hui",
+    "rest": "Repos",
+    "notDone": "Non réalisée",
+    "duration": "{{n}} min",
+    "distance": "{{n}} km",
+    "target": "Cible",
+    "actual": "Réalisé",
+    "intervals": "Intervalles",
+    "comparisonPlanned": "Prévu",
+    "comparisonActual": "Réalisé",
+    "blockTypes": {
+      "warmup": "Échauffement",
+      "work": "Travail",
+      "recovery": "Récupération",
+      "cooldown": "Retour au calme"
+    },
+    "recoveryJog": "trot",
+    "recoveryRest": "repos",
+    "close": "Fermer"
+  },
   "phases": {
     "FI": "Fondation",
     "EQ": "Introduction vitesse",

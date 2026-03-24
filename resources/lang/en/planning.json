@@ -114,6 +114,69 @@
       "successToast": "Plan generated successfully!"
     }
   },
+  "overview": {
+    "weekLabel": "Week {n}",
+    "weekProgress": "Wk {current}/{total}",
+    "allWeeks": "All weeks",
+    "inProgress": "current",
+    "recoveryWeek": "recovery",
+    "sessionCount": "{n} sessions",
+    "eventIn": "Race in {n} days",
+    "eventPassed": "Race passed",
+    "noEventDate": "No race date",
+    "historyLink": "Plan history",
+    "week": "Week",
+    "of": "of",
+    "phase": "Phase",
+    "totalVolume": "Total volume",
+    "sessions": "sessions",
+    "load": {
+      "label": "Load",
+      "low": "Light",
+      "moderate": "Moderate",
+      "high": "High"
+    },
+    "today": "Today",
+    "rest": "Rest",
+    "notDone": "Not done",
+    "target": "Target",
+    "actual": "Actual",
+    "intervals": "Intervals",
+    "comparisonPlanned": "Planned",
+    "comparisonActual": "Actual",
+    "blockTypes": {
+      "warmup": "Warm-up",
+      "work": "Work",
+      "recovery": "Recovery",
+      "cooldown": "Cool-down"
+    },
+    "recoveryJog": "jog",
+    "recoveryRest": "rest",
+    "close": "Close"
+  },
+  "sessions": {
+    "types": {
+      "easy": "Easy run",
+      "long_run": "Long run",
+      "tempo": "Tempo run",
+      "marathon_pace": "Marathon pace",
+      "interval": "VO₂max intervals",
+      "repetition": "Speed repetitions",
+      "recovery": "Recovery",
+      "race": "Race / competition",
+      "cross_training": "Cross-training",
+      "rest": "Rest"
+    },
+    "withStrides": "{{session}} + strides"
+  },
+  "phases": {
+    "FI": "Foundation",
+    "EQ": "Speed introduction",
+    "TQ": "Intensive phase",
+    "FQ": "Sharpening",
+    "MAINT": "Maintenance",
+    "TRANS": "Transition"
+  },
   "athlete": {
     "pageTitle": "My athlete profile",
     "sections": {

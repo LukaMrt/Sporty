@@ -23,7 +23,6 @@ export interface PlannedSession {
   weekNumber: number
   dayOfWeek: number
   sessionType: SessionType
-  description: string
   targetDurationMinutes: number
   targetDistanceKm: number | null
   targetPacePerKm: string | null

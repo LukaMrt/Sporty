@@ -26,9 +26,6 @@ export default class PlannedSession extends BaseModel {
   declare sessionType: SessionType
 
   @column()
-  declare description: string
-
-  @column()
   declare targetDurationMinutes: number
 
   @column()
@@ -40,7 +37,11 @@ export default class PlannedSession extends BaseModel {
   @column()
   declare intensityZone: IntensityZone
 
-  @column()
+  @column({
+    prepare: (value: IntervalBlock[] | null) => (value ? JSON.stringify(value) : null),
+    consume: (value: string | IntervalBlock[] | null) =>
+      typeof value === 'string' ? (JSON.parse(value) as IntervalBlock[]) : value,
+  })
   declare intervals: IntervalBlock[] | null
 
   @column()

@@ -1,6 +1,6 @@
 # Story 12.11 : Page /planning — Vue semaine du plan actif
 
-Status: pending
+Status: review
 
 ## Story
 
@@ -23,28 +23,66 @@ So that **je sais quoi faire chaque jour et je suis ma progression**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Use cases lecture (AC: prerequis)
-  - [ ] Creer `app/use_cases/planning/get_plan_overview.ts` — plan actif + semaines + seances de la semaine courante
-  - [ ] Creer `app/use_cases/planning/get_week_detail.ts` — seances d'une semaine donnee
-- [ ] Task 2 : Controller routes (AC: #1, #7)
-  - [ ] `PlanningController.index()` → page plan actif ou etat vide
-  - [ ] `PlanningController.weekDetail()` → detail semaine (API JSON pour navigation cote client)
-  - [ ] Routes : `GET /planning`, `GET /planning/week/:weekNumber`
-- [ ] Task 3 : Page React Index (AC: #1, #7, #10)
-  - [ ] Creer `inertia/pages/Planning/Index.tsx`
-  - [ ] Etat vide (pas de plan actif) avec CTA
-  - [ ] Layout responsive (mobile colonne unique, desktop grille)
-- [ ] Task 4 : Composants planning (AC: #2, #3, #4, #8)
-  - [ ] Creer `inertia/components/planning/GoalBanner.tsx`
-  - [ ] Creer `inertia/components/planning/WeekSelector.tsx` (navigation horizontale scrollable)
-  - [ ] Creer `inertia/components/planning/WeekSummary.tsx` (volume, charge, nb seances)
-  - [ ] Creer `inertia/components/planning/PlannedSessionCard.tsx` (carte seance avec dot couleur zone)
-- [ ] Task 5 : Vue detail seance (AC: #9)
-  - [ ] Creer `inertia/components/planning/PlannedSessionDetail.tsx` (vue plein ecran ou modale)
-  - [ ] Creer `inertia/components/planning/IntervalBreakdown.tsx` (blocs empiles avec rail de connexion)
-  - [ ] Creer `inertia/components/planning/ComparisonBlock.tsx` (prevu vs realise)
-- [ ] Task 6 : Navigation tab (AC: #1)
-  - [ ] Ajouter l'onglet "Planning" dans la bottom tab bar / sidebar
+- [x] Task 1 : Use cases lecture (AC: prerequis)
+  - [x] Creer `app/use_cases/planning/get_plan_overview.ts` — plan actif + semaines + seances de la semaine courante
+  - [x] Creer `app/use_cases/planning/get_week_detail.ts` — seances d'une semaine donnee
+- [x] Task 2 : Controller routes (AC: #1, #7)
+  - [x] `PlanningController.index()` → page plan actif ou etat vide
+  - [x] `PlanningController.weekDetail()` → detail semaine (API JSON pour navigation cote client)
+  - [x] Routes : `GET /planning`, `GET /planning/week/:weekNumber`
+- [x] Task 3 : Page React Index (AC: #1, #7, #10)
+  - [x] Creer `inertia/pages/Planning/Index.tsx`
+  - [x] Etat vide (pas de plan actif) avec CTA
+  - [x] Layout responsive (mobile colonne unique, desktop grille)
+- [x] Task 4 : Composants planning (AC: #2, #3, #4, #8)
+  - [x] Creer `inertia/components/planning/GoalBanner.tsx`
+  - [x] Creer `inertia/components/planning/WeekSelector.tsx` (navigation horizontale scrollable)
+  - [x] Creer `inertia/components/planning/WeekSummary.tsx` (volume, charge, nb seances)
+  - [x] Creer `inertia/components/planning/PlannedSessionCard.tsx` (carte seance avec dot couleur zone)
+- [x] Task 5 : Vue detail seance (AC: #9)
+  - [x] Creer `inertia/components/planning/PlannedSessionDetail.tsx` (vue plein ecran ou modale)
+  - [x] Creer `inertia/components/planning/IntervalBreakdown.tsx` (blocs empiles avec rail de connexion)
+  - [x] Creer `inertia/components/planning/ComparisonBlock.tsx` (prevu vs realise)
+- [x] Task 6 : Navigation tab (AC: #1)
+  - [x] Ajouter l'onglet "Planning" dans la bottom tab bar / sidebar
+
+## Dev Agent Record
+
+### Completion Notes
+
+Story implementee le 2026-03-24. Tous les composants React ont ete crees (GoalBanner, WeekSelector, WeekSummary, PlannedSessionCard, PlannedSessionDetail, IntervalBreakdown, ComparisonBlock), les use cases get_plan_overview et get_week_detail ont ete implementes, le controller planning avec les routes GET /planning et GET /planning/week/:weekNumber est en place, et la page Index.tsx gere l'etat vide et le layout responsive.
+
+### File List
+
+- app/use_cases/planning/get_plan_overview.ts
+- app/use_cases/planning/get_week_detail.ts
+- app/controllers/planning/planning_controller.ts
+- app/domain/entities/planned_session.ts
+- app/models/planned_session.ts
+- app/models/training_plan.ts
+- app/repositories/lucid_training_plan_repository.ts
+- app/use_cases/planning/generate_plan.ts
+- database/migrations/1774339271076_alter_planned_sessions_table.ts
+- inertia/components/planning/ComparisonBlock.tsx
+- inertia/components/planning/GoalBanner.tsx
+- inertia/components/planning/IntervalBreakdown.tsx
+- inertia/components/planning/PlannedSessionCard.tsx
+- inertia/components/planning/PlannedSessionDetail.tsx
+- inertia/components/planning/WeekSelector.tsx
+- inertia/components/planning/WeekSummary.tsx
+- inertia/lib/format.ts
+- inertia/lib/planning_colors.ts
+- inertia/pages/Planning/GoalCreate.tsx
+- inertia/pages/Planning/Index.tsx
+- inertia/types/planning.ts
+- resources/lang/en/planning.json
+- resources/lang/fr/planning.json
+- resources/views/inertia_layout.edge
+- start/routes.ts
+
+### Change Log
+
+- 2026-03-24 : Implementation complete de la story 12.11 — page /planning avec vue semaine, composants, use cases, controller et navigation tab
 
 ## Dev Notes
 

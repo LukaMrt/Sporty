@@ -120,29 +120,66 @@ export default function GoalCreate() {
     }))
   }
 
+  // DAY_KEYS index → JS getDay() number (mon=1 … sat=6, sun=0)
+  const DAY_TO_NUM: Record<string, number> = {
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+    sun: 0,
+  }
+
   async function generate() {
-    if (!state.distanceKm) return
+    if (!state.distanceKm || !state.vdot) return
+    const planDurationWeeks =
+      state.planDurationWeeks ??
+      (state.eventDate
+        ? weeksUntilDate(state.eventDate)
+        : defaultDuration(state.distanceKm, state.vdot))
     setGenerating(true)
     try {
-      const res = await fetch('/planning/goals', {
+      const csrf = getCsrf()
+      const headers = {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrf,
+        'Accept': 'application/json',
+      }
+
+      // Step 1 — create goal
+      const goalRes = await fetch('/planning/goals', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': getCsrf(),
-          'Accept': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           target_distance_km: state.distanceKm,
           target_time_minutes: state.targetTimeMinutes ?? null,
           event_date: state.eventDate ?? null,
         }),
       })
-      if (res.ok) {
+      if (!goalRes.ok) {
+        const err = (await goalRes.json()) as { message?: string }
+        pushToast(err.message ?? 'Erreur création objectif', 'error')
+        return
+      }
+
+      // Step 2 — generate plan
+      const planRes = await fetch('/planning/generate', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          vdot: state.vdot,
+          sessions_per_week: state.sessionsPerWeek,
+          preferred_days: state.preferredDays.map((d) => DAY_TO_NUM[d]),
+          plan_duration_weeks: planDurationWeeks,
+        }),
+      })
+      if (planRes.ok) {
         pushToast(t('planning.wizard.step5.successToast'), 'success')
         router.visit('/planning')
       } else {
-        const err = (await res.json()) as { message?: string }
-        pushToast(err.message ?? 'Erreur', 'error')
+        const err = (await planRes.json()) as { message?: string }
+        pushToast(err.message ?? 'Erreur génération plan', 'error')
       }
     } catch {
       pushToast('Erreur réseau', 'error')
