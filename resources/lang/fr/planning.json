@@ -299,6 +299,16 @@
     "moveSuccess": "Séance déplacée",
     "editSuccess": "Séance modifiée"
   },
+  "acwr": {
+    "warning": {
+      "title": "Ton corps a besoin de récup.",
+      "message": "Tu as beaucoup chargé ces derniers jours — pense à bien récupérer avant ta prochaine séance intense.",
+      "dismiss": "Fermer"
+    },
+    "techMode": {
+      "toggle": "Données tech"
+    }
+  },
   "phases": {
     "FI": "Fondation",
     "EQ": "Introduction vitesse",

@@ -93,10 +93,18 @@ export interface PlannedSession {
   updatedAt: string
 }
 
+export interface FitnessData {
+  ctl: number
+  atl: number
+  tsb: number
+  acwr: number
+}
+
 export interface PlanOverview {
   goal: TrainingGoal
   plan: TrainingPlan
   weeks: PlannedWeek[]
   currentWeekNumber: number
   sessionsByWeek: Record<string, PlannedSession[]>
+  fitnessProfile: FitnessData | null
 }

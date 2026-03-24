@@ -1,4 +1,5 @@
 import React, { useState, useEffect, type SyntheticEvent } from 'react'
+import { useTechMode } from '~/hooks/use_tech_mode'
 import { Head, useForm, router } from '@inertiajs/react'
 import { ChevronLeft, Edit2, Check, X } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
@@ -49,8 +50,6 @@ interface AthleteProfileProps {
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const TECH_TOGGLE_KEY = 'sporty_tech_data_visible'
-
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function AthleteProfile({
@@ -60,7 +59,7 @@ export default function AthleteProfile({
   fitnessProfile,
 }: AthleteProfileProps) {
   const { t } = useTranslation()
-  const [techVisible, setTechVisible] = useState(false)
+  const { techMode: techVisible } = useTechMode()
   const [editingVdot, setEditingVdot] = useState(false)
   const [vdot, setVdot] = useState<number | null>(initialVdot)
   const [paceZones, setPaceZones] = useState<PaceZones | null>(initialPaceZones)
@@ -75,18 +74,6 @@ export default function AthleteProfile({
     resting_heart_rate: profile?.restingHeartRate ?? (null as number | null),
     vma: profile?.vma ?? (null as number | null),
   })
-
-  // ── Toggle données techniques (localStorage) ────────────────────────────────
-  useEffect(() => {
-    const stored = localStorage.getItem(TECH_TOGGLE_KEY)
-    if (stored === 'true') setTechVisible(true)
-  }, [])
-
-  function toggleTech() {
-    const next = !techVisible
-    setTechVisible(next)
-    localStorage.setItem(TECH_TOGGLE_KEY, String(next))
-  }
 
   // ── Estimation VDOT au chargement si pas encore de VDOT ─────────────────────
   useEffect(() => {
@@ -361,25 +348,6 @@ export default function AthleteProfile({
             </Button>
           </form>
         </section>
-
-        {/* Toggle données techniques */}
-        <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3">
-          <span className="text-sm">{t('planning.athlete.toggle.technicalData')}</span>
-          <button
-            onClick={toggleTech}
-            className={`relative inline-flex h-5 w-9 cursor-pointer items-center rounded-full transition-colors ${
-              techVisible ? 'bg-primary' : 'bg-muted'
-            }`}
-            role="switch"
-            aria-checked={techVisible}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                techVisible ? 'translate-x-4' : 'translate-x-0.5'
-              }`}
-            />
-          </button>
-        </div>
 
         {/* Section sources */}
         <section className="rounded-xl border bg-muted/50 p-5 text-sm space-y-4">

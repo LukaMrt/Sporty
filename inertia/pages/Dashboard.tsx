@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
+import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
+import { useTechMode } from '~/hooks/use_tech_mode'
 import EmptyState from '~/components/shared/EmptyState'
 import HeroMetric, { HeroMetricEmpty } from '~/components/shared/HeroMetric'
 import QuickStatCard from '~/components/shared/QuickStatCard'
@@ -24,6 +26,7 @@ interface DashboardProps {
   quickStats: QuickStatData | null
   chartData: ChartData | null
   nextSession: NextSessionResult
+  acwr: number | null
 }
 
 export default function Dashboard({
@@ -32,9 +35,13 @@ export default function Dashboard({
   quickStats,
   chartData,
   nextSession,
+  acwr,
 }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('all')
+  const [acwrDismissed, setAcwrDismissed] = useState(false)
+  const { techMode } = useTechMode()
   const isEmpty = quickStats === null
+  const showAcwrWarning = !acwrDismissed && acwr !== null && acwr > 1.3
   const { formatDistanceParts } = useUnitConversion()
   const { t } = useTranslation()
 
@@ -50,6 +57,13 @@ export default function Dashboard({
         />
       ) : (
         <div className="mx-auto max-w-2xl space-y-4 p-4">
+          {showAcwrWarning && acwr !== null && (
+            <AcwrWarningBanner
+              acwr={acwr}
+              techMode={techMode}
+              onDismiss={() => setAcwrDismissed(true)}
+            />
+          )}
           {heroMetric === null ? (
             <HeroMetricEmpty />
           ) : (

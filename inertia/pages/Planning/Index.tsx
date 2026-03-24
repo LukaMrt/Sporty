@@ -3,8 +3,10 @@ import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
+import { useTechMode } from '~/hooks/use_tech_mode'
 import type { PlanOverview, PlannedSession, PlannedWeek } from '~/types/planning'
 import WeekDndView from '~/components/planning/WeekDndView'
+import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
 
 interface Props {
   overview: PlanOverview | null
@@ -101,8 +103,10 @@ function WeekCard({
 
 export default function PlanningIndex({ overview }: Props) {
   const { t, locale } = useTranslation()
+  const { techMode } = useTechMode()
   const [selectedWeek, setSelectedWeek] = useState(overview?.currentWeekNumber ?? 1)
   const [view, setView] = useState<'week' | 'weeks'>('week')
+  const [acwrDismissed, setAcwrDismissed] = useState(false)
   // sessionsByWeek local — mis à jour de façon optimiste lors des ajustements
   const [localSessionsByWeek, setLocalSessionsByWeek] = useState(overview?.sessionsByWeek ?? {})
 
@@ -137,7 +141,9 @@ export default function PlanningIndex({ overview }: Props) {
     )
   }
 
-  const { goal, plan, weeks, currentWeekNumber } = overview
+  const { goal, plan, weeks, currentWeekNumber, fitnessProfile } = overview
+
+  const showAcwrWarning = !acwrDismissed && fitnessProfile !== null && fitnessProfile.acwr > 1.3
 
   const selectedWeekData = weeks.find((w) => w.weekNumber === selectedWeek)
   const weekSessions = (localSessionsByWeek[String(selectedWeek)] ?? []).sort(
@@ -155,11 +161,24 @@ export default function PlanningIndex({ overview }: Props) {
     ? Math.ceil((new Date(goal.eventDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
 
+  // Badge ⚡ sur les séances de la semaine courante si ACWR > 1.3
+  const showAcwrBadgeOnCurrentWeek =
+    fitnessProfile !== null && fitnessProfile.acwr > 1.3 && selectedWeek === currentWeekNumber
+
   return (
     <>
       <Head title={t('planning.title')} />
 
       <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
+        {/* Bannière ACWR warning */}
+        {showAcwrWarning && (
+          <AcwrWarningBanner
+            acwr={fitnessProfile.acwr}
+            techMode={techMode}
+            onDismiss={() => setAcwrDismissed(true)}
+          />
+        )}
+
         {/* Bandeau objectif */}
         <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
           <div>
@@ -179,6 +198,17 @@ export default function PlanningIndex({ overview }: Props) {
                   ? t('planning.overview.eventPassed')
                   : t('planning.overview.noEventDate')}
             </div>
+            {/* Données techniques : phase code + VDOT */}
+            {techMode && selectedWeekData && (
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-xs font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                  {selectedWeekData.phaseName}
+                </span>
+                <span className="text-xs font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                  VDOT {plan.currentVdot}
+                </span>
+              </div>
+            )}
           </div>
           <div className="text-right flex-shrink-0">
             <div className="text-xs text-muted-foreground">
@@ -250,6 +280,25 @@ export default function PlanningIndex({ overview }: Props) {
                     {selectedWeekData.isRecoveryWeek && ` · ${t('planning.overview.recoveryWeek')}`}
                   </div>
                 )}
+                {/* Données techniques semaine : TSB + ACWR */}
+                {techMode && fitnessProfile && selectedWeek === currentWeekNumber && (
+                  <div className="mt-1 flex items-center justify-center gap-2">
+                    <span className="text-xs font-mono text-muted-foreground">
+                      TSB {fitnessProfile.tsb > 0 ? '+' : ''}
+                      {fitnessProfile.tsb}
+                    </span>
+                    <span
+                      className={[
+                        'text-xs font-mono px-1.5 py-0.5 rounded',
+                        fitnessProfile.acwr > 1.3
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'bg-muted text-muted-foreground',
+                      ].join(' ')}
+                    >
+                      ACWR {fitnessProfile.acwr.toFixed(2)}
+                    </span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => setSelectedWeek((w) => Math.min(weeks.length, w + 1))}
@@ -266,6 +315,7 @@ export default function PlanningIndex({ overview }: Props) {
               selectedWeek={selectedWeek}
               locale={locale}
               onSessionUpdated={handleSessionUpdated}
+              showAcwrBadge={showAcwrBadgeOnCurrentWeek}
             />
           </>
         )}

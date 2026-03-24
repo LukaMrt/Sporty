@@ -45,6 +45,8 @@ interface Props {
   locale: string
   /** Callback optimiste : met à jour la session dans le state parent */
   onSessionUpdated: (updated: PlannedSession) => void
+  /** Affiche le badge ⚡ sur les séances (ACWR > 1.3 sur la semaine courante) */
+  showAcwrBadge?: boolean
 }
 
 // ── Carte draggable ───────────────────────────────────────────────────────────
@@ -53,12 +55,14 @@ function DraggableSessionCard({
   session,
   isToday,
   isOpen,
+  showAcwrBadge,
   onClick,
   onEditClick,
 }: {
   session: PlannedSession
   isToday: boolean
   isOpen: boolean
+  showAcwrBadge: boolean
   onClick: () => void
   onEditClick: () => void
 }) {
@@ -98,9 +102,14 @@ function DraggableSessionCard({
           ].join(' ')}
         />
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-foreground leading-tight">
+          <div className="text-sm font-medium text-foreground leading-tight flex items-center gap-1.5">
             {t(`planning.sessions.types.${session.sessionType}`)}
-            {isCompleted && <span className="ml-1 text-emerald-500">✓</span>}
+            {isCompleted && <span className="text-emerald-500">✓</span>}
+            {showAcwrBadge && !isCompleted && (
+              <span className="text-xs text-orange-500" title="Charge élevée">
+                ⚡
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5 flex gap-2">
             <span>{session.targetDurationMinutes} min</span>
@@ -190,7 +199,7 @@ function DroppableDaySlot({
 
 // ── Composant principal ───────────────────────────────────────────────────────
 
-export default function WeekDndView({ days, onSessionUpdated }: Props) {
+export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = false }: Props) {
   const { t } = useTranslation()
   const [openSessionId, setOpenSessionId] = useState<number | null>(null)
   const [draggingSession, setDraggingSession] = useState<PlannedSession | null>(null)
@@ -273,6 +282,7 @@ export default function WeekDndView({ days, onSessionUpdated }: Props) {
                     session={session}
                     isToday={isToday}
                     isOpen={openSessionId === session.id}
+                    showAcwrBadge={showAcwrBadge}
                     onClick={() =>
                       setOpenSessionId(openSessionId === session.id ? null : session.id)
                     }

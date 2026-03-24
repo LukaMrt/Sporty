@@ -180,6 +180,16 @@
     },
     "withStrides": "{{session}} + strides"
   },
+  "acwr": {
+    "warning": {
+      "title": "Your body needs recovery.",
+      "message": "You've been training hard lately — make sure to recover well before your next intense session.",
+      "dismiss": "Close"
+    },
+    "techMode": {
+      "toggle": "Tech data"
+    }
+  },
   "phases": {
     "FI": "Foundation",
     "EQ": "Speed introduction",

@@ -29,7 +29,23 @@ export default class PlanningController {
   async index({ inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
     const overview = await this.getPlanOverview.execute(user.id)
-    return inertia.render('Planning/Index', { overview })
+
+    if (!overview) return inertia.render('Planning/Index', { overview: null })
+
+    const { fitnessProfile, ...rest } = overview
+    return inertia.render('Planning/Index', {
+      overview: {
+        ...rest,
+        fitnessProfile: fitnessProfile
+          ? {
+              ctl: Math.round(fitnessProfile.chronicTrainingLoad),
+              atl: Math.round(fitnessProfile.acuteTrainingLoad),
+              tsb: Math.round(fitnessProfile.trainingStressBalance),
+              acwr: Math.round(fitnessProfile.acuteChronicWorkloadRatio * 100) / 100,
+            }
+          : null,
+      },
+    })
   }
 
   async weekDetail({ params, auth, response }: HttpContext) {
