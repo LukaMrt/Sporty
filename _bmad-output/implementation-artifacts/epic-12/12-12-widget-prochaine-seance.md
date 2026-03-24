@@ -1,6 +1,6 @@
 # Story 12.12 : Widget dashboard — Prochaine seance
 
-Status: pending
+Status: review
 
 ## Story
 
@@ -19,17 +19,17 @@ So that **j'ai un rappel immediat sans naviguer vers la page planning**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Use case GetNextSession (AC: #1, #3)
-  - [ ] Creer `app/use_cases/planning/get_next_session.ts`
-  - [ ] Retourne la prochaine seance planifiee non completee, ou null
-- [ ] Task 2 : Composant NextSessionWidget (AC: #1-#6)
-  - [ ] Creer `inertia/components/planning/NextSessionWidget.tsx`
-  - [ ] Etats : seance a venir, aujourd'hui, repos, plan termine, pas de plan
-- [ ] Task 3 : Integration dashboard (AC: #1, #4)
-  - [ ] Integrer `NextSessionWidget` dans `inertia/pages/Dashboard.tsx` (ou equivalent)
-  - [ ] Passer les donnees depuis le controller dashboard
-- [ ] Task 4 : Controller dashboard
-  - [ ] Modifier le controller dashboard pour inclure la prochaine seance dans les props Inertia
+- [x] Task 1 : Use case GetNextSession (AC: #1, #3)
+  - [x] Creer `app/use_cases/planning/get_next_session.ts`
+  - [x] Retourne la prochaine seance planifiee non completee, ou null
+- [x] Task 2 : Composant NextSessionWidget (AC: #1-#6)
+  - [x] Creer `inertia/components/planning/NextSessionWidget.tsx`
+  - [x] Etats : seance a venir, aujourd'hui, repos, plan termine, pas de plan
+- [x] Task 3 : Integration dashboard (AC: #1, #4)
+  - [x] Integrer `NextSessionWidget` dans `inertia/pages/Dashboard.tsx` (ou equivalent)
+  - [x] Passer les donnees depuis le controller dashboard
+- [x] Task 4 : Controller dashboard
+  - [x] Modifier le controller dashboard pour inclure la prochaine seance dans les props Inertia
 
 ## Dev Notes
 
@@ -41,3 +41,32 @@ Le widget s'insere entre les quick stats et la timeline des seances passees, con
 
 - [UX Design section 5](/_bmad-output/planning-artifacts/planning-module/ux-design-planning-module.md#5)
 - [PRD FR24](/_bmad-output/planning-artifacts/planning-module/prd-planning-module.md)
+
+## Dev Agent Record
+
+### Implementation Plan
+
+- Use case `GetNextSession` : calcule la date absolue de chaque session (même logique que `sessionDate()` dans `Planning/Index.tsx`), filtre les sessions pending non-rest, retourne un discriminated union (null / plan_completed / upcoming / rest_today).
+- Controller dashboard modifié pour appeler `GetNextSession` en parallèle via `Promise.all`.
+- Composant `NextSessionWidget` : 4 états visuels, navigation vers `/planning` au clic, réutilise `ZONE_COLORS` et les clés i18n `planning.sessions.types.*`.
+- Traductions ajoutées dans `resources/lang/fr/dashboard.json`.
+
+### Completion Notes
+
+✅ Task 1 : `GetNextSession` use case + 5 tests unitaires (no plan, plan completed, past sessions, today, rest day, rest-type session skip)
+✅ Task 2 : `NextSessionWidget` — états upcoming/today/rest_today/plan_completed/null
+✅ Task 3 : `NextSessionWidget` intégré dans `Dashboard.tsx`, positionné entre hero et quick stats
+✅ Task 4 : `DashboardController` mis à jour, appel parallèle avec `Promise.all`
+
+### File List
+
+- app/use_cases/planning/get_next_session.ts (new)
+- tests/unit/use_cases/planning/get_next_session.spec.ts (new)
+- inertia/components/planning/NextSessionWidget.tsx (new)
+- inertia/pages/Dashboard.tsx (modified)
+- app/controllers/dashboard/dashboard_controller.ts (modified)
+- resources/lang/fr/dashboard.json (modified)
+
+### Change Log
+
+- 2026-03-24 : Story 12.12 implémentée — widget prochaine séance sur le dashboard

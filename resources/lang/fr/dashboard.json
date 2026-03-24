@@ -17,6 +17,21 @@
     "thisWeek": "cette sem.",
     "trendSuffix": "vs moy. 4 sem."
   },
+  "nextSession": {
+    "today": "Aujourd'hui",
+    "restToday": "Repos aujourd'hui. Prochaine séance :",
+    "planCompleted": "Plan terminé ! Voir les options →",
+    "duration": "{n} min",
+    "days": {
+      "0": "dim.",
+      "1": "lun.",
+      "2": "mar.",
+      "3": "mer.",
+      "4": "jeu.",
+      "5": "ven.",
+      "6": "sam."
+    }
+  },
   "chart": {
     "evolution": "Évolution",
     "periods": {

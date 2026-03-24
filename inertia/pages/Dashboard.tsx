@@ -15,12 +15,15 @@ import type {
 } from '../../app/domain/entities/dashboard_metrics'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import { useTranslation } from '~/hooks/use_translation'
+import NextSessionWidget from '~/components/planning/NextSessionWidget'
+import type { NextSessionResult } from '~/components/planning/NextSessionWidget'
 
 interface DashboardProps {
   sessionCount: number
   heroMetric: HeroMetricData | null
   quickStats: QuickStatData | null
   chartData: ChartData | null
+  nextSession: NextSessionResult
 }
 
 export default function Dashboard({
@@ -28,6 +31,7 @@ export default function Dashboard({
   heroMetric,
   quickStats,
   chartData,
+  nextSession,
 }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('all')
   const isEmpty = quickStats === null
@@ -56,6 +60,7 @@ export default function Dashboard({
               sparklineData={heroMetric.sparklineData}
             />
           )}
+          <NextSessionWidget result={nextSession} />
           <div className="grid grid-cols-3 gap-2">
             <QuickStatCard
               label={t('dashboard.stats.weeklyVolume')}
