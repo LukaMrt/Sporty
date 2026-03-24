@@ -41,6 +41,14 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     return models.map((m) => this.#toEntity(m))
   }
 
+  async findActiveByUserId(userId: number): Promise<TrainingPlan | null> {
+    const model = await TrainingPlanModel.query()
+      .where('userId', userId)
+      .whereIn('status', ['active', 'draft'])
+      .first()
+    return model ? this.#toEntity(model) : null
+  }
+
   async findActiveByGoalId(goalId: number): Promise<TrainingPlan | null> {
     const model = await TrainingPlanModel.query()
       .where('goalId', goalId)

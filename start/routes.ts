@@ -31,6 +31,7 @@ const ImportSessionsController = () => import('#controllers/import/import_sessio
 const AthleteProfileController = () => import('#controllers/planning/athlete_profile_controller')
 const GoalsController = () => import('#controllers/planning/goals_controller')
 const GoalWizardController = () => import('#controllers/planning/goal_wizard_controller')
+const PlanningController = () => import('#controllers/planning/planning_controller')
 const GpxController = () => import('#controllers/sessions/gpx_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
@@ -67,6 +68,7 @@ router
     router.post('/planning/goals', [GoalsController, 'store'])
     router.put('/planning/goals/:id', [GoalsController, 'update'])
     router.post('/planning/goals/:id/abandon', [GoalsController, 'abandon'])
+    router.post('/planning/generate', [PlanningController, 'generate'])
     router.get('/profile/athlete', [AthleteProfileController, 'show'])
     router.get('/profile/athlete/estimate-vdot', [AthleteProfileController, 'estimateVdot'])
     router.post('/profile/athlete/confirm-vdot', [AthleteProfileController, 'confirmVdot'])

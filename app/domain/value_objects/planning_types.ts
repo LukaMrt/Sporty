@@ -13,6 +13,7 @@ export enum BiologicalSex {
 export enum TrainingState {
   Idle = 'idle',
   InPlan = 'in_plan',
+  Preparation = 'preparation',
 }
 
 export enum PlanType {
