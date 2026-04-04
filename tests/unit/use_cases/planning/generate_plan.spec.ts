@@ -54,7 +54,13 @@ const PLAN_TEMPLATE: TrainingPlan = {
   currentVdot: 45,
   sessionsPerWeek: 4,
   preferredDays: [1, 3, 5, 6],
-  startDate: new Date().toISOString().slice(0, 10),
+  startDate: (() => {
+    const d = new Date()
+    const day = d.getDay()
+    const daysUntilNextMonday = day === 0 ? 1 : 8 - day
+    d.setDate(d.getDate() + daysUntilNextMonday)
+    return d.toISOString().slice(0, 10)
+  })(),
   endDate: '2026-06-01',
   lastRecalibratedAt: null,
   createdAt: new Date().toISOString(),

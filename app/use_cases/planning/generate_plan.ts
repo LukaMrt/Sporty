@@ -52,6 +52,14 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+function nextMondayIso(): string {
+  const d = new Date()
+  const day = d.getDay() // 0 = dimanche, 1 = lundi, ...
+  const daysUntilNextMonday = day === 0 ? 1 : 8 - day
+  d.setDate(d.getDate() + daysUntilNextMonday)
+  return d.toISOString().slice(0, 10)
+}
+
 @inject()
 export default class GeneratePlan {
   constructor(
@@ -108,7 +116,7 @@ export default class GeneratePlan {
         : 0
 
     // 8. Assembler la PlanRequest
-    const startDate = todayIso()
+    const startDate = nextMondayIso()
     const planRequest = {
       targetDistanceKm: goal.targetDistanceKm,
       targetTimeMinutes: goal.targetTimeMinutes,
