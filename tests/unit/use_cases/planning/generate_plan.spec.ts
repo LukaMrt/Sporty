@@ -26,6 +26,7 @@ import type { UserProfile } from '#domain/entities/user_profile'
 import type { TrainingLoad } from '#domain/value_objects/training_load'
 import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 import type { GeneratedPlan } from '#domain/interfaces/training_plan_engine'
+import type { PlanRequest } from '#domain/value_objects/plan_request'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { UserLevel } from '#domain/entities/user_profile'
 
@@ -273,6 +274,44 @@ function makePlanEngine(): TrainingPlanEngine {
   return new MockEngine()
 }
 
+let capturedWeeklyVolume: number | undefined
+
+function makePlanEngineCapturing(): TrainingPlanEngine {
+  class CapturingEngine extends TrainingPlanEngine {
+    generatePlan(request: PlanRequest): GeneratedPlan {
+      capturedWeeklyVolume = request.currentWeeklyVolumeMinutes
+      return GENERATED_PLAN
+    }
+    recalibrate(): GeneratedPlan {
+      return GENERATED_PLAN
+    }
+    generateMaintenancePlan(): GeneratedPlan {
+      return GENERATED_PLAN
+    }
+    generateTransitionPlan(): GeneratedPlan {
+      return GENERATED_PLAN
+    }
+  }
+  return new CapturingEngine()
+}
+
+function makeSession(date: string, durationMinutes: number): TrainingSession {
+  return {
+    id: Math.random(),
+    userId: 1,
+    sportId: 1,
+    sportName: 'running',
+    date,
+    durationMinutes,
+    distanceKm: null,
+    avgHeartRate: null,
+    perceivedEffort: null,
+    sportMetrics: {},
+    notes: null,
+    createdAt: new Date().toISOString(),
+  }
+}
+
 function makeUserProfileRepo(): UserProfileRepository {
   class MockProfileRepo extends UserProfileRepository {
     async create(): Promise<UserProfile> {
@@ -304,6 +343,22 @@ function makeUseCase(
     makeLoadCalculator(),
     makeFitnessCalculator(),
     makePlanEngine(),
+    makeUserProfileRepo()
+  )
+}
+
+const FIVE_K_GOAL_FOR_VOLUME: TrainingGoal = { ...ACTIVE_GOAL, targetDistanceKm: 5 }
+
+// Utilise un objectif 5k (floor = 0) pour tester la logique de calcul du volume
+// sans que le plancher par distance n'interfère avec les assertions
+function makeUseCaseCapturing(sessions: TrainingSession[]) {
+  return new GeneratePlan(
+    makeGoalRepo(FIVE_K_GOAL_FOR_VOLUME),
+    makePlanRepo(null),
+    makeSessionRepo(sessions),
+    makeLoadCalculator(),
+    makeFitnessCalculator(),
+    makePlanEngineCapturing(),
     makeUserProfileRepo()
   )
 }
@@ -355,5 +410,119 @@ test.group('GeneratePlan — use case', () => {
     assert.isDefined(session.sessionType)
     assert.isDefined(session.intensityZone)
     assert.isDefined(session.targetDurationMinutes)
+  })
+})
+
+test.group('GeneratePlan — calcul du volume hebdomadaire', () => {
+  test('divise par le nombre de semaines actives, pas par 6 fixe', async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+
+    // 2 séances le même jour (1 seule semaine active = 1, pas 6)
+    const today = new Date().toISOString().slice(0, 10)
+    const sessions = [makeSession(today, 60), makeSession(today, 60)]
+
+    await makeUseCaseCapturing(sessions).execute(INPUT)
+
+    // 120 min sur 1 semaine active → 120 min/semaine (pas 120/6 = 20)
+    assert.equal(capturedWeeklyVolume, 120)
+  })
+
+  test('moyenne correcte sur plusieurs semaines actives', async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+
+    // Exactement 7 jours d'écart → toujours dans deux semaines epoch distinctes
+    const today = new Date()
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(today.getDate() - 7)
+
+    const sessions = [
+      makeSession(today.toISOString().slice(0, 10), 60), // semaine courante : 60 min
+      makeSession(sevenDaysAgo.toISOString().slice(0, 10), 40), // semaine précédente : 40 min
+    ]
+
+    await makeUseCaseCapturing(sessions).execute(INPUT)
+
+    // (60 + 40) / 2 semaines actives = 50
+    assert.equal(capturedWeeklyVolume, 50)
+  })
+
+  test("retourne 0 si aucune séance dans l'historique", async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+    await makeUseCaseCapturing([]).execute(INPUT)
+    assert.equal(capturedWeeklyVolume, 0)
+  })
+})
+
+const MARATHON_GOAL: TrainingGoal = { ...ACTIVE_GOAL, targetDistanceKm: 42.195 }
+const HALF_GOAL: TrainingGoal = { ...ACTIVE_GOAL, targetDistanceKm: 21.1 }
+const TEN_K_GOAL: TrainingGoal = { ...ACTIVE_GOAL, targetDistanceKm: 10 }
+const FIVE_K_GOAL: TrainingGoal = { ...ACTIVE_GOAL, targetDistanceKm: 5 }
+
+function makeUseCaseCapturingWithGoal(goal: TrainingGoal, sessions: TrainingSession[] = []) {
+  return new GeneratePlan(
+    makeGoalRepo(goal),
+    makePlanRepo(null),
+    makeSessionRepo(sessions),
+    makeLoadCalculator(),
+    makeFitnessCalculator(),
+    makePlanEngineCapturing(),
+    makeUserProfileRepo()
+  )
+}
+
+test.group('GeneratePlan — volume minimal par distance (D+B)', () => {
+  test('marathon : volume relevé à 200 min si historique insuffisant', async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+    const useCase = makeUseCaseCapturingWithGoal(MARATHON_GOAL, [
+      makeSession(new Date().toISOString().slice(0, 10), 60), // 60 min/semaine → insuffisant
+    ])
+    const result = await useCase.execute(INPUT)
+
+    assert.equal(capturedWeeklyVolume, 200, 'Le volume doit être relevé au minimum marathon')
+    assert.isTrue(result.volumeAdjusted, 'volumeAdjusted doit être true')
+  })
+
+  test('demi-marathon : volume relevé à 150 min si insuffisant', async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+    const useCase = makeUseCaseCapturingWithGoal(HALF_GOAL, [
+      makeSession(new Date().toISOString().slice(0, 10), 80), // 80 min < 150 min
+    ])
+    const result = await useCase.execute(INPUT)
+
+    assert.equal(capturedWeeklyVolume, 150)
+    assert.isTrue(result.volumeAdjusted)
+  })
+
+  test('10k : volume relevé à 100 min si insuffisant', async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+    const useCase = makeUseCaseCapturingWithGoal(TEN_K_GOAL, [
+      makeSession(new Date().toISOString().slice(0, 10), 50), // 50 min < 100 min
+    ])
+    const result = await useCase.execute(INPUT)
+
+    assert.equal(capturedWeeklyVolume, 100)
+    assert.isTrue(result.volumeAdjusted)
+  })
+
+  test('5k : pas de minimum — volume réel utilisé', async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+    const useCase = makeUseCaseCapturingWithGoal(FIVE_K_GOAL, [
+      makeSession(new Date().toISOString().slice(0, 10), 20),
+    ])
+    const result = await useCase.execute(INPUT)
+
+    assert.equal(capturedWeeklyVolume, 20, 'Aucun floor pour le 5km')
+    assert.isFalse(result.volumeAdjusted)
+  })
+
+  test("pas d'ajustement si volume déjà suffisant", async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+    const useCase = makeUseCaseCapturingWithGoal(MARATHON_GOAL, [
+      makeSession(new Date().toISOString().slice(0, 10), 250), // 250 > 200
+    ])
+    const result = await useCase.execute(INPUT)
+
+    assert.equal(capturedWeeklyVolume, 250, 'Le volume réel doit être préservé')
+    assert.isFalse(result.volumeAdjusted)
   })
 })

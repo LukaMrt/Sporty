@@ -33,6 +33,25 @@ export interface GeneratePlanResult {
   weeks: PlannedWeek[]
   sessions: PlannedSession[]
   fitnessProfile: FitnessProfile | null
+  // true si le volume de base de l'utilisateur était insuffisant et a été relevé au minimum
+  // recommandé pour la distance cible (§8.3, §4.1 doc recherche)
+  volumeAdjusted: boolean
+}
+
+// Volume hebdomadaire minimal recommandé pour chaque distance (Daniels §4.1 + §8.3).
+// En dessous de ces seuils, le plan est généré mais avec un avertissement.
+const MIN_BASE_VOLUME_MINUTES: Record<string, number> = {
+  '5k': 0, // accessible à tous
+  '10k': 100, // ~1h40/semaine minimum
+  'half': 150, // ~2h30/semaine minimum
+  'marathon': 200, // ~3h20/semaine minimum
+}
+
+function getDistanceKey(distanceKm: number): string {
+  if (distanceKm <= 5) return '5k'
+  if (distanceKm <= 10) return '10k'
+  if (distanceKm <= 21.1) return 'half'
+  return 'marathon'
 }
 
 function getPlanType(distanceKm: number): PlanType {
@@ -110,12 +129,26 @@ export default class GeneratePlan {
     const paceZones = derivePaceZones(input.vdot)
 
     // 7. Volume hebdomadaire courant (depuis l'historique)
-    const weeklyVolumeMinutes =
-      historySessions.length > 0
-        ? Math.round(historySessions.reduce((sum, s) => sum + s.durationMinutes, 0) / 6)
-        : 0
+    // On divise par le nombre de semaines ayant au moins une séance, pas par 6 fixe —
+    // évite de sous-estimer le volume d'un coureur actif sur seulement 2-3 semaines.
+    const weeklyVolumeMinutes = (() => {
+      if (historySessions.length === 0) return 0
+      const weekOf = (date: string) =>
+        Math.floor(new Date(date).getTime() / (7 * 24 * 60 * 60 * 1000))
+      const activeWeeks = new Set(historySessions.map((s) => weekOf(s.date))).size
+      const totalMinutes = historySessions.reduce((sum, s) => sum + s.durationMinutes, 0)
+      return Math.round(totalMinutes / activeWeeks)
+    })()
 
-    // 8. Assembler la PlanRequest
+    // 8. Appliquer le volume minimal recommandé par distance (Option D+B)
+    // Si le volume réel est en dessous du seuil, on le relève au minimum pour que le plan
+    // soit physiologiquement cohérent. volumeAdjusted signale l'ajustement au controller.
+    const distanceKey = getDistanceKey(goal.targetDistanceKm)
+    const minVolume = MIN_BASE_VOLUME_MINUTES[distanceKey]
+    const volumeAdjusted = weeklyVolumeMinutes < minVolume
+    const effectiveVolume = Math.max(weeklyVolumeMinutes, minVolume)
+
+    // 9. Assembler la PlanRequest
     const startDate = nextMondayIso()
     const planRequest = {
       targetDistanceKm: goal.targetDistanceKm,
@@ -127,7 +160,7 @@ export default class GeneratePlan {
       sessionsPerWeek: input.sessionsPerWeek,
       preferredDays: input.preferredDays,
       startDate,
-      currentWeeklyVolumeMinutes: weeklyVolumeMinutes,
+      currentWeeklyVolumeMinutes: effectiveVolume,
     }
 
     // 9. Générer le plan via le moteur
@@ -190,6 +223,6 @@ export default class GeneratePlan {
       trainingState: TrainingState.Preparation,
     })
 
-    return { plan, weeks: savedWeeks, sessions: savedSessions, fitnessProfile }
+    return { plan, weeks: savedWeeks, sessions: savedSessions, fitnessProfile, volumeAdjusted }
   }
 }

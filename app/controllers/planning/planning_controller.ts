@@ -69,7 +69,7 @@ export default class PlanningController {
     const data = await request.validateUsing(generatePlanValidator)
 
     try {
-      await this.generatePlanUseCase.execute({
+      const result = await this.generatePlanUseCase.execute({
         userId: user.id,
         vdot: data.vdot,
         sessionsPerWeek: data.sessions_per_week,
@@ -78,7 +78,13 @@ export default class PlanningController {
       })
 
       if (request.accepts(['json'])) {
-        return response.ok({ ok: true })
+        return response.ok({ ok: true, volumeAdjusted: result.volumeAdjusted })
+      }
+      if (result.volumeAdjusted) {
+        session.flash(
+          'warning',
+          "Votre volume d'entraînement actuel est insuffisant pour cette distance. Le plan a été ajusté au volume minimal recommandé — augmentez progressivement votre base avant de commencer."
+        )
       }
       return response.redirect().toPath('/planning')
     } catch (error) {

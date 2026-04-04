@@ -151,10 +151,29 @@ test.group('DanielsPlanEngine — règles de volume', () => {
     for (const rw of recoveryWeeks) {
       const prevWeek = plan.weeks[rw.weekNumber - 2]
       if (prevWeek && !prevWeek.isRecoveryWeek) {
-        // Recovery = 75% of what the progression would give
+        // Recovery = (prevWeek +10%) × 75% — la récupération est désormais intégrée dans le calcul
+        // des volumes et non appliquée en post-hoc (fix bug saut post-récup)
         const expectedBase = Math.round(prevWeek.targetVolumeMinutes * 1.1)
         const expectedRecovery = Math.round(expectedBase * 0.75)
         assert.closeTo(rw.targetVolumeMinutes, expectedRecovery, 2)
+      }
+    }
+  })
+
+  test('pas de saut > 10% après une semaine de récupération', ({ assert }) => {
+    const plan = engine.generatePlan(makePlanRequest({ totalWeeks: 16, eventDate: null }))
+    for (let i = 1; i < plan.weeks.length; i++) {
+      const prev = plan.weeks[i - 1]
+      const curr = plan.weeks[i]
+      if (!curr.isRecoveryWeek) {
+        // La semaine courante ne doit pas dépasser +10% de la précédente,
+        // qu'elle soit de récupération ou non (Daniels §4.4)
+        const maxAllowed = Math.round(prev.targetVolumeMinutes * 1.1) + 1 // +1 arrondi
+        assert.isAtMost(
+          curr.targetVolumeMinutes,
+          maxAllowed,
+          `S${curr.weekNumber} (${curr.targetVolumeMinutes}) saute > 10% depuis S${prev.weekNumber} (${prev.targetVolumeMinutes})`
+        )
       }
     }
   })
@@ -260,6 +279,94 @@ test.group('DanielsPlanEngine — mix qualité par distance', () => {
       .flatMap((w) => w.sessions)
       .filter((s) => s.sessionType === SessionType.MarathonPace)
     assert.isAbove(mpSessions.length, 0)
+  })
+
+  test('plan 5K en phase TQ : contient des séances repetition (R prioritaire sur I, Daniels §4.3)', ({
+    assert,
+  }) => {
+    // Plan long pour garantir d'atteindre la phase TQ
+    const plan = engine.generatePlan(
+      makePlanRequest({ targetDistanceKm: 5, totalWeeks: 16, eventDate: null })
+    )
+    const tqWeeks = plan.weeks.filter((w) => w.phaseName === 'TQ')
+    assert.isAbove(tqWeeks.length, 0, 'Le plan doit avoir des semaines TQ')
+
+    const tqSessions = tqWeeks.flatMap((w) => w.sessions)
+    const hasRepetition = tqSessions.some((s) => s.sessionType === SessionType.Repetition)
+    assert.isTrue(hasRepetition, 'Le 5km TQ doit inclure des séances repetition')
+  })
+
+  test('plan 5K et plan 10K ont des sessions qualité différentes en phase TQ', ({ assert }) => {
+    const plan5k = engine.generatePlan(
+      makePlanRequest({ targetDistanceKm: 5, totalWeeks: 16, eventDate: null })
+    )
+    const plan10k = engine.generatePlan(
+      makePlanRequest({ targetDistanceKm: 10, totalWeeks: 16, eventDate: null })
+    )
+
+    const tqTypes5k = new Set(
+      plan5k.weeks
+        .filter((w) => w.phaseName === 'TQ')
+        .flatMap((w) => w.sessions)
+        .map((s) => s.sessionType)
+    )
+    const tqTypes10k = new Set(
+      plan10k.weeks
+        .filter((w) => w.phaseName === 'TQ')
+        .flatMap((w) => w.sessions)
+        .map((s) => s.sessionType)
+    )
+
+    // 5km doit avoir Repetition en TQ, 10km n'en a pas (Interval + Tempo)
+    assert.isTrue(tqTypes5k.has(SessionType.Repetition), '5km TQ : Repetition attendu')
+    assert.isFalse(tqTypes10k.has(SessionType.Repetition), '10km TQ : Repetition non attendu')
+    assert.isTrue(tqTypes10k.has(SessionType.Interval), '10km TQ : Interval attendu')
+  })
+})
+
+test.group('DanielsPlanEngine — cap séances easy', () => {
+  test('aucune séance easy ne dépasse 90 min', ({ assert }) => {
+    // Plan avec volume élevé pour déclencher le bug (ex : 5 sessions, 400 min/semaine)
+    const plan = engine.generatePlan(
+      makePlanRequest({
+        targetDistanceKm: 21.1,
+        totalWeeks: 16,
+        sessionsPerWeek: 4,
+        currentWeeklyVolumeMinutes: 300,
+        eventDate: null,
+      })
+    )
+    const easySessions = plan.weeks
+      .flatMap((w) => w.sessions)
+      .filter((s) => s.sessionType === SessionType.Easy)
+
+    for (const session of easySessions) {
+      assert.isAtMost(
+        session.targetDurationMinutes,
+        90,
+        `Séance easy S${session.dayOfWeek} = ${session.targetDurationMinutes} min dépasse le cap`
+      )
+    }
+  })
+
+  test('les séances easy restent raisonnables même avec fort volume hebdo', ({ assert }) => {
+    const plan = engine.generatePlan(
+      makePlanRequest({
+        targetDistanceKm: 10,
+        totalWeeks: 12,
+        sessionsPerWeek: 3,
+        currentWeeklyVolumeMinutes: 500,
+        eventDate: null,
+      })
+    )
+    const easySessions = plan.weeks
+      .flatMap((w) => w.sessions)
+      .filter((s) => s.sessionType === SessionType.Easy)
+
+    assert.isAbove(easySessions.length, 0)
+    for (const session of easySessions) {
+      assert.isAtMost(session.targetDurationMinutes, 90)
+    }
   })
 })
 

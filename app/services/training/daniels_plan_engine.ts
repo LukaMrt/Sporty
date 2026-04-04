@@ -47,7 +47,7 @@ const QUALITY_MATRIX: Record<DistanceCategory, Record<PhaseName, QualityMix>> = 
   '5k': {
     FI: [SessionType.Easy],
     EQ: [SessionType.Repetition, SessionType.Tempo],
-    TQ: [SessionType.Interval, SessionType.Tempo],
+    TQ: [SessionType.Repetition, SessionType.Interval], // 5k : R > I (Daniels §4.3 : R 200-400m prioritaire)
     FQ: [SessionType.Tempo, SessionType.Repetition],
   },
   '10k': {
@@ -73,6 +73,9 @@ const QUALITY_MATRIX: Record<DistanceCategory, Record<PhaseName, QualityMix>> = 
 // ---------------------------------------------------------------------------
 // Volume rules (Daniels percentages applied to work minutes)
 // ---------------------------------------------------------------------------
+
+// Cap par séance easy : évite d'absorber tout le volume résiduel sur un seul jour (§7.1 TID pyramidal)
+const MAX_EASY_SESSION_MINUTES = 90
 
 const VOLUME_RULES = {
   longRunMaxPct: 0.3,
@@ -407,9 +410,6 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
         const isTaperWeek = taperWeeks > 0 && weekNumber > totalWeeks - taperWeeks
 
         let volume = weeklyVolumes[weekNumber - 1]
-        if (isRecoveryWeek) {
-          volume = Math.round(volume * (1 - VOLUME_RULES.recoveryReduction))
-        }
         if (isTaperWeek) {
           const weeksToRace = totalWeeks - weekNumber + 1
           const progress = (taperWeeks - weeksToRace + 1) / taperWeeks // 0→1
@@ -466,7 +466,11 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     // Recalculate volumes starting from current volume with new progression
     const startVolume =
       remainingWeeks[0]?.targetVolumeMinutes ?? originalRequest.currentWeeklyVolumeMinutes
-    const weeklyVolumes = this.#calculateWeeklyVolumes(remainingCount, startVolume)
+    const weeklyVolumes = this.#calculateWeeklyVolumes(
+      remainingCount,
+      startVolume,
+      currentWeekNumber - 1
+    )
     const distanceCategory = getDistanceCategory(originalRequest.targetDistanceKm)
     const taperWeeks = originalRequest.eventDate
       ? getTaperWeeks(originalRequest.targetDistanceKm)
@@ -483,9 +487,6 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
       const isTaperWeek = taperWeeks > 0 && weekNumber > totalWeeks - taperWeeks
 
       let volume = weeklyVolumes[i]
-      if (isRecoveryWeek) {
-        volume = Math.round(volume * (1 - VOLUME_RULES.recoveryReduction))
-      }
       if (isTaperWeek) {
         const weeksToRace = totalWeeks - weekNumber + 1
         const progress = (taperWeeks - weeksToRace + 1) / taperWeeks
@@ -604,13 +605,28 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     return DANIELS_PHASES.map((_, i) => base + (i < remainder ? 1 : 0))
   }
 
-  #calculateWeeklyVolumes(totalWeeks: number, startVolume: number): number[] {
-    const volumes: number[] = [startVolume]
-    for (let i = 1; i < totalWeeks; i++) {
-      const prevVolume = volumes[i - 1]
-      const nextVolume = Math.round(prevVolume * (1 + VOLUME_RULES.weeklyProgressionMax))
-      volumes.push(nextVolume)
+  // Calcule les volumes hebdomadaires avec progression +10%/semaine et semaines de récupération
+  // intégrées. La semaine post-récupération repart du volume de récup (pas de la progression
+  // non-réduite), ce qui évite les sauts > 10% (Daniels §4.4 : max +10%/semaine).
+  // weekOffset permet d'aligner les numéros de semaine sur le plan global (ex : recalibration
+  // depuis la semaine 6 → offset = 5 pour que la récupération tombe aux bonnes semaines).
+  #calculateWeeklyVolumes(totalWeeks: number, startVolume: number, weekOffset = 0): number[] {
+    const volumes: number[] = []
+    let base = startVolume
+
+    for (let i = 0; i < totalWeeks; i++) {
+      const weekNumber = i + 1 + weekOffset
+      const isRecovery = weekNumber > 1 && weekNumber % (VOLUME_RULES.recoveryFrequency + 1) === 0
+      const progressionVolume =
+        i === 0 ? base : Math.round(base * (1 + VOLUME_RULES.weeklyProgressionMax))
+      const volume = isRecovery
+        ? Math.round(progressionVolume * (1 - VOLUME_RULES.recoveryReduction))
+        : progressionVolume
+
+      volumes.push(volume)
+      base = volume // la semaine suivante progresse depuis le volume réel (pas la progression idéale)
     }
+
     return volumes
   }
 
@@ -676,7 +692,10 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     const easyDays = remainingDays.filter((d) => !usedDays.includes(d))
     const remainingVolume =
       weekVolume - sessions.reduce((sum, s) => sum + s.targetDurationMinutes, 0)
-    const easyPerSession = easyDays.length > 0 ? Math.round(remainingVolume / easyDays.length) : 0
+    const easyPerSession =
+      easyDays.length > 0
+        ? Math.min(MAX_EASY_SESSION_MINUTES, Math.round(remainingVolume / easyDays.length))
+        : 0
 
     for (const [idx, day] of easyDays.entries()) {
       const addStrides = (phase === 'FI' || phase === 'EQ') && idx < 2 && !isTaperWeek
