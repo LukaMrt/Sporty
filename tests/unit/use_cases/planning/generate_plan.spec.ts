@@ -64,6 +64,7 @@ const PLAN_TEMPLATE: TrainingPlan = {
   })(),
   endDate: '2026-06-01',
   lastRecalibratedAt: null,
+  pendingVdotDown: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -192,6 +193,7 @@ function makePlanRepo(existingActivePlan: TrainingPlan | null): TrainingPlanRepo
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
 }

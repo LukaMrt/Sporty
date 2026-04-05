@@ -36,6 +36,7 @@ const ACTIVE_PLAN: TrainingPlan = {
   startDate: '2026-01-01',
   endDate: '2026-06-01',
   lastRecalibratedAt: null,
+  pendingVdotDown: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -120,6 +121,7 @@ function makePlanRepo(opts: {
     ): Promise<PlannedSession> {
       return { ...PLANNED_SESSION, ...data }
     }
+    async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
 }

@@ -28,4 +28,6 @@ export abstract class TrainingPlanRepository {
     id: number,
     data: Partial<Omit<PlannedSession, 'id' | 'planId' | 'createdAt' | 'updatedAt'>>
   ): Promise<PlannedSession>
+
+  abstract deleteSessionsFromWeek(planId: number, fromWeekNumber: number): Promise<void>
 }

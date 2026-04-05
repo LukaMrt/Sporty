@@ -32,6 +32,7 @@ const AthleteProfileController = () => import('#controllers/planning/athlete_pro
 const GoalsController = () => import('#controllers/planning/goals_controller')
 const GoalWizardController = () => import('#controllers/planning/goal_wizard_controller')
 const PlanningController = () => import('#controllers/planning/planning_controller')
+const RecalibrationController = () => import('#controllers/planning/recalibration_controller')
 const GpxController = () => import('#controllers/sessions/gpx_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
@@ -72,6 +73,8 @@ router
     router.post('/planning/generate', [PlanningController, 'generate'])
     router.put('/planning/sessions/:id', [PlanningController, 'updateSession'])
     router.post('/planning/sessions/:id/link', [PlanningController, 'linkSession'])
+    router.post('/planning/toggle-auto-recalibrate', [RecalibrationController, 'toggle'])
+    router.post('/planning/vdot-down-proposal', [RecalibrationController, 'handleVdotProposal'])
     router.get('/profile/athlete', [AthleteProfileController, 'show'])
     router.get('/profile/athlete/estimate-vdot', [AthleteProfileController, 'estimateVdot'])
     router.post('/profile/athlete/confirm-vdot', [AthleteProfileController, 'confirmVdot'])

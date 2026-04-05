@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { Button } from '~/components/ui/button'
@@ -7,6 +7,7 @@ import { useTechMode } from '~/hooks/use_tech_mode'
 import type { PlanOverview, PlannedSession, PlannedWeek } from '~/types/planning'
 import WeekDndView from '~/components/planning/WeekDndView'
 import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
+import RecalibrationDialog from '~/components/planning/RecalibrationDialog'
 
 interface Props {
   overview: PlanOverview | null
@@ -107,6 +108,9 @@ export default function PlanningIndex({ overview }: Props) {
   const [selectedWeek, setSelectedWeek] = useState(overview?.currentWeekNumber ?? 1)
   const [view, setView] = useState<'week' | 'weeks'>('week')
   const [acwrDismissed, setAcwrDismissed] = useState(false)
+  const [vdotToastVisible, setVdotToastVisible] = useState(false)
+  const [recalibDialogOpen, setRecalibDialogOpen] = useState(false)
+  const vdotToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // sessionsByWeek local — mis à jour de façon optimiste lors des ajustements
   const [localSessionsByWeek, setLocalSessionsByWeek] = useState(overview?.sessionsByWeek ?? {})
 
@@ -114,6 +118,30 @@ export default function PlanningIndex({ overview }: Props) {
   useEffect(() => {
     if (overview?.sessionsByWeek) setLocalSessionsByWeek(overview.sessionsByWeek)
   }, [overview?.sessionsByWeek])
+
+  // Afficher le toast VDOT hausse une seule fois par palier de VDOT (clé localStorage)
+  useEffect(() => {
+    if (!overview?.plan) return
+    const { currentVdot, vdotAtCreation, id } = overview.plan
+    if (currentVdot <= vdotAtCreation) return
+    const key = `vdot_toast_shown_${id}_${currentVdot}`
+    if (localStorage.getItem(key)) return
+    localStorage.setItem(key, '1')
+    setVdotToastVisible(true)
+    vdotToastTimer.current = setTimeout(() => setVdotToastVisible(false), 5000)
+    return () => {
+      if (vdotToastTimer.current) clearTimeout(vdotToastTimer.current)
+    }
+  }, [overview?.plan])
+
+  // Ouvrir le dialog si une proposition VDOT baisse est pendante
+  useEffect(() => {
+    if (overview?.plan?.pendingVdotDown) setRecalibDialogOpen(true)
+  }, [overview?.plan?.pendingVdotDown])
+
+  function handleToggleAutoRecalibrate() {
+    router.post('/planning/toggle-auto-recalibrate', {}, { preserveScroll: true })
+  }
 
   function handleSessionUpdated(updated: PlannedSession) {
     setLocalSessionsByWeek((prev) => {
@@ -340,7 +368,56 @@ export default function PlanningIndex({ overview }: Props) {
             ))}
           </div>
         )}
+
+        {/* Toggle recalibration auto */}
+        <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium text-foreground">
+              {t('planning.recalibration.autoToggleLabel') ?? 'Recalibration automatique'}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {t('planning.recalibration.autoToggleDesc') ??
+                'Ajuste les allures et la charge à la fin de chaque semaine'}
+            </div>
+          </div>
+          <button
+            onClick={handleToggleAutoRecalibrate}
+            className={[
+              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
+              plan.autoRecalibrate ? 'bg-primary' : 'bg-muted',
+            ].join(' ')}
+            role="switch"
+            aria-checked={plan.autoRecalibrate}
+          >
+            <span
+              className={[
+                'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
+                plan.autoRecalibrate ? 'translate-x-5' : 'translate-x-0',
+              ].join(' ')}
+            />
+          </button>
+        </div>
       </div>
+
+      {/* Toast VDOT hausse */}
+      {vdotToastVisible && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
+          <div className="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-full shadow-lg">
+            {t('planning.recalibration.vdotUpToast', { vdot: plan.currentVdot }) ??
+              `VDOT mis à jour → ${plan.currentVdot}`}
+          </div>
+        </div>
+      )}
+
+      {/* Dialog proposition baisse VDOT */}
+      {plan.pendingVdotDown && (
+        <RecalibrationDialog
+          open={recalibDialogOpen}
+          currentVdot={plan.currentVdot}
+          proposedVdot={plan.pendingVdotDown}
+          onClose={() => setRecalibDialogOpen(false)}
+        />
+      )}
     </>
   )
 }

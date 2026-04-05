@@ -76,6 +76,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       model.lastRecalibratedAt = data.lastRecalibratedAt
         ? DateTime.fromISO(data.lastRecalibratedAt)
         : null
+    if (data.pendingVdotDown !== undefined) model.pendingVdotDown = data.pendingVdotDown ?? null
     await model.save()
     return this.#toEntity(model)
   }
@@ -128,6 +129,13 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     return this.#sessionToEntity(model)
   }
 
+  async deleteSessionsFromWeek(planId: number, fromWeekNumber: number): Promise<void> {
+    await PlannedSessionModel.query()
+      .where('planId', planId)
+      .where('week_number', '>=', fromWeekNumber)
+      .delete()
+  }
+
   #toEntity(model: TrainingPlanModel): TrainingPlan {
     return {
       id: model.id,
@@ -144,6 +152,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       startDate: model.startDate.toISODate() ?? '',
       endDate: model.endDate.toISODate() ?? '',
       lastRecalibratedAt: model.lastRecalibratedAt?.toISO() ?? null,
+      pendingVdotDown: model.pendingVdotDown,
       createdAt: model.createdAt.toISO() ?? '',
       updatedAt: model.updatedAt.toISO() ?? '',
     }

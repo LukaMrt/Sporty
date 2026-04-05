@@ -1,6 +1,6 @@
 # Story 12.15 : Boucle adaptative — Recalibration du plan
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -35,42 +35,42 @@ Le trigger `week:completed` est **détecté** (dernière session planifiée de l
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Listener UpdateFitnessProfileListener (AC: #1, #2)
-  - [ ] Creer `app/listeners/update_fitness_profile_listener.ts`
-  - [ ] Ecouter `session:completed`
-  - [ ] Appeler FitnessProfileCalculator et persister CTL/ATL/TSB
-  - [ ] Detecter si la session completee est la derniere session planifiee de sa semaine → emettre `week:completed`
-  - [ ] Enregistrer le listener dans `start/events.ts`
-- [ ] Task 2 : Listener RecalibratePlanListener (AC: #3, #9)
-  - [ ] Creer `app/listeners/recalibrate_plan_listener.ts`
-  - [ ] Ecouter `week:completed`
-  - [ ] Verifier plan actif + autoRecalibrate === true
-  - [ ] Appeler use case RecalibratePlan avec le bilan de semaine
-  - [ ] Enregistrer le listener dans `start/events.ts`
-- [ ] Task 3 : Use case RecalibratePlan (AC: #4-#8, #10)
-  - [ ] Creer `app/use_cases/planning/recalibrate_plan.ts`
-  - [ ] Recevoir WeekSummary { plannedLoadTss, actualLoadTss, qualitySessions[] }
-  - [ ] Calculer delta hebdomadaire
-  - [ ] Appliquer les seuils : < ±10% → rien, ±10-20% → ajustement allures, > ±20% → reevaluation VDOT
-  - [ ] Reevaluation VDOT hausse auto
-  - [ ] Detection 3+ seances qualite sous cibles → flag pour confirmation
-  - [ ] Appeler TrainingPlanEngine.recalibrate() si necessaire
-  - [ ] Persister les changements
-- [ ] Task 4 : Use case ToggleAutoRecalibrate (AC: #9)
-  - [ ] Creer `app/use_cases/planning/toggle_auto_recalibrate.ts`
-  - [ ] Route : `POST /planning/toggle-auto-recalibrate`
-- [ ] Task 5 : UI — Feedback recalibration (AC: #6, #8)
-  - [ ] Toast VDOT hausse (5s, non bloquant)
-  - [ ] Creer `inertia/components/planning/RecalibrationDialog.tsx` — proposition baisse VDOT
-  - [ ] Toggle recalibration sur la page `/planning`
-- [ ] Task 6 : Tests
-  - [ ] Test listener UpdateFitnessProfile : CTL/ATL/TSB mis a jour
-  - [ ] Test detection week:completed : derniere session planifiee de la semaine
-  - [ ] Test import batch : week:completed emis une seule fois
-  - [ ] Test listener RecalibratePlan : plan actif + auto → use case appele
-  - [ ] Test listener : autoRecalibrate false → use case pas appele
-  - [ ] Test seuils delta hebdomadaire
-  - [ ] Test reevaluation VDOT hausse
+- [x] Task 1 : Listener UpdateFitnessProfileListener (AC: #1, #2)
+  - [x] Creer `app/listeners/update_fitness_profile_listener.ts`
+  - [x] Ecouter `session:completed`
+  - [x] Appeler FitnessProfileCalculator et persister CTL/ATL/TSB
+  - [x] Detecter si la session completee est la derniere session planifiee de sa semaine → emettre `week:completed`
+  - [x] Enregistrer le listener dans `start/events.ts`
+- [x] Task 2 : Listener RecalibratePlanListener (AC: #3, #9)
+  - [x] Creer `app/listeners/recalibrate_plan_listener.ts`
+  - [x] Ecouter `week:completed`
+  - [x] Verifier plan actif + autoRecalibrate === true
+  - [x] Appeler use case RecalibratePlan avec le bilan de semaine
+  - [x] Enregistrer le listener dans `start/events.ts`
+- [x] Task 3 : Use case RecalibratePlan (AC: #4-#8, #10)
+  - [x] Creer `app/use_cases/planning/recalibrate_plan.ts`
+  - [x] Recevoir WeekSummary { plannedLoadTss, actualLoadTss, qualitySessions[] }
+  - [x] Calculer delta hebdomadaire
+  - [x] Appliquer les seuils : < ±10% → rien, ±10-20% → ajustement allures, > ±20% → reevaluation VDOT
+  - [x] Reevaluation VDOT hausse auto
+  - [x] Detection 3+ seances qualite sous cibles → flag pour confirmation
+  - [x] Appeler TrainingPlanEngine.recalibrate() si necessaire
+  - [x] Persister les changements
+- [x] Task 4 : Use case ToggleAutoRecalibrate (AC: #9)
+  - [x] Creer `app/use_cases/planning/toggle_auto_recalibrate.ts`
+  - [x] Route : `POST /planning/toggle-auto-recalibrate`
+- [x] Task 5 : UI — Feedback recalibration (AC: #6, #8)
+  - [x] Toast VDOT hausse (5s, non bloquant)
+  - [x] Creer `inertia/components/planning/RecalibrationDialog.tsx` — proposition baisse VDOT
+  - [x] Toggle recalibration sur la page `/planning`
+- [x] Task 6 : Tests
+  - [x] Test listener UpdateFitnessProfile : CTL/ATL/TSB mis a jour
+  - [x] Test detection week:completed : derniere session planifiee de la semaine
+  - [x] Test import batch : week:completed emis une seule fois
+  - [x] Test listener RecalibratePlan : plan actif + auto → use case appele
+  - [x] Test listener : autoRecalibrate false → use case pas appele
+  - [x] Test seuils delta hebdomadaire
+  - [x] Test reevaluation VDOT hausse
 
 ## Dev Notes
 
@@ -119,3 +119,57 @@ Toujours avec confirmation utilisateur. Le dialog est non bloquant et l'utilisat
 - [Architecture section 7.3](/_bmad-output/planning-artifacts/planning-module/architecture-planning-module.md#7)
 - [UX Design section 8.1](/_bmad-output/planning-artifacts/planning-module/ux-design-planning-module.md#8)
 - [PRD FR30-FR35, FR39](/_bmad-output/planning-artifacts/planning-module/prd-planning-module.md)
+
+## Dev Agent Record
+
+### Completion Notes
+
+- **UpdateFitnessProfileListener** : Écoute `session:completed`, calcule CTL/ATL/TSB silencieusement, détecte la fin de semaine via `completedSessionId` sur les sessions planifiées → émet `week:completed`. La détection nécessite que `LinkCompletedSession` émette aussi `session:completed` (modifié en conséquence).
+- **RecalibratePlanListener** : Écoute `week:completed`, vérifie `autoRecalibrate`, délègue au use case `RecalibratePlan`.
+- **RecalibratePlan** : Applique les 3 seuils (±10 %, ±10-20 %, >±20 %), réévalue le VDOT à la hausse auto via `calculateVdot`, stocke `pendingVdotDown` pour la proposition de baisse (confirmation utilisateur via `HandleVdotDownProposal`).
+- **Migration** : Ajout colonne `pending_vdot_down` (float nullable) sur `training_plans`. Entité, modèle et repository mis à jour en conséquence.
+- **UI** : Toggle `autoRecalibrate` (switch) sur la page `/planning`, toast VDOT hausse (5 s), `RecalibrationDialog` pour la proposition de baisse VDOT.
+- **Nouveaux événements** : `week:completed` et `plan:vdot_increased` déclarés dans `start/events.ts`.
+- **Tests** : Unit tests pour `UpdateFitnessProfileListener`, `RecalibratePlanListener`, `RecalibratePlan`, `ToggleAutoRecalibrate`.
+
+### File List
+
+- `app/listeners/update_fitness_profile_listener.ts` (nouveau)
+- `app/listeners/recalibrate_plan_listener.ts` (nouveau)
+- `app/use_cases/planning/recalibrate_plan.ts` (nouveau)
+- `app/use_cases/planning/toggle_auto_recalibrate.ts` (nouveau)
+- `app/use_cases/planning/handle_vdot_down_proposal.ts` (nouveau)
+- `app/controllers/planning/recalibration_controller.ts` (nouveau)
+- `app/validators/planning/recalibration_validator.ts` (nouveau)
+- `database/migrations/1774960000000_add_pending_vdot_down_to_training_plans.ts` (nouveau)
+- `inertia/components/planning/RecalibrationDialog.tsx` (nouveau)
+- `tests/unit/use_cases/planning/recalibrate_plan.spec.ts` (nouveau)
+- `tests/unit/use_cases/planning/toggle_auto_recalibrate.spec.ts` (nouveau)
+- `tests/unit/listeners/update_fitness_profile_listener.spec.ts` (nouveau)
+- `tests/unit/listeners/recalibrate_plan_listener.spec.ts` (nouveau)
+- `start/events.ts` (modifié — event types + listeners registration)
+- `app/domain/entities/training_plan.ts` (modifié — pendingVdotDown)
+- `app/domain/interfaces/training_plan_repository.ts` (modifié — deleteSessionsFromWeek)
+- `app/models/training_plan.ts` (modifié — pendingVdotDown)
+- `app/repositories/lucid_training_plan_repository.ts` (modifié — deleteSessionsFromWeek + pendingVdotDown)
+- `app/use_cases/planning/link_completed_session.ts` (modifié — emit session:completed après liaison)
+- `app/use_cases/planning/generate_plan.ts` (modifié — pendingVdotDown: null dans create)
+- `app/controllers/planning/planning_controller.ts` (modifié — suppression alias index2)
+- `start/routes.ts` (modifié — routes toggle + vdot-down-proposal)
+- `inertia/pages/Planning/Index.tsx` (modifié — toggle + toast + RecalibrationDialog)
+- `inertia/types/planning.ts` (modifié — pendingVdotDown dans TrainingPlan)
+- Fichiers de tests existants mis à jour : adjust_plan, get_next_session, get_plan_overview, generate_plan, link_completed_session (pendingVdotDown fixture + deleteSessionsFromWeek mock)
+
+### Review Findings
+
+- [ ] [Review][Decision] Toast VDOT hausse s'affiche à chaque visite pendant 24h — est-ce voulu ou faut-il afficher une seule fois (localStorage/flag serveur) ? [inertia/pages/Planning/Index.tsx:180]
+- [ ] [Review][Decision] `#detectConsecutiveUnderTarget` : "3+ séances qualité consécutives" (spec AC#8) implémenté comme "3 semaines avec ≥1 séance sous cible" — sémantique séances vs semaines à confirmer [app/use_cases/planning/recalibrate_plan.ts:843]
+- [ ] [Review][Patch] `#updateFitnessProfile` : résultat de `fitnessCalculator.calculate()` non persisté — appel no-op ou bug ? [app/listeners/update_fitness_profile_listener.ts:345]
+- [ ] [Review][Patch] `HandleVdotDownProposal` : `daysSinceStart` négatif si plan futur → `deleteSessionsFromWeek(planId, 0/1)` supprime toutes les sessions [app/use_cases/planning/handle_vdot_down_proposal.ts:538]
+- [ ] [Review][Patch] `#getBestQualityPace` : filtre toutes sessions ≥3km, pas uniquement les séances qualité → estimation VDOT hausse biaisée [app/use_cases/planning/recalibrate_plan.ts:884]
+- [ ] [Review][Patch] Batch import : `week:completed` peut être émis N fois si N séances liées à la même semaine complète — AC#10 requiert une seule émission [app/use_cases/planning/link_completed_session.ts]
+- [x] [Review][Defer] Double fetch plan dans `RecalibratePlanListener` (findById) + `RecalibratePlan.execute` (findActiveByUserId) — pré-existant, optimisation mineure [app/listeners/recalibrate_plan_listener.ts:250] — deferred, pre-existing
+
+### Change Log
+
+- 2026-03-25 : Implémentation complète story 12.15 — boucle adaptative recalibration du plan

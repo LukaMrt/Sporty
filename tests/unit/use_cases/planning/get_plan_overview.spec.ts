@@ -54,6 +54,7 @@ const PLAN: TrainingPlan = {
   startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
   endDate: new Date(Date.now() + 77 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
   lastRecalibratedAt: null,
+  pendingVdotDown: null,
   createdAt: '2025-01-01T00:00:00.000Z',
   updatedAt: '2025-01-01T00:00:00.000Z',
 }
@@ -163,6 +164,7 @@ function makePlanRepo(
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
 }

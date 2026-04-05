@@ -40,6 +40,7 @@ const BASE_PLAN: TrainingPlan = {
   startDate: isoDate(new Date()),
   endDate: dateOffset(84),
   lastRecalibratedAt: null,
+  pendingVdotDown: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -107,6 +108,7 @@ function makePlanRepo(
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
 }

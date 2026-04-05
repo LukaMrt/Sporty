@@ -21,6 +21,7 @@ export interface TrainingPlan {
   startDate: string
   endDate: string
   lastRecalibratedAt: string | null
+  pendingVdotDown: number | null
   createdAt: string
   updatedAt: string
 }

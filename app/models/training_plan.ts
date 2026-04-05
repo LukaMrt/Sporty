@@ -57,6 +57,9 @@ export default class TrainingPlan extends BaseModel {
   @column.dateTime()
   declare lastRecalibratedAt: DateTime | null
 
+  @column()
+  declare pendingVdotDown: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

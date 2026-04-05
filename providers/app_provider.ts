@@ -17,6 +17,7 @@ import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_cal
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
+import { EventEmitter } from '#domain/interfaces/event_emitter'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -132,6 +133,11 @@ export default class AppProvider {
     this.app.container.bind(TrainingPlanEngine, async () => {
       const { default: DanielsPlanEngine } = await import('#services/training/daniels_plan_engine')
       return new DanielsPlanEngine()
+    })
+
+    this.app.container.bind(EventEmitter, async () => {
+      const { AdonisEventEmitter } = await import('#services/adonis_event_emitter')
+      return new AdonisEventEmitter()
     })
 
     this.app.container.singleton(ConnectorScheduler, async (resolver) => {

@@ -182,6 +182,7 @@ export default class GeneratePlan {
       startDate,
       endDate,
       lastRecalibratedAt: null,
+      pendingVdotDown: null,
     })
 
     // 11. Persister les semaines et séances
