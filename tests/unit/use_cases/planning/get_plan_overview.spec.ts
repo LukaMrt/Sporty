@@ -347,6 +347,81 @@ test.group('GetPlanOverview', () => {
     assert.isNull(result!.fitnessProfile)
   })
 
+  test('retourne inactivityLevel none si dernière séance < 14 jours', async ({ assert }) => {
+    const recentSession: TrainingSession = {
+      ...TRAINING_SESSION,
+      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    }
+    const useCase = new GetPlanOverview(
+      makeGoalRepo(GOAL),
+      makePlanRepo(PLAN, [WEEK], [SESSION]),
+      makeSessionRepo([recentSession]),
+      makeProfileRepo(DEFAULT_PROFILE),
+      makeLoadCalculator(),
+      makeFitnessCalculator(FITNESS_PROFILE)
+    )
+    const result = await useCase.execute(1)
+    assert.isNotNull(result)
+    assert.equal(result!.inactivityLevel, 'none')
+    assert.equal(result!.daysSinceLastSession, 3)
+  })
+
+  test('retourne inactivityLevel warning si dernière séance entre 14 et 28 jours', async ({
+    assert,
+  }) => {
+    const oldSession: TrainingSession = {
+      ...TRAINING_SESSION,
+      date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    }
+    const useCase = new GetPlanOverview(
+      makeGoalRepo(GOAL),
+      makePlanRepo(PLAN, [WEEK], [SESSION]),
+      makeSessionRepo([oldSession]),
+      makeProfileRepo(DEFAULT_PROFILE),
+      makeLoadCalculator(),
+      makeFitnessCalculator(FITNESS_PROFILE)
+    )
+    const result = await useCase.execute(1)
+    assert.isNotNull(result)
+    assert.equal(result!.inactivityLevel, 'warning')
+    assert.equal(result!.daysSinceLastSession, 20)
+  })
+
+  test('retourne inactivityLevel critical si dernière séance > 28 jours', async ({ assert }) => {
+    const veryOldSession: TrainingSession = {
+      ...TRAINING_SESSION,
+      date: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+    }
+    const useCase = new GetPlanOverview(
+      makeGoalRepo(GOAL),
+      makePlanRepo(PLAN, [WEEK], [SESSION]),
+      makeSessionRepo([veryOldSession]),
+      makeProfileRepo(DEFAULT_PROFILE),
+      makeLoadCalculator(),
+      makeFitnessCalculator(FITNESS_PROFILE)
+    )
+    const result = await useCase.execute(1)
+    assert.isNotNull(result)
+    assert.equal(result!.inactivityLevel, 'critical')
+  })
+
+  test('retourne inactivityLevel none et daysSinceLastSession null si aucune séance', async ({
+    assert,
+  }) => {
+    const useCase = new GetPlanOverview(
+      makeGoalRepo(GOAL),
+      makePlanRepo(PLAN, [WEEK], [SESSION]),
+      makeSessionRepo([]),
+      makeProfileRepo(DEFAULT_PROFILE),
+      makeLoadCalculator(),
+      makeFitnessCalculator(FITNESS_PROFILE)
+    )
+    const result = await useCase.execute(1)
+    assert.isNotNull(result)
+    assert.equal(result!.inactivityLevel, 'none')
+    assert.isNull(result!.daysSinceLastSession)
+  })
+
   test('groupe les séances par numéro de semaine', async ({ assert }) => {
     const session2: PlannedSession = { ...SESSION, id: 2, weekNumber: 2, dayOfWeek: 3 }
     const week2: PlannedWeek = { ...WEEK, id: 2, weekNumber: 2 }

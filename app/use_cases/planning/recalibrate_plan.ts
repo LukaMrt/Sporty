@@ -27,6 +27,12 @@ const DELTA_THRESHOLD_SILENT = 0.1 // ±10 %
 const DELTA_THRESHOLD_VDOT = 0.2 // ±20 %
 const CONSECUTIVE_UNDER_TARGET = 3
 
+const QUALITY_SESSION_TYPES: string[] = [
+  SessionType.Tempo,
+  SessionType.Interval,
+  SessionType.Repetition,
+]
+
 @inject()
 export default class RecalibratePlan {
   constructor(
@@ -42,6 +48,12 @@ export default class RecalibratePlan {
     if (!plan || !plan.autoRecalibrate) return
 
     const { weekNumber, plannedLoadTss, actualLoadTss, qualitySessions } = weekSummary
+
+    // 0. Charger les séances planifiées (utilisées à plusieurs étapes)
+    const allPlannedSessions = await this.planRepository.findSessionsByPlanId(plan.id)
+
+    // Reporter une séance qualité manquée (max 1)
+    await this.#deferMissedQualitySession(plan.id, weekNumber, plan.startDate, allPlannedSessions)
 
     // 1. Delta de charge
     const delta = plannedLoadTss > 0 ? (actualLoadTss - plannedLoadTss) / plannedLoadTss : 0
@@ -61,7 +73,6 @@ export default class RecalibratePlan {
     )
 
     // 4. Identifier séances qualité sous cibles (3+ consécutives)
-    const allPlannedSessions = await this.planRepository.findSessionsByPlanId(plan.id)
     const underTargetFlag = this.#detectConsecutiveUnderTarget(
       weekNumber,
       allPlannedSessions,
@@ -224,6 +235,46 @@ export default class RecalibratePlan {
       const actual = sessionById.get(ps.completedSessionId)
       if (!actual || !ps.targetDurationMinutes) return true
       return actual.durationMinutes < ps.targetDurationMinutes * UNDER_TARGET_RATIO
+    })
+  }
+
+  async #deferMissedQualitySession(
+    _planId: number,
+    currentWeek: number,
+    planStartDate: string,
+    allPlannedSessions: PlannedSession[]
+  ): Promise<void> {
+    const today = new Date()
+
+    // Séances qualité de la semaine courante encore en attente
+    const missedQuality = allPlannedSessions.filter((s) => {
+      if (s.weekNumber !== currentWeek) return false
+      if (!QUALITY_SESSION_TYPES.includes(s.sessionType)) return false
+      if (s.status !== PlannedSessionStatus.Pending) return false
+
+      // Vérifier que la date est passée
+      const start = new Date(planStartDate)
+      const sessionDate = new Date(start)
+      sessionDate.setDate(start.getDate() + (currentWeek - 1) * 7 + s.dayOfWeek)
+      return sessionDate < today
+    })
+
+    if (missedQuality.length === 0) return
+
+    // Prendre la première séance manquée (max 1)
+    const toDefer = missedQuality[0]
+
+    // Trouver un créneau libre dans la semaine suivante
+    const nextWeekSessions = allPlannedSessions.filter((s) => s.weekNumber === currentWeek + 1)
+    const occupiedDays = new Set(nextWeekSessions.map((s) => s.dayOfWeek))
+    const allDays = [1, 2, 3, 4, 5, 6, 0] // Lun–Dim
+    const freeDays = allDays.filter((d) => !occupiedDays.has(d))
+
+    if (freeDays.length === 0) return // Pas de créneau libre
+
+    await this.planRepository.updateSession(toDefer.id, {
+      weekNumber: currentWeek + 1,
+      dayOfWeek: freeDays[0],
     })
   }
 

@@ -44,6 +44,8 @@ export default class PlanningController {
               acwr: Math.round(fitnessProfile.acuteChronicWorkloadRatio * 100) / 100,
             }
           : null,
+        inactivityLevel: rest.inactivityLevel,
+        daysSinceLastSession: rest.daysSinceLastSession,
       },
     })
   }

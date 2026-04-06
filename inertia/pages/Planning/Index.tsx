@@ -7,6 +7,7 @@ import { useTechMode } from '~/hooks/use_tech_mode'
 import type { PlanOverview, PlannedSession, PlannedWeek } from '~/types/planning'
 import WeekDndView from '~/components/planning/WeekDndView'
 import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
+import InactivityBanner from '~/components/planning/InactivityBanner'
 import RecalibrationDialog from '~/components/planning/RecalibrationDialog'
 
 interface Props {
@@ -108,6 +109,24 @@ export default function PlanningIndex({ overview }: Props) {
   const [selectedWeek, setSelectedWeek] = useState(overview?.currentWeekNumber ?? 1)
   const [view, setView] = useState<'week' | 'weeks'>('week')
   const [acwrDismissed, setAcwrDismissed] = useState(false)
+  const inactivityStorageKey = overview?.plan ? `inactivity_dismissed_${overview.plan.id}` : null
+  const [inactivityDismissed, setInactivityDismissed] = useState(() => {
+    if (!inactivityStorageKey || overview?.daysSinceLastSession === null) return false
+    const stored = localStorage.getItem(inactivityStorageKey)
+    if (!stored) return false
+    // Le dismiss est valide uniquement si la dernière séance n'a pas changé depuis.
+    // On stocke le daysSinceLastSession au moment du dismiss ; si la valeur actuelle
+    // est inférieure, c'est qu'une nouvelle séance a eu lieu entre-temps → on réinitialise.
+    const dismissedAtDays = Number(stored)
+    return overview.daysSinceLastSession >= dismissedAtDays
+  })
+
+  function dismissInactivity() {
+    if (inactivityStorageKey && overview?.daysSinceLastSession !== null) {
+      localStorage.setItem(inactivityStorageKey, String(overview.daysSinceLastSession))
+    }
+    setInactivityDismissed(true)
+  }
   const [vdotToastVisible, setVdotToastVisible] = useState(false)
   const [recalibDialogOpen, setRecalibDialogOpen] = useState(false)
   const vdotToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -169,9 +188,19 @@ export default function PlanningIndex({ overview }: Props) {
     )
   }
 
-  const { goal, plan, weeks, currentWeekNumber, fitnessProfile } = overview
+  const {
+    goal,
+    plan,
+    weeks,
+    currentWeekNumber,
+    fitnessProfile,
+    inactivityLevel,
+    daysSinceLastSession,
+  } = overview
 
   const showAcwrWarning = !acwrDismissed && fitnessProfile !== null && fitnessProfile.acwr > 1.3
+  const showInactivityBanner =
+    !inactivityDismissed && inactivityLevel !== 'none' && daysSinceLastSession !== null
 
   const selectedWeekData = weeks.find((w) => w.weekNumber === selectedWeek)
   const weekSessions = (localSessionsByWeek[String(selectedWeek)] ?? []).sort(
@@ -198,6 +227,16 @@ export default function PlanningIndex({ overview }: Props) {
       <Head title={t('planning.title')} />
 
       <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
+        {/* Bannière inactivité */}
+        {showInactivityBanner && (
+          <InactivityBanner
+            level={inactivityLevel}
+            daysSince={daysSinceLastSession ?? 0}
+            onDismiss={dismissInactivity}
+            onResume={dismissInactivity}
+          />
+        )}
+
         {/* Bannière ACWR warning */}
         {showAcwrWarning && (
           <AcwrWarningBanner

@@ -309,6 +309,21 @@
       "toggle": "Données tech"
     }
   },
+  "inactivity": {
+    "warning": {
+      "title": "Tu n'as pas couru depuis {days} jours",
+      "message": "Une courte pause, ça arrive ! Ton plan peut être ajusté pour une reprise en douceur."
+    },
+    "critical": {
+      "title": "Pause de {days} jours — prêt à reprendre ?",
+      "message": "Après une longue période sans entraînement, il est conseillé d'adapter l'intensité pour éviter les blessures."
+    },
+    "actions": {
+      "resume": "Reprendre le plan",
+      "newPlan": "Nouveau plan",
+      "later": "Plus tard"
+    }
+  },
   "phases": {
     "FI": "Fondation",
     "EQ": "Introduction vitesse",

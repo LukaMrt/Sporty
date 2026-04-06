@@ -101,6 +101,8 @@ export interface FitnessData {
   acwr: number
 }
 
+export type InactivityLevel = 'none' | 'warning' | 'critical'
+
 export interface PlanOverview {
   goal: TrainingGoal
   plan: TrainingPlan
@@ -108,4 +110,6 @@ export interface PlanOverview {
   currentWeekNumber: number
   sessionsByWeek: Record<string, PlannedSession[]>
   fitnessProfile: FitnessData | null
+  inactivityLevel: InactivityLevel
+  daysSinceLastSession: number | null
 }

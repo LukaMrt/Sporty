@@ -10,6 +10,12 @@ import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedWeek } from '#domain/entities/planned_week'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
+import type { TrainingSession } from '#domain/entities/training_session'
+
+export type InactivityLevel = 'none' | 'warning' | 'critical'
+
+const INACTIVITY_WARNING_DAYS = 14
+const INACTIVITY_CRITICAL_DAYS = 28
 
 export interface PlanOverview {
   goal: TrainingGoal
@@ -18,6 +24,8 @@ export interface PlanOverview {
   currentWeekNumber: number
   sessionsByWeek: Record<number, PlannedSession[]>
   fitnessProfile: FitnessProfile | null
+  inactivityLevel: InactivityLevel
+  daysSinceLastSession: number | null
 }
 
 @inject()
@@ -51,9 +59,25 @@ export default class GetPlanOverview {
       sessionsByWeek[session.weekNumber].push(session)
     }
 
-    const fitnessProfile = await this.#computeFitnessProfile(userId)
+    const allSessions = await this.sessionRepo.findByUserIdAndDateRange(
+      userId,
+      new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      new Date().toISOString().slice(0, 10)
+    )
 
-    return { goal, plan, weeks, currentWeekNumber, sessionsByWeek, fitnessProfile }
+    const fitnessProfile = await this.#computeFitnessProfile(userId, allSessions)
+    const { inactivityLevel, daysSinceLastSession } = this.#computeInactivity(allSessions)
+
+    return {
+      goal,
+      plan,
+      weeks,
+      currentWeekNumber,
+      sessionsByWeek,
+      fitnessProfile,
+      inactivityLevel,
+      daysSinceLastSession,
+    }
   }
 
   #computeCurrentWeek(startDate: string, totalWeeks: number): number {
@@ -64,14 +88,30 @@ export default class GetPlanOverview {
     return Math.max(1, Math.min(diffWeeks + 1, totalWeeks))
   }
 
-  async #computeFitnessProfile(userId: number): Promise<FitnessProfile | null> {
+  #computeInactivity(sessions: TrainingSession[]): {
+    inactivityLevel: InactivityLevel
+    daysSinceLastSession: number | null
+  } {
+    if (sessions.length === 0) return { inactivityLevel: 'none', daysSinceLastSession: null }
+
+    const lastDate = sessions.reduce((max, s) => (s.date > max ? s.date : max), sessions[0].date)
+    const daysSince = Math.floor(
+      (Date.now() - new Date(lastDate).getTime()) / (24 * 60 * 60 * 1000)
+    )
+
+    let inactivityLevel: InactivityLevel = 'none'
+    if (daysSince >= INACTIVITY_CRITICAL_DAYS) inactivityLevel = 'critical'
+    else if (daysSince >= INACTIVITY_WARNING_DAYS) inactivityLevel = 'warning'
+
+    return { inactivityLevel, daysSinceLastSession: daysSince }
+  }
+
+  async #computeFitnessProfile(
+    userId: number,
+    allSessions: TrainingSession[]
+  ): Promise<FitnessProfile | null> {
     try {
       const profile = await this.userProfileRepo.findByUserId(userId)
-      const allSessions = await this.sessionRepo.findByUserIdAndDateRange(
-        userId,
-        new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-        new Date().toISOString().slice(0, 10)
-      )
       if (allSessions.length === 0) return null
 
       const loadHistory = allSessions.map((s) => ({

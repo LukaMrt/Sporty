@@ -190,6 +190,21 @@
       "toggle": "Tech data"
     }
   },
+  "inactivity": {
+    "warning": {
+      "title": "You haven't run in {days} days",
+      "message": "A short break happens! Your plan can be adjusted for a gentle return."
+    },
+    "critical": {
+      "title": "{days}-day break — ready to come back?",
+      "message": "After a long period without training, it's recommended to ease back in to avoid injury."
+    },
+    "actions": {
+      "resume": "Resume plan",
+      "newPlan": "New plan",
+      "later": "Later"
+    }
+  },
   "phases": {
     "FI": "Foundation",
     "EQ": "Speed introduction",
