@@ -45,7 +45,7 @@ export default function WeekSelector({
             ref={isCurrent ? activeRef : undefined}
             onClick={() => onSelect(week.weekNumber)}
             className={[
-              'flex-shrink-0 flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors',
+              'cursor-pointer flex-shrink-0 flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors',
               isSelected
                 ? 'bg-primary text-primary-foreground font-semibold'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80',

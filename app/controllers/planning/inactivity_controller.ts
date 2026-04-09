@@ -13,7 +13,7 @@ export default class InactivityController {
     private getPlanOverviewUseCase: GetPlanOverview
   ) {}
 
-  async resume({ auth, request, response, logger }: HttpContext) {
+  async resume({ auth, request, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const data = await request.validateUsing(resumeFromInactivityValidator)
 

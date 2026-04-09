@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Head, router } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
@@ -196,6 +196,12 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
           <Button onClick={() => router.visit('/planning/goal')}>
             {t('planning.defineGoalCta')}
           </Button>
+          <Link
+            href="/planning/history"
+            className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t('planning.overview.historyLink')}
+          </Link>
         </div>
       </>
     )
@@ -239,8 +245,8 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
     <>
       <Head title={t('planning.title')} />
 
-      <div className="max-w-lg mx-auto px-4 py-4 space-y-4">
-        {/* Bannière inactivité */}
+      <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
+        {/* Bannières pleine largeur */}
         {showInactivityBanner && (
           <InactivityBanner
             level={inactivityLevel}
@@ -249,8 +255,6 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
             onResume={dismissInactivity}
           />
         )}
-
-        {/* Bannière ACWR warning */}
         {showAcwrWarning && (
           <AcwrWarningBanner
             acwr={fitnessProfile.acwr}
@@ -259,203 +263,223 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
           />
         )}
 
-        {/* Bandeau objectif */}
-        <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
-          <div>
-            {goal ? (
-              <div className="text-base font-semibold text-foreground">
-                {goal.targetDistanceKm} km
-                {goal.targetTimeMinutes && (
-                  <span className="text-muted-foreground font-normal text-sm ml-2">
-                    {Math.floor(goal.targetTimeMinutes / 60)}h
-                    {String(goal.targetTimeMinutes % 60).padStart(2, '0')}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div className="text-base font-semibold text-foreground">
-                {t('planning.postPlan.maintenance.title')}
-              </div>
-            )}
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {goal
-                ? eventDaysLeft !== null && eventDaysLeft > 0
-                  ? t('planning.overview.eventIn', { n: eventDaysLeft })
-                  : goal.eventDate
-                    ? t('planning.overview.eventPassed')
-                    : t('planning.overview.noEventDate')
-                : t('planning.athlete.trainingState.maintenance')}
-            </div>
-            {/* Données techniques : phase code + VDOT */}
-            {techMode && selectedWeekData && (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-xs font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
-                  {selectedWeekData.phaseName}
-                </span>
-                <span className="text-xs font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
-                  VDOT {plan.currentVdot}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="text-right flex-shrink-0">
-            <div className="text-xs text-muted-foreground">
-              {t('planning.overview.weekProgress', {
-                current: currentWeekNumber,
-                total: weeks.length,
-              })}
-            </div>
-            <div className="h-1 w-16 rounded-full bg-muted mt-1 overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full"
-                style={{ width: `${Math.round((currentWeekNumber / weeks.length) * 100)}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Toggle recalibration auto */}
-        <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-medium text-foreground">
-              {t('planning.recalibration.autoToggleLabel')}
-            </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {t('planning.recalibration.autoToggleDesc')}
-            </div>
-          </div>
-          <button
-            onClick={handleToggleAutoRecalibrate}
-            className={[
-              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-              plan.autoRecalibrate ? 'bg-primary' : 'bg-muted',
-            ].join(' ')}
-            role="switch"
-            aria-checked={plan.autoRecalibrate}
-          >
-            <span
-              className={[
-                'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
-                plan.autoRecalibrate ? 'translate-x-5' : 'translate-x-0',
-              ].join(' ')}
-            />
-          </button>
-        </div>
-
-        {/* Toggle vue */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg">
-          <button
-            onClick={() => setView('week')}
-            className={[
-              'flex-1 text-sm py-1.5 rounded-md transition-colors font-medium',
-              view === 'week'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'cursor-pointer text-muted-foreground hover:text-foreground',
-            ].join(' ')}
-          >
-            {t('planning.overview.weekLabel', { n: selectedWeek })}
-          </button>
-          <button
-            onClick={() => setView('weeks')}
-            className={[
-              'flex-1 text-sm py-1.5 rounded-md transition-colors font-medium',
-              view === 'weeks'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'cursor-pointer text-muted-foreground hover:text-foreground',
-            ].join(' ')}
-          >
-            {t('planning.overview.allWeeks')}
-          </button>
-        </div>
-
-        {/* Vue semaine */}
-        {view === 'week' && (
-          <>
-            <div className="flex items-center justify-between gap-2">
+        {/* Grille principale : colonne séances + colonne latérale */}
+        <div className="flex flex-col md:flex-row md:items-start gap-4">
+          {/* ── Colonne principale : séances ──────────────────────── */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Toggle vue */}
+            <div className="flex gap-1 p-1 bg-muted rounded-lg">
               <button
-                onClick={() => setSelectedWeek((w) => Math.max(1, w - 1))}
-                disabled={selectedWeek <= 1}
-                className="cursor-pointer px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground disabled:opacity-30 hover:bg-muted/50 transition-colors"
+                onClick={() => setView('week')}
+                className={[
+                  'flex-1 text-sm py-1.5 rounded-md transition-colors font-medium',
+                  view === 'week'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'cursor-pointer text-muted-foreground hover:text-foreground',
+                ].join(' ')}
               >
-                ‹
+                {t('planning.overview.weekLabel', { n: selectedWeek })}
               </button>
-              <div className="text-center flex-1">
-                <div className="text-sm font-medium text-foreground">
-                  {t('planning.overview.weekLabel', { n: selectedWeek })}
-                  {selectedWeek === currentWeekNumber && (
-                    <span className="ml-2 text-xs text-primary font-normal">
-                      {t('planning.overview.inProgress')}
-                    </span>
-                  )}
+              <button
+                onClick={() => setView('weeks')}
+                className={[
+                  'flex-1 text-sm py-1.5 rounded-md transition-colors font-medium',
+                  view === 'weeks'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'cursor-pointer text-muted-foreground hover:text-foreground',
+                ].join(' ')}
+              >
+                {t('planning.overview.allWeeks')}
+              </button>
+            </div>
+
+            {/* Vue semaine */}
+            {view === 'week' && (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    onClick={() => setSelectedWeek((w) => Math.max(1, w - 1))}
+                    disabled={selectedWeek <= 1}
+                    className="cursor-pointer px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground disabled:opacity-30 hover:bg-muted/50 transition-colors"
+                  >
+                    ‹
+                  </button>
+                  <div className="text-center flex-1">
+                    <div className="text-sm font-medium text-foreground">
+                      {t('planning.overview.weekLabel', { n: selectedWeek })}
+                      {selectedWeek === currentWeekNumber && (
+                        <span className="ml-2 text-xs text-primary font-normal">
+                          {t('planning.overview.inProgress')}
+                        </span>
+                      )}
+                    </div>
+                    {selectedWeekData && (
+                      <div className="text-xs text-muted-foreground">
+                        {t(`planning.phases.${selectedWeekData.phaseName}`) ??
+                          selectedWeekData.phaseLabel}{' '}
+                        · {selectedWeekData.targetVolumeMinutes} min
+                        {selectedWeekData.isRecoveryWeek &&
+                          ` · ${t('planning.overview.recoveryWeek')}`}
+                      </div>
+                    )}
+                    {techMode && fitnessProfile && selectedWeek === currentWeekNumber && (
+                      <div className="mt-1 flex items-center justify-center gap-2">
+                        <span className="text-xs font-mono text-muted-foreground">
+                          TSB {fitnessProfile.tsb > 0 ? '+' : ''}
+                          {fitnessProfile.tsb}
+                        </span>
+                        <span
+                          className={[
+                            'text-xs font-mono px-1.5 py-0.5 rounded',
+                            fitnessProfile.acwr > 1.3
+                              ? 'bg-orange-100 text-orange-700'
+                              : 'bg-muted text-muted-foreground',
+                          ].join(' ')}
+                        >
+                          ACWR {fitnessProfile.acwr.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setSelectedWeek((w) => Math.min(weeks.length, w + 1))}
+                    disabled={selectedWeek >= weeks.length}
+                    className="cursor-pointer px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground disabled:opacity-30 hover:bg-muted/50 transition-colors"
+                  >
+                    ›
+                  </button>
                 </div>
-                {selectedWeekData && (
-                  <div className="text-xs text-muted-foreground">
-                    {t(`planning.phases.${selectedWeekData.phaseName}`) ??
-                      selectedWeekData.phaseLabel}{' '}
-                    · {selectedWeekData.targetVolumeMinutes} min
-                    {selectedWeekData.isRecoveryWeek && ` · ${t('planning.overview.recoveryWeek')}`}
+
+                <WeekDndView
+                  days={allDays}
+                  planStartDate={plan.startDate}
+                  selectedWeek={selectedWeek}
+                  locale={locale}
+                  onSessionUpdated={handleSessionUpdated}
+                  showAcwrBadge={showAcwrBadgeOnCurrentWeek}
+                />
+              </>
+            )}
+
+            {/* Vue toutes les semaines */}
+            {view === 'weeks' && (
+              <div className="space-y-2">
+                {weeks.map((week) => (
+                  <WeekCard
+                    key={week.weekNumber}
+                    week={week}
+                    sessions={localSessionsByWeek[String(week.weekNumber)] ?? []}
+                    planStartDate={plan.startDate}
+                    isCurrentWeek={week.weekNumber === currentWeekNumber}
+                    isSelected={week.weekNumber === selectedWeek}
+                    locale={locale}
+                    onClick={() => {
+                      setSelectedWeek(week.weekNumber)
+                      setView('week')
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Colonne latérale : résumé + actions ───────────────── */}
+          <div className="w-full md:w-72 shrink-0 space-y-3">
+            {/* Bandeau objectif */}
+            <div className="rounded-xl border border-border bg-card px-4 py-3">
+              <div>
+                {goal ? (
+                  <div className="text-base font-semibold text-foreground">
+                    {goal.targetDistanceKm} km
+                    {goal.targetTimeMinutes && (
+                      <span className="text-muted-foreground font-normal text-sm ml-2">
+                        {Math.floor(goal.targetTimeMinutes / 60)}h
+                        {String(goal.targetTimeMinutes % 60).padStart(2, '0')}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-base font-semibold text-foreground">
+                    {t('planning.postPlan.maintenance.title')}
                   </div>
                 )}
-                {/* Données techniques semaine : TSB + ACWR */}
-                {techMode && fitnessProfile && selectedWeek === currentWeekNumber && (
-                  <div className="mt-1 flex items-center justify-center gap-2">
-                    <span className="text-xs font-mono text-muted-foreground">
-                      TSB {fitnessProfile.tsb > 0 ? '+' : ''}
-                      {fitnessProfile.tsb}
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {goal
+                    ? eventDaysLeft !== null && eventDaysLeft > 0
+                      ? t('planning.overview.eventIn', { n: eventDaysLeft })
+                      : goal.eventDate
+                        ? t('planning.overview.eventPassed')
+                        : t('planning.overview.noEventDate')
+                    : t('planning.athlete.trainingState.maintenance')}
+                </div>
+                {techMode && selectedWeekData && (
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-xs font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                      {selectedWeekData.phaseName}
                     </span>
-                    <span
-                      className={[
-                        'text-xs font-mono px-1.5 py-0.5 rounded',
-                        fitnessProfile.acwr > 1.3
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-muted text-muted-foreground',
-                      ].join(' ')}
-                    >
-                      ACWR {fitnessProfile.acwr.toFixed(2)}
+                    <span className="text-xs font-mono bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                      VDOT {plan.currentVdot}
                     </span>
                   </div>
                 )}
               </div>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                  <span>
+                    {t('planning.overview.weekProgress', {
+                      current: currentWeekNumber,
+                      total: weeks.length,
+                    })}
+                  </span>
+                  <span>{Math.round((currentWeekNumber / weeks.length) * 100)} %</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${Math.round((currentWeekNumber / weeks.length) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Toggle recalibration auto */}
+            <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-medium text-foreground">
+                  {t('planning.recalibration.autoToggleLabel')}
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {t('planning.recalibration.autoToggleDesc')}
+                </div>
+              </div>
               <button
-                onClick={() => setSelectedWeek((w) => Math.min(weeks.length, w + 1))}
-                disabled={selectedWeek >= weeks.length}
-                className="cursor-pointer px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground disabled:opacity-30 hover:bg-muted/50 transition-colors"
+                onClick={handleToggleAutoRecalibrate}
+                className={[
+                  'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
+                  plan.autoRecalibrate ? 'bg-primary' : 'bg-muted',
+                ].join(' ')}
+                role="switch"
+                aria-checked={plan.autoRecalibrate}
               >
-                ›
+                <span
+                  className={[
+                    'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
+                    plan.autoRecalibrate ? 'translate-x-5' : 'translate-x-0',
+                  ].join(' ')}
+                />
               </button>
             </div>
 
-            <WeekDndView
-              days={allDays}
-              planStartDate={plan.startDate}
-              selectedWeek={selectedWeek}
-              locale={locale}
-              onSessionUpdated={handleSessionUpdated}
-              showAcwrBadge={showAcwrBadgeOnCurrentWeek}
-            />
-          </>
-        )}
-
-        {/* Vue toutes les semaines */}
-        {view === 'weeks' && (
-          <div className="space-y-2">
-            {weeks.map((week) => (
-              <WeekCard
-                key={week.weekNumber}
-                week={week}
-                sessions={localSessionsByWeek[String(week.weekNumber)] ?? []}
-                planStartDate={plan.startDate}
-                isCurrentWeek={week.weekNumber === currentWeekNumber}
-                isSelected={week.weekNumber === selectedWeek}
-                locale={locale}
-                onClick={() => {
-                  setSelectedWeek(week.weekNumber)
-                  setView('week')
-                }}
-              />
-            ))}
+            {/* Lien historique */}
+            <Link
+              href="/planning/history"
+              className="flex items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/40 transition-colors"
+            >
+              <span>{t('planning.overview.historyLink')}</span>
+              <span className="text-muted-foreground">→</span>
+            </Link>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Toast VDOT hausse */}

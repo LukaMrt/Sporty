@@ -34,6 +34,7 @@ const GoalWizardController = () => import('#controllers/planning/goal_wizard_con
 const PlanningController = () => import('#controllers/planning/planning_controller')
 const RecalibrationController = () => import('#controllers/planning/recalibration_controller')
 const InactivityController = () => import('#controllers/planning/inactivity_controller')
+const HistoryController = () => import('#controllers/planning/history_controller')
 const GpxController = () => import('#controllers/sessions/gpx_controller')
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
@@ -78,6 +79,8 @@ router
     router.post('/planning/maintenance', [PlanningController, 'generateMaintenance'])
     router.post('/planning/abandon', [PlanningController, 'abandon'])
     router.post('/planning/toggle-auto-recalibrate', [RecalibrationController, 'toggle'])
+    router.get('/planning/history', [HistoryController, 'index'])
+    router.get('/planning/history/:id', [HistoryController, 'show'])
     router.post('/planning/resume-from-inactivity', [InactivityController, 'resume'])
     router.post('/planning/abandon-for-new-plan', [InactivityController, 'abandonForNewPlan'])
     router.post('/planning/vdot-down-proposal', [RecalibrationController, 'handleVdotProposal'])

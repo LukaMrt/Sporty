@@ -355,5 +355,19 @@
     "FQ": "Affûtage",
     "MAINT": "Maintenance",
     "TRANS": "Transition"
+  },
+  "history": {
+    "title": "Historique des plans",
+    "empty": "Pas encore de plan terminé",
+    "emptyDescription": "Vos plans terminés ou abandonnés apparaîtront ici.",
+    "backToPlanning": "Retour au planning",
+    "completed": "Terminé",
+    "abandoned": "Abandonné",
+    "vdotProgress": "VDOT {start} → {end}",
+    "sessions": "{done}/{total} séances",
+    "goal": "Objectif : {distance} km",
+    "maintenancePlan": "Plan de maintenance",
+    "readOnlyDetail": "Vue lecture seule — plan archivé",
+    "detailBack": "Retour à l'historique"
   }
 }

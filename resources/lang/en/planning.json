@@ -353,5 +353,19 @@
         "guide": "Guide"
       }
     }
+  },
+  "history": {
+    "title": "Plan History",
+    "empty": "No completed plan yet",
+    "emptyDescription": "Your completed or abandoned plans will appear here.",
+    "backToPlanning": "Back to planning",
+    "completed": "Completed",
+    "abandoned": "Abandoned",
+    "vdotProgress": "VDOT {start} → {end}",
+    "sessions": "{done}/{total} sessions",
+    "goal": "Goal: {distance} km",
+    "maintenancePlan": "Maintenance plan",
+    "readOnlyDetail": "Read-only view — archived plan",
+    "detailBack": "Back to history"
   }
 }
