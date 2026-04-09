@@ -6,6 +6,8 @@ import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
 import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
+import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
+import type { GeneratedPlan } from '#domain/interfaces/training_plan_engine'
 import type { TrainingGoal } from '#domain/entities/training_goal'
 import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedWeek } from '#domain/entities/planned_week'
@@ -238,6 +240,24 @@ function makeFitnessCalculator(result: FitnessProfile): FitnessProfileCalculator
   return new MockFitnessCalc()
 }
 
+function makeEngine(): TrainingPlanEngine {
+  class MockEngine extends TrainingPlanEngine {
+    generatePlan(): GeneratedPlan {
+      throw new Error('not impl')
+    }
+    recalibrate(): GeneratedPlan {
+      throw new Error('not impl')
+    }
+    generateMaintenancePlan(): GeneratedPlan {
+      throw new Error('not impl')
+    }
+    generateTransitionPlan(): GeneratedPlan {
+      throw new Error('not impl')
+    }
+  }
+  return new MockEngine()
+}
+
 const DEFAULT_PROFILE: UserProfile = {
   id: 1,
   userId: 1,
@@ -285,7 +305,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
 
     const result = await useCase.execute(1)
@@ -299,7 +320,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
 
     const result = await useCase.execute(1)
@@ -315,14 +337,15 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([TRAINING_SESSION]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
 
     const result = await useCase.execute(1)
 
     assert.isNotNull(result)
     assert.equal(result!.plan.id, PLAN.id)
-    assert.equal(result!.goal.id, GOAL.id)
+    assert.equal(result!.goal!.id, GOAL.id)
     assert.lengthOf(result!.weeks, 1)
     assert.isNotNull(result!.fitnessProfile)
     assert.equal(
@@ -338,7 +361,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
 
     const result = await useCase.execute(1)
@@ -358,7 +382,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([recentSession]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
     const result = await useCase.execute(1)
     assert.isNotNull(result)
@@ -379,7 +404,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([oldSession]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
     const result = await useCase.execute(1)
     assert.isNotNull(result)
@@ -398,7 +424,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([veryOldSession]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
     const result = await useCase.execute(1)
     assert.isNotNull(result)
@@ -414,7 +441,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
     const result = await useCase.execute(1)
     assert.isNotNull(result)
@@ -432,7 +460,8 @@ test.group('GetPlanOverview', () => {
       makeSessionRepo([]),
       makeProfileRepo(DEFAULT_PROFILE),
       makeLoadCalculator(),
-      makeFitnessCalculator(FITNESS_PROFILE)
+      makeFitnessCalculator(FITNESS_PROFILE),
+      makeEngine()
     )
 
     const result = await useCase.execute(1)

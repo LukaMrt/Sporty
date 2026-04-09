@@ -103,8 +103,13 @@ export interface FitnessData {
 
 export type InactivityLevel = 'none' | 'warning' | 'critical'
 
+export interface PostPlanState {
+  trainingState: string
+  goalDistanceKm: number | null
+}
+
 export interface PlanOverview {
-  goal: TrainingGoal
+  goal: TrainingGoal | null
   plan: TrainingPlan
   weeks: PlannedWeek[]
   currentWeekNumber: number

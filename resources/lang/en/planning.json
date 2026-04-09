@@ -205,6 +205,30 @@
       "later": "Later"
     }
   },
+  "recalibration": {
+    "autoToggleLabel": "Auto recalibration",
+    "autoToggleDesc": "Adjusts paces and load at the end of each week",
+    "vdotUpToast": "VDOT updated → {vdot}",
+    "autoToggleEnabled": "Auto recalibration enabled",
+    "autoToggleDisabled": "Auto recalibration disabled"
+  },
+  "postPlan": {
+    "title": "Plan complete — what's next?",
+    "subtitle": "You reached your goal. Choose your next step.",
+    "transition": {
+      "title": "Transition plan",
+      "desc": "2 to 4 weeks of active post-race recovery at reduced volume."
+    },
+    "maintenance": {
+      "title": "Maintenance plan",
+      "desc": "4-week cycles to keep your fitness without a specific goal."
+    },
+    "newGoal": {
+      "title": "New goal",
+      "desc": "Set a new race and generate a preparation plan."
+    },
+    "later": "Later"
+  },
   "phases": {
     "FI": "Foundation",
     "EQ": "Speed introduction",

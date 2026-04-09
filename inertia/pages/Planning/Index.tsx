@@ -4,14 +4,16 @@ import MainLayout from '~/layouts/MainLayout'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 import { useTechMode } from '~/hooks/use_tech_mode'
-import type { PlanOverview, PlannedSession, PlannedWeek } from '~/types/planning'
+import type { PlanOverview, PlannedSession, PlannedWeek, PostPlanState } from '~/types/planning'
 import WeekDndView from '~/components/planning/WeekDndView'
 import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
 import InactivityBanner from '~/components/planning/InactivityBanner'
 import RecalibrationDialog from '~/components/planning/RecalibrationDialog'
+import PostPlanProposal from '~/components/planning/PostPlanProposal'
 
 interface Props {
   overview: PlanOverview | null
+  postPlanState: PostPlanState | null
 }
 
 // Mon=1 … Sat=6, Sun=0 — displayed Mon→Sun
@@ -103,7 +105,7 @@ function WeekCard({
   )
 }
 
-export default function PlanningIndex({ overview }: Props) {
+export default function PlanningIndex({ overview, postPlanState }: Props) {
   const { t, locale } = useTranslation()
   const { techMode } = useTechMode()
   const [selectedWeek, setSelectedWeek] = useState(overview?.currentWeekNumber ?? 1)
@@ -174,6 +176,17 @@ export default function PlanningIndex({ overview }: Props) {
   }
 
   if (!overview) {
+    if (postPlanState) {
+      return (
+        <>
+          <Head title={t('planning.title')} />
+          <PostPlanProposal
+            trainingState={postPlanState.trainingState}
+            goalDistanceKm={postPlanState.goalDistanceKm}
+          />
+        </>
+      )
+    }
     return (
       <>
         <Head title={t('planning.title')} />
@@ -214,7 +227,7 @@ export default function PlanningIndex({ overview }: Props) {
     return { dow, session, date, isToday }
   })
 
-  const eventDaysLeft = goal.eventDate
+  const eventDaysLeft = goal?.eventDate
     ? Math.ceil((new Date(goal.eventDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
 
@@ -249,21 +262,29 @@ export default function PlanningIndex({ overview }: Props) {
         {/* Bandeau objectif */}
         <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
           <div>
-            <div className="text-base font-semibold text-foreground">
-              {goal.targetDistanceKm} km
-              {goal.targetTimeMinutes && (
-                <span className="text-muted-foreground font-normal text-sm ml-2">
-                  {Math.floor(goal.targetTimeMinutes / 60)}h
-                  {String(goal.targetTimeMinutes % 60).padStart(2, '0')}
-                </span>
-              )}
-            </div>
+            {goal ? (
+              <div className="text-base font-semibold text-foreground">
+                {goal.targetDistanceKm} km
+                {goal.targetTimeMinutes && (
+                  <span className="text-muted-foreground font-normal text-sm ml-2">
+                    {Math.floor(goal.targetTimeMinutes / 60)}h
+                    {String(goal.targetTimeMinutes % 60).padStart(2, '0')}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="text-base font-semibold text-foreground">
+                {t('planning.postPlan.maintenance.title')}
+              </div>
+            )}
             <div className="text-xs text-muted-foreground mt-0.5">
-              {eventDaysLeft !== null && eventDaysLeft > 0
-                ? t('planning.overview.eventIn', { n: eventDaysLeft })
-                : goal.eventDate
-                  ? t('planning.overview.eventPassed')
-                  : t('planning.overview.noEventDate')}
+              {goal
+                ? eventDaysLeft !== null && eventDaysLeft > 0
+                  ? t('planning.overview.eventIn', { n: eventDaysLeft })
+                  : goal.eventDate
+                    ? t('planning.overview.eventPassed')
+                    : t('planning.overview.noEventDate')
+                : t('planning.athlete.trainingState.maintenance')}
             </div>
             {/* Données techniques : phase code + VDOT */}
             {techMode && selectedWeekData && (
@@ -291,6 +312,34 @@ export default function PlanningIndex({ overview }: Props) {
               />
             </div>
           </div>
+        </div>
+
+        {/* Toggle recalibration auto */}
+        <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-medium text-foreground">
+              {t('planning.recalibration.autoToggleLabel')}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {t('planning.recalibration.autoToggleDesc')}
+            </div>
+          </div>
+          <button
+            onClick={handleToggleAutoRecalibrate}
+            className={[
+              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
+              plan.autoRecalibrate ? 'bg-primary' : 'bg-muted',
+            ].join(' ')}
+            role="switch"
+            aria-checked={plan.autoRecalibrate}
+          >
+            <span
+              className={[
+                'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
+                plan.autoRecalibrate ? 'translate-x-5' : 'translate-x-0',
+              ].join(' ')}
+            />
+          </button>
         </div>
 
         {/* Toggle vue */}
@@ -407,43 +456,13 @@ export default function PlanningIndex({ overview }: Props) {
             ))}
           </div>
         )}
-
-        {/* Toggle recalibration auto */}
-        <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-medium text-foreground">
-              {t('planning.recalibration.autoToggleLabel') ?? 'Recalibration automatique'}
-            </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {t('planning.recalibration.autoToggleDesc') ??
-                'Ajuste les allures et la charge à la fin de chaque semaine'}
-            </div>
-          </div>
-          <button
-            onClick={handleToggleAutoRecalibrate}
-            className={[
-              'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-              plan.autoRecalibrate ? 'bg-primary' : 'bg-muted',
-            ].join(' ')}
-            role="switch"
-            aria-checked={plan.autoRecalibrate}
-          >
-            <span
-              className={[
-                'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
-                plan.autoRecalibrate ? 'translate-x-5' : 'translate-x-0',
-              ].join(' ')}
-            />
-          </button>
-        </div>
       </div>
 
       {/* Toast VDOT hausse */}
       {vdotToastVisible && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
           <div className="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-full shadow-lg">
-            {t('planning.recalibration.vdotUpToast', { vdot: plan.currentVdot }) ??
-              `VDOT mis à jour → ${plan.currentVdot}`}
+            {t('planning.recalibration.vdotUpToast', { vdot: plan.currentVdot })}
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 # Story 12.17 : Post-plan — Transition & maintien
 
-Status: pending
+Status: review
 
 ## Story
 
@@ -21,22 +21,22 @@ So that **je continue a progresser sans interruption**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Use cases (AC: #2, #5, #6)
-  - [ ] Creer `app/use_cases/planning/generate_transition_plan.ts`
-  - [ ] Creer `app/use_cases/planning/generate_maintenance_plan.ts`
-  - [ ] Creer `app/use_cases/planning/abandon_plan.ts`
-  - [ ] Gestion trainingState dans chaque use case
-- [ ] Task 2 : Controller routes (AC: #1, #7, #8)
-  - [ ] `PlanningController.generateTransition()` → `POST /planning/transition`
-  - [ ] `PlanningController.generateMaintenance()` → `POST /planning/maintenance`
-  - [ ] `PlanningController.abandon()` → `POST /planning/abandon`
-- [ ] Task 3 : UI — Ecran post-plan (AC: #1, #4)
-  - [ ] Creer `inertia/components/planning/PostPlanProposal.tsx`
-  - [ ] 3 options (transition / maintien / nouvel objectif) + "Plus tard"
-  - [ ] Affiche dans `/planning` quand le plan est 'completed'
-- [ ] Task 4 : Boucle maintien (AC: #6)
-  - [ ] Detection fin de cycle maintien dans GetPlanOverview
-  - [ ] Regeneration auto d'un nouveau cycle via DanielsPlanEngine.generateMaintenancePlan()
+- [x] Task 1 : Use cases (AC: #2, #5, #6)
+  - [x] Creer `app/use_cases/planning/generate_transition_plan.ts`
+  - [x] Creer `app/use_cases/planning/generate_maintenance_plan.ts`
+  - [x] Creer `app/use_cases/planning/abandon_plan.ts`
+  - [x] Gestion trainingState dans chaque use case
+- [x] Task 2 : Controller routes (AC: #1, #7, #8)
+  - [x] `PlanningController.generateTransition()` → `POST /planning/transition`
+  - [x] `PlanningController.generateMaintenance()` → `POST /planning/maintenance`
+  - [x] `PlanningController.abandon()` → `POST /planning/abandon`
+- [x] Task 3 : UI — Ecran post-plan (AC: #1, #4)
+  - [x] Creer `inertia/components/planning/PostPlanProposal.tsx`
+  - [x] 3 options (transition / maintien / nouvel objectif) + "Plus tard"
+  - [x] Affiche dans `/planning` quand le plan est 'completed'
+- [x] Task 4 : Boucle maintien (AC: #6)
+  - [x] Detection fin de cycle maintien dans GetPlanOverview
+  - [x] Regeneration auto d'un nouveau cycle via DanielsPlanEngine.generateMaintenancePlan()
 
 ## Dev Notes
 

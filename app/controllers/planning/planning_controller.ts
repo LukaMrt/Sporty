@@ -5,6 +5,10 @@ import GetPlanOverview from '#use_cases/planning/get_plan_overview'
 import GetWeekDetail from '#use_cases/planning/get_week_detail'
 import AdjustPlan from '#use_cases/planning/adjust_plan'
 import LinkCompletedSession from '#use_cases/planning/link_completed_session'
+import GenerateTransitionPlan from '#use_cases/planning/generate_transition_plan'
+import GenerateMaintenancePlan from '#use_cases/planning/generate_maintenance_plan'
+import AbandonPlan from '#use_cases/planning/abandon_plan'
+import GetPostPlanState from '#use_cases/planning/get_post_plan_state'
 import { generatePlanValidator } from '#validators/planning/generate_plan_validator'
 import {
   adjustSessionValidator,
@@ -12,6 +16,7 @@ import {
 } from '#validators/planning/adjust_session_validator'
 import { ActivePlanExistsError } from '#domain/errors/active_plan_exists_error'
 import { NoActiveGoalError } from '#domain/errors/no_active_goal_error'
+import { NoCompletedPlanError } from '#domain/errors/no_completed_plan_error'
 import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_found_error'
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
@@ -23,31 +28,39 @@ export default class PlanningController {
     private getPlanOverview: GetPlanOverview,
     private getWeekDetail: GetWeekDetail,
     private adjustPlanUseCase: AdjustPlan,
-    private linkCompletedSessionUseCase: LinkCompletedSession
+    private linkCompletedSessionUseCase: LinkCompletedSession,
+    private generateTransitionPlanUseCase: GenerateTransitionPlan,
+    private generateMaintenancePlanUseCase: GenerateMaintenancePlan,
+    private abandonPlanUseCase: AbandonPlan,
+    private getPostPlanStateUseCase: GetPostPlanState
   ) {}
 
   async index({ inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
     const overview = await this.getPlanOverview.execute(user.id)
 
-    if (!overview) return inertia.render('Planning/Index', { overview: null })
+    if (overview) {
+      const { fitnessProfile, ...rest } = overview
+      return inertia.render('Planning/Index', {
+        overview: {
+          ...rest,
+          fitnessProfile: fitnessProfile
+            ? {
+                ctl: Math.round(fitnessProfile.chronicTrainingLoad),
+                atl: Math.round(fitnessProfile.acuteTrainingLoad),
+                tsb: Math.round(fitnessProfile.trainingStressBalance),
+                acwr: Math.round(fitnessProfile.acuteChronicWorkloadRatio * 100) / 100,
+              }
+            : null,
+          inactivityLevel: rest.inactivityLevel,
+          daysSinceLastSession: rest.daysSinceLastSession,
+        },
+        postPlanState: null,
+      })
+    }
 
-    const { fitnessProfile, ...rest } = overview
-    return inertia.render('Planning/Index', {
-      overview: {
-        ...rest,
-        fitnessProfile: fitnessProfile
-          ? {
-              ctl: Math.round(fitnessProfile.chronicTrainingLoad),
-              atl: Math.round(fitnessProfile.acuteTrainingLoad),
-              tsb: Math.round(fitnessProfile.trainingStressBalance),
-              acwr: Math.round(fitnessProfile.acuteChronicWorkloadRatio * 100) / 100,
-            }
-          : null,
-        inactivityLevel: rest.inactivityLevel,
-        daysSinceLastSession: rest.daysSinceLastSession,
-      },
-    })
+    const postPlanState = await this.getPostPlanStateUseCase.execute(user.id)
+    return inertia.render('Planning/Index', { overview: null, postPlanState })
   }
 
   async weekDetail({ params, auth, response }: HttpContext) {
@@ -99,6 +112,40 @@ export default class PlanningController {
       }
       throw error
     }
+  }
+
+  async generateTransition({ response, auth, session }: HttpContext) {
+    const user = auth.getUserOrFail()
+    try {
+      await this.generateTransitionPlanUseCase.execute(user.id)
+      return response.redirect().toPath('/planning')
+    } catch (error) {
+      if (error instanceof NoCompletedPlanError) {
+        session.flash('error', error.message)
+        return response.redirect().back()
+      }
+      throw error
+    }
+  }
+
+  async generateMaintenance({ response, auth, session }: HttpContext) {
+    const user = auth.getUserOrFail()
+    try {
+      await this.generateMaintenancePlanUseCase.execute(user.id)
+      return response.redirect().toPath('/planning')
+    } catch (error) {
+      if (error instanceof NoCompletedPlanError) {
+        session.flash('error', error.message)
+        return response.redirect().back()
+      }
+      throw error
+    }
+  }
+
+  async abandon({ response, auth }: HttpContext) {
+    const user = auth.getUserOrFail()
+    await this.abandonPlanUseCase.execute(user.id)
+    return response.redirect().toPath('/planning')
   }
 
   async updateSession({ params, request, response, auth, session }: HttpContext) {

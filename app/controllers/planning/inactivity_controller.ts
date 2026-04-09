@@ -17,7 +17,6 @@ export default class InactivityController {
     const user = auth.getUserOrFail()
     const data = await request.validateUsing(resumeFromInactivityValidator)
 
-    logger.info({ userId: user.id, daysSince: data.days_since }, 'ResumeFromInactivity triggered')
     await this.resumeFromInactivityUseCase.execute(user.id, data.days_since)
     return response.redirect().toPath('/planning')
   }
@@ -25,7 +24,7 @@ export default class InactivityController {
   async abandonForNewPlan({ auth, response }: HttpContext) {
     const user = auth.getUserOrFail()
     const overview = await this.getPlanOverviewUseCase.execute(user.id)
-    if (!overview) return response.redirect().toPath('/planning')
+    if (!overview || !overview.goal) return response.redirect().toPath('/planning')
 
     await this.abandonGoalUseCase.execute(overview.goal.id, user.id)
     return response.redirect().toPath('/planning/goal')

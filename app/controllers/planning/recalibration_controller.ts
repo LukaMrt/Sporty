@@ -13,15 +13,19 @@ export default class RecalibrationController {
     private handleVdotDownProposalUseCase: HandleVdotDownProposal
   ) {}
 
-  async toggle({ auth, response }: HttpContext) {
+  async toggle({ auth, response, session, i18n }: HttpContext) {
     const user = auth.getUserOrFail()
 
     try {
       const newValue = await this.toggleAutoRecalibrateUseCase.execute(user.id)
-      return response.ok({ autoRecalibrate: newValue })
+      const key = newValue
+        ? 'planning.recalibration.autoToggleEnabled'
+        : 'planning.recalibration.autoToggleDisabled'
+      session.flash('success', i18n.t(key))
+      return response.redirect().back()
     } catch (error) {
       if (error instanceof NoActivePlanError) {
-        return response.notFound({ message: error.message })
+        return response.redirect().back()
       }
       throw error
     }

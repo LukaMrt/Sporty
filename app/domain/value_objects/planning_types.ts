@@ -14,6 +14,8 @@ export enum TrainingState {
   Idle = 'idle',
   InPlan = 'in_plan',
   Preparation = 'preparation',
+  Transition = 'transition',
+  Maintenance = 'maintenance',
 }
 
 export enum PlanType {

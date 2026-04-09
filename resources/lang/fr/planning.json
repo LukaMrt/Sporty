@@ -324,6 +324,30 @@
       "later": "Plus tard"
     }
   },
+  "recalibration": {
+    "autoToggleLabel": "Recalibration automatique",
+    "autoToggleDesc": "Ajuste les allures et la charge à la fin de chaque semaine",
+    "vdotUpToast": "VDOT mis à jour → {vdot}",
+    "autoToggleEnabled": "Recalibration automatique activée",
+    "autoToggleDisabled": "Recalibration automatique désactivée"
+  },
+  "postPlan": {
+    "title": "Plan terminé — quelle est la suite ?",
+    "subtitle": "Vous avez atteint votre objectif. Choisissez la prochaine étape.",
+    "transition": {
+      "title": "Plan de transition",
+      "desc": "2 à 4 semaines de récupération active post-course, à volume réduit."
+    },
+    "maintenance": {
+      "title": "Plan de maintien",
+      "desc": "Cycles 4 semaines pour conserver votre forme sans objectif spécifique."
+    },
+    "newGoal": {
+      "title": "Nouvel objectif",
+      "desc": "Définissez une nouvelle course et générez un plan de préparation."
+    },
+    "later": "Plus tard"
+  },
   "phases": {
     "FI": "Fondation",
     "EQ": "Introduction vitesse",
