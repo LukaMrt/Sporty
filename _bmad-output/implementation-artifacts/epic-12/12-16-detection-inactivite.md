@@ -1,6 +1,6 @@
 # Story 12.16 : Detection d'inactivite
 
-Status: pending
+Status: review
 
 ## Story
 
@@ -18,20 +18,49 @@ So that **je peux reprendre en securite sans me blesser**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Detection d'inactivite (AC: #2, #4)
-  - [ ] Logique dans `GetPlanOverview` : calculer les jours depuis la derniere seance
-  - [ ] Retourner un flag `inactivityLevel: 'none' | 'warning' | 'critical'` dans les props
-- [ ] Task 2 : Gestion seance manquee (AC: #1)
-  - [ ] Dans RecalibratePlan : detecter seance planifiee non realisee
-  - [ ] Reporter max 1 seance qualite au prochain créneau disponible
-- [ ] Task 3 : UI — Banniere inactivite (AC: #2, #4)
-  - [ ] Creer `inertia/components/planning/InactivityBanner.tsx`
-  - [ ] Ton neutre, bienveillant, 3 options
-  - [ ] Variante > 14 jours vs > 4 semaines
-- [ ] Task 4 : Actions de reprise (AC: #3, #5)
-  - [ ] "Reprendre" → recalibration avec charge reduite
-  - [ ] "Nouveau plan" → abandon plan actif + redirect wizard
-  - [ ] Estimation VDOT reduit selon duree inactivite (perte ~7% apres 2-4 semaines, ~15% apres 8 semaines)
+- [x] Task 1 : Detection d'inactivite (AC: #2, #4)
+  - [x] Logique dans `GetPlanOverview` : calculer les jours depuis la derniere seance
+  - [x] Retourner un flag `inactivityLevel: 'none' | 'warning' | 'critical'` dans les props
+- [x] Task 2 : Gestion seance manquee (AC: #1)
+  - [x] Dans RecalibratePlan : detecter seance planifiee non realisee
+  - [x] Reporter max 1 seance qualite au prochain créneau disponible
+- [x] Task 3 : UI — Banniere inactivite (AC: #2, #4)
+  - [x] Creer `inertia/components/planning/InactivityBanner.tsx`
+  - [x] Ton neutre, bienveillant, 3 options
+  - [x] Variante > 14 jours vs > 4 semaines
+- [x] Task 4 : Actions de reprise (AC: #3, #5)
+  - [x] "Reprendre" → recalibration avec charge reduite
+  - [x] "Nouveau plan" → abandon plan actif + redirect wizard
+  - [x] Estimation VDOT reduit selon duree inactivite (perte ~7% apres 2-4 semaines, ~15% apres 8 semaines)
+
+## Dev Agent Record
+
+### Completion Notes
+
+- **Task 1** : `GetPlanOverview` expose désormais `inactivityLevel` ('none'|'warning'|'critical') et `daysSinceLastSession`. La requête sessions (365j) est faite une seule fois et partagée entre fitness profile et calcul inactivité. Seuils : warning ≥ 14j, critical ≥ 28j.
+- **Task 2** : `RecalibratePlan` détecte les séances qualité (tempo/interval/répétition) `pending` dont la date est passée dans la semaine courante et reporte la première au premier créneau libre de la semaine suivante. Le fetch de `allPlannedSessions` est mutualisé en tête d'execute.
+- **Task 3** : `InactivityBanner.tsx` affiche le bon message selon le niveau (bleu=warning, amber=critical) avec 3 actions : Reprendre / Nouveau plan / Plus tard. Intégré dans `Planning/Index.tsx` avec un state `inactivityDismissed`.
+- **Task 4** : `ResumeFromInactivity` use case : réduction VDOT selon table Hickson (3%/14j, 7%/28j, 15%/56j+) avec interpolation linéaire. Facteur charge réduit (0.6–0.8). `InactivityController` gère les deux routes POST.
+
+### File List
+
+- `app/use_cases/planning/get_plan_overview.ts` — modifié
+- `app/use_cases/planning/recalibrate_plan.ts` — modifié
+- `app/use_cases/planning/resume_from_inactivity.ts` — créé
+- `app/controllers/planning/inactivity_controller.ts` — créé
+- `app/controllers/planning/planning_controller.ts` — modifié
+- `inertia/components/planning/InactivityBanner.tsx` — créé
+- `inertia/pages/Planning/Index.tsx` — modifié
+- `inertia/types/planning.ts` — modifié
+- `start/routes.ts` — modifié
+- `resources/lang/fr/planning.json` — modifié
+- `resources/lang/en/planning.json` — modifié
+- `tests/unit/use_cases/planning/get_plan_overview.spec.ts` — modifié
+- `tests/unit/use_cases/planning/resume_from_inactivity.spec.ts` — créé
+
+### Change Log
+
+- Story 12.16 : détection d'inactivité, bannière UI adaptative, reprise sécurisée avec réduction VDOT (Hickson 1985) (Date: 2026-04-06)
 
 ## Dev Notes
 

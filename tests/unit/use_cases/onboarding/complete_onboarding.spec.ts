@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import CompleteOnboarding from '#use_cases/onboarding/complete_onboarding'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { UserLevel, UserObjective } from '#domain/entities/user_profile'
+import { TrainingState } from '#domain/value_objects/planning_types'
 import type { UserProfile } from '#domain/entities/user_profile'
 import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
 
@@ -33,6 +34,8 @@ function makeUserProfileRepository(
         maxHeartRate: null,
         restingHeartRate: null,
         vma: null,
+        sex: null,
+        trainingState: TrainingState.Idle,
       }
     }
   }

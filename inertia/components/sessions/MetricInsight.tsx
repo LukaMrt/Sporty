@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
-import { Info } from 'lucide-react'
+import InfoTooltip from '~/components/shared/InfoTooltip'
 
 interface Zone {
   labelKey: string
@@ -98,54 +98,39 @@ function getZone(zones: Zone[], value: number): Zone {
 interface MetricInsightProps {
   metricKey: string
   value: number
+  /** Affiche uniquement l'icône tooltip, sans le badge de zone */
+  iconOnly?: boolean
 }
 
-export default function MetricInsight({ metricKey, value }: MetricInsightProps) {
+export default function MetricInsight({ metricKey, value, iconOnly = false }: MetricInsightProps) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
   const config = METRIC_INSIGHTS[metricKey]
   if (!config) return null
 
   const zone = getZone(config.zones, value)
 
   return (
-    <div className="relative">
-      <div className="flex items-center gap-2">
-        {/* Badge zone */}
+    <div className="flex items-center gap-2">
+      {!iconOnly && (
         <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${zone.color}`}>
           {t(zone.labelKey)}
         </span>
-        <button
-          type="button"
-          className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
-          aria-label={t('sessions.show.insights.learnMore')}
-        >
-          <Info size={14} />
-        </button>
-      </div>
-
-      {open && (
-        <div className="absolute right-0 top-7 z-10 w-64 rounded-xl border bg-card p-3 shadow-lg space-y-3 text-xs">
-          <p className="text-muted-foreground leading-relaxed">{t(config.descriptionKey)}</p>
-          <div className="space-y-1">
-            {config.zones.map((z) => (
-              <div key={z.labelKey} className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${z.dot}`} />
-                  <span className="text-foreground">{t(z.labelKey)}</span>
-                </span>
-                <span className="text-muted-foreground">
-                  {z.max === Infinity ? `> ${z.min}` : `${z.min} – ${z.max}`} {config.unit}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
       )}
+      <InfoTooltip description={t(config.descriptionKey)}>
+        <div className="space-y-1">
+          {config.zones.map((z) => (
+            <div key={z.labelKey} className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${z.dot}`} />
+                <span className="text-foreground">{t(z.labelKey)}</span>
+              </span>
+              <span className="text-muted-foreground">
+                {z.max === Infinity ? `> ${z.min}` : `${z.min} – ${z.max}`} {config.unit}
+              </span>
+            </div>
+          ))}
+        </div>
+      </InfoTooltip>
     </div>
   )
 }

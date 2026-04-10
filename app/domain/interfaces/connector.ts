@@ -1,4 +1,5 @@
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
+import type { SportMetrics } from '#domain/value_objects/sport_metrics'
 
 export interface ConnectorTokens {
   accessToken: string
@@ -35,7 +36,7 @@ export interface MappedSessionData {
   avgHeartRate: number | null
   importedFrom: string
   externalId: string
-  sportMetrics: Record<string, unknown>
+  sportMetrics: SportMetrics
 }
 
 export abstract class Connector {

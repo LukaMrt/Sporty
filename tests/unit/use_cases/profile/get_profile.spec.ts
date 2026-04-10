@@ -3,6 +3,7 @@ import GetProfile from '#use_cases/profile/get_profile'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { UserProfile } from '#domain/entities/user_profile'
 import { UserLevel, UserObjective } from '#domain/entities/user_profile'
+import { TrainingState } from '#domain/value_objects/planning_types'
 
 function makeMockProfileRepository(
   overrides: Partial<UserProfileRepository> = {}
@@ -32,6 +33,8 @@ function makeMockProfileRepository(
         maxHeartRate: null,
         restingHeartRate: null,
         vma: null,
+        sex: null,
+        trainingState: TrainingState.Idle,
       }
     }
   }
@@ -64,6 +67,8 @@ test.group('GetProfile — use case', () => {
       maxHeartRate: null,
       restingHeartRate: null,
       vma: null,
+      sex: null,
+      trainingState: TrainingState.Idle,
     }
     const repo = makeMockProfileRepository({ findByUserId: async () => profile })
     const useCase = new GetProfile(repo)

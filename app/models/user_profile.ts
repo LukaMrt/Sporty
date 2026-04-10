@@ -4,6 +4,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import type { UserLevel } from '#domain/entities/user_profile'
 import type { UserPreferences } from '#domain/entities/user_preferences'
+import type { BiologicalSex, TrainingState } from '#domain/value_objects/planning_types'
 
 export default class UserProfile extends BaseModel {
   @column({ isPrimary: true })
@@ -29,6 +30,12 @@ export default class UserProfile extends BaseModel {
 
   @column()
   declare vma: number | null
+
+  @column()
+  declare sex: BiologicalSex | null
+
+  @column()
+  declare trainingState: TrainingState
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>

@@ -18,6 +18,7 @@ import {
   stravaStreamsToTrackpoints,
 } from '#connectors/strava/strava_stream_converter'
 import type { RawStravaStream } from '#connectors/strava/strava_stream_converter'
+import type { RunMetrics } from '#domain/value_objects/run_metrics'
 import { analyze } from '#lib/track_analyzer'
 import {
   calculateZones,
@@ -99,12 +100,13 @@ export class StravaConnector extends Connector {
 
     const analysis = analyze(trackpoints)
 
-    const enriched: Record<string, unknown> = {
-      ...base.sportMetrics,
+    const baseMetrics = base.sportMetrics as RunMetrics
+    const enriched: RunMetrics = {
+      ...baseMetrics,
       minHeartRate: analysis.minHeartRate,
-      maxHeartRate: analysis.maxHeartRate ?? base.sportMetrics.maxHeartRate,
+      maxHeartRate: analysis.maxHeartRate ?? baseMetrics.maxHeartRate,
       cadenceAvg: analysis.cadenceAvg,
-      elevationGain: analysis.elevationGain ?? base.sportMetrics.elevationGain,
+      elevationGain: analysis.elevationGain ?? baseMetrics.elevationGain,
       elevationLoss: analysis.elevationLoss,
       heartRateCurve: analysis.heartRateCurve,
       paceCurve: analysis.paceCurve,

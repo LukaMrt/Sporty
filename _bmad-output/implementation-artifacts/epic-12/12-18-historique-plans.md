@@ -1,6 +1,6 @@
 # Story 12.18 : Historique des plans
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -18,16 +18,16 @@ So that **je vois ma progression sur le long terme**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Use case GetPlanHistory (AC: #1)
-  - [ ] Creer `app/use_cases/planning/get_plan_history.ts`
-  - [ ] Retourne les plans avec status completed ou abandoned, tries par date desc
-- [ ] Task 2 : Controller routes (AC: #1, #4)
-  - [ ] Route `GET /planning/history` → liste des plans
-  - [ ] Route `GET /planning/history/:id` → detail plan archive
-- [ ] Task 3 : Page React (AC: #1-#5)
-  - [ ] Creer `inertia/pages/Planning/History.tsx` — liste des anciens plans
-  - [ ] Creer `inertia/components/planning/PlanHistoryCard.tsx` — carte resume
-  - [ ] Vue detail plan archive : reutiliser les composants de la page planning en mode lecture seule (pas de swipe actions, pas de toggle recalibration)
+- [x] Task 1 : Use case GetPlanHistory (AC: #1)
+  - [x] Creer `app/use_cases/planning/get_plan_history.ts`
+  - [x] Retourne les plans avec status completed ou abandoned, tries par date desc
+- [x] Task 2 : Controller routes (AC: #1, #4)
+  - [x] Route `GET /planning/history` → liste des plans
+  - [x] Route `GET /planning/history/:id` → detail plan archive
+- [x] Task 3 : Page React (AC: #1-#5)
+  - [x] Creer `inertia/pages/Planning/History.tsx` — liste des anciens plans
+  - [x] Creer `inertia/components/planning/PlanHistoryCard.tsx` — carte resume
+  - [x] Vue detail plan archive : reutiliser les composants de la page planning en mode lecture seule (pas de swipe actions, pas de toggle recalibration)
 
 ## Dev Notes
 

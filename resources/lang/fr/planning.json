@@ -1,4 +1,375 @@
 {
   "title": "Planning",
-  "description": "Votre planning apparaîtra ici."
+  "description": "Votre planning apparaîtra ici.",
+  "noActivePlan": "Vous n'avez pas encore de plan actif.",
+  "defineGoalCta": "Définir un objectif",
+  "wizard": {
+    "title": "Définir mon objectif",
+    "steps": {
+      "goal": "Objectif",
+      "vdotEstimation": "Niveau",
+      "vdotConfirmation": "Confirmation",
+      "parameters": "Paramètres",
+      "summary": "Résumé"
+    },
+    "nav": {
+      "next": "Suivant",
+      "back": "Retour",
+      "generate": "Générer mon plan",
+      "generating": "Génération en cours…"
+    },
+    "step1": {
+      "title": "Quel est votre objectif ?",
+      "distance": "Distance",
+      "distancePlaceholder": "ex. 10",
+      "distanceUnit": "km",
+      "shortcuts": {
+        "label": "Raccourcis"
+      },
+      "targetTime": "Temps cible (optionnel)",
+      "targetTimePlaceholder": "ex. 55",
+      "targetTimeHint": "Laissez vide si vous n'avez pas d'objectif de temps.",
+      "eventDate": "Date de course (optionnel)",
+      "eventDateHint": "La durée du plan sera calculée automatiquement."
+    },
+    "step2": {
+      "title": "Estimation de votre niveau",
+      "autoTitle": "Niveau estimé depuis votre historique",
+      "autoConfirm": "Confirmer ce niveau",
+      "autoAdjust": "Ajuster manuellement",
+      "methodRecent": "Depuis une performance récente",
+      "methodVma": "Depuis ma VMA",
+      "methodQuestionnaire": "Questionnaire",
+      "recentDistance": "Distance",
+      "recentTime": "Temps réalisé",
+      "recentTimePlaceholder": "ex. 55",
+      "vmaLabel": "VMA (km/h)",
+      "vmaPlaceholder": "ex. 15.5",
+      "questionnaire": {
+        "frequency": "Fréquence d'entraînement",
+        "experience": "Ancienneté en course",
+        "distance": "Distance typique par séance",
+        "frequencyOptions": {
+          "occasional": "Occasionnel (< 2×/sem)",
+          "regular": "Régulier (2–3×/sem)",
+          "frequent": "Fréquent (4+×/sem)"
+        },
+        "experienceOptions": {
+          "beginner": "Débutant (< 1 an)",
+          "intermediate": "Intermédiaire (1–3 ans)",
+          "experienced": "Expérimenté (3+ ans)"
+        },
+        "distanceOptions": {
+          "less_5k": "Moins de 5 km",
+          "5k_to_10k": "5 à 10 km",
+          "more_10k": "Plus de 10 km"
+        }
+      },
+      "estimating": "Calcul en cours…",
+      "estimateBtn": "Estimer mon niveau"
+    },
+    "step3": {
+      "title": "Confirmation de votre niveau",
+      "subtitle": "Ajustez si nécessaire. Ces zones guideront la génération de votre plan.",
+      "vdotLabel": "VDOT",
+      "adjustHint": "Ajustez avec le curseur (±5 autour de l'estimation)",
+      "reassurance": "Votre plan s'adaptera automatiquement à ce niveau. Vous pourrez toujours l'ajuster plus tard.",
+      "paceZones": "Zones d'allure correspondantes"
+    },
+    "step4": {
+      "title": "Paramétrage du plan",
+      "sessionsPerWeek": "Séances par semaine",
+      "preferredDays": "Jours préférés",
+      "preferredDaysHint": "Sélectionnez {{n}} jours.",
+      "planDuration": "Durée du plan (semaines)",
+      "planDurationLocked": "Calculée depuis la date de l'événement",
+      "planDurationWarning": "Attention : une durée inférieure à 8 semaines est trop courte pour un plan efficace.",
+      "defaultsBtn": "Tout par défaut",
+      "recommendation": "Recommandé pour votre objectif",
+      "days": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam",
+        "sun": "Dim"
+      }
+    },
+    "step5": {
+      "title": "Résumé",
+      "goalSection": "Objectif",
+      "levelSection": "Niveau estimé",
+      "planSection": "Plan",
+      "distance": "Distance",
+      "targetTime": "Temps cible",
+      "eventDate": "Date de course",
+      "vdot": "VDOT",
+      "sessionsPerWeek": "Séances / semaine",
+      "preferredDays": "Jours préférés",
+      "planDuration": "Durée",
+      "planDurationWeeks": "{{n}} semaines",
+      "noTargetTime": "Non défini",
+      "noEventDate": "Non définie",
+      "successToast": "Plan généré avec succès !"
+    }
+  },
+  "athlete": {
+    "pageTitle": "Mon profil athlète",
+    "sections": {
+      "estimatedLevel": "Niveau estimé",
+      "paceZones": "Zones d'allure",
+      "trainingState": "État d'entraînement",
+      "technicalData": "Données techniques",
+      "personalInfo": "Informations personnelles"
+    },
+    "vdot": {
+      "label": "VDOT",
+      "edit": "Modifier",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "loading": "Estimation en cours…",
+      "noData": "Aucune donnée disponible pour estimer votre VDOT.",
+      "estimateCta": "Estimer mon niveau",
+      "methods": {
+        "history": "Calculé depuis votre historique",
+        "vma": "Calculé depuis votre VMA",
+        "questionnaire": "Estimé depuis le questionnaire"
+      },
+      "description": "Le VDOT est un indice de performance aérobie dérivé du VO₂max, développé par Jack Daniels. Il reflète votre capacité à utiliser l'oxygène à l'effort et détermine vos allures d'entraînement optimales.",
+      "interpretation": "Plus le VDOT est élevé, meilleure est votre endurance. Un coureur débutant se situe autour de 30–35, un coureur intermédiaire entre 40–50, un athlète élite au-delà de 60."
+    },
+    "zones": {
+      "easy": {
+        "name": "Endurance",
+        "description": "Course facile, conversation possible. Développe la base aérobie, améliore l'économie de course et favorise la récupération active. Représente 70–80 % de votre volume total."
+      },
+      "marathon": {
+        "name": "Marathon",
+        "description": "Allure cible pour un marathon. Stimule l'efficacité métabolique à haute intensité aérobie et entraîne le corps à utiliser les graisses comme carburant."
+      },
+      "threshold": {
+        "name": "Tempo",
+        "description": "Allure seuil lactique — effort confortablement difficile. Repousse le seuil anaérobie, permettant de maintenir des allures plus élevées plus longtemps."
+      },
+      "interval": {
+        "name": "Intervalles",
+        "description": "Allure VO₂max — effort très intense, 3–5 min. Développe votre capacité cardiovasculaire maximale. Séances exigeantes, à intégrer avec parcimonie."
+      },
+      "repetition": {
+        "name": "Répétitions",
+        "description": "Allure sprint court — effort maximal, 30–90 s. Améliore l'économie de course, la foulée et la coordination neuromusculaire."
+      }
+    },
+    "trainingState": {
+      "idle": "Pas de plan en cours",
+      "in_plan": "Plan en cours",
+      "preparation": "En préparation",
+      "transition": "En transition",
+      "maintenance": "En maintien"
+    },
+    "fitness": {
+      "ctl": {
+        "label": "CTL",
+        "name": "Forme",
+        "description": "Charge d'entraînement chronique — moyenne pondérée sur 42 jours. Représente votre niveau de forme physique accumulé sur le long terme.",
+        "interpretation": "Idéalement entre 40 et 80 pour un coureur régulier. Sous 20 : faible condition. Au-dessus de 100 : charge très élevée (athlètes avancés)."
+      },
+      "atl": {
+        "label": "ATL",
+        "name": "Fatigue",
+        "description": "Charge d'entraînement aiguë — moyenne pondérée sur 7 jours. Reflète la fatigue accumulée récemment.",
+        "interpretation": "Une ATL élevée par rapport au CTL indique un risque de surmenage. Elle augmente rapidement lors des semaines chargées et diminue vite au repos."
+      },
+      "tsb": {
+        "label": "TSB",
+        "name": "Fraîcheur",
+        "description": "Balance de stress d'entraînement — différence CTL − ATL. Mesure votre état de forme et de récupération au moment présent.",
+        "interpretation": "Entre −10 et +5 : état optimal pour s'entraîner. Au-dessus de +10 : bien reposé (pic de forme ou désentraînement). En dessous de −20 : risque de fatigue excessive."
+      },
+      "acwr": {
+        "label": "ACWR",
+        "name": "Ratio charge",
+        "description": "Ratio charge aiguë / charge chronique (ATL ÷ CTL). Indicateur de risque de blessure lié à une augmentation trop rapide de la charge.",
+        "interpretation": "La « zone verte » se situe entre 0,8 et 1,3. En dessous : sous-charge (désentraînement). Au-dessus de 1,5 : zone rouge, risque de blessure significativement accru."
+      },
+      "badges": {
+        "acwr": {
+          "low": "Sous-charge",
+          "optimal": "Optimal ✓",
+          "high": "Charge élevée ⚡"
+        },
+        "tsb": {
+          "tired": "Fatigué",
+          "slightlyTired": "Légèrement fatigué",
+          "neutral": "Frais neutre",
+          "fresh": "Frais"
+        }
+      }
+    },
+    "personalInfo": {
+      "sex": "Sexe (pour le calcul de charge)",
+      "sexOptions": {
+        "unset": "Non renseigné",
+        "male": "Homme",
+        "female": "Femme"
+      },
+      "maxHr": "FC max (bpm)",
+      "restHr": "FC repos (bpm)",
+      "vma": "VMA (km/h)",
+      "save": "Sauvegarder",
+      "saving": "Enregistrement…"
+    },
+    "toggle": {
+      "technicalData": "Données techniques"
+    },
+    "sources": {
+      "title": "Sources & méthodes de calcul",
+      "badges": {
+        "study": "Étude",
+        "book": "Livre",
+        "guide": "Guide"
+      }
+    }
+  },
+  "sessions": {
+    "types": {
+      "easy": "Course facile",
+      "long_run": "Sortie longue",
+      "tempo": "Séance au seuil",
+      "marathon_pace": "Allure marathon",
+      "interval": "Intervalles VO₂max",
+      "repetition": "Répétitions vitesse",
+      "recovery": "Récupération",
+      "race": "Course / compétition",
+      "cross_training": "Cross-training",
+      "rest": "Repos"
+    },
+    "withStrides": "{{session}} + strides"
+  },
+  "overview": {
+    "weekLabel": "Semaine {n}",
+    "weekProgress": "Sem. {current}/{total}",
+    "allWeeks": "Toutes les semaines",
+    "inProgress": "en cours",
+    "recoveryWeek": "récupération",
+    "sessionCount": "{n} séances",
+    "eventIn": "Course dans {n} jours",
+    "eventPassed": "Course passée",
+    "noEventDate": "Pas de date de course",
+    "historyLink": "Historique des plans",
+    "week": "Semaine",
+    "of": "sur",
+    "phase": "Phase",
+    "totalVolume": "Volume total",
+    "sessions": "séances",
+    "load": {
+      "label": "Charge",
+      "low": "Légère",
+      "moderate": "Modérée",
+      "high": "Élevée"
+    },
+    "today": "Aujourd'hui",
+    "rest": "Repos",
+    "notDone": "Non réalisée",
+    "duration": "{{n}} min",
+    "distance": "{{n}} km",
+    "target": "Cible",
+    "actual": "Réalisé",
+    "intervals": "Intervalles",
+    "comparisonPlanned": "Prévu",
+    "comparisonActual": "Réalisé",
+    "blockTypes": {
+      "warmup": "Échauffement",
+      "work": "Travail",
+      "recovery": "Récupération",
+      "cooldown": "Retour au calme"
+    },
+    "recoveryJog": "trot",
+    "recoveryRest": "repos",
+    "close": "Fermer",
+    "moveSession": "Déplacer",
+    "editSession": "Modifier",
+    "moveTitle": "Déplacer la séance",
+    "editTitle": "Modifier la séance",
+    "dropHere": "Déposer ici",
+    "durationLabel": "Durée (min)",
+    "paceLabel": "Allure cible (MM:SS)",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "moveSuccess": "Séance déplacée",
+    "editSuccess": "Séance modifiée"
+  },
+  "acwr": {
+    "warning": {
+      "title": "Ton corps a besoin de récup.",
+      "message": "Tu as beaucoup chargé ces derniers jours — pense à bien récupérer avant ta prochaine séance intense.",
+      "dismiss": "Fermer"
+    },
+    "techMode": {
+      "toggle": "Données tech"
+    }
+  },
+  "inactivity": {
+    "warning": {
+      "title": "Tu n'as pas couru depuis {days} jours",
+      "message": "Une courte pause, ça arrive ! Ton plan peut être ajusté pour une reprise en douceur."
+    },
+    "critical": {
+      "title": "Pause de {days} jours — prêt à reprendre ?",
+      "message": "Après une longue période sans entraînement, il est conseillé d'adapter l'intensité pour éviter les blessures."
+    },
+    "actions": {
+      "resume": "Reprendre le plan",
+      "newPlan": "Nouveau plan",
+      "later": "Plus tard"
+    }
+  },
+  "recalibration": {
+    "autoToggleLabel": "Recalibration automatique",
+    "autoToggleDesc": "Ajuste les allures et la charge à la fin de chaque semaine",
+    "vdotUpToast": "VDOT mis à jour → {vdot}",
+    "autoToggleEnabled": "Recalibration automatique activée",
+    "autoToggleDisabled": "Recalibration automatique désactivée",
+    "proposalHandled": "Proposition de recalibration traitée"
+  },
+  "postPlan": {
+    "title": "Plan terminé — quelle est la suite ?",
+    "subtitle": "Vous avez atteint votre objectif. Choisissez la prochaine étape.",
+    "transition": {
+      "title": "Plan de transition",
+      "desc": "2 à 4 semaines de récupération active post-course, à volume réduit."
+    },
+    "maintenance": {
+      "title": "Plan de maintien",
+      "desc": "Cycles 4 semaines pour conserver votre forme sans objectif spécifique."
+    },
+    "newGoal": {
+      "title": "Nouvel objectif",
+      "desc": "Définissez une nouvelle course et générez un plan de préparation."
+    },
+    "later": "Plus tard"
+  },
+  "phases": {
+    "FI": "Fondation",
+    "EQ": "Introduction vitesse",
+    "TQ": "Phase intensive",
+    "FQ": "Affûtage",
+    "MAINT": "Maintenance",
+    "TRANS": "Transition"
+  },
+  "history": {
+    "title": "Historique des plans",
+    "empty": "Pas encore de plan terminé",
+    "emptyDescription": "Vos plans terminés ou abandonnés apparaîtront ici.",
+    "backToPlanning": "Retour au planning",
+    "completed": "Terminé",
+    "abandoned": "Abandonné",
+    "vdotProgress": "VDOT {start} → {end}",
+    "sessions": "{done}/{total} séances",
+    "goal": "Objectif : {distance} km",
+    "maintenancePlan": "Plan de maintenance",
+    "readOnlyDetail": "Vue lecture seule — plan archivé",
+    "detailBack": "Retour à l'historique"
+  }
 }

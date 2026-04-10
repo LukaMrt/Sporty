@@ -1,6 +1,6 @@
 # Story 12.8 : Goal Setting Wizard (UI)
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -23,40 +23,40 @@ So that **je definis facilement mon objectif et recois un plan en moins de 3 min
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Page GoalCreate — conteneur wizard (AC: #1, #9)
-  - [ ] Creer `inertia/pages/Planning/GoalCreate.tsx`
-  - [ ] Gestion d'etat multi-etapes (state local React)
-  - [ ] Barre de progression (5 dots)
-  - [ ] Navigation avant/arriere
-- [ ] Task 2 : Etape 1 — Objectif (AC: #2)
-  - [ ] Champ distance (numerique) + raccourcis boutons (5, 10, 21.1, 42.195)
-  - [ ] Champ temps cible (hh:mm:ss) optionnel
-  - [ ] Champ date de course (date picker) optionnel
-  - [ ] Micro-copy rassurant sous chaque champ optionnel
-- [ ] Task 3 : Etape 2 — Estimation VDOT (AC: #3, #4)
-  - [ ] Creer `inertia/components/planning/VdotEstimationForm.tsx`
-  - [ ] Cas A : VDOT pre-calcule depuis Strava (affichage + boutons Confirmer/Ajuster)
-  - [ ] Cas B : Entonnoir 3 niveaux (temps recent / VMA / questionnaire)
-  - [ ] Sous-flow B1 : dropdown distance + champ temps
-  - [ ] Sous-flow B2 : champ VMA (pre-rempli si profil)
-  - [ ] Sous-flow B3 : 3 questions radio (frequence, anciennete, distance)
-- [ ] Task 4 : Etape 3 — Confirmation VDOT (AC: #5)
-  - [ ] Creer `inertia/components/planning/VdotConfirmation.tsx`
-  - [ ] Affichage VDOT + zones d'allure + temps estimes
-  - [ ] Slider ±5 avec mise a jour temps reel
-  - [ ] Message rassurant
-- [ ] Task 5 : Etape 4 — Parametrage (AC: #6, #7, #10)
-  - [ ] Boutons radio seances/semaine (3/4/5) avec recommandation
-  - [ ] Chips toggle jours preferes (max = nb seances)
-  - [ ] Champ duree (pre-rempli selon table distance × niveau)
-  - [ ] Verrouillage si date evenement
-  - [ ] Warning si < 8 semaines
-  - [ ] Bouton "Tout par defaut"
-- [ ] Task 6 : Etape 5 — Resume & generation (AC: #8)
-  - [ ] Creer `inertia/pages/Planning/PlanPreview.tsx` ou integrer dans GoalCreate
-  - [ ] Recapitulatif complet (objectif, VDOT, duree, phases)
-  - [ ] Bouton "Generer mon plan" → appel API → loading → redirect
-  - [ ] Toast succes
+- [x] Task 1 : Page GoalCreate — conteneur wizard (AC: #1, #9)
+  - [x] Creer `inertia/pages/Planning/GoalCreate.tsx`
+  - [x] Gestion d'etat multi-etapes (state local React)
+  - [x] Barre de progression (5 dots)
+  - [x] Navigation avant/arriere
+- [x] Task 2 : Etape 1 — Objectif (AC: #2)
+  - [x] Champ distance (numerique) + raccourcis boutons (5, 10, 21.1, 42.195)
+  - [x] Champ temps cible (hh:mm:ss) optionnel
+  - [x] Champ date de course (date picker) optionnel
+  - [x] Micro-copy rassurant sous chaque champ optionnel
+- [x] Task 3 : Etape 2 — Estimation VDOT (AC: #3, #4)
+  - [x] Creer `inertia/components/planning/VdotEstimationForm.tsx`
+  - [x] Cas A : VDOT pre-calcule depuis Strava (affichage + boutons Confirmer/Ajuster)
+  - [x] Cas B : Entonnoir 3 niveaux (temps recent / VMA / questionnaire)
+  - [x] Sous-flow B1 : dropdown distance + champ temps
+  - [x] Sous-flow B2 : champ VMA (pre-rempli si profil)
+  - [x] Sous-flow B3 : 3 questions radio (frequence, anciennete, distance)
+- [x] Task 4 : Etape 3 — Confirmation VDOT (AC: #5)
+  - [x] Creer `inertia/components/planning/VdotConfirmation.tsx`
+  - [x] Affichage VDOT + zones d'allure + temps estimes
+  - [x] Slider ±5 avec mise a jour temps reel
+  - [x] Message rassurant
+- [x] Task 5 : Etape 4 — Parametrage (AC: #6, #7, #10)
+  - [x] Boutons radio seances/semaine (3/4/5) avec recommandation
+  - [x] Chips toggle jours preferes (max = nb seances)
+  - [x] Champ duree (pre-rempli selon table distance × niveau)
+  - [x] Verrouillage si date evenement
+  - [x] Warning si < 8 semaines
+  - [x] Bouton "Tout par defaut"
+- [x] Task 6 : Etape 5 — Resume & generation (AC: #8)
+  - [x] Integre dans GoalCreate (pas de fichier separe)
+  - [x] Recapitulatif complet (objectif, VDOT, duree, phases)
+  - [x] Bouton "Generer mon plan" → appel API → loading → redirect
+  - [x] Toast succes
 
 ## Dev Notes
 
@@ -79,3 +79,39 @@ Pas de navigation serveur entre les etapes — tout est gere cote client. L'appe
 
 - [UX Design sections 4.1-4.6](/_bmad-output/planning-artifacts/planning-module/ux-design-planning-module.md#4)
 - [PRD FR11-FR16](/_bmad-output/planning-artifacts/planning-module/prd-planning-module.md)
+
+## Dev Agent Record
+
+### Implementation Plan
+
+Wizard 100% client-side avec state React local. 5 étapes :
+1. Objectif (distance, temps optionnel, date optionnelle)
+2. Estimation VDOT — Cas A: auto depuis Strava, Cas B: entonnoir 3 niveaux
+3. Confirmation VDOT — slider ±5, zones temps réel via POST /profile/athlete/confirm-vdot
+4. Paramétrage — séances/semaine, jours préférés (chips), durée plan (auto si date event)
+5. Résumé — récapitulatif + POST /planning/goals → redirect /planning
+
+Route ajoutée : `GET /planning/goal` → `Planning/GoalCreate` (renderInertia statique)
+Planning/Index mis à jour : bouton "Définir un objectif" → /planning/goal
+
+### Completion Notes
+
+- `GoalCreate.tsx` : conteneur wizard avec state WizardState, ProgressDots, 5 blocs conditionnels step
+- `VdotEstimationForm.tsx` : auto-fetch estimateVdot au mount, affiche résultat Strava ou entonnoir 3 méthodes
+- `VdotConfirmation.tsx` : slider ±5 avec fetch temps réel confirm-vdot + PaceZonesDisplay
+- Traductions FR + EN ajoutées (`planning.wizard.*`)
+- Pas de tests unitaires : composants purement UI sans logique métier testable isolément (formules de durée testées via `defaultDuration` inline)
+
+## File List
+
+- `inertia/pages/Planning/GoalCreate.tsx` (created)
+- `inertia/pages/Planning/Index.tsx` (modified)
+- `inertia/components/planning/VdotEstimationForm.tsx` (created)
+- `inertia/components/planning/VdotConfirmation.tsx` (created)
+- `resources/lang/fr/planning.json` (modified)
+- `resources/lang/en/planning.json` (modified)
+- `start/routes.ts` (modified)
+
+## Change Log
+
+- 2026-03-23 : Story 12.8 implémentée — wizard 5 étapes Goal Setting UI

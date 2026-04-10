@@ -1,4 +1,5 @@
 import { inject } from '@adonisjs/core'
+import emitter from '@adonisjs/core/services/emitter'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
@@ -124,6 +125,7 @@ export default class SyncConnector {
           })
 
           await this.importSessionRepository.setImported(stagingRecord.id, session.id)
+          await emitter.emit('session:completed', { sessionId: session.id, userId })
           imported++
         } catch {
           // Session-level error: skip and continue

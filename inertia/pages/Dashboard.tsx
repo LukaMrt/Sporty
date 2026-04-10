@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
+import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
+import { useTechMode } from '~/hooks/use_tech_mode'
 import EmptyState from '~/components/shared/EmptyState'
 import HeroMetric, { HeroMetricEmpty } from '~/components/shared/HeroMetric'
 import QuickStatCard from '~/components/shared/QuickStatCard'
@@ -15,12 +17,16 @@ import type {
 } from '../../app/domain/entities/dashboard_metrics'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import { useTranslation } from '~/hooks/use_translation'
+import NextSessionWidget from '~/components/planning/NextSessionWidget'
+import type { NextSessionResult } from '~/components/planning/NextSessionWidget'
 
 interface DashboardProps {
   sessionCount: number
   heroMetric: HeroMetricData | null
   quickStats: QuickStatData | null
   chartData: ChartData | null
+  nextSession: NextSessionResult
+  acwr: number | null
 }
 
 export default function Dashboard({
@@ -28,9 +34,14 @@ export default function Dashboard({
   heroMetric,
   quickStats,
   chartData,
+  nextSession,
+  acwr,
 }: DashboardProps) {
   const [period, setPeriod] = useState<Period>('all')
+  const [acwrDismissed, setAcwrDismissed] = useState(false)
+  const { techMode } = useTechMode()
   const isEmpty = quickStats === null
+  const showAcwrWarning = !acwrDismissed && acwr !== null && acwr > 1.3
   const { formatDistanceParts } = useUnitConversion()
   const { t } = useTranslation()
 
@@ -46,6 +57,13 @@ export default function Dashboard({
         />
       ) : (
         <div className="mx-auto max-w-2xl space-y-4 p-4">
+          {showAcwrWarning && acwr !== null && (
+            <AcwrWarningBanner
+              acwr={acwr}
+              techMode={techMode}
+              onDismiss={() => setAcwrDismissed(true)}
+            />
+          )}
           {heroMetric === null ? (
             <HeroMetricEmpty />
           ) : (
@@ -56,6 +74,7 @@ export default function Dashboard({
               sparklineData={heroMetric.sparklineData}
             />
           )}
+          <NextSessionWidget result={nextSession} />
           <div className="grid grid-cols-3 gap-2">
             <QuickStatCard
               label={t('dashboard.stats.weeklyVolume')}

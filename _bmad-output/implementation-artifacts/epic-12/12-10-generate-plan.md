@@ -1,6 +1,6 @@
 # Story 12.10 : Use case GeneratePlan — Orchestration complete
 
-Status: pending
+Status: review
 
 ## Story
 
@@ -18,21 +18,21 @@ So that **je recois un plan personnalise base sur mon profil et mes donnees**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Use case GeneratePlan (AC: #1, #2, #3)
-  - [ ] Creer `app/use_cases/planning/generate_plan.ts`
-  - [ ] Injecter : TrainingGoalRepository, TrainingPlanRepository, SessionRepository, TrainingLoadCalculator, FitnessProfileCalculator, TrainingPlanEngine
-  - [ ] Orchestration : voir flux ci-dessous
-  - [ ] Verification pas de plan actif existant
-  - [ ] Persister plan + weeks + sessions
-  - [ ] Mettre a jour trainingState → 'preparation'
-- [ ] Task 2 : Controller (AC: #4)
-  - [ ] Creer `app/controllers/planning/planning_controller.ts`
-  - [ ] `generate()` → validation + use case GeneratePlan + redirect `/planning`
-- [ ] Task 3 : Validator
-  - [ ] Creer `app/validators/planning/generate_plan_validator.ts`
-  - [ ] vdot: number (15-85), sessionsPerWeek: number (2-7), preferredDays: array of numbers (0-6), planDurationWeeks: number (≥ 8)
-- [ ] Task 4 : Routes
-  - [ ] `POST /planning/generate` → PlanningController.generate
+- [x] Task 1 : Use case GeneratePlan (AC: #1, #2, #3)
+  - [x] Creer `app/use_cases/planning/generate_plan.ts`
+  - [x] Injecter : TrainingGoalRepository, TrainingPlanRepository, SessionRepository, TrainingLoadCalculator, FitnessProfileCalculator, TrainingPlanEngine
+  - [x] Orchestration : voir flux ci-dessous
+  - [x] Verification pas de plan actif existant
+  - [x] Persister plan + weeks + sessions
+  - [x] Mettre a jour trainingState → 'preparation'
+- [x] Task 2 : Controller (AC: #4)
+  - [x] Creer `app/controllers/planning/planning_controller.ts`
+  - [x] `generate()` → validation + use case GeneratePlan + redirect `/planning`
+- [x] Task 3 : Validator
+  - [x] Creer `app/validators/planning/generate_plan_validator.ts`
+  - [x] vdot: number (15-85), sessionsPerWeek: number (2-7), preferredDays: array of numbers (0-6), planDurationWeeks: number (≥ 8)
+- [x] Task 4 : Routes
+  - [x] `POST /planning/generate` → PlanningController.generate
 
 ## Dev Notes
 
@@ -60,3 +60,30 @@ Le VDOT a deja ete estime et confirme dans le wizard (story 12.8). Le use case n
 ### References
 
 - [Architecture section 7.2](/_bmad-output/planning-artifacts/planning-module/architecture-planning-module.md#7)
+
+## Dev Agent Record
+
+### Implementation Notes
+
+- Ajout de `TrainingState.Preparation = 'preparation'` à l'enum (pas de migration requise — colonne string en BDD)
+- Ajout de `findActiveByUserId` au port `TrainingPlanRepository` + implémentation Lucid
+- Nouvelles erreurs domaine : `ActivePlanExistsError`, `NoActiveGoalError`
+- Le volume hebdomadaire courant est estimé depuis les séances des 6 dernières semaines (somme / 6 semaines)
+- `targetLoadTss` est `null` pour l'instant (calcul TSS par session n'est pas encore modélisé)
+
+### File List
+
+- `app/domain/value_objects/planning_types.ts` (modifié — TrainingState.Preparation)
+- `app/domain/interfaces/training_plan_repository.ts` (modifié — findActiveByUserId)
+- `app/repositories/lucid_training_plan_repository.ts` (modifié — findActiveByUserId)
+- `app/domain/errors/active_plan_exists_error.ts` (créé)
+- `app/domain/errors/no_active_goal_error.ts` (créé)
+- `app/use_cases/planning/generate_plan.ts` (créé)
+- `app/validators/planning/generate_plan_validator.ts` (créé)
+- `app/controllers/planning/planning_controller.ts` (créé)
+- `start/routes.ts` (modifié — POST /planning/generate)
+- `tests/unit/use_cases/planning/generate_plan.spec.ts` (créé)
+
+### Change Log
+
+- 2026-03-24 : Implémentation complète story 12.10 — use case GeneratePlan, controller, validator, route

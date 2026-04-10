@@ -1,4 +1,5 @@
 import { inject } from '@adonisjs/core'
+import type { SportMetrics } from '#domain/value_objects/sport_metrics'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
@@ -16,7 +17,7 @@ export interface UpdateSessionInput {
   distanceKm?: number | null
   avgHeartRate?: number | null
   perceivedEffort?: number | null
-  sportMetrics?: Record<string, unknown>
+  sportMetrics?: SportMetrics
   notes?: string | null
   minHeartRate?: number | null
   maxHeartRate?: number | null

@@ -1,6 +1,6 @@
 # Story 12.3 : TrainingLoadCalculator — Calcul de charge normalise
 
-Status: pending
+Status: done
 
 ## Story
 
@@ -19,25 +19,25 @@ So that **chaque seance a une charge comparable quelle que soit la source de don
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 : Value objects (AC: prerequis)
-  - [ ] Creer `app/domain/value_objects/training_load.ts` — `{ value, method }`
-  - [ ] Creer `app/domain/value_objects/session_load_input.ts` — DTO d'entree complet
-- [ ] Task 2 : Port abstrait (AC: prerequis)
-  - [ ] Creer `app/domain/interfaces/training_load_calculator.ts` — abstract class avec `calculate(input): TrainingLoad`
-- [ ] Task 3 : Implementation cascade (AC: #1, #2, #3, #4, #5, #6)
-  - [ ] Creer `app/services/training/training_load_calculator_impl.ts`
-  - [ ] Branche 1 : TRIMPexp (heartRateCurve + maxHR + restHR) → normaliser en hrTSS
-  - [ ] Branche 2 : rTSS (splits ou distance/duree + VDOT → IF² × duree)
-  - [ ] Branche 3 : Session RPE (perceivedEffort × duree / coeff normalisation)
-  - [ ] Branche 4 : fallback `{ value: 0, method: 'rpe' }`
-- [ ] Task 4 : Binding IoC
-  - [ ] Ajouter binding `TrainingLoadCalculator` → `TrainingLoadCalculatorImpl` dans `providers/app_provider.ts`
-- [ ] Task 5 : Tests unitaires (AC: #1-#6)
-  - [ ] Test cascade : seance avec toutes les donnees → TRIMPexp utilise
-  - [ ] Test cascade : seance sans FC mais avec allure → rTSS utilise
-  - [ ] Test cascade : seance avec RPE seul → RPE utilise
-  - [ ] Test coefficient k homme vs femme
-  - [ ] Test normalisation TSS-like
+- [x] Task 1 : Value objects (AC: prerequis)
+  - [x] Creer `app/domain/value_objects/training_load.ts` — `{ value, method }`
+  - [x] Creer `app/domain/value_objects/session_load_input.ts` — DTO d'entree complet
+- [x] Task 2 : Port abstrait (AC: prerequis)
+  - [x] Creer `app/domain/interfaces/training_load_calculator.ts` — abstract class avec `calculate(input): TrainingLoad`
+- [x] Task 3 : Implementation cascade (AC: #1, #2, #3, #4, #5, #6)
+  - [x] Creer `app/services/training/training_load_calculator_impl.ts`
+  - [x] Branche 1 : TRIMPexp (heartRateCurve + maxHR + restHR) → normaliser en hrTSS
+  - [x] Branche 2 : rTSS (splits ou distance/duree + VDOT → IF² × duree)
+  - [x] Branche 3 : Session RPE (perceivedEffort × duree / coeff normalisation)
+  - [x] Branche 4 : fallback `{ value: 0, method: 'rpe' }`
+- [x] Task 4 : Binding IoC
+  - [x] Ajouter binding `TrainingLoadCalculator` → `TrainingLoadCalculatorImpl` dans `providers/app_provider.ts`
+- [x] Task 5 : Tests unitaires (AC: #1-#6)
+  - [x] Test cascade : seance avec toutes les donnees → TRIMPexp utilise
+  - [x] Test cascade : seance sans FC mais avec allure → rTSS utilise
+  - [x] Test cascade : seance avec RPE seul → RPE utilise
+  - [x] Test coefficient k homme vs femme
+  - [x] Test normalisation TSS-like
 
 ## Dev Notes
 
@@ -73,3 +73,32 @@ rTSS = IF² × duree_heures × 100
 
 - [Architecture section 9.3 & 9.4](/_bmad-output/planning-artifacts/planning-module/architecture-planning-module.md#9)
 - [PRD section Formules cles](/_bmad-output/planning-artifacts/planning-module/prd-planning-module.md)
+
+## Dev Agent Record
+
+### Implementation Plan
+
+- Value objects `TrainingLoad` et `SessionLoadInput` dans le domaine pur (zéro dépendances)
+- Port abstrait `TrainingLoadCalculator` (abstract class, convention du projet)
+- Implémentation `TrainingLoadCalculatorImpl` avec cascade de priorité : TRIMPexp > rTSS > RPE > fallback
+- TRIMPexp : intégration numérique sur la courbe FC, normalisée par référence 1h à LTHR (88% FCmax)
+- rTSS : résolution quadratique de l'allure seuil depuis VDOT, puis IF² × durée × 100
+- RPE : effort × durée_min / 4.2 (calibré pour RPE 7 / 1h = 100 TSS)
+- Binding IoC dans `providers/app_provider.ts`
+
+### Completion Notes
+
+Tous les ACs couverts. 18 tests unitaires répartis sur 6 groupes : cascade de méthode, hrTSS normalisation, coefficient k homme/femme, rTSS, Session RPE, normalisation TSS-like.
+
+## File List
+
+- `app/domain/value_objects/training_load.ts` (nouveau)
+- `app/domain/value_objects/session_load_input.ts` (nouveau)
+- `app/domain/interfaces/training_load_calculator.ts` (nouveau)
+- `app/services/training/training_load_calculator_impl.ts` (nouveau)
+- `providers/app_provider.ts` (modifié — binding IoC)
+- `tests/unit/services/training/training_load_calculator_impl.spec.ts` (nouveau)
+
+## Change Log
+
+- 2026-03-23 : Implémentation complète — value objects, port, service cascade TRIMPexp/rTSS/RPE, binding IoC, 18 tests unitaires

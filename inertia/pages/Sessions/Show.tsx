@@ -24,12 +24,7 @@ import HeartRateZonesChart from '~/components/sessions/HeartRateZonesChart'
 import CardiacDriftIndicator from '~/components/sessions/CardiacDriftIndicator'
 import TrimpIndicator from '~/components/sessions/TrimpIndicator'
 import SplitsTable from '~/components/sessions/SplitsTable'
-import type {
-  DataPoint,
-  GpsPoint,
-  KmSplit,
-  HeartRateZones,
-} from '../../../app/domain/value_objects/run_metrics'
+import type { RunMetrics } from '../../../app/domain/value_objects/run_metrics'
 
 const METRIC_LABELS: Record<string, string> = {
   minHeartRate: 'FC min',
@@ -56,18 +51,6 @@ function formatMetricValue(key: string, value: number | string): string {
   return `${value}${unit}`
 }
 
-interface SportMetricsWithCurves {
-  heartRateCurve?: DataPoint[]
-  paceCurve?: DataPoint[]
-  altitudeCurve?: DataPoint[]
-  splits?: KmSplit[]
-  hrZones?: HeartRateZones
-  cardiacDrift?: number
-  trimp?: number
-  gpsTrack?: GpsPoint[]
-  [key: string]: unknown
-}
-
 interface TrainingSessionProps {
   id: number
   userId: number
@@ -78,7 +61,7 @@ interface TrainingSessionProps {
   distanceKm: number | null
   avgHeartRate: number | null
   perceivedEffort: number | null
-  sportMetrics: SportMetricsWithCurves
+  sportMetrics: RunMetrics
   notes: string | null
   importedFrom: string | null
   gpxFilePath: string | null
@@ -370,7 +353,7 @@ export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
                   <span className="text-sm text-muted-foreground">{METRIC_LABELS[key] ?? key}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">
-                      {formatMetricValue(key, value as number | string)}
+                      {formatMetricValue(key, value)}
                     </span>
                     {METRIC_INSIGHTS[key] && typeof value === 'number' && (
                       <MetricInsight metricKey={key} value={value} />
@@ -417,16 +400,18 @@ export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {cardiacDrift !== undefined && (
                   <div>
-                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                    <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
                       {t('sessions.show.cardiacDrift')}
+                      <MetricInsight metricKey="cardiacDrift" value={cardiacDrift} iconOnly />
                     </h3>
                     <CardiacDriftIndicator value={cardiacDrift} />
                   </div>
                 )}
                 {trimp !== undefined && (
                   <div>
-                    <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                    <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
                       {t('sessions.show.trimp')}
+                      <MetricInsight metricKey="trimp" value={trimp} iconOnly />
                     </h3>
                     <TrimpIndicator value={trimp} />
                   </div>

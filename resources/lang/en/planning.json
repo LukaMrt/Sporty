@@ -1,4 +1,373 @@
 {
   "title": "Planning",
-  "description": "Your planning will appear here."
+  "description": "Your planning will appear here.",
+  "noActivePlan": "You don't have an active plan yet.",
+  "defineGoalCta": "Define a goal",
+  "wizard": {
+    "title": "Define my goal",
+    "steps": {
+      "goal": "Goal",
+      "vdotEstimation": "Level",
+      "vdotConfirmation": "Confirmation",
+      "parameters": "Parameters",
+      "summary": "Summary"
+    },
+    "nav": {
+      "next": "Next",
+      "back": "Back",
+      "generate": "Generate my plan",
+      "generating": "Generating…"
+    },
+    "step1": {
+      "title": "What is your goal?",
+      "distance": "Distance",
+      "distancePlaceholder": "e.g. 10",
+      "distanceUnit": "km",
+      "shortcuts": {
+        "label": "Shortcuts"
+      },
+      "targetTime": "Target time (optional)",
+      "targetTimePlaceholder": "e.g. 55",
+      "targetTimeHint": "Leave empty if you have no time goal.",
+      "eventDate": "Race date (optional)",
+      "eventDateHint": "Plan duration will be calculated automatically."
+    },
+    "step2": {
+      "title": "Estimate your level",
+      "autoTitle": "Level estimated from your history",
+      "autoConfirm": "Confirm this level",
+      "autoAdjust": "Adjust manually",
+      "methodRecent": "From a recent performance",
+      "methodVma": "From my MAS",
+      "methodQuestionnaire": "Questionnaire",
+      "recentDistance": "Distance",
+      "recentTime": "Time achieved",
+      "recentTimePlaceholder": "e.g. 55",
+      "vmaLabel": "MAS (km/h)",
+      "vmaPlaceholder": "e.g. 15.5",
+      "questionnaire": {
+        "frequency": "Training frequency",
+        "experience": "Running experience",
+        "distance": "Typical session distance",
+        "frequencyOptions": {
+          "occasional": "Occasional (< 2×/week)",
+          "regular": "Regular (2–3×/week)",
+          "frequent": "Frequent (4+×/week)"
+        },
+        "experienceOptions": {
+          "beginner": "Beginner (< 1 year)",
+          "intermediate": "Intermediate (1–3 years)",
+          "experienced": "Experienced (3+ years)"
+        },
+        "distanceOptions": {
+          "less_5k": "Less than 5 km",
+          "5k_to_10k": "5 to 10 km",
+          "more_10k": "More than 10 km"
+        }
+      },
+      "estimating": "Calculating…",
+      "estimateBtn": "Estimate my level"
+    },
+    "step3": {
+      "title": "Confirm your level",
+      "subtitle": "Adjust if necessary. These zones will guide your plan generation.",
+      "vdotLabel": "VDOT",
+      "adjustHint": "Adjust with the slider (±5 around the estimate)",
+      "reassurance": "Your plan will automatically adapt to this level. You can always adjust it later.",
+      "paceZones": "Corresponding pace zones"
+    },
+    "step4": {
+      "title": "Plan parameters",
+      "sessionsPerWeek": "Sessions per week",
+      "preferredDays": "Preferred days",
+      "preferredDaysHint": "Select {{n}} days.",
+      "planDuration": "Plan duration (weeks)",
+      "planDurationLocked": "Calculated from event date",
+      "planDurationWarning": "Warning: less than 8 weeks is too short for an effective plan.",
+      "defaultsBtn": "Use all defaults",
+      "recommendation": "Recommended for your goal",
+      "days": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      }
+    },
+    "step5": {
+      "title": "Summary",
+      "goalSection": "Goal",
+      "levelSection": "Estimated level",
+      "planSection": "Plan",
+      "distance": "Distance",
+      "targetTime": "Target time",
+      "eventDate": "Race date",
+      "vdot": "VDOT",
+      "sessionsPerWeek": "Sessions / week",
+      "preferredDays": "Preferred days",
+      "planDuration": "Duration",
+      "planDurationWeeks": "{{n}} weeks",
+      "noTargetTime": "Not defined",
+      "noEventDate": "Not defined",
+      "successToast": "Plan generated successfully!"
+    }
+  },
+  "overview": {
+    "weekLabel": "Week {n}",
+    "weekProgress": "Wk {current}/{total}",
+    "allWeeks": "All weeks",
+    "inProgress": "current",
+    "recoveryWeek": "recovery",
+    "sessionCount": "{n} sessions",
+    "eventIn": "Race in {n} days",
+    "eventPassed": "Race passed",
+    "noEventDate": "No race date",
+    "historyLink": "Plan history",
+    "week": "Week",
+    "of": "of",
+    "phase": "Phase",
+    "totalVolume": "Total volume",
+    "sessions": "sessions",
+    "load": {
+      "label": "Load",
+      "low": "Light",
+      "moderate": "Moderate",
+      "high": "High"
+    },
+    "today": "Today",
+    "rest": "Rest",
+    "notDone": "Not done",
+    "target": "Target",
+    "actual": "Actual",
+    "intervals": "Intervals",
+    "comparisonPlanned": "Planned",
+    "comparisonActual": "Actual",
+    "blockTypes": {
+      "warmup": "Warm-up",
+      "work": "Work",
+      "recovery": "Recovery",
+      "cooldown": "Cool-down"
+    },
+    "recoveryJog": "jog",
+    "recoveryRest": "rest",
+    "close": "Close",
+    "moveSession": "Move",
+    "editSession": "Edit",
+    "moveTitle": "Move session",
+    "editTitle": "Edit session",
+    "dropHere": "Drop here",
+    "durationLabel": "Duration (min)",
+    "paceLabel": "Target pace (MM:SS)",
+    "save": "Save",
+    "saving": "Saving…",
+    "moveSuccess": "Session moved",
+    "editSuccess": "Session updated"
+  },
+  "sessions": {
+    "types": {
+      "easy": "Easy run",
+      "long_run": "Long run",
+      "tempo": "Tempo run",
+      "marathon_pace": "Marathon pace",
+      "interval": "VO₂max intervals",
+      "repetition": "Speed repetitions",
+      "recovery": "Recovery",
+      "race": "Race / competition",
+      "cross_training": "Cross-training",
+      "rest": "Rest"
+    },
+    "withStrides": "{{session}} + strides"
+  },
+  "acwr": {
+    "warning": {
+      "title": "Your body needs recovery.",
+      "message": "You've been training hard lately — make sure to recover well before your next intense session.",
+      "dismiss": "Close"
+    },
+    "techMode": {
+      "toggle": "Tech data"
+    }
+  },
+  "inactivity": {
+    "warning": {
+      "title": "You haven't run in {days} days",
+      "message": "A short break happens! Your plan can be adjusted for a gentle return."
+    },
+    "critical": {
+      "title": "{days}-day break — ready to come back?",
+      "message": "After a long period without training, it's recommended to ease back in to avoid injury."
+    },
+    "actions": {
+      "resume": "Resume plan",
+      "newPlan": "New plan",
+      "later": "Later"
+    }
+  },
+  "recalibration": {
+    "autoToggleLabel": "Auto recalibration",
+    "autoToggleDesc": "Adjusts paces and load at the end of each week",
+    "vdotUpToast": "VDOT updated → {vdot}",
+    "autoToggleEnabled": "Auto recalibration enabled",
+    "autoToggleDisabled": "Auto recalibration disabled",
+    "proposalHandled": "Recalibration proposal handled"
+  },
+  "postPlan": {
+    "title": "Plan complete — what's next?",
+    "subtitle": "You reached your goal. Choose your next step.",
+    "transition": {
+      "title": "Transition plan",
+      "desc": "2 to 4 weeks of active post-race recovery at reduced volume."
+    },
+    "maintenance": {
+      "title": "Maintenance plan",
+      "desc": "4-week cycles to keep your fitness without a specific goal."
+    },
+    "newGoal": {
+      "title": "New goal",
+      "desc": "Set a new race and generate a preparation plan."
+    },
+    "later": "Later"
+  },
+  "phases": {
+    "FI": "Foundation",
+    "EQ": "Speed introduction",
+    "TQ": "Intensive phase",
+    "FQ": "Sharpening",
+    "MAINT": "Maintenance",
+    "TRANS": "Transition"
+  },
+  "athlete": {
+    "pageTitle": "My athlete profile",
+    "sections": {
+      "estimatedLevel": "Estimated level",
+      "paceZones": "Pace zones",
+      "trainingState": "Training state",
+      "technicalData": "Technical data",
+      "personalInfo": "Personal information"
+    },
+    "vdot": {
+      "label": "VDOT",
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "loading": "Estimating…",
+      "noData": "No data available to estimate your VDOT.",
+      "estimateCta": "Estimate my level",
+      "methods": {
+        "history": "Calculated from your history",
+        "vma": "Calculated from your MAS",
+        "questionnaire": "Estimated from questionnaire"
+      },
+      "description": "VDOT is an aerobic performance index derived from VO₂max, developed by Jack Daniels. It reflects your ability to use oxygen during effort and determines your optimal training paces.",
+      "interpretation": "The higher the VDOT, the better your endurance. A beginner runner is around 30–35, intermediate between 40–50, elite athletes above 60."
+    },
+    "zones": {
+      "easy": {
+        "name": "Easy",
+        "description": "Easy conversational run. Builds aerobic base, improves running economy and supports active recovery. Should represent 70–80% of your total volume."
+      },
+      "marathon": {
+        "name": "Marathon",
+        "description": "Target marathon race pace. Stimulates metabolic efficiency at high aerobic intensity and trains the body to use fat as fuel."
+      },
+      "threshold": {
+        "name": "Tempo",
+        "description": "Lactate threshold pace — comfortably hard effort. Pushes back the anaerobic threshold, allowing you to sustain faster paces for longer."
+      },
+      "interval": {
+        "name": "Intervals",
+        "description": "VO₂max pace — very intense effort, 3–5 min. Develops your maximum cardiovascular capacity. Demanding sessions, use sparingly."
+      },
+      "repetition": {
+        "name": "Repetitions",
+        "description": "Short sprint pace — maximal effort, 30–90 s. Improves running economy, stride mechanics and neuromuscular coordination."
+      }
+    },
+    "trainingState": {
+      "idle": "No active plan",
+      "in_plan": "Plan in progress",
+      "preparation": "In preparation",
+      "transition": "In transition",
+      "maintenance": "Maintenance"
+    },
+    "fitness": {
+      "ctl": {
+        "label": "CTL",
+        "name": "Fitness",
+        "description": "Chronic Training Load — 42-day exponentially weighted average. Represents your accumulated long-term fitness level.",
+        "interpretation": "Ideally between 40 and 80 for a regular runner. Below 20: low fitness. Above 100: very high load (advanced athletes)."
+      },
+      "atl": {
+        "label": "ATL",
+        "name": "Fatigue",
+        "description": "Acute Training Load — 7-day exponentially weighted average. Reflects recently accumulated fatigue.",
+        "interpretation": "High ATL relative to CTL indicates overtraining risk. It rises quickly during heavy weeks and drops fast with rest."
+      },
+      "tsb": {
+        "label": "TSB",
+        "name": "Freshness",
+        "description": "Training Stress Balance — difference CTL − ATL. Measures your current form and recovery state.",
+        "interpretation": "Between −10 and +5: optimal training state. Above +10: well rested (peak form or detraining). Below −20: risk of excessive fatigue."
+      },
+      "acwr": {
+        "label": "ACWR",
+        "name": "Load ratio",
+        "description": "Acute:Chronic Workload Ratio (ATL ÷ CTL). Injury risk indicator linked to too-rapid load increases.",
+        "interpretation": "The 'green zone' is between 0.8 and 1.3. Below: underload (detraining). Above 1.5: red zone, significantly increased injury risk."
+      },
+      "badges": {
+        "acwr": {
+          "low": "Underload",
+          "optimal": "Optimal ✓",
+          "high": "High load ⚡"
+        },
+        "tsb": {
+          "tired": "Tired",
+          "slightlyTired": "Slightly tired",
+          "neutral": "Neutral",
+          "fresh": "Fresh"
+        }
+      }
+    },
+    "personalInfo": {
+      "sex": "Sex (for load calculation)",
+      "sexOptions": {
+        "unset": "Not specified",
+        "male": "Male",
+        "female": "Female"
+      },
+      "maxHr": "Max HR (bpm)",
+      "restHr": "Resting HR (bpm)",
+      "vma": "MAS (km/h)",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "toggle": {
+      "technicalData": "Technical data"
+    },
+    "sources": {
+      "title": "Sources & calculation methods",
+      "badges": {
+        "study": "Study",
+        "book": "Book",
+        "guide": "Guide"
+      }
+    }
+  },
+  "history": {
+    "title": "Plan History",
+    "empty": "No completed plan yet",
+    "emptyDescription": "Your completed or abandoned plans will appear here.",
+    "backToPlanning": "Back to planning",
+    "completed": "Completed",
+    "abandoned": "Abandoned",
+    "vdotProgress": "VDOT {start} → {end}",
+    "sessions": "{done}/{total} sessions",
+    "goal": "Goal: {distance} km",
+    "maintenancePlan": "Maintenance plan",
+    "readOnlyDetail": "Read-only view — archived plan",
+    "detailBack": "Back to history"
+  }
 }

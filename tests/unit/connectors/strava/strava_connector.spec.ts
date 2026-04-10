@@ -202,7 +202,11 @@ test.group('StravaConnector.getSessionDetail — session complète', () => {
   test('allure course = 1000 / (speed * 60)', async ({ assert }) => {
     const connector = makeConnector(() => FULL_DETAILED)
     const result = await connector.getSessionDetail('12345')
-    assert.approximately(result.sportMetrics.allure as number, 6.0, 0.01)
+    assert.approximately(
+      (result.sportMetrics as Record<string, unknown>).allure as number,
+      6.0,
+      0.01
+    )
   })
 
   test('importedFrom = strava', async ({ assert }) => {
@@ -220,7 +224,7 @@ test.group('StravaConnector.getSessionDetail — session complète', () => {
   test('calories dans sportMetrics', async ({ assert }) => {
     const connector = makeConnector(() => FULL_DETAILED)
     const result = await connector.getSessionDetail('12345')
-    assert.equal(result.sportMetrics.calories, 500)
+    assert.equal((result.sportMetrics as Record<string, unknown>).calories, 500)
   })
 
   test('elevationGain dans sportMetrics', async ({ assert }) => {
@@ -238,7 +242,7 @@ test.group('StravaConnector.getSessionDetail — session complète', () => {
   test('deviceName dans sportMetrics', async ({ assert }) => {
     const connector = makeConnector(() => FULL_DETAILED)
     const result = await connector.getSessionDetail('12345')
-    assert.equal(result.sportMetrics.deviceName, 'Garmin Forerunner')
+    assert.equal((result.sportMetrics as Record<string, unknown>).deviceName, 'Garmin Forerunner')
   })
 })
 
@@ -264,7 +268,7 @@ test.group('StravaConnector.getSessionDetail — champs optionnels absents', () 
   test('sans speed → allure null', async ({ assert }) => {
     const connector = makeConnector(() => ({ ...FULL_DETAILED, average_speed: undefined }))
     const result = await connector.getSessionDetail('12345')
-    assert.isNull(result.sportMetrics.allure)
+    assert.isNull((result.sportMetrics as Record<string, unknown>).allure)
   })
 
   test('sport_type vélo → allure en km/h (speed * 3.6)', async ({ assert }) => {
@@ -274,7 +278,11 @@ test.group('StravaConnector.getSessionDetail — champs optionnels absents', () 
       average_speed: 10,
     }))
     const result = await connector.getSessionDetail('12345')
-    assert.approximately(result.sportMetrics.allure as number, 36.0, 0.01)
+    assert.approximately(
+      (result.sportMetrics as Record<string, unknown>).allure as number,
+      36.0,
+      0.01
+    )
   })
 
   test('sport inconnu → sportSlug other', async ({ assert }) => {
@@ -312,7 +320,11 @@ test.group('StravaConnector.getSessionDetail — fixture réelle Strava (Afterno
   test('allure marche = 1000 / (1.212 * 60) ≈ 13.75 min/km', async ({ assert }) => {
     const connector = makeConnector(() => FIXTURE_DETAILED)
     const result = await connector.getSessionDetail('17651473733')
-    assert.approximately(result.sportMetrics.allure as number, 13.75, 0.01)
+    assert.approximately(
+      (result.sportMetrics as Record<string, unknown>).allure as number,
+      13.75,
+      0.01
+    )
   })
 })
 
@@ -474,8 +486,8 @@ test.group('StravaConnector.getSessionDetail — running avec streams', () => {
   test('allure et calories conservés depuis le détail brut', async ({ assert }) => {
     const connector = makeConnector(makeStreamsFetcher({ streams: MINI_STREAMS }))
     const result = await connector.getSessionDetail('99')
-    assert.isNumber(result.sportMetrics.allure)
-    assert.isNumber(result.sportMetrics.calories)
+    assert.isNumber((result.sportMetrics as Record<string, unknown>).allure)
+    assert.isNumber((result.sportMetrics as Record<string, unknown>).calories)
   })
 })
 
@@ -542,8 +554,8 @@ test.group('StravaConnector.getSessionDetail — running sans streams (erreur AP
   test('metriques basiques toujours présentes après erreur streams', async ({ assert }) => {
     const connector = makeConnector(makeStreamsFetcher({ streamsError: true }))
     const result = await connector.getSessionDetail('99')
-    assert.isNumber(result.sportMetrics.allure)
-    assert.equal(result.sportMetrics.calories, 500)
+    assert.isNumber((result.sportMetrics as Record<string, unknown>).allure)
+    assert.equal((result.sportMetrics as Record<string, unknown>).calories, 500)
     assert.equal(result.sportMetrics.maxHeartRate, 170)
   })
 

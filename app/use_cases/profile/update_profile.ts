@@ -4,6 +4,7 @@ import { UserProfileRepository } from '#domain/interfaces/user_profile_repositor
 import type { UserProfile } from '#domain/entities/user_profile'
 import type { User } from '#domain/entities/user'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
+import { TrainingState } from '#domain/value_objects/planning_types'
 
 export interface UpdateProfileInput {
   fullName?: string
@@ -67,6 +68,8 @@ export default class UpdateProfile {
           maxHeartRate: profileUpdate.maxHeartRate ?? null,
           restingHeartRate: profileUpdate.restingHeartRate ?? null,
           vma: profileUpdate.vma ?? null,
+          sex: null,
+          trainingState: TrainingState.Idle,
         })
       }
     } else {

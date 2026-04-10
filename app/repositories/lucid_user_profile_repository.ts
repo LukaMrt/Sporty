@@ -1,5 +1,6 @@
 import type { UserProfile } from '#domain/entities/user_profile'
 import type { UserObjective } from '#domain/entities/user_profile'
+import { TrainingState } from '#domain/value_objects/planning_types'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import UserProfileModel from '#models/user_profile'
 import db from '@adonisjs/lucid/services/db'
@@ -17,6 +18,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
           level: profile.level,
           objective: profile.objective,
           preferences: profile.preferences,
+          sex: profile.sex,
+          trainingState: profile.trainingState,
         },
         { client: trx }
       )
@@ -35,6 +38,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         maxHeartRate: model.maxHeartRate,
         restingHeartRate: model.restingHeartRate,
         vma: model.vma,
+        sex: model.sex ?? null,
+        trainingState: model.trainingState ?? TrainingState.Idle,
       }
     })
   }
@@ -58,6 +63,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       maxHeartRate: model.maxHeartRate,
       restingHeartRate: model.restingHeartRate,
       vma: model.vma,
+      sex: model.sex ?? null,
+      trainingState: model.trainingState ?? TrainingState.Idle,
     }
   }
 
@@ -76,6 +83,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       if (data.maxHeartRate !== undefined) model.maxHeartRate = data.maxHeartRate
       if (data.restingHeartRate !== undefined) model.restingHeartRate = data.restingHeartRate
       if (data.vma !== undefined) model.vma = data.vma
+      if (data.sex !== undefined) model.sex = data.sex
+      if (data.trainingState !== undefined) model.trainingState = data.trainingState
       await model.save()
 
       let sportId: number
@@ -103,6 +112,8 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         maxHeartRate: model.maxHeartRate,
         restingHeartRate: model.restingHeartRate,
         vma: model.vma,
+        sex: model.sex ?? null,
+        trainingState: model.trainingState ?? TrainingState.Idle,
       }
     })
   }

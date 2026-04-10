@@ -1,4 +1,5 @@
 import { inject } from '@adonisjs/core'
+import emitter from '@adonisjs/core/services/emitter'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
 import { SportRepository } from '#domain/interfaces/sport_repository'
@@ -99,6 +100,7 @@ export default class ImportSessions {
         })
 
         await this.importSessionRepository.setImported(id, session.id)
+        await emitter.emit('session:completed', { sessionId: session.id, userId })
         completed++
       } catch (err) {
         if (err instanceof DailyRateLimitError) {

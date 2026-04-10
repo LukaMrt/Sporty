@@ -1,6 +1,7 @@
 import { inject } from '@adonisjs/core'
 import type { UserProfile } from '#domain/entities/user_profile'
 import { UserLevel, UserObjective } from '#domain/entities/user_profile'
+import { TrainingState } from '#domain/value_objects/planning_types'
 import type { UserPreferences } from '#domain/entities/user_preferences'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { UserRepository } from '#domain/interfaces/user_repository'
@@ -43,6 +44,8 @@ export default class CompleteOnboarding {
       maxHeartRate: null,
       restingHeartRate: null,
       vma: null,
+      sex: null,
+      trainingState: TrainingState.Idle,
     })
 
     await this.userRepository.markOnboardingCompleted(input.userId)
