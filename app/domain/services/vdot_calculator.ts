@@ -107,8 +107,8 @@ export function vdotFromVma(vmaKmh: number): number {
 // ── vdotFromQuestionnaire ─────────────────────────────────────────────────────
 
 export type RunningFrequency = 'never' | 'occasional' | 'regular' | 'frequent'
-export type RunningExperience = 'beginner' | 'intermediate' | 'advanced' | 'expert'
-export type TypicalDistance = 'less_5k' | '5k_10k' | '10k_half' | 'half_plus'
+export type RunningExperience = 'beginner' | 'intermediate' | 'experienced'
+export type TypicalDistance = 'less_5k' | '5k_to_10k' | 'more_10k'
 
 // Table de mapping conservateur : score = fréquence + expérience + distance → VDOT
 // Scores 0-2 → VDOT 25, 3-4 → 32, 5-6 → 38, 7-8 → 45, 9+ → 52
@@ -122,23 +122,21 @@ const FREQUENCY_SCORE: Record<RunningFrequency, number> = {
 const EXPERIENCE_SCORE: Record<RunningExperience, number> = {
   beginner: 0,
   intermediate: 1,
-  advanced: 2,
-  expert: 3,
+  experienced: 2,
 }
 
 const DISTANCE_SCORE: Record<TypicalDistance, number> = {
   'less_5k': 0,
-  '5k_10k': 1,
-  '10k_half': 2,
-  'half_plus': 3,
+  '5k_to_10k': 1,
+  'more_10k': 2,
 }
 
+// Score max = 7 (frequent=3 + experienced=2 + more_10k=2)
 const SCORE_TO_VDOT: [maxScore: number, vdot: number][] = [
-  [2, 25],
-  [4, 32],
-  [6, 38],
-  [8, 45],
-  [9, 52],
+  [1, 25],
+  [3, 32],
+  [5, 38],
+  [7, 45],
 ]
 
 /**

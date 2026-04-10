@@ -70,7 +70,7 @@ export default function VdotEstimationForm({ onConfirm }: VdotEstimationFormProp
     })
       .then((r) => (r.ok ? (r.json() as Promise<VdotEstimationResult>) : null))
       .then((data) => {
-        if (data && data.method === 'history') {
+        if (data) {
           setAutoResult(data)
         } else {
           setShowFunnel(true)
@@ -95,6 +95,11 @@ export default function VdotEstimationForm({ onConfirm }: VdotEstimationFormProp
       params.frequency = frequency
       params.experience = experience
       params.typical_distance = typicalDistance
+    } else if (funnelMethod === 'recent') {
+      params.distance = recentDistance
+      params.time = recentTime
+    } else if (funnelMethod === 'vma') {
+      params.vma = vmaValue
     }
 
     const query = new URLSearchParams(params).toString()
@@ -106,8 +111,6 @@ export default function VdotEstimationForm({ onConfirm }: VdotEstimationFormProp
       })
       const data = (await res.json()) as VdotEstimationResult
 
-      // For "recent" method, we compute VDOT client-side via the VDOT formula
-      // The API with no params will return questionnaire/vma level — we just use it
       setFunnelResult({ ...data, method: funnelMethod })
     } catch {
       // ignore
@@ -136,7 +139,15 @@ export default function VdotEstimationForm({ onConfirm }: VdotEstimationFormProp
   if (autoResult && !showFunnel) {
     return (
       <div className="space-y-6">
-        <p className="text-sm font-medium">{t('planning.wizard.step2.autoTitle')}</p>
+        <p className="text-sm font-medium">
+          {t(
+            autoResult.method === 'history'
+              ? 'planning.wizard.step2.autoTitle.history'
+              : autoResult.method === 'vma'
+                ? 'planning.wizard.step2.autoTitle.vma'
+                : 'planning.wizard.step2.autoTitle.questionnaire'
+          )}
+        </p>
         <div className="flex items-center justify-center gap-4 rounded-xl border bg-card p-6">
           <div className="text-center">
             <div className="text-5xl font-bold tabular-nums">{autoResult.vdot}</div>
@@ -302,9 +313,14 @@ export default function VdotEstimationForm({ onConfirm }: VdotEstimationFormProp
               : t('planning.wizard.step2.estimateBtn')}
           </Button>
         ) : (
-          <Button className="flex-1" onClick={() => funnelResult && onConfirm(funnelResult)}>
-            {t('planning.wizard.step2.autoConfirm')}
-          </Button>
+          <>
+            <Button variant="outline" className="flex-1" onClick={() => setFunnelResult(null)}>
+              {t('planning.wizard.step2.reestimate')}
+            </Button>
+            <Button className="flex-1" onClick={() => onConfirm(funnelResult)}>
+              {t('planning.wizard.step2.autoConfirm')}
+            </Button>
+          </>
         )}
       </div>
     </div>

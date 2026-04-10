@@ -30,13 +30,17 @@
       "targetTimePlaceholder": "e.g. 55",
       "targetTimeHint": "Leave empty if you have no time goal.",
       "eventDate": "Race date (optional)",
-      "eventDateHint": "Plan duration will be calculated automatically."
+      "eventDateHint": "Plan duration will be calculated automatically.",
+      "eventDateHintWeeks": "Recommended: {min}–{max} weeks depending on your level. Duration will be adjusted to your date."
     },
     "step2": {
       "title": "Estimate your level",
-      "autoTitle": "Level estimated from your history",
+      "autoTitle.history": "Level estimated from your history",
+      "autoTitle.vma": "Level estimated from your MAS",
+      "autoTitle.questionnaire": "Default estimated level",
       "autoConfirm": "Confirm this level",
       "autoAdjust": "Adjust manually",
+      "reestimate": "Re-estimate",
       "methodRecent": "From a recent performance",
       "methodVma": "From my MAS",
       "methodQuestionnaire": "Questionnaire",

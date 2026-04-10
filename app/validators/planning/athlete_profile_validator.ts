@@ -20,8 +20,14 @@ export const updateAthleteProfileValidator = vine.create(
 
 export const estimateVdotValidator = vine.create(
   vine.object({
+    // Questionnaire
     frequency: vine.enum(['never', 'occasional', 'regular', 'frequent'] as const).optional(),
-    experience: vine.enum(['beginner', 'intermediate', 'advanced', 'expert'] as const).optional(),
-    typical_distance: vine.enum(['less_5k', '5k_10k', '10k_half', 'half_plus'] as const).optional(),
+    experience: vine.enum(['beginner', 'intermediate', 'experienced'] as const).optional(),
+    typical_distance: vine.enum(['less_5k', '5k_to_10k', 'more_10k'] as const).optional(),
+    // Recent performance
+    distance: vine.number().min(1).max(200).optional(),
+    time: vine.number().min(1).optional(),
+    // Manual VMA
+    vma: vine.number().min(5).max(30).optional(),
   })
 )

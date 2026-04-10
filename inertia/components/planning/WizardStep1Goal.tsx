@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
-import { DISTANCE_SHORTCUTS, type WizardState } from '~/components/planning/wizard_types'
+import {
+  DISTANCE_SHORTCUTS,
+  defaultDuration,
+  type WizardState,
+} from '~/components/planning/wizard_types'
 
 interface Props {
   onCommit: (data: Pick<WizardState, 'distanceKm' | 'targetTimeMinutes' | 'eventDate'>) => void
@@ -10,6 +14,16 @@ interface Props {
 export default function WizardStep1Goal({ onCommit }: Props) {
   const { t } = useTranslation()
   const [distanceInput, setDistanceInput] = useState('')
+
+  function recommendedWeeksRange(km: number): { min: number; max: number } | null {
+    if (!km || km <= 0) return null
+    const min = defaultDuration(km, 46) // niveau avancé
+    const max = defaultDuration(km, 29) // niveau débutant
+    return min === max ? null : { min, max }
+  }
+
+  const parsedKm = Number.parseFloat(distanceInput)
+  const weeksRange = recommendedWeeksRange(parsedKm)
   const [targetTimeInput, setTargetTimeInput] = useState('')
   const [eventDateInput, setEventDateInput] = useState('')
 
@@ -91,7 +105,14 @@ export default function WizardStep1Goal({ onCommit }: Props) {
           onChange={(e) => setEventDateInput(e.target.value)}
           className="w-full rounded-md border bg-background px-3 py-2 text-sm"
         />
-        <p className="text-xs text-muted-foreground">{t('planning.wizard.step1.eventDateHint')}</p>
+        <p className="text-xs text-muted-foreground">
+          {weeksRange
+            ? t('planning.wizard.step1.eventDateHintWeeks', {
+                min: weeksRange.min,
+                max: weeksRange.max,
+              })
+            : t('planning.wizard.step1.eventDateHint')}
+        </p>
       </div>
 
       <Button

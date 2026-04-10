@@ -175,11 +175,11 @@ test.group('EstimateVdot — use case', () => {
     const result = await useCase.execute(1, {
       frequency: 'regular',
       experience: 'intermediate',
-      typicalDistance: '5k_10k',
+      typicalDistance: '5k_to_10k',
     })
 
     assert.equal(result.method, 'questionnaire')
-    assert.equal(result.vdot, 32)
+    assert.equal(result.vdot, 38)
   })
 
   test('retourne des pace zones valides pour chaque méthode', async ({ assert }) => {

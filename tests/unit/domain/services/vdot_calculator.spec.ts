@@ -100,20 +100,20 @@ test.group('vdotFromQuestionnaire', () => {
     assert.equal(vdotFromQuestionnaire('never', 'beginner', 'less_5k'), 25)
   })
 
-  test('coureur expert fréquent longue distance → VDOT élevé (52)', ({ assert }) => {
-    assert.equal(vdotFromQuestionnaire('frequent', 'expert', 'half_plus'), 52)
+  test('coureur expérimenté fréquent longue distance → VDOT élevé (45)', ({ assert }) => {
+    assert.equal(vdotFromQuestionnaire('frequent', 'experienced', 'more_10k'), 45)
   })
 
   test('VDOT croît avec le niveau', ({ assert }) => {
     const vdotBeginner = vdotFromQuestionnaire('occasional', 'beginner', 'less_5k')
-    const vdotAdvanced = vdotFromQuestionnaire('frequent', 'advanced', '10k_half')
-    assert.isAbove(vdotAdvanced, vdotBeginner)
+    const vdotExperienced = vdotFromQuestionnaire('frequent', 'experienced', 'more_10k')
+    assert.isAbove(vdotExperienced, vdotBeginner)
   })
 
-  test('résultats dans une plage raisonnable [25, 52]', ({ assert }) => {
-    const vdot = vdotFromQuestionnaire('regular', 'intermediate', '5k_10k')
+  test('résultats dans une plage raisonnable [25, 45]', ({ assert }) => {
+    const vdot = vdotFromQuestionnaire('regular', 'intermediate', '5k_to_10k')
     assert.isAtLeast(vdot, 25)
-    assert.isAtMost(vdot, 52)
+    assert.isAtMost(vdot, 45)
   })
 })
 

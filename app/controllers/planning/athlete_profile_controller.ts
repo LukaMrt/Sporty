@@ -75,7 +75,17 @@ export default class AthleteProfileController {
           }
         : undefined
 
-    const result = await this.estimateVdotUseCase.execute(userId, questionnaire)
+    const recentPerformance =
+      data.distance && data.time ? { distanceKm: data.distance, timeMinutes: data.time } : undefined
+
+    const manualVma = data.vma
+
+    const result = await this.estimateVdotUseCase.execute(
+      userId,
+      questionnaire,
+      recentPerformance,
+      manualVma
+    )
 
     return response.json({
       vdot: result.vdot,

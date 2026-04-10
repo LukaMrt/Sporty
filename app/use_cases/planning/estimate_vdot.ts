@@ -4,6 +4,7 @@ import { UserProfileRepository } from '#domain/interfaces/user_profile_repositor
 import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
 import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
 import {
+  calculateVdot,
   vdotFromHistory,
   vdotFromVma,
   vdotFromQuestionnaire,
@@ -15,7 +16,7 @@ import {
 import type { PaceZones } from '#domain/value_objects/pace_zones'
 import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 
-export type VdotEstimationMethod = 'history' | 'vma' | 'questionnaire'
+export type VdotEstimationMethod = 'history' | 'vma' | 'manual_vma' | 'recent' | 'questionnaire'
 
 export interface QuestionnaireAnswers {
   frequency: RunningFrequency
@@ -39,8 +40,37 @@ export default class EstimateVdot {
     private fitnessProfileCalculator: FitnessProfileCalculator
   ) {}
 
-  async execute(userId: number, questionnaire?: QuestionnaireAnswers): Promise<EstimateVdotResult> {
+  async execute(
+    userId: number,
+    questionnaire?: QuestionnaireAnswers,
+    recentPerformance?: { distanceKm: number; timeMinutes: number },
+    manualVma?: number
+  ): Promise<EstimateVdotResult> {
     const profile = await this.userProfileRepository.findByUserId(userId)
+
+    // ── Performance récente saisie manuellement ────────────────────────────────
+    if (recentPerformance) {
+      const vdot = calculateVdot(recentPerformance.distanceKm * 1000, recentPerformance.timeMinutes)
+      const fitnessProfile = await this.#computeFitnessProfile(userId, profile)
+      return {
+        vdot: Math.round(vdot),
+        method: 'recent',
+        paceZones: derivePaceZones(vdot),
+        fitnessProfile,
+      }
+    }
+
+    // ── VMA saisie manuellement ────────────────────────────────────────────────
+    if (manualVma) {
+      const vdot = vdotFromVma(manualVma)
+      const fitnessProfile = await this.#computeFitnessProfile(userId, profile)
+      return {
+        vdot: Math.round(vdot),
+        method: 'manual_vma',
+        paceZones: derivePaceZones(vdot),
+        fitnessProfile,
+      }
+    }
 
     // ── Niveau 1 : historique Strava des 6 dernières semaines ─────────────────
     const sixWeeksAgo = new Date(Date.now() - 6 * 7 * 24 * 60 * 60 * 1000)

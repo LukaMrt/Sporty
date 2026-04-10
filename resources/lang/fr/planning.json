@@ -30,13 +30,17 @@
       "targetTimePlaceholder": "ex. 55",
       "targetTimeHint": "Laissez vide si vous n'avez pas d'objectif de temps.",
       "eventDate": "Date de course (optionnel)",
-      "eventDateHint": "La durée du plan sera calculée automatiquement."
+      "eventDateHint": "La durée du plan sera calculée automatiquement.",
+      "eventDateHintWeeks": "Recommandé : {min}–{max} semaines selon votre niveau. La durée sera ajustée à votre date."
     },
     "step2": {
       "title": "Estimation de votre niveau",
-      "autoTitle": "Niveau estimé depuis votre historique",
+      "autoTitle.history": "Niveau estimé depuis votre historique",
+      "autoTitle.vma": "Niveau estimé depuis votre VMA",
+      "autoTitle.questionnaire": "Niveau estimé par défaut",
       "autoConfirm": "Confirmer ce niveau",
       "autoAdjust": "Ajuster manuellement",
+      "reestimate": "Réestimer",
       "methodRecent": "Depuis une performance récente",
       "methodVma": "Depuis ma VMA",
       "methodQuestionnaire": "Questionnaire",
