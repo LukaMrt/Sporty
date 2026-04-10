@@ -38,7 +38,7 @@ export default function HistoryDetail({ plan, weeks, sessionsByWeek, goalDistanc
     .replace('{start}', String(plan.vdotAtCreation))
     .replace('{end}', String(plan.currentVdot))
 
-  const weekSessions = sessionsByWeek[selectedWeek] ?? []
+  const weekSessions = sessionsByWeek[String(selectedWeek)] ?? []
   const sessionsByDay: Record<number, PlannedSession | undefined> = {}
   for (const s of weekSessions) {
     sessionsByDay[s.dayOfWeek] = s

@@ -163,6 +163,7 @@
     },
     "trainingState": {
       "idle": "Pas de plan en cours",
+      "in_plan": "Plan en cours",
       "preparation": "En préparation",
       "transition": "En transition",
       "maintenance": "En maintien"
@@ -329,7 +330,8 @@
     "autoToggleDesc": "Ajuste les allures et la charge à la fin de chaque semaine",
     "vdotUpToast": "VDOT mis à jour → {vdot}",
     "autoToggleEnabled": "Recalibration automatique activée",
-    "autoToggleDisabled": "Recalibration automatique désactivée"
+    "autoToggleDisabled": "Recalibration automatique désactivée",
+    "proposalHandled": "Proposition de recalibration traitée"
   },
   "postPlan": {
     "title": "Plan terminé — quelle est la suite ?",

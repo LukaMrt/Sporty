@@ -52,7 +52,12 @@ export default class EstimateVdot {
 
     const runningSessions = recentSessions.filter((s) => {
       const date = new Date(s.date)
-      return date >= sixWeeksAgo && s.distanceKm !== null && s.durationMinutes > 0
+      return (
+        date >= sixWeeksAgo &&
+        s.distanceKm !== null &&
+        s.durationMinutes > 0 &&
+        s.sportId === profile?.sportId
+      )
     })
 
     const historyInput = runningSessions.map((s) => ({

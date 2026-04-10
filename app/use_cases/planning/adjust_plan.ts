@@ -7,7 +7,7 @@ import type { PlannedSession } from '#domain/entities/planned_session'
 export interface AdjustPlanInput {
   userId: number
   sessionId: number
-  /** Jour de la semaine (0=Lundi … 6=Dimanche) — optionnel pour déplacement */
+  /** Jour de la semaine (0=Dimanche … 6=Samedi, convention JS Date.getDay()) — optionnel pour déplacement */
   dayOfWeek?: number
   /** Durée cible en minutes — optionnel pour modification */
   targetDurationMinutes?: number

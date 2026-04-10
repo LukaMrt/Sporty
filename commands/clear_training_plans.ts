@@ -23,6 +23,6 @@ export default class ClearTrainingPlans extends BaseCommand {
     // Réinitialiser le training_state dans user_profiles
     await db.from('user_profiles').update({ training_state: 'idle' })
 
-    this.logger.success('Tables vidées et training_state remis à "discovery".')
+    this.logger.success('Tables vidées et training_state remis à "idle".')
   }
 }

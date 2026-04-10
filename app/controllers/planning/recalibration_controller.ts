@@ -31,13 +31,13 @@ export default class RecalibrationController {
     }
   }
 
-  async handleVdotProposal({ auth, request, response, session }: HttpContext) {
+  async handleVdotProposal({ auth, request, response, session, i18n }: HttpContext) {
     const user = auth.getUserOrFail()
     const data = await request.validateUsing(vdotDownProposalValidator)
 
     try {
       await this.handleVdotDownProposalUseCase.execute(user.id, data.action)
-      session.flash('success', 'planning.recalibration.proposalHandled')
+      session.flash('success', i18n.t('planning.recalibration.proposalHandled'))
       return response.redirect().back()
     } catch (error) {
       if (error instanceof NoActivePlanError) {

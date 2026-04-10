@@ -210,7 +210,8 @@
     "autoToggleDesc": "Adjusts paces and load at the end of each week",
     "vdotUpToast": "VDOT updated → {vdot}",
     "autoToggleEnabled": "Auto recalibration enabled",
-    "autoToggleDisabled": "Auto recalibration disabled"
+    "autoToggleDisabled": "Auto recalibration disabled",
+    "proposalHandled": "Recalibration proposal handled"
   },
   "postPlan": {
     "title": "Plan complete — what's next?",
@@ -286,6 +287,7 @@
     },
     "trainingState": {
       "idle": "No active plan",
+      "in_plan": "Plan in progress",
       "preparation": "In preparation",
       "transition": "In transition",
       "maintenance": "Maintenance"

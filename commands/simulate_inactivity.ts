@@ -33,7 +33,7 @@ export default class SimulateInactivity extends BaseCommand {
 
     const targetDate = DateTime.now().minus({ days: daysBack })
 
-    await Session.query().whereNull('deletedAt').update({ date: targetDate.toISODate() })
+    await Session.query().whereNull('deleted_at').update({ date: targetDate.toISODate() })
 
     const level = daysBack >= 28 ? 'critical' : daysBack >= 14 ? 'warning' : 'none'
 
