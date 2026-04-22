@@ -114,8 +114,65 @@ jobs:
 
       - run: pnpm test
 
+  e2e:
+    needs: [test]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: sporty
+          POSTGRES_PASSWORD: sporty
+          POSTGRES_DB: sporty_e2e
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      NODE_ENV: test
+      APP_KEY: kDvkrhtbc8N2L0ftV-wQbX4Msfce8-IrF4AsJwtJ4do
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: sporty
+      DB_PASSWORD: sporty
+      DB_DATABASE: sporty_e2e
+      PORT: 3334
+      HOST: 0.0.0.0
+      LOG_LEVEL: error
+      SESSION_DRIVER: cookie
+      TZ: UTC
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25.6.1
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   docker:
-    needs: [build, static-analysis, typecheck, test]
+    needs: [build, static-analysis, typecheck, test, e2e]
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

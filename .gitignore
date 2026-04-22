@@ -16,6 +16,11 @@ database/schema.ts
 # Test coverage
 coverage
 
+# Playwright
+tests/e2e/.auth/
+playwright-report/
+test-results/
+
 # User-uploaded files (GPX tracks, etc.)
 storage/
 
