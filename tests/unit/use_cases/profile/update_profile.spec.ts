@@ -51,7 +51,7 @@ test.group('UpdateProfile — use case', () => {
     const userRepo = makeMockUserRepository({
       update: async (id, data) => {
         updatedUserId = id
-        updatedData = data as Record<string, unknown>
+        updatedData = data
         return {
           id,
           fullName: data.fullName ?? '',
@@ -76,7 +76,7 @@ test.group('UpdateProfile — use case', () => {
     let updatedData: Record<string, unknown> = {}
     const userRepo = makeMockUserRepository({
       update: async (id, data) => {
-        updatedData = data as Record<string, unknown>
+        updatedData = data
         return {
           id,
           fullName: '',

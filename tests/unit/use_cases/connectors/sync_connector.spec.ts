@@ -70,7 +70,7 @@ function makeConnector(overrides: Partial<Connector> = {}): Connector {
       }
     }
     async getConnectionStatus(): Promise<ConnectorStatusType> {
-      return 'connected' as ConnectorStatusType
+      return 'connected'
     }
     async disconnect(): Promise<void> {}
   }

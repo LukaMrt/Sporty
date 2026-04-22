@@ -27,7 +27,7 @@ export interface StravaStreams {
  * Convertit le tableau brut de l'API Strava en dict indexé par type.
  */
 export function indexStravaStreams(raw: RawStravaStream[]): StravaStreams {
-  return Object.fromEntries(raw.map((s) => [s.type, { data: s.data }])) as StravaStreams
+  return Object.fromEntries(raw.map((s) => [s.type, { data: s.data }]))
 }
 
 /**
