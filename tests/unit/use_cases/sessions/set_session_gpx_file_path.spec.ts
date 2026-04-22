@@ -30,7 +30,7 @@ function makeMockGpxFileStorage(movedPath = 'storage/gpx/42/1.gpx'): GpxFileStor
     saveTempFile: async () => 'temp-id',
     moveTempFile: async () => movedPath,
     saveFile: async () => movedPath,
-  } as unknown as GpxFileStorage
+  }
 }
 
 test.group('SetSessionGpxFilePath — use case', () => {

@@ -48,7 +48,7 @@ function makeGpxResult(overrides: Partial<GpxParseResult> = {}): GpxParseResult 
 function makeMockGpxParser(result: GpxParseResult): GpxParser {
   return {
     parse: () => result,
-  } as unknown as GpxParser
+  }
 }
 
 function makeMockGpxFileStorage(savedPath = 'storage/gpx/42/1.gpx'): GpxFileStorage {
@@ -56,7 +56,7 @@ function makeMockGpxFileStorage(savedPath = 'storage/gpx/42/1.gpx'): GpxFileStor
     saveTempFile: async () => 'temp-id',
     moveTempFile: async () => savedPath,
     saveFile: async () => savedPath,
-  } as unknown as GpxFileStorage
+  }
 }
 
 const gpxContent = Buffer.from('<gpx/>')

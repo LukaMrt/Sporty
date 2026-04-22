@@ -133,7 +133,7 @@ function makeConnector(fetcher: (url: string) => unknown): StravaConnector {
     makeRateLimitManager(),
     'client_id',
     'client_secret',
-    { fetcher: mockFetch as typeof fetch }
+    { fetcher: mockFetch }
   )
 }
 

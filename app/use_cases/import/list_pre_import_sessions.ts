@@ -67,7 +67,7 @@ export default class ListPreImportSessions {
     const beforeMs = before.getTime() + 86_400_000 - 1
 
     return allRecords.filter((r) => {
-      const date = (r.rawData as { date?: string } | null)?.date
+      const date = r.rawData?.date as string | undefined
       if (!date) return true
       const ts = new Date(date).getTime()
       return ts >= afterMs && ts <= beforeMs

@@ -69,7 +69,7 @@ export default function AthleteProfile({
   const [estimationMethod, setEstimationMethod] = useState<string | null>(null)
 
   const profileForm = useForm({
-    sex: profile?.sex ?? ('' as 'male' | 'female' | ''),
+    sex: profile?.sex ?? '',
     max_heart_rate: profile?.maxHeartRate ?? (null as number | null),
     resting_heart_rate: profile?.restingHeartRate ?? (null as number | null),
     vma: profile?.vma ?? (null as number | null),

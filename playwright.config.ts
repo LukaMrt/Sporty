@@ -32,7 +32,7 @@ export default defineConfig({
     },
   ],
 
-  globalSetup: './tests/e2e/global-setup.ts',
+  globalSetup: './tests/e2e/global_setup.ts',
 
   webServer: {
     command: 'node ace serve --hmr',
