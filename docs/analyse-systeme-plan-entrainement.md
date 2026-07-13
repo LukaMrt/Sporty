@@ -3,6 +3,12 @@
 > Périmètre : moteur Daniels (`app/services/training/daniels_plan_engine.ts`), use cases `app/use_cases/planning/`, listeners, repositories, validators, controllers et pages Inertia associées.
 > Date : 2026-07-13
 
+> **Statut : corrigé.** L'ensemble des points ci-dessous (C1-C7, M1-M11 et les
+> points mineurs, à l'exception de la matérialisation du profil de forme et du
+> renommage du listener) a été corrigé le 2026-07-13 sur cette branche. Les
+> numéros de ligne cités ci-dessous se réfèrent au code _avant_ correctifs —
+> le document est conservé comme trace de l'audit.
+
 ## Synthèse
 
 L'architecture est saine (Clean Architecture bien respectée, ports abstraits, moteur pur et testable, bonne couverture de tests unitaires). En revanche, **la boucle de recalibration automatique — la fonctionnalité phare du module — est entièrement morte en production** à cause d'un champ jamais renseigné (`targetLoadTss`), et le moteur de recalibration contient un décalage d'une semaine qui **supprime toutes les séances de la dernière semaine du plan** (celle de la course). Plusieurs incohérences de convention de jours et de cycle de vie de l'objectif complètent le tableau.
@@ -68,8 +74,8 @@ const startVolume =
 La convention officielle est `0=dimanche … 6=samedi` (JS `Date.getDay()`, validée `min(0).max(6)` dans `generate_plan_validator.ts:7`, affichée via `DAY_ORDER = [1,2,3,4,5,6,0]` dans `Planning/Index.tsx:20`). Trois endroits la violent :
 
 1. **Padding des jours dans le moteur** (`daniels_plan_engine.ts:644-648`) : la boucle `for (d = 1; d <= 7; …)` peut produire `dayOfWeek = 7` (ex. `preferredDays = [1..6]` et `sessionsPerWeek = 7`, le dimanche `0` n'étant jamais ajouté). Une séance `dayOfWeek: 7` est invisible côté frontend (`DAY_ORDER.indexOf(7) === -1`, `find(s => s.dayOfWeek === dow)` ne la trouve jamais).
-2. **Choix du jour de sortie longue** (`daniels_plan_engine.ts:655`) : `longRunDay = days[days.length−1]` après tri numérique croissant. Le dimanche vaut `0` et se retrouve *premier* : un utilisateur qui coche dimanche pour sa sortie longue (le cas le plus courant) obtient sa sortie longue le samedi (ou pire, un mardi si ses jours sont `[0,2,4]` → sortie longue le jeudi `4`). Le tri doit se faire dans l'ordre chronologique du plan (semaine démarrant lundi) : `[1,2,3,4,5,6,0]`.
-3. **Calcul de date dans `#deferMissedQualitySession`** (`recalibrate_plan.ts:256-258`) : `sessionDate = start + (week−1)×7 + dayOfWeek` est incompatible avec la formule de référence `(dayOfWeek − startDow + 7) % 7` utilisée par `GetNextSession.#absoluteDate` et `Planning/Index.tsx:23`. Pour un plan démarrant lundi : une séance du lundi (`1`) est datée mardi, une séance du dimanche (`0`) est datée le lundi *précédent* — la détection « séance manquée » est donc fausse d'un à six jours.
+2. **Choix du jour de sortie longue** (`daniels_plan_engine.ts:655`) : `longRunDay = days[days.length−1]` après tri numérique croissant. Le dimanche vaut `0` et se retrouve _premier_ : un utilisateur qui coche dimanche pour sa sortie longue (le cas le plus courant) obtient sa sortie longue le samedi (ou pire, un mardi si ses jours sont `[0,2,4]` → sortie longue le jeudi `4`). Le tri doit se faire dans l'ordre chronologique du plan (semaine démarrant lundi) : `[1,2,3,4,5,6,0]`.
+3. **Calcul de date dans `#deferMissedQualitySession`** (`recalibrate_plan.ts:256-258`) : `sessionDate = start + (week−1)×7 + dayOfWeek` est incompatible avec la formule de référence `(dayOfWeek − startDow + 7) % 7` utilisée par `GetNextSession.#absoluteDate` et `Planning/Index.tsx:23`. Pour un plan démarrant lundi : une séance du lundi (`1`) est datée mardi, une séance du dimanche (`0`) est datée le lundi _précédent_ — la détection « séance manquée » est donc fausse d'un à six jours.
 
 ### 🔴 C5 — L'objectif n'est jamais marqué `achieved` ; fin de cycle de vie incohérente
 
@@ -172,19 +178,19 @@ La génération d'un plan enchaîne 1 insert plan + N inserts semaines + M inser
 
 ## 4. Recommandations priorisées
 
-| # | Action | Corrige | Effort |
-|---|--------|---------|--------|
-| 1 | Renseigner `targetLoadTss` à la génération (rTSS prévisionnel) | C1 | Moyen |
-| 2 | Corriger le décalage de semaine dans `recalibrate()` + test d'invariant | C2 | Faible |
-| 3 | Unifier la convention de jours (tri chronologique `[1..6,0]`, padding sans `7`, formule de date unique partagée) | C4 | Faible |
-| 4 | Envelopper les créations/remplacements de plan dans des transactions + inserts batch | C6 | Moyen |
-| 5 | Marquer l'objectif `achieved` en fin de plan, unifier `GoalStatus`/`TrainingGoalStatus` | C5 | Faible |
-| 6 | Caler durée du plan et taper sur `eventDate`, générer la séance Race, exploiter `targetTimeMinutes` | C7 | Élevé |
-| 7 | Clarifier le contrat volume du moteur (`startVolume` vs `loadFactor`) | C3 | Faible |
-| 8 | Garde « plan actif existant » + index unique partiel en DB | M1 | Faible |
-| 9 | Plafond de volume hebdo + plancher 5 km | M2 | Faible |
-| 10 | Sortir les transitions de fin de plan du GET | M3 | Moyen |
-| 11 | Mettre à jour les `planned_weeks` lors des recalibrations | M4 | Faible |
-| 12 | Inclure `MarathonPace` dans les types qualité (constante partagée unique) | M11 | Trivial |
+| #   | Action                                                                                                           | Corrige | Effort  |
+| --- | ---------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| 1   | Renseigner `targetLoadTss` à la génération (rTSS prévisionnel)                                                   | C1      | Moyen   |
+| 2   | Corriger le décalage de semaine dans `recalibrate()` + test d'invariant                                          | C2      | Faible  |
+| 3   | Unifier la convention de jours (tri chronologique `[1..6,0]`, padding sans `7`, formule de date unique partagée) | C4      | Faible  |
+| 4   | Envelopper les créations/remplacements de plan dans des transactions + inserts batch                             | C6      | Moyen   |
+| 5   | Marquer l'objectif `achieved` en fin de plan, unifier `GoalStatus`/`TrainingGoalStatus`                          | C5      | Faible  |
+| 6   | Caler durée du plan et taper sur `eventDate`, générer la séance Race, exploiter `targetTimeMinutes`              | C7      | Élevé   |
+| 7   | Clarifier le contrat volume du moteur (`startVolume` vs `loadFactor`)                                            | C3      | Faible  |
+| 8   | Garde « plan actif existant » + index unique partiel en DB                                                       | M1      | Faible  |
+| 9   | Plafond de volume hebdo + plancher 5 km                                                                          | M2      | Faible  |
+| 10  | Sortir les transitions de fin de plan du GET                                                                     | M3      | Moyen   |
+| 11  | Mettre à jour les `planned_weeks` lors des recalibrations                                                        | M4      | Faible  |
+| 12  | Inclure `MarathonPace` dans les types qualité (constante partagée unique)                                        | M11     | Trivial |
 
 Les items 1-3 forment le socle : sans eux, la promesse « plan adaptatif » du module n'est pas tenue et les recalibrations existantes (reprise d'inactivité) sont destructrices.

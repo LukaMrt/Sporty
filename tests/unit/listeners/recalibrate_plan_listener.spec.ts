@@ -81,6 +81,7 @@ function makePlanRepo(plan: TrainingPlan | null): TrainingPlanRepository {
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()

@@ -17,6 +17,8 @@ export interface GeneratedSession {
   targetPacePerKm: string | null
   intensityZone: IntensityZone
   intervals: IntervalBlock[] | null
+  /** Charge prévisionnelle (rTSS estimé) — sert de référence à la recalibration. */
+  targetLoadTss: number
 }
 
 export interface GeneratedWeek {

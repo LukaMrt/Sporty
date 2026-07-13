@@ -3,7 +3,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 import ResumeFromInactivity from '#use_cases/planning/resume_from_inactivity'
 import AbandonGoal from '#use_cases/planning/abandon_goal'
 import GetPlanOverview from '#use_cases/planning/get_plan_overview'
-import { resumeFromInactivityValidator } from '#validators/planning/inactivity_validator'
 
 @inject()
 export default class InactivityController {
@@ -13,11 +12,12 @@ export default class InactivityController {
     private getPlanOverviewUseCase: GetPlanOverview
   ) {}
 
-  async resume({ auth, request, response }: HttpContext) {
+  async resume({ auth, response }: HttpContext) {
     const user = auth.getUserOrFail()
-    const data = await request.validateUsing(resumeFromInactivityValidator)
 
-    await this.resumeFromInactivityUseCase.execute(user.id, data.days_since)
+    // La durée d'inactivité est recalculée côté serveur par le use case —
+    // aucune donnée client n'est utilisée pour ajuster le VDOT.
+    await this.resumeFromInactivityUseCase.execute(user.id)
     return response.redirect().toPath('/planning')
   }
 

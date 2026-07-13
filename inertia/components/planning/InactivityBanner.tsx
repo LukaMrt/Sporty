@@ -23,11 +23,8 @@ export default function InactivityBanner({
 
   function handleResume() {
     onResume()
-    router.post(
-      '/planning/resume-from-inactivity',
-      { days_since: daysSince },
-      { preserveScroll: false }
-    )
+    // La durée d'inactivité est recalculée côté serveur
+    router.post('/planning/resume-from-inactivity', {}, { preserveScroll: false })
   }
 
   function handleNewPlan() {

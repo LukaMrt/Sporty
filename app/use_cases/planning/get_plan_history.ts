@@ -28,36 +28,28 @@ export default class GetPlanHistory {
       .filter((p) => p.status === PlanStatus.Completed || p.status === PlanStatus.Abandoned)
       .sort((a, b) => b.endDate.localeCompare(a.endDate))
 
-    const entries: PlanHistoryEntry[] = []
+    return Promise.all(
+      archivedPlans.map(async (plan): Promise<PlanHistoryEntry> => {
+        const [weeks, sessions, goal] = await Promise.all([
+          this.planRepo.findWeeksByPlanId(plan.id),
+          this.planRepo.findSessionsByPlanId(plan.id),
+          plan.goalId ? this.goalRepo.findById(plan.goalId) : Promise.resolve(null),
+        ])
 
-    for (const plan of archivedPlans) {
-      const [weeks, sessions] = await Promise.all([
-        this.planRepo.findWeeksByPlanId(plan.id),
-        this.planRepo.findSessionsByPlanId(plan.id),
-      ])
+        const runningSessions = sessions.filter((s) => s.sessionType !== SessionType.Rest)
+        const completedSessionsCount = runningSessions.filter(
+          (s) => s.status === PlannedSessionStatus.Completed
+        ).length
 
-      const runningSessions = sessions.filter((s) => s.sessionType !== SessionType.Rest)
-      const completedSessionsCount = runningSessions.filter(
-        (s) => s.status === PlannedSessionStatus.Completed
-      ).length
-      const totalSessionsCount = runningSessions.length
-
-      let goalDistanceKm: number | null = null
-      if (plan.goalId) {
-        const goal = await this.goalRepo.findById(plan.goalId)
-        goalDistanceKm = goal?.targetDistanceKm ?? null
-      }
-
-      entries.push({
-        plan,
-        weeks,
-        sessions,
-        goalDistanceKm,
-        completedSessionsCount,
-        totalSessionsCount,
+        return {
+          plan,
+          weeks,
+          sessions,
+          goalDistanceKm: goal?.targetDistanceKm ?? null,
+          completedSessionsCount,
+          totalSessionsCount: runningSessions.length,
+        }
       })
-    }
-
-    return entries
+    )
   }
 }

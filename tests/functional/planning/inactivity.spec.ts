@@ -190,7 +190,7 @@ test.group('Planning / Détection inactivité', (group) => {
     const response = await client
       .post('/planning/resume-from-inactivity')
       .loginAs(user)
-      .json({ days_since: 20 })
+      .json({})
       .redirects(0)
 
     response.assertStatus(302)

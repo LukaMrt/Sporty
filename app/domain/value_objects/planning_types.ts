@@ -33,12 +33,6 @@ export enum PlanStatus {
   Abandoned = 'abandoned',
 }
 
-export enum GoalStatus {
-  Active = 'active',
-  Achieved = 'achieved',
-  Missed = 'missed',
-}
-
 export enum SessionType {
   Easy = 'easy',
   LongRun = 'long_run',
@@ -79,3 +73,18 @@ export enum LoadMethod {
   Power = 'power',
   Rpe = 'rpe',
 }
+
+/**
+ * Types de séance considérés comme « qualité » (bilans hebdomadaires,
+ * report de séance manquée, détection sous-cible). Inclut l'allure marathon,
+ * centrale dans les phases TQ/FQ des plans semi/marathon.
+ */
+export const QUALITY_SESSION_TYPES: readonly SessionType[] = [
+  SessionType.Tempo,
+  SessionType.Interval,
+  SessionType.Repetition,
+  SessionType.MarathonPace,
+]
+
+/** Ratio volume maintenance / volume pic (Daniels : 30-40 %). */
+export const MAINTENANCE_VOLUME_RATIO = 0.35

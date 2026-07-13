@@ -15,6 +15,13 @@ import {
   IntensityZone,
   TrainingMethodology,
 } from '#domain/value_objects/planning_types'
+import {
+  WEEK_DAY_ORDER,
+  chronologicalDayIndex,
+  parseIsoDate,
+  daysBetween,
+} from '#domain/services/plan_calendar'
+import { predictTimeMinutes } from '#domain/services/vdot_calculator'
 
 // ---------------------------------------------------------------------------
 // Daniels phases — internal constants
@@ -86,6 +93,16 @@ const VOLUME_RULES = {
   recoveryReduction: 0.25, // deterministic 25% (midpoint of Daniels 20-30%)
   recoveryFrequency: 3, // every 3-4 weeks
   taperAlpha: 1.5, // Mujika non-linear exponent
+}
+
+// Plafond de volume hebdomadaire par distance cible : la progression +10%/sem
+// s'arrête au pic (Daniels plafonne le volume ; sans cap, un plan de 16+
+// semaines dépasse des volumes irréalistes pour un amateur).
+const PEAK_WEEKLY_VOLUME_MINUTES: Record<DistanceCategory, number> = {
+  '5k': 300,
+  '10k': 360,
+  'half': 420,
+  'marathon': 480,
 }
 
 // ---------------------------------------------------------------------------
@@ -312,9 +329,17 @@ function buildLongRunIntervals(
 // ---------------------------------------------------------------------------
 
 function formatPace(paceMinPerKm: number): string {
-  const mins = Math.floor(paceMinPerKm)
-  const secs = Math.round((paceMinPerKm - mins) * 60)
+  const totalSeconds = Math.round(paceMinPerKm * 60)
+  const mins = Math.floor(totalSeconds / 60)
+  const secs = totalSeconds % 60
   return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+function parsePaceMinPerKm(pace: string | null): number | null {
+  if (!pace) return null
+  const [mins, secs] = pace.split(':').map(Number)
+  if (Number.isNaN(mins) || Number.isNaN(secs)) return null
+  return mins + secs / 60
 }
 
 function intensityForSession(type: SessionType): IntensityZone {
@@ -380,6 +405,63 @@ function buildIntervalsForSession(
 }
 
 // ---------------------------------------------------------------------------
+// TSS prévisionnel
+// ---------------------------------------------------------------------------
+
+// rTSS estimé : IF² × durée(h) × 100, IF = allure seuil / allure de la portion.
+// Sert de charge planifiée de référence pour la recalibration hebdomadaire.
+function tssFor(minutes: number, paceMinPerKm: number | null, thresholdPace: number): number {
+  if (!paceMinPerKm || minutes <= 0) return 0
+  const intensityFactor = thresholdPace / paceMinPerKm
+  return intensityFactor ** 2 * (minutes / 60) * 100
+}
+
+function estimateSessionTss(
+  type: SessionType,
+  durationMinutes: number,
+  targetPace: string | null,
+  intervals: IntervalBlock[] | null,
+  paceZones: PaceZones
+): number {
+  const thresholdPace = paceZones.threshold.minPacePerKm
+  const easyPace = midPace(paceZones.easy)
+
+  const fromBlocks = (blocks: IntervalBlock[]): number =>
+    blocks.reduce((sum, block) => {
+      const work = tssFor(
+        (block.durationMinutes ?? 0) * block.repetitions,
+        parsePaceMinPerKm(block.targetPace),
+        thresholdPace
+      )
+      const recovery =
+        block.recoveryDurationMinutes && block.recoveryType === 'jog'
+          ? tssFor(block.recoveryDurationMinutes * block.repetitions, easyPace, thresholdPace)
+          : 0
+      return sum + work + recovery
+    }, 0)
+
+  switch (type) {
+    case SessionType.Interval:
+    case SessionType.Tempo:
+    case SessionType.Repetition:
+    case SessionType.MarathonPace:
+    case SessionType.LongRun:
+      // Les blocs décrivent la séance complète (échauffement/retour au calme inclus)
+      if (intervals && intervals.length > 0) return Math.round(fromBlocks(intervals))
+      return Math.round(
+        tssFor(durationMinutes, parsePaceMinPerKm(targetPace) ?? easyPace, thresholdPace)
+      )
+    case SessionType.Rest:
+      return 0
+    default:
+      // Easy/Recovery/Race : durée × allure cible (les strides éventuels sont négligeables)
+      return Math.round(
+        tssFor(durationMinutes, parsePaceMinPerKm(targetPace) ?? easyPace, thresholdPace)
+      )
+  }
+}
+
+// ---------------------------------------------------------------------------
 // DanielsPlanEngine implementation
 // ---------------------------------------------------------------------------
 
@@ -393,7 +475,11 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     const phaseWeeks = this.#distributePhaseWeeks(totalWeeks)
 
     // Calculate weekly volumes with progression
-    const weeklyVolumes = this.#calculateWeeklyVolumes(totalWeeks, currentWeeklyVolumeMinutes)
+    const weeklyVolumes = this.#calculateWeeklyVolumes(
+      totalWeeks,
+      currentWeeklyVolumeMinutes,
+      distanceCategory
+    )
 
     // Apply taper if event date exists
     const taperWeeks = request.eventDate ? getTaperWeeks(request.targetDistanceKm) : 0
@@ -430,7 +516,6 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
         weeks.push({
           weekNumber,
           phaseName: phase.name,
-
           isRecoveryWeek,
           targetVolumeMinutes: volume,
           sessions,
@@ -440,6 +525,8 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
       }
     }
 
+    this.#placeRaceSession(weeks, request)
+
     return {
       weeks,
       methodology: TrainingMethodology.Daniels,
@@ -448,9 +535,18 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
   }
 
   recalibrate(context: RecalibrationContext): GeneratedPlan {
-    const { originalRequest, newPaceZones, remainingWeeks, currentWeekNumber } = context
+    const { originalRequest, newPaceZones, remainingWeeks } = context
     const totalWeeks = originalRequest.totalWeeks
     const remainingCount = remainingWeeks.length
+
+    if (remainingCount === 0) {
+      return { weeks: [], methodology: TrainingMethodology.Daniels, totalWeeks: 0 }
+    }
+
+    // Les semaines régénérées conservent les numéros des semaines restantes
+    // (voir contrat RecalibrationContext) — jamais de décalage, sinon la
+    // dernière semaine du plan serait supprimée sans être recréée.
+    const firstWeekNumber = remainingWeeks[0].weekNumber
 
     // Determine which phase each remaining week belongs to (preserve original phase distribution)
     const phaseWeeks = this.#distributePhaseWeeks(totalWeeks)
@@ -463,23 +559,27 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
       return { name: 'FQ' }
     }
 
-    // Recalculate volumes starting from current volume with new progression
+    // Volume de départ : la valeur fournie par l'appelant (facteur de charge
+    // déjà appliqué) prime sur le volume existant de la première semaine.
     const startVolume =
-      remainingWeeks[0]?.targetVolumeMinutes ?? originalRequest.currentWeeklyVolumeMinutes
+      originalRequest.currentWeeklyVolumeMinutes > 0
+        ? originalRequest.currentWeeklyVolumeMinutes
+        : (remainingWeeks[0]?.targetVolumeMinutes ?? 0)
+    const distanceCategory = getDistanceCategory(originalRequest.targetDistanceKm)
     const weeklyVolumes = this.#calculateWeeklyVolumes(
       remainingCount,
       startVolume,
-      currentWeekNumber - 1
+      distanceCategory,
+      firstWeekNumber - 1
     )
-    const distanceCategory = getDistanceCategory(originalRequest.targetDistanceKm)
     const taperWeeks = originalRequest.eventDate
       ? getTaperWeeks(originalRequest.targetDistanceKm)
       : 0
 
     const weeks: GeneratedWeek[] = []
 
-    for (let i = 0; i < remainingCount; i++) {
-      const weekNumber = currentWeekNumber + i
+    for (const [i, remainingWeek] of remainingWeeks.entries()) {
+      const weekNumber = remainingWeek.weekNumber
       const phase = phaseForWeek(weekNumber)
 
       const isRecoveryWeek =
@@ -512,6 +612,8 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
         sessions,
       })
     }
+
+    this.#placeRaceSession(weeks, { ...originalRequest, paceZones: newPaceZones })
 
     return {
       weeks,
@@ -564,18 +666,26 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
       const volume = Math.round(transitionVolume * (0.6 + (w / transitionWeeks) * 0.4))
 
       const sessions: GeneratedSession[] = []
-      const days = preferredDays.slice(0, Math.min(sessionsPerWeek, preferredDays.length))
+      const days = this.#resolveDays(sessionsPerWeek, preferredDays)
 
       for (const day of days) {
         const durationMinutes = Math.round(volume / days.length)
+        const targetPacePerKm = formatPace(midPace(paceZones.easy))
         sessions.push({
           dayOfWeek: day,
           sessionType: SessionType.Easy,
           targetDurationMinutes: durationMinutes,
           targetDistanceKm: null,
-          targetPacePerKm: formatPace(midPace(paceZones.easy)),
+          targetPacePerKm,
           intensityZone: IntensityZone.Z2,
           intervals: null,
+          targetLoadTss: estimateSessionTss(
+            SessionType.Easy,
+            durationMinutes,
+            targetPacePerKm,
+            null,
+            paceZones
+          ),
         })
       }
 
@@ -605,12 +715,20 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     return DANIELS_PHASES.map((_, i) => base + (i < remainder ? 1 : 0))
   }
 
-  // Calcule les volumes hebdomadaires avec progression +10%/semaine et semaines de récupération
-  // intégrées. La semaine post-récupération repart du volume de récup (pas de la progression
+  // Calcule les volumes hebdomadaires avec progression +10%/semaine, plafond de
+  // pic par distance et semaines de récupération intégrées. La semaine
+  // post-récupération repart du volume de récup (pas de la progression
   // non-réduite), ce qui évite les sauts > 10% (Daniels §4.4 : max +10%/semaine).
-  // weekOffset permet d'aligner les numéros de semaine sur le plan global (ex : recalibration
-  // depuis la semaine 6 → offset = 5 pour que la récupération tombe aux bonnes semaines).
-  #calculateWeeklyVolumes(totalWeeks: number, startVolume: number, weekOffset = 0): number[] {
+  // weekOffset permet d'aligner les numéros de semaine sur le plan global (ex :
+  // recalibration depuis la semaine 6 → offset = 5 pour que la récupération
+  // tombe aux bonnes semaines).
+  #calculateWeeklyVolumes(
+    totalWeeks: number,
+    startVolume: number,
+    distanceCategory: DistanceCategory,
+    weekOffset = 0
+  ): number[] {
+    const peakVolume = PEAK_WEEKLY_VOLUME_MINUTES[distanceCategory]
     const volumes: number[] = []
     let base = startVolume
 
@@ -618,7 +736,9 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
       const weekNumber = i + 1 + weekOffset
       const isRecovery = weekNumber > 1 && weekNumber % (VOLUME_RULES.recoveryFrequency + 1) === 0
       const progressionVolume =
-        i === 0 ? base : Math.round(base * (1 + VOLUME_RULES.weeklyProgressionMax))
+        i === 0
+          ? Math.min(base, peakVolume)
+          : Math.min(Math.round(base * (1 + VOLUME_RULES.weeklyProgressionMax)), peakVolume)
       const volume = isRecovery
         ? Math.round(progressionVolume * (1 - VOLUME_RULES.recoveryReduction))
         : progressionVolume
@@ -630,6 +750,17 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     return volumes
   }
 
+  // Jours retenus pour la semaine, triés dans l'ordre chronologique lundi→dimanche
+  // (dayOfWeek 0 = dimanche est le DERNIER jour d'une semaine de plan).
+  #resolveDays(sessionsPerWeek: number, preferredDays: number[]): number[] {
+    const days = [...new Set(preferredDays)].slice(0, sessionsPerWeek)
+    for (const d of WEEK_DAY_ORDER) {
+      if (days.length >= sessionsPerWeek) break
+      if (!days.includes(d)) days.push(d)
+    }
+    return days.sort((a, b) => chronologicalDayIndex(a) - chronologicalDayIndex(b))
+  }
+
   #buildWeekSessions(
     sessionsPerWeek: number,
     preferredDays: number[],
@@ -639,34 +770,27 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     paceZones: PaceZones,
     isTaperWeek: boolean
   ): GeneratedSession[] {
-    const days = preferredDays.slice(0, Math.min(sessionsPerWeek, preferredDays.length))
-    // Pad days if fewer preferred days than sessions
-    while (days.length < sessionsPerWeek) {
-      for (let d = 1; d <= 7 && days.length < sessionsPerWeek; d++) {
-        if (!days.includes(d)) days.push(d)
-      }
-    }
-    days.sort((a, b) => a - b)
+    const days = this.#resolveDays(sessionsPerWeek, preferredDays)
 
     const qualityTypes = QUALITY_MATRIX[distanceCategory][phase]
     const sessions: GeneratedSession[] = []
 
-    // Long run on last day
+    // Long run on the chronologically last day of the week
     const longRunDay = days[days.length - 1]
     const longRunMinutes = Math.min(
       Math.round(weekVolume * VOLUME_RULES.longRunMaxPct),
       180 // cap at 3h
     )
 
-    sessions.push({
-      dayOfWeek: longRunDay,
-      sessionType: SessionType.LongRun,
-      targetDurationMinutes: longRunMinutes,
-      targetDistanceKm: null,
-      targetPacePerKm: paceForSession(SessionType.LongRun, paceZones),
-      intensityZone: intensityForSession(SessionType.LongRun),
-      intervals: buildLongRunIntervals(longRunMinutes, phase, distanceCategory, paceZones),
-    })
+    sessions.push(
+      this.#makeSession(
+        longRunDay,
+        SessionType.LongRun,
+        longRunMinutes,
+        buildLongRunIntervals(longRunMinutes, phase, distanceCategory, paceZones),
+        paceZones
+      )
+    )
 
     // Quality sessions (max 2 for non-taper, max 1 for taper)
     const maxQuality = isTaperWeek ? 1 : Math.min(2, qualityTypes.length)
@@ -676,15 +800,15 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
       const type = qualityTypes[q % qualityTypes.length]
       const qualityMinutes = this.#qualitySessionDuration(type, weekVolume)
 
-      sessions.push({
-        dayOfWeek: remainingDays[q],
-        sessionType: type,
-        targetDurationMinutes: qualityMinutes,
-        targetDistanceKm: null,
-        targetPacePerKm: paceForSession(type, paceZones),
-        intensityZone: intensityForSession(type),
-        intervals: buildIntervalsForSession(type, qualityMinutes, paceZones),
-      })
+      sessions.push(
+        this.#makeSession(
+          remainingDays[q],
+          type,
+          qualityMinutes,
+          buildIntervalsForSession(type, qualityMinutes, paceZones),
+          paceZones
+        )
+      )
     }
 
     // Fill remaining days with easy runs
@@ -699,18 +823,93 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
 
     for (const [idx, day] of easyDays.entries()) {
       const addStrides = (phase === 'FI' || phase === 'EQ') && idx < 2 && !isTaperWeek
-      sessions.push({
-        dayOfWeek: day,
-        sessionType: SessionType.Easy,
-        targetDurationMinutes: Math.max(20, easyPerSession),
-        targetDistanceKm: null,
-        targetPacePerKm: paceForSession(SessionType.Easy, paceZones),
-        intensityZone: intensityForSession(SessionType.Easy),
-        intervals: addStrides ? buildStrides(paceZones) : null,
-      })
+      sessions.push(
+        this.#makeSession(
+          day,
+          SessionType.Easy,
+          Math.max(20, easyPerSession),
+          addStrides ? buildStrides(paceZones) : null,
+          paceZones
+        )
+      )
     }
 
-    return sessions.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+    return sessions.sort(
+      (a, b) => chronologicalDayIndex(a.dayOfWeek) - chronologicalDayIndex(b.dayOfWeek)
+    )
+  }
+
+  #makeSession(
+    dayOfWeek: number,
+    type: SessionType,
+    durationMinutes: number,
+    intervals: IntervalBlock[] | null,
+    paceZones: PaceZones
+  ): GeneratedSession {
+    const targetPacePerKm = paceForSession(type, paceZones)
+    return {
+      dayOfWeek,
+      sessionType: type,
+      targetDurationMinutes: durationMinutes,
+      targetDistanceKm: null,
+      targetPacePerKm,
+      intensityZone: intensityForSession(type),
+      intervals,
+      targetLoadTss: estimateSessionTss(
+        type,
+        durationMinutes,
+        targetPacePerKm,
+        intervals,
+        paceZones
+      ),
+    }
+  }
+
+  // Remplace la fin de la dernière semaine par la course elle-même quand la
+  // date d'événement tombe dans cette semaine : séance Race le jour J, aucune
+  // séance planifiée après (repos post-course).
+  #placeRaceSession(weeks: GeneratedWeek[], request: PlanRequest): void {
+    if (!request.eventDate || weeks.length === 0) return
+
+    const elapsedDays = daysBetween(request.startDate, request.eventDate)
+    if (elapsedDays < 0) return
+    const eventWeekNumber = Math.floor(elapsedDays / 7) + 1
+
+    const lastWeek = weeks[weeks.length - 1]
+    if (lastWeek.weekNumber !== eventWeekNumber) return
+
+    const raceDow = parseIsoDate(request.eventDate).getDay()
+    const raceChrono = chronologicalDayIndex(raceDow)
+
+    const raceDurationMinutes = Math.round(
+      request.targetTimeMinutes ?? predictTimeMinutes(request.targetDistanceKm * 1000, request.vdot)
+    )
+    const racePace = formatPace(raceDurationMinutes / request.targetDistanceKm)
+
+    lastWeek.sessions = lastWeek.sessions.filter(
+      (s) => chronologicalDayIndex(s.dayOfWeek) < raceChrono
+    )
+    // Le volume hebdo affiché reste le volume d'entraînement (course exclue)
+    lastWeek.targetVolumeMinutes = lastWeek.sessions.reduce(
+      (sum, s) => sum + s.targetDurationMinutes,
+      0
+    )
+    lastWeek.sessions.push({
+      dayOfWeek: raceDow,
+      sessionType: SessionType.Race,
+      targetDurationMinutes: raceDurationMinutes,
+      targetDistanceKm: request.targetDistanceKm,
+      targetPacePerKm: racePace,
+      intensityZone: intensityForSession(SessionType.Race),
+      intervals: null,
+      targetLoadTss: estimateSessionTss(
+        SessionType.Race,
+        raceDurationMinutes,
+        racePace,
+        null,
+        request.paceZones
+      ),
+    })
   }
 
   #qualitySessionDuration(type: SessionType, weekVolume: number): number {
@@ -735,7 +934,7 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
     paceZones: PaceZones,
     isRecoveryWeek: boolean
   ): GeneratedSession[] {
-    const days = preferredDays.slice(0, Math.min(sessionsPerWeek, preferredDays.length))
+    const days = this.#resolveDays(Math.min(sessionsPerWeek, preferredDays.length), preferredDays)
     const sessions: GeneratedSession[] = []
     const perSession = Math.round(volume / days.length)
 
@@ -748,15 +947,15 @@ export default class DanielsPlanEngine extends TrainingPlanEngine {
           : SessionType.Interval
         : SessionType.Easy
 
-      sessions.push({
-        dayOfWeek: day,
-        sessionType: type,
-        targetDurationMinutes: perSession,
-        targetDistanceKm: null,
-        targetPacePerKm: paceForSession(type, paceZones),
-        intensityZone: intensityForSession(type),
-        intervals: isStructured ? buildIntervalsForSession(type, perSession, paceZones) : null,
-      })
+      sessions.push(
+        this.#makeSession(
+          day,
+          type,
+          perSession,
+          isStructured ? buildIntervalsForSession(type, perSession, paceZones) : null,
+          paceZones
+        )
+      )
     }
 
     return sessions

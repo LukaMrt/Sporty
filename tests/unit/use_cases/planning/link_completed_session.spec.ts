@@ -5,6 +5,8 @@ import { SessionRepository } from '#domain/interfaces/session_repository'
 import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_found_error'
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
+import { SessionAlreadyLinkedError } from '#domain/errors/session_already_linked_error'
+import { SessionDateMismatchError } from '#domain/errors/session_date_mismatch_error'
 import {
   PlanStatus,
   PlanType,
@@ -64,7 +66,7 @@ const COMPLETED_SESSION: TrainingSession = {
   userId: 1,
   sportId: 1,
   sportName: 'Course à pied',
-  date: '2026-03-24',
+  date: '2026-01-03',
   durationMinutes: 52,
   distanceKm: 9.2,
   avgHeartRate: 148,
@@ -79,6 +81,7 @@ const COMPLETED_SESSION: TrainingSession = {
 function makePlanRepo(opts: {
   session: PlannedSession | null
   activePlan: TrainingPlan | null
+  planSessions?: PlannedSession[]
 }): TrainingPlanRepository {
   class MockPlanRepo extends TrainingPlanRepository {
     async create(): Promise<TrainingPlan> {
@@ -113,7 +116,7 @@ function makePlanRepo(opts: {
       return opts.session
     }
     async findSessionsByPlanId(): Promise<PlannedSession[]> {
-      return []
+      return opts.planSessions ?? []
     }
     async updateSession(
       _id: number,
@@ -121,6 +124,7 @@ function makePlanRepo(opts: {
     ): Promise<PlannedSession> {
       return { ...PLANNED_SESSION, ...data }
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
@@ -226,6 +230,38 @@ test.group('LinkCompletedSession', () => {
     await assert.rejects(
       () => useCase.execute({ userId: 1, plannedSessionId: 42, completedSessionId: 77 }),
       SessionNotFoundError
+    )
+  })
+
+  test('lève SessionAlreadyLinkedError si la séance réalisée est déjà liée ailleurs', async ({
+    assert,
+  }) => {
+    const otherPlanned: PlannedSession = { ...PLANNED_SESSION, id: 43, completedSessionId: 77 }
+    const planRepo = makePlanRepo({
+      session: PLANNED_SESSION,
+      activePlan: ACTIVE_PLAN,
+      planSessions: [otherPlanned],
+    })
+    const sessionRepo = makeSessionRepo(COMPLETED_SESSION)
+    const useCase = new LinkCompletedSession(planRepo, sessionRepo)
+
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, plannedSessionId: 42, completedSessionId: 77 }),
+      SessionAlreadyLinkedError
+    )
+  })
+
+  test('lève SessionDateMismatchError si la date ne correspond pas à la semaine planifiée', async ({
+    assert,
+  }) => {
+    const farAwaySession: TrainingSession = { ...COMPLETED_SESSION, date: '2026-03-24' }
+    const planRepo = makePlanRepo({ session: PLANNED_SESSION, activePlan: ACTIVE_PLAN })
+    const sessionRepo = makeSessionRepo(farAwaySession)
+    const useCase = new LinkCompletedSession(planRepo, sessionRepo)
+
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, plannedSessionId: 42, completedSessionId: 77 }),
+      SessionDateMismatchError
     )
   })
 })

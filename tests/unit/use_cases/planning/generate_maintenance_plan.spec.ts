@@ -204,6 +204,7 @@ function makePlanRepo(
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not impl')
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(): Promise<void> {}
   }
 

@@ -3,6 +3,8 @@ import AdjustPlan from '#use_cases/planning/adjust_plan'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_found_error'
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
+import { PlannedSessionLockedError } from '#domain/errors/planned_session_locked_error'
+import { SessionDayConflictError } from '#domain/errors/session_day_conflict_error'
 import {
   PlanStatus,
   PlanType,
@@ -61,6 +63,7 @@ function makePlanRepo(opts: {
   session: PlannedSession | null
   activePlan: TrainingPlan | null
   updatedSession?: PlannedSession
+  planSessions?: PlannedSession[]
 }): TrainingPlanRepository {
   class MockPlanRepo extends TrainingPlanRepository {
     async create(): Promise<TrainingPlan> {
@@ -95,7 +98,7 @@ function makePlanRepo(opts: {
       return opts.session
     }
     async findSessionsByPlanId(): Promise<PlannedSession[]> {
-      return []
+      return opts.planSessions ?? []
     }
     async updateSession(
       _id: number,
@@ -103,6 +106,7 @@ function makePlanRepo(opts: {
     ): Promise<PlannedSession> {
       return { ...(opts.updatedSession ?? PLANNED_SESSION), ...data }
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
@@ -165,6 +169,36 @@ test.group('AdjustPlan', () => {
     await assert.rejects(
       () => useCase.execute({ userId: 1, sessionId: 42, dayOfWeek: 2 }),
       PlannedSessionForbiddenError
+    )
+  })
+
+  test('lève PlannedSessionLockedError si la séance est déjà complétée', async ({ assert }) => {
+    const completed: PlannedSession = {
+      ...PLANNED_SESSION,
+      status: PlannedSessionStatus.Completed,
+      completedSessionId: 77,
+    }
+    const repo = makePlanRepo({ session: completed, activePlan: ACTIVE_PLAN })
+    const useCase = new AdjustPlan(repo)
+
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, sessionId: 42, dayOfWeek: 3 }),
+      PlannedSessionLockedError
+    )
+  })
+
+  test('lève SessionDayConflictError si le jour cible est déjà occupé', async ({ assert }) => {
+    const otherSession: PlannedSession = { ...PLANNED_SESSION, id: 43, dayOfWeek: 3 }
+    const repo = makePlanRepo({
+      session: PLANNED_SESSION,
+      activePlan: ACTIVE_PLAN,
+      planSessions: [PLANNED_SESSION, otherSession],
+    })
+    const useCase = new AdjustPlan(repo)
+
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, sessionId: 42, dayOfWeek: 3 }),
+      SessionDayConflictError
     )
   })
 })

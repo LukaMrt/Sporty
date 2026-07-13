@@ -50,10 +50,12 @@ export default class EstimateVdot {
 
     // ── Performance récente saisie manuellement ────────────────────────────────
     if (recentPerformance) {
-      const vdot = calculateVdot(recentPerformance.distanceKm * 1000, recentPerformance.timeMinutes)
+      const vdot = Math.round(
+        calculateVdot(recentPerformance.distanceKm * 1000, recentPerformance.timeMinutes)
+      )
       const fitnessProfile = await this.#computeFitnessProfile(userId, profile)
       return {
-        vdot: Math.round(vdot),
+        vdot,
         method: 'recent',
         paceZones: derivePaceZones(vdot),
         fitnessProfile,
@@ -62,10 +64,10 @@ export default class EstimateVdot {
 
     // ── VMA saisie manuellement ────────────────────────────────────────────────
     if (manualVma) {
-      const vdot = vdotFromVma(manualVma)
+      const vdot = Math.round(vdotFromVma(manualVma))
       const fitnessProfile = await this.#computeFitnessProfile(userId, profile)
       return {
-        vdot: Math.round(vdot),
+        vdot,
         method: 'manual_vma',
         paceZones: derivePaceZones(vdot),
         fitnessProfile,
@@ -73,22 +75,20 @@ export default class EstimateVdot {
     }
 
     // ── Niveau 1 : historique Strava des 6 dernières semaines ─────────────────
-    const sixWeeksAgo = new Date(Date.now() - 6 * 7 * 24 * 60 * 60 * 1000)
-    const { data: recentSessions } = await this.sessionRepository.findAllByUserId(userId, {
-      sortBy: 'date',
-      sortOrder: 'desc',
-      perPage: 100,
-    })
+    // Requête par plage de dates : la pagination arbitraire (100 dernières
+    // séances toutes activités confondues) tronquait l'historique des
+    // utilisateurs multi-sports.
+    const sixWeeksAgoIso = new Date(Date.now() - 6 * 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10)
+    const todayIso = new Date().toISOString().slice(0, 10)
+    const recentSessions = profile?.sportId
+      ? await this.sessionRepository.findByUserIdAndDateRange(userId, sixWeeksAgoIso, todayIso)
+      : []
 
-    const runningSessions = recentSessions.filter((s) => {
-      const date = new Date(s.date)
-      return (
-        date >= sixWeeksAgo &&
-        s.distanceKm !== null &&
-        s.durationMinutes > 0 &&
-        s.sportId === profile?.sportId
-      )
-    })
+    const runningSessions = recentSessions.filter(
+      (s) => s.distanceKm !== null && s.durationMinutes > 0 && s.sportId === profile?.sportId
+    )
 
     const historyInput = runningSessions.map((s) => ({
       distanceMeters: (s.distanceKm ?? 0) * 1000,
@@ -98,21 +98,22 @@ export default class EstimateVdot {
 
     const vdotFromHist = vdotFromHistory(historyInput)
     if (vdotFromHist !== null) {
+      const vdot = Math.round(vdotFromHist)
       const fitnessProfile = await this.#computeFitnessProfile(userId, profile)
       return {
-        vdot: Math.round(vdotFromHist),
+        vdot,
         method: 'history',
-        paceZones: derivePaceZones(vdotFromHist),
+        paceZones: derivePaceZones(vdot),
         fitnessProfile,
       }
     }
 
     // ── Niveau 2 : VMA depuis le profil ───────────────────────────────────────
     if (profile?.vma) {
-      const vdot = vdotFromVma(profile.vma)
+      const vdot = Math.round(vdotFromVma(profile.vma))
       const fitnessProfile = await this.#computeFitnessProfile(userId, profile)
       return {
-        vdot: Math.round(vdot),
+        vdot,
         method: 'vma',
         paceZones: derivePaceZones(vdot),
         fitnessProfile,

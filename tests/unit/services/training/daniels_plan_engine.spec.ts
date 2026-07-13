@@ -25,7 +25,7 @@ function makePlanRequest(overrides: Partial<PlanRequest> = {}): PlanRequest {
     paceZones: PACE_ZONES,
     totalWeeks: 16,
     sessionsPerWeek: 5,
-    preferredDays: [1, 2, 3, 5, 7],
+    preferredDays: [1, 2, 3, 5, 0],
     startDate: '2026-06-01',
     currentWeeklyVolumeMinutes: 200,
     ...overrides,
@@ -39,7 +39,7 @@ function makeTransitionRequest(
     vdot: 50,
     paceZones: PACE_ZONES,
     sessionsPerWeek: 4,
-    preferredDays: [1, 3, 5, 7],
+    preferredDays: [1, 3, 5, 0],
     previousPeakVolumeMinutes: 300,
     raceDistanceKm: 42.195,
     ...overrides,
@@ -53,7 +53,7 @@ function makeMaintenanceRequest(
     vdot: 50,
     paceZones: PACE_ZONES,
     sessionsPerWeek: 4,
-    preferredDays: [1, 3, 5, 7],
+    preferredDays: [1, 3, 5, 0],
     currentWeeklyVolumeMinutes: 300,
     ...overrides,
   }
@@ -82,7 +82,7 @@ test.group('DanielsPlanEngine — generatePlan', () => {
   })
 
   test('chaque semaine contient le bon nombre de séances', ({ assert }) => {
-    const plan = engine.generatePlan(makePlanRequest({ sessionsPerWeek: 5 }))
+    const plan = engine.generatePlan(makePlanRequest({ sessionsPerWeek: 5, eventDate: null }))
     for (const week of plan.weeks) {
       assert.equal(week.sessions.length, 5)
     }
@@ -94,11 +94,45 @@ test.group('DanielsPlanEngine — generatePlan', () => {
     assert.isAbove(allTypes.size, 2)
   })
 
-  test('chaque semaine a une sortie longue', ({ assert }) => {
+  test('chaque semaine a une sortie longue (sauf la semaine de course)', ({ assert }) => {
     const plan = engine.generatePlan(makePlanRequest())
     for (const week of plan.weeks) {
       const longRuns = week.sessions.filter((s) => s.sessionType === SessionType.LongRun)
-      assert.equal(longRuns.length, 1)
+      const races = week.sessions.filter((s) => s.sessionType === SessionType.Race)
+      if (races.length > 0) {
+        assert.equal(races.length, 1)
+      } else {
+        assert.equal(longRuns.length, 1)
+      }
+    }
+  })
+
+  test('la semaine de course contient une séance Race le jour J, sans séance après', ({
+    assert,
+  }) => {
+    // startDate 2026-06-01 (lundi) + eventDate 2026-09-20 (dimanche) → semaine 16
+    const plan = engine.generatePlan(makePlanRequest())
+    const lastWeek = plan.weeks[plan.weeks.length - 1]
+    const race = lastWeek.sessions.find((s) => s.sessionType === SessionType.Race)
+
+    assert.isDefined(race)
+    assert.equal(race!.dayOfWeek, 0) // dimanche
+    assert.equal(race!.targetDistanceKm, 42.195)
+    assert.isAbove(race!.targetLoadTss, 0)
+  })
+
+  test('pas de séance Race si eventDate null', ({ assert }) => {
+    const plan = engine.generatePlan(makePlanRequest({ eventDate: null }))
+    const races = plan.weeks
+      .flatMap((w) => w.sessions)
+      .filter((s) => s.sessionType === SessionType.Race)
+    assert.equal(races.length, 0)
+  })
+
+  test('chaque séance a un targetLoadTss prévisionnel > 0 (hors repos)', ({ assert }) => {
+    const plan = engine.generatePlan(makePlanRequest())
+    for (const session of plan.weeks.flatMap((w) => w.sessions)) {
+      assert.isAbove(session.targetLoadTss, 0, `${session.sessionType} sans TSS prévisionnel`)
     }
   })
 
@@ -550,6 +584,54 @@ test.group('DanielsPlanEngine — recalibrate', () => {
     assert.equal(easySession!.targetPacePerKm, '5:30')
   })
 
+  test('régénère exactement les semaines restantes — la dernière semaine du plan incluse', ({
+    assert,
+  }) => {
+    const originalRequest = makePlanRequest({ totalWeeks: 16 })
+    const originalPlan = engine.generatePlan(originalRequest)
+
+    // Semaine courante 8 → semaines restantes 9..16
+    const remainingWeeks = originalPlan.weeks.slice(8)
+    const recalibrated = engine.recalibrate({
+      currentWeekNumber: 8,
+      newVdot: 47,
+      newPaceZones: PACE_ZONES,
+      remainingWeeks,
+      originalRequest,
+    })
+
+    // Invariant anti-régression : chaque semaine restante est régénérée avec
+    // son numéro d'origine et des séances — aucune semaine (surtout la
+    // dernière, celle de la course) ne doit disparaître
+    assert.deepEqual(
+      recalibrated.weeks.map((w) => w.weekNumber),
+      remainingWeeks.map((w) => w.weekNumber)
+    )
+    for (const week of recalibrated.weeks) {
+      assert.isAbove(week.sessions.length, 0, `Semaine ${week.weekNumber} sans séances`)
+    }
+  })
+
+  test('honore currentWeeklyVolumeMinutes fourni par l’appelant (facteur de charge)', ({
+    assert,
+  }) => {
+    const originalRequest = makePlanRequest({ eventDate: null, totalWeeks: 16 })
+    const originalPlan = engine.generatePlan(originalRequest)
+    const remainingWeeks = originalPlan.weeks.slice(8)
+
+    const reducedVolume = Math.round(remainingWeeks[0].targetVolumeMinutes * 0.85)
+    const recalibrated = engine.recalibrate({
+      currentWeekNumber: 8,
+      newVdot: 45,
+      newPaceZones: PACE_ZONES,
+      remainingWeeks,
+      originalRequest: { ...originalRequest, currentWeeklyVolumeMinutes: reducedVolume },
+    })
+
+    // La première semaine régénérée repart du volume réduit, pas du volume existant
+    assert.isAtMost(recalibrated.weeks[0].targetVolumeMinutes, reducedVolume + 1)
+  })
+
   test('préserve la phase correcte pour les semaines restantes', ({ assert }) => {
     const originalRequest = makePlanRequest({ totalWeeks: 16, eventDate: null })
     const originalPlan = engine.generatePlan(originalRequest)
@@ -680,7 +762,7 @@ test.group('DanielsPlanEngine — edge cases', () => {
 
   test('plan avec sessionsPerWeek=2 : fonctionne sans crash', ({ assert }) => {
     const plan = engine.generatePlan(
-      makePlanRequest({ sessionsPerWeek: 2, preferredDays: [3, 7], eventDate: null })
+      makePlanRequest({ sessionsPerWeek: 2, preferredDays: [3, 0], eventDate: null })
     )
     for (const week of plan.weeks) {
       assert.equal(week.sessions.length, 2)
@@ -691,7 +773,7 @@ test.group('DanielsPlanEngine — edge cases', () => {
 
   test('plan avec sessionsPerWeek=3 : long run + 1-2 quality + easy', ({ assert }) => {
     const plan = engine.generatePlan(
-      makePlanRequest({ sessionsPerWeek: 3, preferredDays: [2, 5, 7], eventDate: null })
+      makePlanRequest({ sessionsPerWeek: 3, preferredDays: [2, 5, 0], eventDate: null })
     )
     for (const week of plan.weeks) {
       assert.equal(week.sessions.length, 3)
@@ -706,6 +788,60 @@ test.group('DanielsPlanEngine — edge cases', () => {
 
     for (const session of easySessions) {
       assert.isAtLeast(session.targetDurationMinutes, 20)
+    }
+  })
+})
+
+test.group('DanielsPlanEngine — convention des jours (0=dimanche … 6=samedi)', () => {
+  test('la sortie longue tombe le dernier jour chronologique — dimanche (0) inclus', ({
+    assert,
+  }) => {
+    const plan = engine.generatePlan(
+      makePlanRequest({ sessionsPerWeek: 3, preferredDays: [0, 2, 4], eventDate: null })
+    )
+    for (const week of plan.weeks) {
+      const longRun = week.sessions.find((s) => s.sessionType === SessionType.LongRun)
+      assert.equal(longRun!.dayOfWeek, 0, 'Le dimanche (0) est le dernier jour de la semaine')
+    }
+  })
+
+  test('le padding des jours ne produit jamais de dayOfWeek hors 0-6', ({ assert }) => {
+    // 6 jours préférés, 7 séances/semaine → un jour doit être ajouté
+    const plan = engine.generatePlan(
+      makePlanRequest({ sessionsPerWeek: 7, preferredDays: [1, 2, 3, 4, 5, 6], eventDate: null })
+    )
+    for (const session of plan.weeks.flatMap((w) => w.sessions)) {
+      assert.isAtLeast(session.dayOfWeek, 0)
+      assert.isAtMost(session.dayOfWeek, 6)
+    }
+  })
+
+  test('les séances sont triées chronologiquement lundi → dimanche', ({ assert }) => {
+    const plan = engine.generatePlan(
+      makePlanRequest({ sessionsPerWeek: 4, preferredDays: [0, 1, 3, 5], eventDate: null })
+    )
+    const chrono = (d: number) => (d + 6) % 7
+    for (const week of plan.weeks) {
+      for (let i = 1; i < week.sessions.length; i++) {
+        assert.isAbove(chrono(week.sessions[i].dayOfWeek), chrono(week.sessions[i - 1].dayOfWeek))
+      }
+    }
+  })
+})
+
+test.group('DanielsPlanEngine — plafond de volume', () => {
+  test('la progression +10%/semaine est plafonnée au pic de la distance', ({ assert }) => {
+    // 40 semaines depuis 300 min : sans plafond on dépasserait 3000 min/sem
+    const plan = engine.generatePlan(
+      makePlanRequest({
+        targetDistanceKm: 42.195,
+        totalWeeks: 40,
+        currentWeeklyVolumeMinutes: 300,
+        eventDate: null,
+      })
+    )
+    for (const week of plan.weeks) {
+      assert.isAtMost(week.targetVolumeMinutes, 480, `S${week.weekNumber} dépasse le pic marathon`)
     }
   })
 })

@@ -5,6 +5,7 @@ import {
   vdotFromVma,
   vdotFromQuestionnaire,
   vdotFromHistory,
+  predictTimeMinutes,
 } from '#domain/services/vdot_calculator'
 import type { RunSession } from '#domain/services/vdot_calculator'
 
@@ -181,5 +182,28 @@ test.group('vdotFromHistory — historique insuffisant', () => {
       { distanceMeters: 20000, durationMinutes: 60, date: new Date(), sportType: 'Ride' },
     ]
     assert.isNull(vdotFromHistory(sessions))
+  })
+})
+
+test.group('predictTimeMinutes — inverse de calculateVdot', () => {
+  test('la prédiction retrouve le temps de la performance source', ({ assert }) => {
+    // 10 km en 40 min → VDOT x → predictTimeMinutes(10 km, x) ≈ 40 min
+    const vdot = calculateVdot(10000, 40)
+    const predicted = predictTimeMinutes(10000, vdot)
+    assert.closeTo(predicted, 40, 0.1)
+  })
+
+  test('un VDOT plus élevé prédit un temps plus rapide', ({ assert }) => {
+    const t45 = predictTimeMinutes(42195, 45)
+    const t55 = predictTimeMinutes(42195, 55)
+    assert.isBelow(t55, t45)
+  })
+
+  test('ordres de grandeur réalistes (VDOT 50)', ({ assert }) => {
+    // Tables Daniels : VDOT 50 ≈ 5k en ~19:57, marathon en ~3h10
+    const fiveK = predictTimeMinutes(5000, 50)
+    const marathon = predictTimeMinutes(42195, 50)
+    assert.closeTo(fiveK, 20, 1.5)
+    assert.closeTo(marathon, 190, 15)
   })
 })

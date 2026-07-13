@@ -9,18 +9,10 @@ import {
   TrainingState,
 } from '#domain/value_objects/planning_types'
 import { derivePaceZones } from '#domain/services/vdot_calculator'
+import { addWeeksIso, todayIso } from '#domain/services/plan_calendar'
 import type { TrainingPlan } from '#domain/entities/training_plan'
 import { NoCompletedPlanError } from '#domain/errors/no_completed_plan_error'
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function addWeeks(dateIso: string, weeks: number): string {
-  const d = new Date(dateIso)
-  d.setDate(d.getDate() + weeks * 7)
-  return d.toISOString().slice(0, 10)
-}
+import { ActivePlanExistsError } from '#domain/errors/active_plan_exists_error'
 
 export interface GenerateTransitionPlanResult {
   plan: TrainingPlan
@@ -36,6 +28,9 @@ export default class GenerateTransitionPlan {
   ) {}
 
   async execute(userId: number): Promise<GenerateTransitionPlanResult> {
+    const existingActive = await this.planRepo.findActiveByUserId(userId)
+    if (existingActive) throw new ActivePlanExistsError()
+
     const allPlans = await this.planRepo.findByUserId(userId)
     const completedPlan = allPlans.find((p) => p.status === PlanStatus.Completed)
     if (!completedPlan) throw new NoCompletedPlanError()
@@ -65,38 +60,34 @@ export default class GenerateTransitionPlan {
     })
 
     const startDate = todayIso()
-    const endDate = addWeeks(startDate, generated.totalWeeks)
+    const endDate = addWeeksIso(startDate, generated.totalWeeks)
 
-    const plan = await this.planRepo.create({
-      userId,
-      goalId: completedPlan.goalId,
-      methodology: generated.methodology,
-      level: completedPlan.level,
-      status: PlanStatus.Active,
-      autoRecalibrate: false,
-      vdotAtCreation: completedPlan.currentVdot,
-      currentVdot: completedPlan.currentVdot,
-      sessionsPerWeek: completedPlan.sessionsPerWeek,
-      preferredDays: completedPlan.preferredDays,
-      startDate,
-      endDate,
-      lastRecalibratedAt: null,
-      pendingVdotDown: null,
-    })
-
-    for (const week of generated.weeks) {
-      await this.planRepo.createWeek({
-        planId: plan.id,
-        weekNumber: week.weekNumber,
-        phaseName: week.phaseName,
-        phaseLabel: week.phaseName,
-        isRecoveryWeek: week.isRecoveryWeek,
-        targetVolumeMinutes: week.targetVolumeMinutes,
-      })
-
-      for (const session of week.sessions) {
-        await this.planRepo.createSession({
-          planId: plan.id,
+    const { plan } = await this.planRepo.createPlanGraph(
+      {
+        userId,
+        goalId: completedPlan.goalId,
+        methodology: generated.methodology,
+        level: completedPlan.level,
+        status: PlanStatus.Active,
+        autoRecalibrate: false,
+        vdotAtCreation: completedPlan.currentVdot,
+        currentVdot: completedPlan.currentVdot,
+        sessionsPerWeek: completedPlan.sessionsPerWeek,
+        preferredDays: completedPlan.preferredDays,
+        startDate,
+        endDate,
+        lastRecalibratedAt: null,
+        pendingVdotDown: null,
+      },
+      generated.weeks.map((week) => ({
+        week: {
+          weekNumber: week.weekNumber,
+          phaseName: week.phaseName,
+          phaseLabel: week.phaseName,
+          isRecoveryWeek: week.isRecoveryWeek,
+          targetVolumeMinutes: week.targetVolumeMinutes,
+        },
+        sessions: week.sessions.map((session) => ({
           weekNumber: week.weekNumber,
           dayOfWeek: session.dayOfWeek,
           sessionType: session.sessionType,
@@ -105,12 +96,12 @@ export default class GenerateTransitionPlan {
           targetPacePerKm: session.targetPacePerKm,
           intensityZone: session.intensityZone,
           intervals: session.intervals,
-          targetLoadTss: null,
+          targetLoadTss: session.targetLoadTss,
           completedSessionId: null,
           status: PlannedSessionStatus.Pending,
-        })
-      }
-    }
+        })),
+      }))
+    )
 
     await this.userProfileRepo.update(userId, { trainingState: TrainingState.Transition })
 

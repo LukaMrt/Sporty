@@ -116,6 +116,7 @@ function makePlanRepo(
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(_planId: number, fromWeek: number): Promise<void> {
       deletedFromWeek = fromWeek
     }
@@ -282,10 +283,43 @@ test.group('RecalibratePlan', () => {
         updatedAt: new Date().toISOString(),
       },
     ]
-    const planRepo = makePlanRepo(ACTIVE_PLAN, futureSessions, futureWeeks)
+    // Séance qualité complétée liée à une séance réalisée rapide (10 km en 40 min → VDOT ~52)
+    const completedQuality: PlannedSession = {
+      id: 50,
+      planId: 1,
+      weekNumber: 2,
+      dayOfWeek: 2,
+      sessionType: SessionType.Interval,
+      targetDurationMinutes: 50,
+      targetDistanceKm: null,
+      targetPacePerKm: null,
+      intensityZone: IntensityZone.Z5,
+      intervals: null,
+      targetLoadTss: 60,
+      completedSessionId: 500,
+      status: PlannedSessionStatus.Completed,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    const fastRealSession: TrainingSession = {
+      id: 500,
+      userId: 1,
+      sportId: 1,
+      sportName: 'Course à pied',
+      date: new Date().toISOString().slice(0, 10),
+      durationMinutes: 40,
+      distanceKm: 10,
+      avgHeartRate: null,
+      perceivedEffort: null,
+      sportMetrics: {},
+      notes: null,
+      createdAt: new Date().toISOString(),
+    }
+
+    const planRepo = makePlanRepo(ACTIVE_PLAN, [completedQuality, ...futureSessions], futureWeeks)
     const useCase = new RecalibratePlan(
       planRepo,
-      makeSessionRepo(),
+      makeSessionRepo([fastRealSession]),
       makeGoalRepo(),
       makePlanEngine(),
       makeEventEmitter()
@@ -300,8 +334,32 @@ test.group('RecalibratePlan', () => {
 
     await useCase.execute(1, highOvershoot)
 
-    // Le plan doit être mis à jour (lastRecalibratedAt)
+    // Le plan doit être mis à jour avec un VDOT réévalué à la hausse
     assert.isNotNull(planRepo.updatedWith)
+    assert.isAbove(planRepo.updatedWith!.currentVdot!, ACTIVE_PLAN.currentVdot)
+  })
+
+  test('ne régénère pas sur delta > +20 % sans séance qualité liée démontrant la perf', async ({
+    assert,
+  }) => {
+    const planRepo = makePlanRepo(ACTIVE_PLAN, [], [])
+    const useCase = new RecalibratePlan(
+      planRepo,
+      makeSessionRepo(),
+      makeGoalRepo(),
+      makePlanEngine(),
+      makeEventEmitter()
+    )
+
+    await useCase.execute(1, {
+      weekNumber: 2,
+      plannedLoadTss: 100,
+      actualLoadTss: 130,
+      qualitySessions: [],
+    })
+
+    // Sans preuve de performance, régénérer serait un no-op destructeur
+    assert.isNull(planRepo.updatedWith)
   })
 
   test('réduit la charge si delta > -20 %', async ({ assert }) => {
@@ -404,7 +462,7 @@ test.group('RecalibratePlan', () => {
     const weekSummary: WeekSummary = {
       weekNumber: 3,
       plannedLoadTss: 100,
-      actualLoadTss: 115, // +15 % → dans la plage modérée
+      actualLoadTss: 85, // -15 % → sous-performance modérée
       qualitySessions: [{ sessionType: SessionType.Tempo, actualTss: 20, plannedTss: 50 }],
     }
 

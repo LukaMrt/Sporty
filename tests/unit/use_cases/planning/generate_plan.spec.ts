@@ -85,6 +85,7 @@ const GENERATED_PLAN: GeneratedPlan = {
           targetPacePerKm: '6:00',
           intensityZone: IntensityZone.Z2,
           intervals: null,
+          targetLoadTss: 55,
         },
       ],
     },
@@ -193,6 +194,7 @@ function makePlanRepo(existingActivePlan: TrainingPlan | null): TrainingPlanRepo
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
@@ -351,8 +353,8 @@ function makeUseCase(
 
 const FIVE_K_GOAL_FOR_VOLUME: TrainingGoal = { ...ACTIVE_GOAL, targetDistanceKm: 5 }
 
-// Utilise un objectif 5k (floor = 0) pour tester la logique de calcul du volume
-// sans que le plancher par distance n'interfère avec les assertions
+// Utilise un objectif 5k (plancher le plus bas : 60 min) pour tester la logique
+// de calcul du volume avec des historiques au-dessus du plancher
 function makeUseCaseCapturing(sessions: TrainingSession[]) {
   return new GeneratePlan(
     makeGoalRepo(FIVE_K_GOAL_FOR_VOLUME),
@@ -438,20 +440,23 @@ test.group('GeneratePlan — calcul du volume hebdomadaire', () => {
     sevenDaysAgo.setDate(today.getDate() - 7)
 
     const sessions = [
-      makeSession(today.toISOString().slice(0, 10), 60), // semaine courante : 60 min
-      makeSession(sevenDaysAgo.toISOString().slice(0, 10), 40), // semaine précédente : 40 min
+      makeSession(today.toISOString().slice(0, 10), 120), // semaine courante : 120 min
+      makeSession(sevenDaysAgo.toISOString().slice(0, 10), 80), // semaine précédente : 80 min
     ]
 
     await makeUseCaseCapturing(sessions).execute(INPUT)
 
-    // (60 + 40) / 2 semaines actives = 50
-    assert.equal(capturedWeeklyVolume, 50)
+    // (120 + 80) / 2 semaines actives = 100
+    assert.equal(capturedWeeklyVolume, 100)
   })
 
-  test("retourne 0 si aucune séance dans l'historique", async ({ assert }) => {
+  test("applique le plancher 5k (60 min) si aucune séance dans l'historique", async ({
+    assert,
+  }) => {
     capturedWeeklyVolume = undefined
     await makeUseCaseCapturing([]).execute(INPUT)
-    assert.equal(capturedWeeklyVolume, 0)
+    // Plus de plan à volume nul : le 5k a désormais un plancher de 60 min
+    assert.equal(capturedWeeklyVolume, 60)
   })
 })
 
@@ -506,15 +511,15 @@ test.group('GeneratePlan — volume minimal par distance (D+B)', () => {
     assert.isTrue(result.volumeAdjusted)
   })
 
-  test('5k : pas de minimum — volume réel utilisé', async ({ assert }) => {
+  test('5k : volume relevé à 60 min si historique insuffisant', async ({ assert }) => {
     capturedWeeklyVolume = undefined
     const useCase = makeUseCaseCapturingWithGoal(FIVE_K_GOAL, [
       makeSession(new Date().toISOString().slice(0, 10), 20),
     ])
     const result = await useCase.execute(INPUT)
 
-    assert.equal(capturedWeeklyVolume, 20, 'Aucun floor pour le 5km')
-    assert.isFalse(result.volumeAdjusted)
+    assert.equal(capturedWeeklyVolume, 60, 'Plancher 5km : 60 min (évite un plan à volume nul)')
+    assert.isTrue(result.volumeAdjusted)
   })
 
   test("pas d'ajustement si volume déjà suffisant", async ({ assert }) => {

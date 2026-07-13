@@ -1,5 +1,7 @@
 import { test } from '@japa/runner'
 import ResumeFromInactivity from '#use_cases/planning/resume_from_inactivity'
+import { makeMockSessionRepository } from '#tests/helpers/mock_session_repository'
+import type { TrainingSession } from '#domain/entities/training_session'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
@@ -139,6 +141,7 @@ function makePlanRepo(
     async updateSession(): Promise<PlannedSession> {
       return makeSession(1, 1)
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(_planId: number, fromWeek: number): Promise<void> {
       deletedFromWeek = fromWeek
     }
@@ -200,13 +203,56 @@ function makeEngine(): TrainingPlanEngine {
   return new MockEngine()
 }
 
+// Mock SessionRepository : la dernière séance date d'il y a `daysAgo` jours
+function makeSessionRepoWithLastSession(daysAgo: number | null) {
+  const sessions: TrainingSession[] =
+    daysAgo === null
+      ? []
+      : [
+          {
+            id: 1,
+            userId: 1,
+            sportId: 1,
+            sportName: 'Course à pied',
+            date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+            durationMinutes: 45,
+            distanceKm: 8,
+            avgHeartRate: null,
+            perceivedEffort: null,
+            sportMetrics: {},
+            notes: null,
+            createdAt: new Date().toISOString(),
+          },
+        ]
+  return makeMockSessionRepository({
+    findByUserIdAndDateRange: async () => sessions,
+  })
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 test.group('ResumeFromInactivity', () => {
   test('ne fait rien si aucun plan actif', async ({ assert }) => {
     const planRepo = makePlanRepo(null)
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(null), makeEngine())
-    await useCase.execute(1, 20)
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeGoalRepo(null),
+      makeSessionRepoWithLastSession(20),
+      makeEngine()
+    )
+    await useCase.execute(1)
+    assert.isNull(planRepo.updatedWith)
+  })
+
+  test("ne fait rien si l'inactivité est inférieure à 14 jours", async ({ assert }) => {
+    const planRepo = makePlanRepo(ACTIVE_PLAN, makeWeeks(4), [makeSession(2, 1)])
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeGoalRepo(GOAL),
+      makeSessionRepoWithLastSession(5),
+      makeEngine()
+    )
+    await useCase.execute(1)
     assert.isNull(planRepo.updatedWith)
   })
 
@@ -215,8 +261,13 @@ test.group('ResumeFromInactivity', () => {
     const sessions = [makeSession(2, 1), makeSession(3, 3)]
     const planRepo = makePlanRepo(ACTIVE_PLAN, weeks, sessions)
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
-    await useCase.execute(1, 14)
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeGoalRepo(GOAL),
+      makeSessionRepoWithLastSession(14),
+      makeEngine()
+    )
+    await useCase.execute(1)
 
     assert.isNotNull(planRepo.updatedWith)
     const newVdot = planRepo.updatedWith!.currentVdot!
@@ -229,8 +280,13 @@ test.group('ResumeFromInactivity', () => {
     const sessions = [makeSession(2, 1)]
     const planRepo = makePlanRepo(ACTIVE_PLAN, weeks, sessions)
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
-    await useCase.execute(1, 28)
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeGoalRepo(GOAL),
+      makeSessionRepoWithLastSession(28),
+      makeEngine()
+    )
+    await useCase.execute(1)
 
     const newVdot = planRepo.updatedWith!.currentVdot!
     const expectedMax = ACTIVE_PLAN.currentVdot * 0.94 // au plus -6%
@@ -244,19 +300,49 @@ test.group('ResumeFromInactivity', () => {
     const sessions = [makeSession(2, 1), makeSession(3, 3)]
     const planRepo = makePlanRepo(ACTIVE_PLAN, weeks, sessions)
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
-    await useCase.execute(1, 20)
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeGoalRepo(GOAL),
+      makeSessionRepoWithLastSession(20),
+      makeEngine()
+    )
+    await useCase.execute(1)
 
     assert.isNotNull(planRepo.deletedFromWeek)
     assert.isNotNull(planRepo.updatedWith?.lastRecalibratedAt)
+  })
+
+  test('ne réapplique pas la réduction si une recalibration a déjà eu lieu depuis la dernière séance', async ({
+    assert,
+  }) => {
+    const recalibratedPlan = {
+      ...ACTIVE_PLAN,
+      lastRecalibratedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    }
+    const planRepo = makePlanRepo(recalibratedPlan, makeWeeks(4), [makeSession(3, 1)])
+
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeGoalRepo(GOAL),
+      makeSessionRepoWithLastSession(20),
+      makeEngine()
+    )
+    await useCase.execute(1)
+
+    assert.isNull(planRepo.updatedWith)
   })
 
   test('ne fait rien si aucune semaine future', async ({ assert }) => {
     const shortPlan = { ...ACTIVE_PLAN }
     const planRepo = makePlanRepo(shortPlan, makeWeeks(2), [makeSession(1, 1)])
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
-    await useCase.execute(1, 20)
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeGoalRepo(GOAL),
+      makeSessionRepoWithLastSession(20),
+      makeEngine()
+    )
+    await useCase.execute(1)
 
     // Plan de 2 semaines démarré il y a 14 jours → semaine courante ≥ 2, pas de semaine future
     assert.isNull(planRepo.deletedFromWeek)

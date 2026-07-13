@@ -14,7 +14,8 @@ import {
   PlannedSessionStatus,
   TrainingState,
 } from '#domain/value_objects/planning_types'
-import { derivePaceZones } from '#domain/services/vdot_calculator'
+import { derivePaceZones, predictTimeMinutes } from '#domain/services/vdot_calculator'
+import { todayIso, nextMondayIso, addWeeksIso, daysBetween } from '#domain/services/plan_calendar'
 import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import type { PlannedWeek } from '#domain/entities/planned_week'
@@ -36,16 +37,26 @@ export interface GeneratePlanResult {
   // true si le volume de base de l'utilisateur était insuffisant et a été relevé au minimum
   // recommandé pour la distance cible (§8.3, §4.1 doc recherche)
   volumeAdjusted: boolean
+  // true si la durée du plan a été recalée sur la date de course (le plan doit
+  // se terminer la semaine de l'événement, pas avant ni après)
+  durationAdjustedToEvent: boolean
+  // Prédiction Daniels pour la distance cible au VDOT courant ; null = pas de temps cible
+  predictedTimeMinutes: number | null
+  // false si le temps cible de l'objectif est plus rapide que la prédiction VDOT
+  targetTimeFeasible: boolean | null
 }
 
 // Volume hebdomadaire minimal recommandé pour chaque distance (Daniels §4.1 + §8.3).
 // En dessous de ces seuils, le plan est généré mais avec un avertissement.
 const MIN_BASE_VOLUME_MINUTES: Record<string, number> = {
-  '5k': 0, // accessible à tous
+  '5k': 60, // ~1h/semaine : évite un plan à volume nul pour un débutant sans historique
   '10k': 100, // ~1h40/semaine minimum
   'half': 150, // ~2h30/semaine minimum
   'marathon': 200, // ~3h20/semaine minimum
 }
+
+const MIN_PLAN_WEEKS = 4
+const MAX_PLAN_WEEKS = 52
 
 function getDistanceKey(distanceKm: number): string {
   if (distanceKm <= 5) return '5k'
@@ -59,24 +70,6 @@ function getPlanType(distanceKm: number): PlanType {
   if (distanceKm <= 10) return PlanType.TenKm
   if (distanceKm <= 21.1) return PlanType.HalfMarathon
   return PlanType.Marathon
-}
-
-function addWeeks(dateIso: string, weeks: number): string {
-  const d = new Date(dateIso)
-  d.setDate(d.getDate() + weeks * 7)
-  return d.toISOString().slice(0, 10)
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function nextMondayIso(): string {
-  const d = new Date()
-  const day = d.getDay() // 0 = dimanche, 1 = lundi, ...
-  const daysUntilNextMonday = day === 0 ? 1 : 8 - day
-  d.setDate(d.getDate() + daysUntilNextMonday)
-  return d.toISOString().slice(0, 10)
 }
 
 @inject()
@@ -148,61 +141,69 @@ export default class GeneratePlan {
     const volumeAdjusted = weeklyVolumeMinutes < minVolume
     const effectiveVolume = Math.max(weeklyVolumeMinutes, minVolume)
 
-    // 9. Assembler la PlanRequest
+    // 9. Durée du plan : la date de course prime. Le plan doit se terminer la
+    // semaine de l'événement pour que le taper et la séance Race tombent juste.
     const startDate = nextMondayIso()
+    let totalWeeks = input.planDurationWeeks
+    let durationAdjustedToEvent = false
+    if (goal.eventDate && daysBetween(startDate, goal.eventDate) >= 0) {
+      const weeksUntilEvent = Math.floor(daysBetween(startDate, goal.eventDate) / 7) + 1
+      totalWeeks = Math.max(MIN_PLAN_WEEKS, Math.min(weeksUntilEvent, MAX_PLAN_WEEKS))
+      durationAdjustedToEvent = totalWeeks !== input.planDurationWeeks
+    }
+
+    // 10. Faisabilité du temps cible vs prédiction VDOT
+    const predictedTimeMinutes = goal.targetTimeMinutes
+      ? Math.round(predictTimeMinutes(goal.targetDistanceKm * 1000, input.vdot))
+      : null
+    const targetTimeFeasible =
+      goal.targetTimeMinutes && predictedTimeMinutes
+        ? goal.targetTimeMinutes >= predictedTimeMinutes
+        : null
+
+    // 11. Générer le plan via le moteur
     const planRequest = {
       targetDistanceKm: goal.targetDistanceKm,
       targetTimeMinutes: goal.targetTimeMinutes,
       eventDate: goal.eventDate,
       vdot: input.vdot,
       paceZones,
-      totalWeeks: input.planDurationWeeks,
+      totalWeeks,
       sessionsPerWeek: input.sessionsPerWeek,
       preferredDays: input.preferredDays,
       startDate,
       currentWeeklyVolumeMinutes: effectiveVolume,
     }
-
-    // 9. Générer le plan via le moteur
     const generatedPlan = this.planEngine.generatePlan(planRequest)
 
-    // 10. Persister le plan
-    const endDate = addWeeks(startDate, input.planDurationWeeks)
-    const plan = await this.planRepository.create({
-      userId: input.userId,
-      goalId: goal.id,
-      methodology: generatedPlan.methodology,
-      level: getPlanType(goal.targetDistanceKm),
-      status: PlanStatus.Active,
-      autoRecalibrate: true,
-      vdotAtCreation: input.vdot,
-      currentVdot: input.vdot,
-      sessionsPerWeek: input.sessionsPerWeek,
-      preferredDays: input.preferredDays,
-      startDate,
-      endDate,
-      lastRecalibratedAt: null,
-      pendingVdotDown: null,
-    })
-
-    // 11. Persister les semaines et séances
-    const savedWeeks: PlannedWeek[] = []
-    const savedSessions: PlannedSession[] = []
-
-    for (const week of generatedPlan.weeks) {
-      const savedWeek = await this.planRepository.createWeek({
-        planId: plan.id,
-        weekNumber: week.weekNumber,
-        phaseName: week.phaseName,
-        phaseLabel: week.phaseName,
-        isRecoveryWeek: week.isRecoveryWeek,
-        targetVolumeMinutes: week.targetVolumeMinutes,
-      })
-      savedWeeks.push(savedWeek)
-
-      for (const session of week.sessions) {
-        const savedSession = await this.planRepository.createSession({
-          planId: plan.id,
+    // 12. Persister le plan complet (transactionnel)
+    const endDate = addWeeksIso(startDate, totalWeeks)
+    const { plan, weeks, sessions } = await this.planRepository.createPlanGraph(
+      {
+        userId: input.userId,
+        goalId: goal.id,
+        methodology: generatedPlan.methodology,
+        level: getPlanType(goal.targetDistanceKm),
+        status: PlanStatus.Active,
+        autoRecalibrate: true,
+        vdotAtCreation: input.vdot,
+        currentVdot: input.vdot,
+        sessionsPerWeek: input.sessionsPerWeek,
+        preferredDays: input.preferredDays,
+        startDate,
+        endDate,
+        lastRecalibratedAt: null,
+        pendingVdotDown: null,
+      },
+      generatedPlan.weeks.map((week) => ({
+        week: {
+          weekNumber: week.weekNumber,
+          phaseName: week.phaseName,
+          phaseLabel: week.phaseName,
+          isRecoveryWeek: week.isRecoveryWeek,
+          targetVolumeMinutes: week.targetVolumeMinutes,
+        },
+        sessions: week.sessions.map((session) => ({
           weekNumber: week.weekNumber,
           dayOfWeek: session.dayOfWeek,
           sessionType: session.sessionType,
@@ -211,19 +212,27 @@ export default class GeneratePlan {
           targetPacePerKm: session.targetPacePerKm,
           intensityZone: session.intensityZone,
           intervals: session.intervals,
-          targetLoadTss: null,
+          targetLoadTss: session.targetLoadTss,
           completedSessionId: null,
           status: PlannedSessionStatus.Pending,
-        })
-        savedSessions.push(savedSession)
-      }
-    }
+        })),
+      }))
+    )
 
-    // 12. Mettre à jour le trainingState → 'preparation'
+    // 13. Mettre à jour le trainingState → 'preparation'
     await this.userProfileRepository.update(input.userId, {
       trainingState: TrainingState.Preparation,
     })
 
-    return { plan, weeks: savedWeeks, sessions: savedSessions, fitnessProfile, volumeAdjusted }
+    return {
+      plan,
+      weeks,
+      sessions,
+      fitnessProfile,
+      volumeAdjusted,
+      durationAdjustedToEvent,
+      predictedTimeMinutes,
+      targetTimeFeasible,
+    }
   }
 }

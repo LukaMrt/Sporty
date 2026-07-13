@@ -32,6 +32,27 @@ export function calculateVdot(distanceMeters: number, durationMinutes: number): 
   return vo2 / pctVo2max
 }
 
+// ── predictTimeMinutes ────────────────────────────────────────────────────────
+
+/**
+ * Prédit le temps (minutes) sur une distance pour un VDOT donné.
+ * Inverse de calculateVdot (décroissante en t) par bisection.
+ */
+export function predictTimeMinutes(distanceMeters: number, vdot: number): number {
+  let low = distanceMeters / 600 // ~36 km/h : borne rapide
+  let high = distanceMeters / 100 // ~6 km/h : borne lente
+  for (let i = 0; i < 60; i++) {
+    const mid = (low + high) / 2
+    if (calculateVdot(distanceMeters, mid) > vdot) {
+      low = mid // encore trop rapide pour ce VDOT
+    } else {
+      high = mid
+    }
+    if (high - low < 0.01) break
+  }
+  return (low + high) / 2
+}
+
 // ── derivePaceZones ───────────────────────────────────────────────────────────
 
 // Zones en % VDOT selon Daniels

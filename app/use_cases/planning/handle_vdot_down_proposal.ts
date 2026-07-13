@@ -4,7 +4,8 @@ import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { PlannedSessionStatus } from '#domain/value_objects/planning_types'
 import { derivePaceZones } from '#domain/services/vdot_calculator'
-import type { GeneratedWeek } from '#domain/interfaces/training_plan_engine'
+import { computeCurrentWeekNumber } from '#domain/services/plan_calendar'
+import { toGeneratedWeeks } from '#domain/services/plan_mapper'
 import { NoActivePlanError } from '#use_cases/planning/toggle_auto_recalibrate'
 
 @inject()
@@ -37,34 +38,10 @@ export default class HandleVdotDownProposal {
     const allWeeks = await this.planRepository.findWeeksByPlanId(plan.id)
     const goal = plan.goalId ? await this.goalRepository.findById(plan.goalId) : null
 
-    // Déterminer la semaine courante
-    const today = new Date()
-    const startDate = new Date(plan.startDate)
-    const daysSinceStart = Math.floor(
-      (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-    )
-    const currentWeek = Math.min(Math.max(1, Math.floor(daysSinceStart / 7) + 1), allWeeks.length)
+    const currentWeek = computeCurrentWeekNumber(plan.startDate, allWeeks.length)
     const nextWeekNumber = currentWeek + 1
 
-    const remainingWeeks: GeneratedWeek[] = allWeeks
-      .filter((w) => w.weekNumber >= nextWeekNumber)
-      .map((w) => ({
-        weekNumber: w.weekNumber,
-        phaseName: w.phaseName,
-        isRecoveryWeek: w.isRecoveryWeek,
-        targetVolumeMinutes: w.targetVolumeMinutes,
-        sessions: allSessions
-          .filter((s) => s.weekNumber === w.weekNumber)
-          .map((s) => ({
-            dayOfWeek: s.dayOfWeek,
-            sessionType: s.sessionType,
-            targetDurationMinutes: s.targetDurationMinutes,
-            targetDistanceKm: s.targetDistanceKm,
-            targetPacePerKm: s.targetPacePerKm,
-            intensityZone: s.intensityZone,
-            intervals: s.intervals,
-          })),
-      }))
+    const remainingWeeks = toGeneratedWeeks(allWeeks, allSessions, nextWeekNumber)
 
     if (remainingWeeks.length > 0) {
       const recalibrated = this.planEngine.recalibrate({
@@ -86,26 +63,30 @@ export default class HandleVdotDownProposal {
         },
       })
 
-      await this.planRepository.deleteSessionsFromWeek(plan.id, nextWeekNumber)
-
-      for (const week of recalibrated.weeks.filter((w) => w.weekNumber >= nextWeekNumber)) {
-        for (const session of week.sessions) {
-          await this.planRepository.createSession({
-            planId: plan.id,
+      await this.planRepository.replaceFromWeek(
+        plan.id,
+        nextWeekNumber,
+        recalibrated.weeks
+          .filter((w) => w.weekNumber >= nextWeekNumber)
+          .map((week) => ({
             weekNumber: week.weekNumber,
-            dayOfWeek: session.dayOfWeek,
-            sessionType: session.sessionType,
-            targetDurationMinutes: session.targetDurationMinutes,
-            targetDistanceKm: session.targetDistanceKm,
-            targetPacePerKm: session.targetPacePerKm,
-            intensityZone: session.intensityZone,
-            intervals: session.intervals,
-            targetLoadTss: null,
-            completedSessionId: null,
-            status: PlannedSessionStatus.Pending,
-          })
-        }
-      }
+            isRecoveryWeek: week.isRecoveryWeek,
+            targetVolumeMinutes: week.targetVolumeMinutes,
+            sessions: week.sessions.map((session) => ({
+              weekNumber: week.weekNumber,
+              dayOfWeek: session.dayOfWeek,
+              sessionType: session.sessionType,
+              targetDurationMinutes: session.targetDurationMinutes,
+              targetDistanceKm: session.targetDistanceKm,
+              targetPacePerKm: session.targetPacePerKm,
+              intensityZone: session.intensityZone,
+              intervals: session.intervals,
+              targetLoadTss: session.targetLoadTss,
+              completedSessionId: null,
+              status: PlannedSessionStatus.Pending,
+            })),
+          }))
+      )
     }
 
     await this.planRepository.update(plan.id, {

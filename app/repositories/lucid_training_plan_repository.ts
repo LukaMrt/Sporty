@@ -1,8 +1,14 @@
 import { DateTime } from 'luxon'
+import db from '@adonisjs/lucid/services/db'
 import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedWeek } from '#domain/entities/planned_week'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import type {
+  PlanGraph,
+  PlanGraphWeek,
+  WeekReplacement,
+} from '#domain/interfaces/training_plan_repository'
 import TrainingPlanModel from '#models/training_plan'
 import PlannedWeekModel from '#models/planned_week'
 import PlannedSessionModel from '#models/planned_session'
@@ -45,6 +51,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     const model = await TrainingPlanModel.query()
       .where('userId', userId)
       .whereIn('status', ['active', 'draft'])
+      .orderBy('created_at', 'desc')
       .first()
     return model ? this.#toEntity(model) : null
   }
@@ -53,6 +60,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     const model = await TrainingPlanModel.query()
       .where('goalId', goalId)
       .whereIn('status', ['active', 'draft'])
+      .orderBy('created_at', 'desc')
       .first()
     return model ? this.#toEntity(model) : null
   }
@@ -134,6 +142,95 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       .where('planId', planId)
       .where('week_number', '>=', fromWeekNumber)
       .delete()
+  }
+
+  async updateWeekByNumber(
+    planId: number,
+    weekNumber: number,
+    data: Partial<Pick<PlannedWeek, 'isRecoveryWeek' | 'targetVolumeMinutes'>>
+  ): Promise<void> {
+    const model = await PlannedWeekModel.query()
+      .where('planId', planId)
+      .where('weekNumber', weekNumber)
+      .firstOrFail()
+    if (data.isRecoveryWeek !== undefined) model.isRecoveryWeek = data.isRecoveryWeek
+    if (data.targetVolumeMinutes !== undefined) model.targetVolumeMinutes = data.targetVolumeMinutes
+    await model.save()
+  }
+
+  async createPlanGraph(
+    planData: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>,
+    weeks: PlanGraphWeek[]
+  ): Promise<PlanGraph> {
+    return db.transaction(async (trx) => {
+      const planModel = await TrainingPlanModel.create(
+        {
+          userId: planData.userId,
+          goalId: planData.goalId ?? null,
+          methodology: planData.methodology,
+          level: planData.level,
+          status: planData.status,
+          autoRecalibrate: planData.autoRecalibrate,
+          vdotAtCreation: planData.vdotAtCreation,
+          currentVdot: planData.currentVdot,
+          sessionsPerWeek: planData.sessionsPerWeek,
+          preferredDays: planData.preferredDays,
+          startDate: DateTime.fromISO(planData.startDate),
+          endDate: DateTime.fromISO(planData.endDate),
+          lastRecalibratedAt: planData.lastRecalibratedAt
+            ? DateTime.fromISO(planData.lastRecalibratedAt)
+            : null,
+        },
+        { client: trx }
+      )
+
+      const weekModels = await PlannedWeekModel.createMany(
+        weeks.map(({ week }) => ({ ...week, planId: planModel.id })),
+        { client: trx }
+      )
+
+      const sessionModels = await PlannedSessionModel.createMany(
+        weeks.flatMap(({ sessions }) =>
+          sessions.map((session) => ({ ...session, planId: planModel.id }))
+        ),
+        { client: trx }
+      )
+
+      return {
+        plan: this.#toEntity(planModel),
+        weeks: weekModels.map((m) => this.#weekToEntity(m)),
+        sessions: sessionModels.map((m) => this.#sessionToEntity(m)),
+      }
+    })
+  }
+
+  async replaceFromWeek(
+    planId: number,
+    fromWeekNumber: number,
+    weeks: WeekReplacement[]
+  ): Promise<void> {
+    await db.transaction(async (trx) => {
+      await PlannedSessionModel.query({ client: trx })
+        .where('planId', planId)
+        .where('week_number', '>=', fromWeekNumber)
+        .delete()
+
+      for (const week of weeks) {
+        const weekModel = await PlannedWeekModel.query({ client: trx })
+          .where('planId', planId)
+          .where('weekNumber', week.weekNumber)
+          .firstOrFail()
+        weekModel.isRecoveryWeek = week.isRecoveryWeek
+        weekModel.targetVolumeMinutes = week.targetVolumeMinutes
+        weekModel.useTransaction(trx)
+        await weekModel.save()
+      }
+
+      await PlannedSessionModel.createMany(
+        weeks.flatMap((week) => week.sessions.map((session) => ({ ...session, planId }))),
+        { client: trx }
+      )
+    })
   }
 
   #toEntity(model: TrainingPlanModel): TrainingPlan {

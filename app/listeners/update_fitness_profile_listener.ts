@@ -3,7 +3,11 @@ import emitter from '@adonisjs/core/services/emitter'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
-import { PlannedSessionStatus, SessionType } from '#domain/value_objects/planning_types'
+import {
+  PlannedSessionStatus,
+  QUALITY_SESSION_TYPES,
+  SessionType,
+} from '#domain/value_objects/planning_types'
 import type { PlannedSession } from '#domain/entities/planned_session'
 
 @inject()
@@ -62,11 +66,6 @@ export default class UpdateFitnessProfileListener {
   ) {
     const plannedLoadTss = weekSessions.reduce((sum, ps) => sum + (ps.targetLoadTss ?? 0), 0)
 
-    // Charger les séances réelles liées à cette semaine
-    const completedIds = weekSessions
-      .map((ps) => ps.completedSessionId)
-      .filter((id): id is number => id !== null)
-
     let actualLoadTss = 0
     const qualitySessions: {
       sessionType: string
@@ -74,17 +73,12 @@ export default class UpdateFitnessProfileListener {
       plannedTss: number
     }[] = []
 
-    const QUALITY_TYPES: string[] = [
-      SessionType.Tempo,
-      SessionType.Interval,
-      SessionType.Repetition,
-    ]
-    const isQuality = (type: string) => QUALITY_TYPES.includes(type)
+    const isQuality = (type: SessionType) => QUALITY_SESSION_TYPES.includes(type)
 
     for (const ps of weekSessions) {
       const plannedTss = ps.targetLoadTss ?? 0
 
-      if (ps.completedSessionId && completedIds.includes(ps.completedSessionId)) {
+      if (ps.completedSessionId) {
         const realSession = await this.sessionRepository.findById(ps.completedSessionId)
         if (realSession) {
           const load = this.loadCalculator.calculate({

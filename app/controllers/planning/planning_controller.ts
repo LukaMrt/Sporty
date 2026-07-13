@@ -19,6 +19,10 @@ import { NoActiveGoalError } from '#domain/errors/no_active_goal_error'
 import { NoCompletedPlanError } from '#domain/errors/no_completed_plan_error'
 import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_found_error'
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
+import { PlannedSessionLockedError } from '#domain/errors/planned_session_locked_error'
+import { SessionDayConflictError } from '#domain/errors/session_day_conflict_error'
+import { SessionAlreadyLinkedError } from '#domain/errors/session_already_linked_error'
+import { SessionDateMismatchError } from '#domain/errors/session_date_mismatch_error'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 
 @inject()
@@ -65,13 +69,8 @@ export default class PlanningController {
 
   async weekDetail({ params, auth, response }: HttpContext) {
     const user = auth.getUserOrFail()
-    const overview = await this.getPlanOverview.execute(user.id)
-    if (!overview) {
-      return response.notFound({ error: 'No active plan' })
-    }
-
     const weekNumber = Number(params.weekNumber)
-    const detail = await this.getWeekDetail.execute(overview.plan.id, weekNumber)
+    const detail = await this.getWeekDetail.execute(user.id, weekNumber)
     if (!detail) {
       return response.notFound({ error: 'Week not found' })
     }
@@ -93,12 +92,30 @@ export default class PlanningController {
       })
 
       if (request.accepts(['json'])) {
-        return response.ok({ ok: true, volumeAdjusted: result.volumeAdjusted })
+        return response.ok({
+          ok: true,
+          volumeAdjusted: result.volumeAdjusted,
+          durationAdjustedToEvent: result.durationAdjustedToEvent,
+          predictedTimeMinutes: result.predictedTimeMinutes,
+          targetTimeFeasible: result.targetTimeFeasible,
+        })
       }
       if (result.volumeAdjusted) {
         session.flash(
           'warning',
           "Votre volume d'entraînement actuel est insuffisant pour cette distance. Le plan a été ajusté au volume minimal recommandé — augmentez progressivement votre base avant de commencer."
+        )
+      }
+      if (result.durationAdjustedToEvent) {
+        session.flash(
+          'info',
+          'La durée du plan a été ajustée pour se terminer la semaine de votre course.'
+        )
+      }
+      if (result.targetTimeFeasible === false) {
+        session.flash(
+          'warning',
+          'Votre temps cible est plus ambitieux que la prédiction basée sur votre niveau actuel — le plan vous préparera au mieux, mais restez prudent le jour J.'
         )
       }
       return response.redirect().toPath('/planning')
@@ -120,7 +137,7 @@ export default class PlanningController {
       await this.generateTransitionPlanUseCase.execute(user.id)
       return response.redirect().toPath('/planning')
     } catch (error) {
-      if (error instanceof NoCompletedPlanError) {
+      if (error instanceof NoCompletedPlanError || error instanceof ActivePlanExistsError) {
         session.flash('error', error.message)
         return response.redirect().back()
       }
@@ -134,7 +151,7 @@ export default class PlanningController {
       await this.generateMaintenancePlanUseCase.execute(user.id)
       return response.redirect().toPath('/planning')
     } catch (error) {
-      if (error instanceof NoCompletedPlanError) {
+      if (error instanceof NoCompletedPlanError || error instanceof ActivePlanExistsError) {
         session.flash('error', error.message)
         return response.redirect().back()
       }
@@ -162,11 +179,12 @@ export default class PlanningController {
       })
       return response.redirect().back()
     } catch (error) {
-      if (error instanceof PlannedSessionNotFoundError) {
-        session.flash('error', error.message)
-        return response.redirect().back()
-      }
-      if (error instanceof PlannedSessionForbiddenError) {
+      if (
+        error instanceof PlannedSessionNotFoundError ||
+        error instanceof PlannedSessionForbiddenError ||
+        error instanceof PlannedSessionLockedError ||
+        error instanceof SessionDayConflictError
+      ) {
         session.flash('error', error.message)
         return response.redirect().back()
       }
@@ -189,7 +207,9 @@ export default class PlanningController {
       if (
         error instanceof PlannedSessionNotFoundError ||
         error instanceof PlannedSessionForbiddenError ||
-        error instanceof SessionNotFoundError
+        error instanceof SessionNotFoundError ||
+        error instanceof SessionAlreadyLinkedError ||
+        error instanceof SessionDateMismatchError
       ) {
         session.flash('error', error.message)
         return response.redirect().back()

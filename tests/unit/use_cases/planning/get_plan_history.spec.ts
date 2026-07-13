@@ -102,6 +102,7 @@ function makePlanRepo(plans: TrainingPlan[], sessions: PlannedSession[]): Traini
     async updateSession(): Promise<PlannedSession> {
       throw new Error('not implemented')
     }
+    async updateWeekByNumber(): Promise<void> {}
     async deleteSessionsFromWeek(): Promise<void> {}
   }
   return new MockPlanRepo()
