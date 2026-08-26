@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createColumnHelper,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  useReactTable,
+  useTable,
+  tableFeatures,
+  rowSortingFeature,
+  columnVisibilityFeature,
+  columnSizingFeature,
+  createSortedRowModel,
+  sortFns,
   type SortingState,
 } from '@tanstack/react-table'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2, Calendar, RefreshCw } from 'lucide-react'
@@ -35,7 +38,15 @@ function getDefaultDateRange() {
   }
 }
 
-const columnHelper = createColumnHelper<StagingSession>()
+const features = tableFeatures({
+  rowSortingFeature,
+  columnVisibilityFeature,
+  columnSizingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns,
+})
+
+const columnHelper = createColumnHelper<typeof features, StagingSession>()
 
 export default function SessionsDataTable({
   sessions,
@@ -417,14 +428,12 @@ export default function SessionsDataTable({
     ]
   )
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: filtered,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   })
 
   return (
