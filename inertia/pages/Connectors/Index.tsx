@@ -1,9 +1,18 @@
-import React from 'react'
-import { Head, Link } from '@inertiajs/react'
-import { CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react'
+import React, { useState } from 'react'
+import { Head, Link, router } from '@inertiajs/react'
+import { CheckCircle2, AlertCircle, ChevronRight, Unlink } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import stravaLogo from '~/assets/strava-logo.svg'
 import { useTranslation } from '~/hooks/use_translation'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '~/components/ui/dialog'
 
 type ConnectorStatus = 'connected' | 'error'
 
@@ -14,6 +23,12 @@ interface ConnectorsIndexProps {
 
 export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: ConnectorsIndexProps) {
   const { t } = useTranslation()
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  function confirmDisconnect() {
+    setConfirmOpen(false)
+    router.post('/connectors/strava/disconnect')
+  }
 
   return (
     <>
@@ -46,10 +61,23 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
               {/* Badge statut + chevron */}
               <div className="flex items-center gap-2">
                 {stravaStatus === 'connected' && (
-                  <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                    <CheckCircle2 className="h-3 w-3" />
-                    {t('connectors.strava.status')}
-                  </span>
+                  <>
+                    <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                      <CheckCircle2 className="h-3 w-3" />
+                      {t('connectors.strava.status')}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setConfirmOpen(true)
+                      }}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-md border border-destructive/50 px-2 py-0.5 text-xs font-medium text-destructive transition hover:bg-destructive/10 active:scale-95"
+                    >
+                      <Unlink className="h-3.5 w-3.5" />
+                      {t('connectors.strava.disconnect')}
+                    </button>
+                  </>
                 )}
                 {stravaStatus === 'error' && (
                   <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
@@ -63,6 +91,29 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
           </div>
         )}
       </div>
+
+      {/* Modale de confirmation déconnexion */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('connectors.strava.disconnect')} Strava ?</DialogTitle>
+            <DialogDescription>{t('connectors.strava.disconnectDescription')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <button className="cursor-pointer rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-muted">
+                {t('common.actions.cancel')}
+              </button>
+            </DialogClose>
+            <button
+              onClick={confirmDisconnect}
+              className="cursor-pointer rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90"
+            >
+              {t('connectors.strava.disconnect')}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
