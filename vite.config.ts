@@ -1,13 +1,11 @@
 import { defineConfig } from 'vite'
-import inertia from '@adonisjs/inertia/vite'
 import react from '@vitejs/plugin-react'
 import adonisjs from '@adonisjs/vite/client'
 
 export default defineConfig({
   plugins: [
-    inertia({ ssr: { enabled: false } }),
     react(),
-    adonisjs({ entrypoints: ['inertia/app/app.tsx'], reload: ['resources/views/**/*.edge'] }),
+    adonisjs({ entryPoints: ['inertia/app/app.tsx'], reload: ['resources/views/**/*.edge'] }),
   ],
 
   /**

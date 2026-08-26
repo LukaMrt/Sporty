@@ -100,7 +100,6 @@ export class StravaConnector extends Connector {
 
     const analysis = analyze(trackpoints)
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const baseMetrics = base.sportMetrics as RunMetrics
     const enriched: RunMetrics = {
       ...baseMetrics,
