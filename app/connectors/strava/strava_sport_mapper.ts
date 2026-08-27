@@ -1,4 +1,6 @@
-export type SportySportSlug = 'running' | 'cycling' | 'swimming' | 'walking' | 'hiking' | 'other'
+import type { SportySportSlug } from '#connectors/sport_slug'
+
+export type { SportySportSlug }
 
 const SPORT_TYPE_MAP: Record<string, SportySportSlug> = {
   Run: 'running',

@@ -6,7 +6,7 @@ import type {
   MappedSessionSummary,
   MappedSessionData,
 } from '#domain/interfaces/connector'
-import type { ConnectorStatus } from '#domain/value_objects/connector_status'
+import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { StravaHttpClient } from '#connectors/strava/strava_http_client'
 import type { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ConnectorProvider } from '#domain/value_objects/connector_provider'
@@ -100,7 +100,6 @@ export class StravaConnector extends Connector {
 
     const analysis = analyze(trackpoints)
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const baseMetrics = base.sportMetrics as RunMetrics
     const enriched: RunMetrics = {
       ...baseMetrics,
@@ -131,11 +130,26 @@ export class StravaConnector extends Connector {
   }
 
   async getConnectionStatus(): Promise<ConnectorStatus> {
-    throw new Error('Not implemented')
+    try {
+      await this.#makeClient().get<unknown>(`${STRAVA_API_BASE}/athlete`)
+      return ConnectorStatus.Connected
+    } catch {
+      return ConnectorStatus.Error
+    }
   }
 
+  /**
+   * Revoque l'autorisation cote Strava. L'appelant est responsable de la
+   * suppression locale : cette methode peut echouer (Strava indisponible, token
+   * deja invalide) sans que la deconnexion locale doive en dependre.
+   */
   async disconnect(): Promise<void> {
-    throw new Error('Not implemented')
+    const doFetch = this.#fetcher ?? fetch
+    await doFetch('https://www.strava.com/oauth/deauthorize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ access_token: this.tokens.accessToken }),
+    })
   }
 
   #makeClient(): StravaHttpClient {

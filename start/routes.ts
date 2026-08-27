@@ -22,8 +22,10 @@ const PasswordController = () => import('#controllers/profile/password_controlle
 const ProfileController = () => import('#controllers/profile/profile_controller')
 const PhysiologyGuideController = () => import('#controllers/profile/physiology_guide_controller')
 const ConnectorsController = () => import('#controllers/connectors/connectors_controller')
-const StravaConnectorController = () =>
-  import('#controllers/connectors/strava_connector_controller')
+const ConnectorController = () => import('#controllers/connectors/connector_controller')
+const StravaOAuthController = () => import('#controllers/connectors/strava_oauth_controller')
+const ApiKeyConnectorController = () =>
+  import('#controllers/connectors/api_key_connector_controller')
 const ConnectorSettingsController = () =>
   import('#controllers/connectors/connector_settings_controller')
 const ImportController = () => import('#controllers/import/import_controller')
@@ -94,9 +96,12 @@ router
     router.get('/profile/physiology-guide', [PhysiologyGuideController, 'show'])
     router.post('/logout', [LogoutController, 'logout'])
     router.get('/connectors', [ConnectorsController, 'index'])
-    router.get('/connectors/strava', [StravaConnectorController, 'show'])
-    router.get('/connectors/strava/authorize', [StravaConnectorController, 'authorize'])
-    router.post('/connectors/strava/disconnect', [StravaConnectorController, 'disconnect'])
+    // Route litterale d'abord : l'URL de callback OAuth est enregistree chez Strava
+    // et ne peut pas etre parametree.
+    router.get('/connectors/strava/authorize', [StravaOAuthController, 'authorize'])
+    router.post('/connectors/:provider/connect', [ApiKeyConnectorController, 'store'])
+    router.get('/connectors/:provider', [ConnectorController, 'show'])
+    router.post('/connectors/:provider/disconnect', [ConnectorController, 'disconnect'])
     router.post('/connectors/:provider/settings', [ConnectorSettingsController, 'update'])
     router.post('/import/batch', [ImportController, 'batch'])
     router.post('/import/sessions/:id/ignore', [ImportSessionsController, 'ignore'])
@@ -108,7 +113,7 @@ router
 // Hors groupe auth : Strava redirige ici depuis un domaine externe,
 // la session est vérifiée manuellement dans le controller
 router
-  .get('/connectors/strava/callback', [StravaConnectorController, 'callback'])
+  .get('/connectors/strava/callback', [StravaOAuthController, 'callback'])
   .use(middleware.silentAuth())
 
 router

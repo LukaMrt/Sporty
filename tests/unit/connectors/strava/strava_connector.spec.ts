@@ -647,4 +647,31 @@ test.group('StravaConnector.getSessionDetail — fixture réelle Strava (~6km)',
     assert.isUndefined(result.sportMetrics.hrZones)
     assert.isUndefined(result.sportMetrics.trimp)
   })
+
+  test('disconnect appelle le deauthorize Strava avec le token', async ({ assert }) => {
+    let calledUrl: string | null = null
+    let calledBody: string | null = null
+
+    const mockFetch = async (input: string | URL | Request, init?: RequestInit) => {
+      calledUrl = input instanceof Request ? input.url : String(input)
+      calledBody = init?.body instanceof URLSearchParams ? init.body.toString() : null
+      return new Response('{}', { status: 200 })
+    }
+
+    const connector = new StravaConnector(
+      1,
+      42,
+      { accessToken: 'tok', refreshToken: 'ref', expiresAt: 9999999999 },
+      makeConnectorRepository(),
+      makeRateLimitManager(),
+      'client_id',
+      'client_secret',
+      { fetcher: mockFetch }
+    )
+
+    await connector.disconnect()
+
+    assert.equal(calledUrl, 'https://www.strava.com/oauth/deauthorize')
+    assert.include(calledBody ?? '', 'access_token=tok')
+  })
 })

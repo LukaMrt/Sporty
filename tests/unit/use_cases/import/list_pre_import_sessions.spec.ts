@@ -7,8 +7,12 @@ import type {
   StagingSessionInput,
   StagingSessionRecord,
   ImportedSessionRef,
+  ImportSessionConnectorRef,
 } from '#domain/interfaces/import_session_repository'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
+import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
+import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
+import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
@@ -23,6 +27,8 @@ import { SessionRepository } from '#domain/interfaces/session_repository'
 import type { SessionExternalRef } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
+
+const PROVIDER = ConnectorProvider.Strava
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -52,10 +58,28 @@ function makeConnector(
   return Object.assign(new Mock(), overrides)
 }
 
-function makeConnectorFactory(connector: Connector | null = null): ConnectorFactory {
-  class Mock extends ConnectorFactory {
+function makeConnectorRegistry(
+  connector: Connector | null = null,
+  registered = true
+): ConnectorRegistry {
+  class FactoryMock extends ConnectorFactory {
     async make(): Promise<Connector | null> {
       return connector
+    }
+  }
+  class RateLimitMock extends RateLimitManager {
+    update(): void {}
+    async waitIfNeeded(): Promise<void> {}
+  }
+  class Mock extends ConnectorRegistry {
+    has(): boolean {
+      return registered
+    }
+    getFactory(): ConnectorFactory {
+      return new FactoryMock()
+    }
+    getRateLimitManager(): RateLimitManager {
+      return new RateLimitMock()
     }
   }
   return new Mock()
@@ -79,6 +103,9 @@ function makeImportSessionRepository(
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null
+    }
+    async findConnectorsForImportSessions(): Promise<ImportSessionConnectorRef[]> {
+      return []
     }
   }
   return Object.assign(new Mock(), overrides)
@@ -151,11 +178,29 @@ test.group('ListPreImportSessions', () => {
   test('throws ConnectorNotConnectedError quand connecteur absent (AC#4)', async ({ assert }) => {
     const useCase = new ListPreImportSessions(
       makeImportSessionRepository(),
-      makeConnectorFactory(null),
+      makeConnectorRegistry(null),
       makeSessionRepository()
     )
 
-    await assert.rejects(() => useCase.execute({ userId: 1 }), ConnectorNotConnectedError)
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, provider: PROVIDER }),
+      ConnectorNotConnectedError
+    )
+  })
+
+  test('throws ConnectorNotConnectedError quand le provider n est pas enregistre', async ({
+    assert,
+  }) => {
+    const useCase = new ListPreImportSessions(
+      makeImportSessionRepository(),
+      makeConnectorRegistry(makeConnector(42), false),
+      makeSessionRepository()
+    )
+
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, provider: PROVIDER }),
+      ConnectorNotConnectedError
+    )
   })
 
   test('appelle connector.listSessions avec after par defaut 1 mois (AC#1)', async ({ assert }) => {
@@ -170,12 +215,12 @@ test.group('ListPreImportSessions', () => {
 
     const useCase = new ListPreImportSessions(
       makeImportSessionRepository(),
-      makeConnectorFactory(connector),
+      makeConnectorRegistry(connector),
       makeSessionRepository()
     )
 
     const before = Date.now()
-    await useCase.execute({ userId: 1 })
+    await useCase.execute({ userId: 1, provider: PROVIDER })
     const after = Date.now()
 
     assert.isNotNull(capturedFilters)
@@ -202,10 +247,10 @@ test.group('ListPreImportSessions', () => {
 
     const useCase = new ListPreImportSessions(
       importRepo,
-      makeConnectorFactory(connector),
+      makeConnectorRegistry(connector),
       makeSessionRepository()
     )
-    const result = await useCase.execute({ userId: 1 })
+    const result = await useCase.execute({ userId: 1, provider: PROVIDER })
 
     assert.equal(upserted.length, 1)
     assert.equal(upserted[0].connectorId, 42)
@@ -231,10 +276,10 @@ test.group('ListPreImportSessions', () => {
 
     const useCase = new ListPreImportSessions(
       importRepo,
-      makeConnectorFactory(connector),
+      makeConnectorRegistry(connector),
       makeSessionRepository()
     )
-    const result = await useCase.execute({ userId: 1 })
+    const result = await useCase.execute({ userId: 1, provider: PROVIDER })
 
     assert.equal(result[0].status, ImportSessionStatus.Imported)
     assert.equal(result[1].status, ImportSessionStatus.Ignored)
@@ -252,13 +297,13 @@ test.group('ListPreImportSessions', () => {
 
     const useCase = new ListPreImportSessions(
       makeImportSessionRepository(),
-      makeConnectorFactory(connector),
+      makeConnectorRegistry(connector),
       makeSessionRepository()
     )
 
     const afterDate = new Date('2026-01-01')
     const beforeDate = new Date('2026-02-01')
-    await useCase.execute({ userId: 1, after: afterDate, before: beforeDate })
+    await useCase.execute({ userId: 1, provider: PROVIDER, after: afterDate, before: beforeDate })
 
     assert.deepEqual(capturedFilters!.after, afterDate)
     assert.deepEqual(capturedFilters!.before, beforeDate)
@@ -290,10 +335,10 @@ test.group('ListPreImportSessions', () => {
 
     const useCase = new ListPreImportSessions(
       importRepo,
-      makeConnectorFactory(connector),
+      makeConnectorRegistry(connector),
       sessionRepo
     )
-    await useCase.execute({ userId: 1 })
+    await useCase.execute({ userId: 1, provider: PROVIDER })
 
     assert.equal(markImportedCalls.length, 1)
     assert.equal(markImportedCalls[0].connectorId, 42)
@@ -318,10 +363,10 @@ test.group('ListPreImportSessions', () => {
 
     const useCase = new ListPreImportSessions(
       importRepo,
-      makeConnectorFactory(connector),
+      makeConnectorRegistry(connector),
       makeSessionRepository()
     )
-    await useCase.execute({ userId: 1 })
+    await useCase.execute({ userId: 1, provider: PROVIDER })
 
     assert.equal(markImportedCalls.length, 0)
   })

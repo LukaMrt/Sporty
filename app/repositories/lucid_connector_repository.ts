@@ -48,6 +48,7 @@ export default class LucidConnectorRepository extends ConnectorRepository {
       tokenExpiresAtSeconds: connector.tokenExpiresAt
         ? Math.floor(connector.tokenExpiresAt.toSeconds())
         : null,
+      externalUserId: connector.externalUserId,
     }
   }
 
@@ -73,8 +74,12 @@ export default class LucidConnectorRepository extends ConnectorRepository {
       { userId: data.userId, provider: data.provider },
       {
         encryptedAccessToken: data.accessToken,
-        encryptedRefreshToken: data.refreshToken,
-        tokenExpiresAt: DateTime.fromSeconds(data.tokenExpiresAtSeconds),
+        encryptedRefreshToken: data.refreshToken ?? null,
+        tokenExpiresAt:
+          data.tokenExpiresAtSeconds !== undefined && data.tokenExpiresAtSeconds !== null
+            ? DateTime.fromSeconds(data.tokenExpiresAtSeconds)
+            : null,
+        externalUserId: data.externalUserId ?? null,
         status: data.status,
       }
     )

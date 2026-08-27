@@ -5,8 +5,11 @@ export interface UpsertConnectorInput {
   userId: number
   provider: ConnectorProvider
   accessToken: string
-  refreshToken: string
-  tokenExpiresAtSeconds: number
+  /** Absent pour les connecteurs a cle API, qui n'ont ni refresh ni expiration. */
+  refreshToken?: string | null
+  tokenExpiresAtSeconds?: number | null
+  /** Identifiant de l'utilisateur chez le provider (UUID open-wearables, athlete_id Strava...). */
+  externalUserId?: string | null
   status: ConnectorStatus
 }
 
@@ -21,6 +24,7 @@ export interface ConnectorFullRecord {
   accessToken: string | null
   refreshToken: string | null
   tokenExpiresAtSeconds: number | null
+  externalUserId: string | null
 }
 
 export interface UpdateTokensInput {

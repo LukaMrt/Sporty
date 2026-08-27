@@ -1,12 +1,13 @@
 import { inject } from '@adonisjs/core'
 import emitter from '@adonisjs/core/services/emitter'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
-import { ConnectorFactory } from '#domain/interfaces/connector_factory'
+import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { MappingContext } from '#domain/interfaces/connector'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
+import { MixedConnectorBatchError } from '#domain/errors/mixed_connector_batch_error'
 import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
 
 export { ConnectorNotConnectedError }
@@ -28,7 +29,7 @@ export interface ImportSessionsResult {
 export default class ImportSessions {
   constructor(
     private importSessionRepository: ImportSessionRepository,
-    private connectorFactory: ConnectorFactory,
+    private connectorRegistry: ConnectorRegistry,
     private sportRepository: SportRepository,
     private sessionRepository: SessionRepository,
     private userProfileRepository: UserProfileRepository
@@ -48,9 +49,26 @@ export default class ImportSessions {
     let failed = 0
     const errors: string[] = []
 
-    const connector = await this.connectorFactory.make(userId)
+    // Le provider est deduit des lignes de staging (restreintes a l'utilisateur)
+    // plutot que fourni par le client : pas de parametre falsifiable.
+    const connectorRefs = await this.importSessionRepository.findConnectorsForImportSessions(
+      importSessionIds,
+      userId
+    )
+    if (connectorRefs.length === 0) {
+      throw new ConnectorNotConnectedError()
+    }
+    if (connectorRefs.length > 1) {
+      throw new MixedConnectorBatchError()
+    }
+    const { provider } = connectorRefs[0]
+    if (!this.connectorRegistry.has(provider)) {
+      throw new ConnectorNotConnectedError(provider)
+    }
+
+    const connector = await this.connectorRegistry.getFactory(provider).make(userId)
     if (!connector) {
-      throw new ConnectorNotConnectedError('Strava')
+      throw new ConnectorNotConnectedError(provider)
     }
 
     const sports = await this.sportRepository.findAll()

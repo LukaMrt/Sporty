@@ -4,6 +4,7 @@ import { ImportSessionRepository } from '#domain/interfaces/import_session_repos
 import type {
   StagingSessionRecord,
   ImportedSessionRef,
+  ImportSessionConnectorRef,
 } from '#domain/interfaces/import_session_repository'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import type {
@@ -66,6 +67,9 @@ function makeImportRepo(records: StagingSessionRecord[] = []): ImportSessionRepo
     async resetForReimport(): Promise<null> {
       return null
     }
+    async findConnectorsForImportSessions(): Promise<ImportSessionConnectorRef[]> {
+      return []
+    }
   }
   return new Mock()
 }
@@ -89,6 +93,7 @@ test.group('GetStagedSessions', () => {
         accessToken: null,
         refreshToken: null,
         tokenExpiresAtSeconds: null,
+        externalUserId: null,
       }),
     })
     const useCase = new GetStagedSessions(makeImportRepo(records), repo)

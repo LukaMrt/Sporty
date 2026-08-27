@@ -8,6 +8,7 @@ import type {
   StagingSessionInput,
   StagingSessionRecord,
   ImportedSessionRef,
+  ImportSessionConnectorRef,
 } from '#domain/interfaces/import_session_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
@@ -103,6 +104,9 @@ function makeRegistry(
   const rateLimiter = makeRateLimiter()
 
   class Mock extends ConnectorRegistry {
+    has() {
+      return true
+    }
     getFactory() {
       return factory
     }
@@ -131,6 +135,9 @@ function makeImportSessionRepo(
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null
+    }
+    async findConnectorsForImportSessions(): Promise<ImportSessionConnectorRef[]> {
+      return []
     }
   }
   return Object.assign(new Mock(), overrides)

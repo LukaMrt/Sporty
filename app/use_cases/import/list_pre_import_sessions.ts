@@ -1,9 +1,10 @@
 import { inject } from '@adonisjs/core'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import type { StagingSessionRecord } from '#domain/interfaces/import_session_repository'
-import { ConnectorFactory } from '#domain/interfaces/connector_factory'
+import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
+import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 
 export { ConnectorNotConnectedError }
 
@@ -11,6 +12,7 @@ const DEFAULT_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
 
 export interface ListPreImportSessionsInput {
   userId: number
+  provider: ConnectorProvider
   after?: Date
   before?: Date
 }
@@ -19,15 +21,19 @@ export interface ListPreImportSessionsInput {
 export default class ListPreImportSessions {
   constructor(
     private importSessionRepository: ImportSessionRepository,
-    private connectorFactory: ConnectorFactory,
+    private connectorRegistry: ConnectorRegistry,
     private sessionRepository: SessionRepository
   ) {}
 
   async execute(input: ListPreImportSessionsInput): Promise<StagingSessionRecord[]> {
-    const connector = await this.connectorFactory.make(input.userId)
+    if (!this.connectorRegistry.has(input.provider)) {
+      throw new ConnectorNotConnectedError(input.provider)
+    }
+
+    const connector = await this.connectorRegistry.getFactory(input.provider).make(input.userId)
 
     if (!connector) {
-      throw new ConnectorNotConnectedError('Strava')
+      throw new ConnectorNotConnectedError(input.provider)
     }
 
     const after = input.after ?? new Date(Date.now() - DEFAULT_LOOKBACK_MS)

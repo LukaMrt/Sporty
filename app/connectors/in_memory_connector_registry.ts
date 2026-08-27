@@ -15,6 +15,10 @@ export class InMemoryConnectorRegistry extends ConnectorRegistry {
     this.#providers.set(provider, entry)
   }
 
+  has(provider: ConnectorProvider): boolean {
+    return this.#providers.has(provider)
+  }
+
   getFactory(provider: ConnectorProvider): ConnectorFactory {
     return this.#get(provider).factory
   }

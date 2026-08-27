@@ -85,6 +85,38 @@ test.group('Connectors / Strava Disconnect', (group) => {
     assert.isNull(connector)
   })
 
+  // ─── Non-régression découplage — connecteur en erreur ────────────────────
+
+  test('POST /connectors/strava/disconnect — supprime la ligne meme si le connecteur est en erreur', async ({
+    client,
+    assert,
+  }) => {
+    const user = await getUser()
+    process.env['CONNECTOR_ENCRYPTION_KEY'] = 'test_encryption_key_32_bytes_long!!'
+
+    // status = error : la factory renvoie null, aucune revocation distante n'est
+    // possible, mais la suppression locale doit aboutir malgre tout.
+    await Connector.create({
+      userId: user.id,
+      provider: 'strava',
+      status: ConnectorStatus.Error,
+      encryptedAccessToken: 'access_token',
+      encryptedRefreshToken: 'refresh_token',
+      autoImportEnabled: false,
+      pollingIntervalMinutes: 60,
+    })
+
+    const response = await client.post('/connectors/strava/disconnect').loginAs(user).redirects(0)
+
+    delete process.env['CONNECTOR_ENCRYPTION_KEY']
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/connectors')
+
+    const connector = await Connector.findBy('user_id', user.id)
+    assert.isNull(connector)
+  })
+
   // ─── AC#2 — non authentifié ───────────────────────────────────────────────
 
   test('POST /connectors/strava/disconnect — non authentifié → 302 login', async ({ client }) => {
@@ -94,9 +126,9 @@ test.group('Connectors / Strava Disconnect', (group) => {
     response.assertHeader('location', '/login')
   })
 
-  // ─── AC#1 — page connecteurs expose stravaStatus (connected) ─────────────
+  // ─── AC#1 — page connecteurs expose le statut (connected) ─────────────
 
-  test('GET /connectors — stravaStatus=connected si connecteur connected (AC#1)', async ({
+  test('GET /connectors — statut connected si connecteur connected (AC#1)', async ({
     client,
     assert,
   }) => {
@@ -180,9 +212,9 @@ test.group('Connectors / Strava Disconnect', (group) => {
     void connector // used
   })
 
-  // ─── AC#3 — page connecteurs expose stravaStatus (error) ─────────────────
+  // ─── AC#3 — page connecteurs expose le statut (error) ─────────────────
 
-  test('GET /connectors — stravaStatus=error si connecteur en erreur (AC#3)', async ({
+  test('GET /connectors — statut error si connecteur en erreur (AC#3)', async ({
     client,
     assert,
   }) => {

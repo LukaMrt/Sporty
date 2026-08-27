@@ -2,10 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   createColumnHelper,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  useReactTable,
+  useTable,
+  tableFeatures,
+  rowSortingFeature,
+  columnVisibilityFeature,
+  columnSizingFeature,
+  createSortedRowModel,
+  sortFns,
   type SortingState,
 } from '@tanstack/react-table'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2, Calendar, RefreshCw } from 'lucide-react'
@@ -17,8 +20,10 @@ import { useDateFormat } from '~/hooks/use_date_format'
 import { pushToast } from '~/hooks/use_toast'
 import type { StagingSession } from '~/types/staging_session'
 import { formatDuration } from '~/lib/format'
+import { connectorPath } from '~/lib/connector_catalog'
 
 interface SessionsDataTableProps {
+  provider: string
   sessions: StagingSession[]
   connectorError?: boolean
   initialAfter?: string
@@ -35,9 +40,18 @@ function getDefaultDateRange() {
   }
 }
 
-const columnHelper = createColumnHelper<StagingSession>()
+const features = tableFeatures({
+  rowSortingFeature,
+  columnVisibilityFeature,
+  columnSizingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns,
+})
+
+const columnHelper = createColumnHelper<typeof features, StagingSession>()
 
 export default function SessionsDataTable({
+  provider,
   sessions,
   connectorError = false,
   initialAfter,
@@ -66,13 +80,13 @@ export default function SessionsDataTable({
     }
     const timer = setTimeout(() => {
       router.get(
-        '/connectors/strava',
+        connectorPath(provider),
         { after: dateFrom, before: dateTo },
         { preserveState: true, only: ['sessions', 'initialAfter', 'initialBefore'] }
       )
     }, 600)
     return () => clearTimeout(timer)
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, provider])
 
   const importOne = useCallback(
     async (id: number) => {
@@ -417,14 +431,12 @@ export default function SessionsDataTable({
     ]
   )
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: filtered,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   })
 
   return (

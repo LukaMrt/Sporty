@@ -26,8 +26,8 @@ test.group('Import / Sessions', (group) => {
       .header('X-Inertia-Version', '1')
 
     response.assertStatus(200)
-    const body = response.body() as { props: { stravaStatus: null; sessions: null } }
-    assert.isNull(body.props.stravaStatus)
+    const body = response.body() as { props: { status: null; sessions: null } }
+    assert.isNull(body.props.status)
     assert.isNull(body.props.sessions)
   })
 
@@ -56,9 +56,9 @@ test.group('Import / Sessions', (group) => {
     delete process.env['CONNECTOR_ENCRYPTION_KEY']
     response.assertStatus(200)
     const body = response.body() as {
-      props: { stravaStatus: string; sessions: unknown[] | null; connectorError: boolean }
+      props: { status: string; sessions: unknown[] | null; connectorError: boolean }
     }
-    assert.equal(body.props.stravaStatus, 'error')
+    assert.equal(body.props.status, 'error')
     assert.isArray(body.props.sessions) // tableau (vide car aucune session en staging)
     assert.isTrue(body.props.connectorError)
   })
