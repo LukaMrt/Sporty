@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { formatDate, formatDuration } from '~/lib/format'
+import { connectorBrand } from '~/lib/connector_catalog'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
 interface SessionCardProps {
@@ -38,9 +39,11 @@ export default function SessionCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-medium text-foreground truncate">{sportName}</p>
-            {importedFrom === 'strava' && (
-              <span className="shrink-0 text-xs font-medium px-1.5 py-0.5 rounded bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
-                Strava
+            {importedFrom && (
+              <span
+                className={`shrink-0 text-xs font-medium px-1.5 py-0.5 rounded ${connectorBrand(importedFrom).badgeClass}`}
+              >
+                {connectorBrand(importedFrom).name}
               </span>
             )}
           </div>

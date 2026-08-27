@@ -1,9 +1,14 @@
 import React, { useState } from 'react'
-import { Head, Link, router } from '@inertiajs/react'
-import { CheckCircle2, AlertCircle, ChevronRight, Unlink } from 'lucide-react'
+import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
-import stravaLogo from '~/assets/strava-logo.svg'
+import ConnectorCard from '~/components/connectors/ConnectorCard'
 import { useTranslation } from '~/hooks/use_translation'
+import {
+  connectorBrand,
+  connectorDisconnectPath,
+  type ConnectorAuthKind,
+  type ConnectorStatus,
+} from '~/lib/connector_catalog'
 import {
   Dialog,
   DialogContent,
@@ -14,21 +19,31 @@ import {
   DialogClose,
 } from '~/components/ui/dialog'
 
-type ConnectorStatus = 'connected' | 'error'
-
-interface ConnectorsIndexProps {
-  stravaConfigured: boolean
-  stravaStatus: ConnectorStatus | null
+interface ConnectorCardDto {
+  provider: string
+  authKind: ConnectorAuthKind
+  configured: boolean
+  status: ConnectorStatus | null
 }
 
-export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: ConnectorsIndexProps) {
+interface ConnectorsIndexProps {
+  connectors: ConnectorCardDto[]
+}
+
+export default function ConnectorsIndex({ connectors }: ConnectorsIndexProps) {
   const { t } = useTranslation()
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [pendingDisconnect, setPendingDisconnect] = useState<string | null>(null)
+
+  const available = connectors.filter((c) => c.configured)
 
   function confirmDisconnect() {
-    setConfirmOpen(false)
-    router.post('/connectors/strava/disconnect')
+    if (!pendingDisconnect) return
+    const provider = pendingDisconnect
+    setPendingDisconnect(null)
+    router.post(connectorDisconnectPath(provider))
   }
+
+  const pendingBrand = pendingDisconnect ? connectorBrand(pendingDisconnect) : null
 
   return (
     <>
@@ -37,67 +52,35 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
         <h1 className="text-2xl font-bold text-foreground">{t('connectors.title')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t('connectors.description')}</p>
 
-        {!stravaConfigured && (
+        {available.length === 0 && (
           <p className="mt-6 text-sm text-muted-foreground">{t('connectors.notConfigured')}</p>
         )}
 
-        {stravaConfigured && (
+        {available.length > 0 && (
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Link
-              href="/connectors/strava"
-              className="flex items-center gap-4 rounded-xl border bg-card p-5 shadow-sm transition hover:bg-muted/50 active:scale-[0.99]"
-            >
-              {/* Logo + nom + tagline */}
-              <div className="flex flex-1 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FC4C02]">
-                  <img src={stravaLogo} alt="Strava" className="h-6 w-6" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-foreground">Strava</p>
-                  <p className="text-xs text-muted-foreground">{t('connectors.strava.tagline')}</p>
-                </div>
-              </div>
-
-              {/* Badge statut + chevron */}
-              <div className="flex items-center gap-2">
-                {stravaStatus === 'connected' && (
-                  <>
-                    <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                      <CheckCircle2 className="h-3 w-3" />
-                      {t('connectors.strava.status')}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        setConfirmOpen(true)
-                      }}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-md border border-destructive/50 px-2 py-0.5 text-xs font-medium text-destructive transition hover:bg-destructive/10 active:scale-95"
-                    >
-                      <Unlink className="h-3.5 w-3.5" />
-                      {t('connectors.strava.disconnect')}
-                    </button>
-                  </>
-                )}
-                {stravaStatus === 'error' && (
-                  <span className="flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-700">
-                    <AlertCircle className="h-3 w-3" />
-                    {t('connectors.strava.statusError')}
-                  </span>
-                )}
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </Link>
+            {available.map((connector) => (
+              <ConnectorCard
+                key={connector.provider}
+                provider={connector.provider}
+                status={connector.status}
+                onDisconnect={setPendingDisconnect}
+              />
+            ))}
           </div>
         )}
       </div>
 
       {/* Modale de confirmation déconnexion */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <Dialog open={pendingDisconnect !== null} onOpenChange={() => setPendingDisconnect(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t('connectors.strava.disconnect')} Strava ?</DialogTitle>
-            <DialogDescription>{t('connectors.strava.disconnectDescription')}</DialogDescription>
+            <DialogTitle>
+              {t(`connectors.${pendingBrand?.i18nKey ?? 'strava'}.disconnect`)} {pendingBrand?.name}{' '}
+              ?
+            </DialogTitle>
+            <DialogDescription>
+              {t(`connectors.${pendingBrand?.i18nKey ?? 'strava'}.disconnectDescription`)}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
@@ -109,7 +92,7 @@ export default function ConnectorsIndex({ stravaConfigured, stravaStatus }: Conn
               onClick={confirmDisconnect}
               className="cursor-pointer rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90"
             >
-              {t('connectors.strava.disconnect')}
+              {t(`connectors.${pendingBrand?.i18nKey ?? 'strava'}.disconnect`)}
             </button>
           </DialogFooter>
         </DialogContent>

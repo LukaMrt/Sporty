@@ -75,6 +75,13 @@ export default class Connector extends BaseModel {
   @column.dateTime()
   declare tokenExpiresAt: DateTime | null
 
+  /**
+   * Identifiant de l'utilisateur chez le provider. Stocke en clair : ce n'est pas
+   * un secret, et le chiffrer interdirait toute requete SQL dessus.
+   */
+  @column()
+  declare externalUserId: string | null
+
   @column()
   declare autoImportEnabled: boolean
 

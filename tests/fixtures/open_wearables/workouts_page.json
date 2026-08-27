@@ -1,0 +1,148 @@
+{
+  "data": [
+    {
+      "id": "f78bbcfd-a98d-40cd-a8e2-2ac9505ab0e5",
+      "type": "hiking",
+      "name": null,
+      "start_time": "2026-08-09T11:02:03+02:00",
+      "end_time": "2026-08-09T13:28:59+02:00",
+      "zone_offset": "+02:00",
+      "duration_seconds": 8815,
+      "source": {
+        "provider": "apple",
+        "source": "Luka’s Apple Watch",
+        "device": "Watch7,9",
+        "device_type": "watch",
+        "device_name": "Apple Watch Series 10 46mm (GPS)"
+      },
+      "calories_kcal": 1051.874,
+      "distance_meters": 6966.572,
+      "avg_heart_rate_bpm": 118,
+      "max_heart_rate_bpm": 163,
+      "avg_pace_sec_per_km": null,
+      "elevation_gain_meters": 333.51
+    },
+    {
+      "id": "a5a89b61-3086-423b-a20c-9d148ead2c0a",
+      "type": "hiking",
+      "name": null,
+      "start_time": "2026-08-09T11:02:03+02:00",
+      "end_time": "2026-08-09T13:28:59+02:00",
+      "zone_offset": null,
+      "duration_seconds": 8816,
+      "source": {
+        "provider": "apple",
+        "source": "apple_health_xml",
+        "device": "Watch",
+        "device_type": "watch",
+        "device_name": "Watch"
+      },
+      "calories_kcal": 1051.875,
+      "distance_meters": null,
+      "avg_heart_rate_bpm": 118,
+      "max_heart_rate_bpm": 163,
+      "avg_pace_sec_per_km": null,
+      "elevation_gain_meters": null
+    },
+    {
+      "id": "fa9e0c32-6d29-40c7-9ba3-5cb542acb5bc",
+      "type": "hiking",
+      "name": null,
+      "start_time": "2026-08-08T10:52:33+02:00",
+      "end_time": "2026-08-08T14:23:45+02:00",
+      "zone_offset": null,
+      "duration_seconds": 12672,
+      "source": {
+        "provider": "apple",
+        "source": "apple_health_xml",
+        "device": "Watch",
+        "device_type": "watch",
+        "device_name": "Watch"
+      },
+      "calories_kcal": 1017.315,
+      "distance_meters": null,
+      "avg_heart_rate_bpm": 110,
+      "max_heart_rate_bpm": 152,
+      "avg_pace_sec_per_km": null,
+      "elevation_gain_meters": null
+    },
+    {
+      "id": "c8b65bc8-53d1-4cc7-a882-c347f8dc6cef",
+      "type": "hiking",
+      "name": null,
+      "start_time": "2026-08-08T10:52:33+02:00",
+      "end_time": "2026-08-08T14:23:45+02:00",
+      "zone_offset": "+02:00",
+      "duration_seconds": 9581,
+      "source": {
+        "provider": "apple",
+        "source": "Luka’s Apple Watch",
+        "device": "Watch7,9",
+        "device_type": "watch",
+        "device_name": "Apple Watch Series 10 46mm (GPS)"
+      },
+      "calories_kcal": 1017.315,
+      "distance_meters": 7122.925,
+      "avg_heart_rate_bpm": 110,
+      "max_heart_rate_bpm": 152,
+      "avg_pace_sec_per_km": null,
+      "elevation_gain_meters": 297.65
+    },
+    {
+      "id": "db4d03d1-4cb5-4e9b-aa2b-0ac50dde8677",
+      "type": "hiking",
+      "name": null,
+      "start_time": "2026-08-07T10:24:14+02:00",
+      "end_time": "2026-08-07T13:53:52+02:00",
+      "zone_offset": "+02:00",
+      "duration_seconds": 10701,
+      "source": {
+        "provider": "apple",
+        "source": "Luka’s Apple Watch",
+        "device": "Watch7,9",
+        "device_type": "watch",
+        "device_name": "Apple Watch Series 10 46mm (GPS)"
+      },
+      "calories_kcal": 1188.855,
+      "distance_meters": 9048.167,
+      "avg_heart_rate_bpm": 119,
+      "max_heart_rate_bpm": 168,
+      "avg_pace_sec_per_km": null,
+      "elevation_gain_meters": 384.15
+    },
+    {
+      "id": "876ea61d-17ea-44ac-a931-6bc6e7b0ace8",
+      "type": "hiking",
+      "name": null,
+      "start_time": "2026-08-07T10:24:14+02:00",
+      "end_time": "2026-08-07T13:53:52+02:00",
+      "zone_offset": null,
+      "duration_seconds": 12578,
+      "source": {
+        "provider": "apple",
+        "source": "apple_health_xml",
+        "device": "Watch",
+        "device_type": "watch",
+        "device_name": "Watch"
+      },
+      "calories_kcal": 1188.856,
+      "distance_meters": null,
+      "avg_heart_rate_bpm": 119,
+      "max_heart_rate_bpm": 168,
+      "avg_pace_sec_per_km": null,
+      "elevation_gain_meters": null
+    }
+  ],
+  "pagination": {
+    "next_cursor": null,
+    "previous_cursor": null,
+    "has_more": false,
+    "total_count": 6
+  },
+  "metadata": {
+    "resolution": null,
+    "sample_count": 6,
+    "start_time": "2026-08-05T00:00:00",
+    "end_time": "2026-08-10T00:00:00"
+  }
+}

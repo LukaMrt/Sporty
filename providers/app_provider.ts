@@ -7,9 +7,8 @@ import { AuthService } from '#domain/interfaces/auth_service'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
-import { ConnectorFactory } from '#domain/interfaces/connector_factory'
-import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
+import { ApiKeyConnectorVerifier } from '#domain/interfaces/api_key_connector_verifier'
 import { GpxParser } from '#domain/interfaces/gpx_parser'
 import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
@@ -62,38 +61,64 @@ export default class AppProvider {
       return new LucidImportSessionRepository()
     })
 
-    this.app.container.bind(ConnectorFactory, async (resolver) => {
-      const { StravaConnectorFactory } = await import('#connectors/strava/strava_connector_factory')
-      const connectorRepo = await resolver.make(ConnectorRepository)
-      const rateLimitMgr = await resolver.make(RateLimitManager)
-      const { default: env } = await import('#start/env')
-      const clientId = env.get('STRAVA_CLIENT_ID') ?? ''
-      const clientSecret = env.get('STRAVA_CLIENT_SECRET') ?? ''
-      return new StravaConnectorFactory(connectorRepo, rateLimitMgr, clientId, clientSecret)
-    })
-
-    this.app.container.singleton(RateLimitManager, async () => {
-      const { StravaRateLimitManager } = await import('#connectors/rate_limit_manager')
-      return new StravaRateLimitManager()
-    })
-
+    // Pas de binding global de ConnectorFactory ni de RateLimitManager : le registre
+    // est le seul point de resolution. Un binding global resoudrait silencieusement
+    // vers Strava pour tout nouveau consommateur.
     this.app.container.singleton(ConnectorRegistry, async (resolver) => {
       const { InMemoryConnectorRegistry } = await import('#connectors/in_memory_connector_registry')
       const { StravaConnectorFactory } = await import('#connectors/strava/strava_connector_factory')
+      const { StravaRateLimitManager } = await import('#connectors/rate_limit_manager')
+      const { ConnectorProvider } = await import('#domain/value_objects/connector_provider')
       const { default: env } = await import('#start/env')
       const connectorRepo = await resolver.make(ConnectorRepository)
-      const rateLimitMgr = await resolver.make(RateLimitManager)
-      const clientId = env.get('STRAVA_CLIENT_ID') ?? ''
-      const clientSecret = env.get('STRAVA_CLIENT_SECRET') ?? ''
+      const registry = new InMemoryConnectorRegistry()
+
+      // Une instance de rate limiter par provider : les compteurs ne doivent
+      // jamais etre partages entre deux APIs distinctes.
+      const stravaRateLimiter = new StravaRateLimitManager()
       const stravaFactory = new StravaConnectorFactory(
         connectorRepo,
-        rateLimitMgr,
-        clientId,
-        clientSecret
+        stravaRateLimiter,
+        env.get('STRAVA_CLIENT_ID') ?? '',
+        env.get('STRAVA_CLIENT_SECRET') ?? ''
       )
-      const registry = new InMemoryConnectorRegistry()
-      registry.register('strava', { factory: stravaFactory, rateLimiter: rateLimitMgr })
+      registry.register(ConnectorProvider.Strava, {
+        factory: stravaFactory,
+        rateLimiter: stravaRateLimiter,
+      })
+
+      // open-wearables n'est enregistre que s'il est configure : sinon la page
+      // du provider repondrait 500 au lieu de simplement ne pas exister.
+      const owBaseUrl = env.get('OPEN_WEARABLES_BASE_URL')
+      if (owBaseUrl) {
+        const { OpenWearablesConnectorFactory } =
+          await import('#connectors/open_wearables/open_wearables_connector_factory')
+        const { ThrottlingRateLimitManager } = await import('#connectors/rate_limit_manager')
+        const owRateLimiter = new ThrottlingRateLimitManager({
+          maxRequestsPerMinute: env.get('OPEN_WEARABLES_MAX_RPM') ?? 120,
+        })
+        registry.register(ConnectorProvider.OpenWearables, {
+          factory: new OpenWearablesConnectorFactory(
+            connectorRepo,
+            owRateLimiter,
+            owBaseUrl,
+            env.get('OPEN_WEARABLES_API_KEY_HEADER') ?? 'X-Open-Wearables-API-Key'
+          ),
+          rateLimiter: owRateLimiter,
+        })
+      }
+
       return registry
+    })
+
+    this.app.container.bind(ApiKeyConnectorVerifier, async () => {
+      const { OpenWearablesApiKeyVerifier } =
+        await import('#connectors/open_wearables/open_wearables_api_key_verifier')
+      const { default: env } = await import('#start/env')
+      return new OpenWearablesApiKeyVerifier(
+        env.get('OPEN_WEARABLES_BASE_URL') ?? '',
+        env.get('OPEN_WEARABLES_API_KEY_HEADER') ?? 'X-Open-Wearables-API-Key'
+      )
     })
 
     this.app.container.bind(GpxParser, async () => {

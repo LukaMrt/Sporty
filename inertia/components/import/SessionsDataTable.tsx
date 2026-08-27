@@ -20,8 +20,10 @@ import { useDateFormat } from '~/hooks/use_date_format'
 import { pushToast } from '~/hooks/use_toast'
 import type { StagingSession } from '~/types/staging_session'
 import { formatDuration } from '~/lib/format'
+import { connectorPath } from '~/lib/connector_catalog'
 
 interface SessionsDataTableProps {
+  provider: string
   sessions: StagingSession[]
   connectorError?: boolean
   initialAfter?: string
@@ -49,6 +51,7 @@ const features = tableFeatures({
 const columnHelper = createColumnHelper<typeof features, StagingSession>()
 
 export default function SessionsDataTable({
+  provider,
   sessions,
   connectorError = false,
   initialAfter,
@@ -77,13 +80,13 @@ export default function SessionsDataTable({
     }
     const timer = setTimeout(() => {
       router.get(
-        '/connectors/strava',
+        connectorPath(provider),
         { after: dateFrom, before: dateTo },
         { preserveState: true, only: ['sessions', 'initialAfter', 'initialBefore'] }
       )
     }, 600)
     return () => clearTimeout(timer)
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, provider])
 
   const importOne = useCallback(
     async (id: number) => {

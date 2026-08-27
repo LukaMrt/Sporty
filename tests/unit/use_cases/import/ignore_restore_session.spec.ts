@@ -6,6 +6,7 @@ import type {
   StagingSessionInput,
   StagingSessionRecord,
   ImportedSessionRef,
+  ImportSessionConnectorRef,
 } from '#domain/interfaces/import_session_repository'
 
 // ─── Mock ────────────────────────────────────────────────────────────────────
@@ -28,6 +29,9 @@ function makeImportSessionRepository(
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null
+    }
+    async findConnectorsForImportSessions(): Promise<ImportSessionConnectorRef[]> {
+      return []
     }
   }
   return Object.assign(new Mock(), overrides)

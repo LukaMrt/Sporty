@@ -5,9 +5,15 @@ import type {
   StagingSessionInput,
   StagingSessionRecord,
   ImportedSessionRef,
+  ImportSessionConnectorRef,
 } from '#domain/interfaces/import_session_repository'
 import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
+import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
+import { MixedConnectorBatchError } from '#domain/errors/mixed_connector_batch_error'
 import { ConnectorFactory } from '#domain/interfaces/connector_factory'
+import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
+import { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
+import { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import { Connector } from '#domain/interfaces/connector'
 import type {
   ConnectorTokens,
@@ -69,10 +75,28 @@ function makeConnector(
   return Object.assign(new Mock(), overrides)
 }
 
-function makeConnectorFactory(connector: Connector | null = null): ConnectorFactory {
-  class Mock extends ConnectorFactory {
+function makeConnectorRegistry(
+  connector: Connector | null = null,
+  registered = true
+): ConnectorRegistry {
+  class FactoryMock extends ConnectorFactory {
     async make(): Promise<Connector | null> {
       return connector
+    }
+  }
+  class RateLimitMock extends RateLimitManager {
+    update(): void {}
+    async waitIfNeeded(): Promise<void> {}
+  }
+  class Mock extends ConnectorRegistry {
+    has(): boolean {
+      return registered
+    }
+    getFactory(): ConnectorFactory {
+      return new FactoryMock()
+    }
+    getRateLimitManager(): RateLimitManager {
+      return new RateLimitMock()
     }
   }
   return new Mock()
@@ -101,6 +125,9 @@ function makeImportSessionRepository(
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null
+    }
+    async findConnectorsForImportSessions(): Promise<ImportSessionConnectorRef[]> {
+      return [{ connectorId: 42, provider: ConnectorProvider.Strava }]
     }
   }
   return Object.assign(new Mock(), overrides)
@@ -183,7 +210,7 @@ function makeUserProfileRepository(profile: UserProfile | null = null): UserProf
 function makeUseCase(
   overrides: {
     importRepo?: ImportSessionRepository
-    connectorFactory?: ConnectorFactory
+    connectorRegistry?: ConnectorRegistry
     sportRepo?: SportRepository
     sessionRepo?: SessionRepository
     userProfileRepo?: UserProfileRepository
@@ -191,7 +218,7 @@ function makeUseCase(
 ): ImportSessions {
   return new ImportSessions(
     overrides.importRepo ?? makeImportSessionRepository(),
-    overrides.connectorFactory ?? makeConnectorFactory(makeConnector(42)),
+    overrides.connectorRegistry ?? makeConnectorRegistry(makeConnector(42)),
     overrides.sportRepo ?? makeSportRepository([{ id: 1, name: 'Running', slug: 'running' }]),
     overrides.sessionRepo ?? makeSessionRepository(),
     overrides.userProfileRepo ?? makeUserProfileRepository()
@@ -243,7 +270,7 @@ test.group('ImportSessions', () => {
     })
 
     const useCase = makeUseCase({
-      connectorFactory: makeConnectorFactory(connector),
+      connectorRegistry: makeConnectorRegistry(connector),
       sportRepo: makeSportRepository([{ id: 2, name: 'Vélo', slug: 'cycling' }]),
     })
 
@@ -253,9 +280,42 @@ test.group('ImportSessions', () => {
     assert.equal(result.completed, 1)
   })
 
+  test('lance ConnectorNotConnectedError si le staging ne resout aucun connecteur', async ({
+    assert,
+  }) => {
+    const useCase = makeUseCase({
+      importRepo: makeImportSessionRepository({
+        findConnectorsForImportSessions: async () => [],
+      }),
+    })
+
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, importSessionIds: [10] }),
+      ConnectorNotConnectedError
+    )
+  })
+
+  test('lance MixedConnectorBatchError si le lot couvre plusieurs connecteurs', async ({
+    assert,
+  }) => {
+    const useCase = makeUseCase({
+      importRepo: makeImportSessionRepository({
+        findConnectorsForImportSessions: async () => [
+          { connectorId: 42, provider: ConnectorProvider.Strava },
+          { connectorId: 43, provider: ConnectorProvider.Strava },
+        ],
+      }),
+    })
+
+    await assert.rejects(
+      () => useCase.execute({ userId: 1, importSessionIds: [10, 20] }),
+      MixedConnectorBatchError
+    )
+  })
+
   test('lance ConnectorNotConnectedError si pas de connecteur', async ({ assert }) => {
     const useCase = makeUseCase({
-      connectorFactory: makeConnectorFactory(null),
+      connectorRegistry: makeConnectorRegistry(null),
     })
 
     try {
@@ -321,7 +381,7 @@ test.group('ImportSessions', () => {
     })
 
     const useCase = makeUseCase({
-      connectorFactory: makeConnectorFactory(connector),
+      connectorRegistry: makeConnectorRegistry(connector),
     })
 
     const result = await useCase.execute({ userId: 1, importSessionIds: [10, 20, 30] })
@@ -353,7 +413,7 @@ test.group('ImportSessions', () => {
     })
 
     const useCase = makeUseCase({
-      connectorFactory: makeConnectorFactory(connector),
+      connectorRegistry: makeConnectorRegistry(connector),
     })
 
     const result = await useCase.execute({ userId: 1, importSessionIds: [10, 20, 30] })

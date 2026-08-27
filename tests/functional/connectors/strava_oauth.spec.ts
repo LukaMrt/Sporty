@@ -22,7 +22,7 @@ test.group('Connectors / Strava OAuth', (group) => {
     // La location pointe vers strava.com — vérifié manuellement ou en test e2e
   })
 
-  // AC#4 — bouton absent quand non configuré : couvert par stravaConfigured=false dans ConnectorsController
+  // AC#4 — bouton absent quand non configuré : couvert par configured=false dans ConnectorsController
   // (env.get() cache les valeurs au démarrage, non modifiable en test)
 
   // ─── callback — erreur Strava ─────────────────────────────────────────────

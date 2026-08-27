@@ -89,6 +89,7 @@ test.group('UpdateConnectorSettings', () => {
           accessToken: 'tok',
           refreshToken: 'ref',
           tokenExpiresAtSeconds: 9999,
+          externalUserId: null,
         }
       },
       async updateSettings(_userId, _provider, data) {
@@ -146,6 +147,7 @@ test.group('UpdateConnectorSettings', () => {
           accessToken: 'tok',
           refreshToken: 'ref',
           tokenExpiresAtSeconds: 9999,
+          externalUserId: null,
         }
       },
     })
@@ -176,6 +178,7 @@ test.group('UpdateConnectorSettings', () => {
           accessToken: 'tok',
           refreshToken: 'ref',
           tokenExpiresAtSeconds: 9999,
+          externalUserId: null,
         }
       },
     })
@@ -204,6 +207,7 @@ test.group('UpdateConnectorSettings', () => {
           accessToken: 'tok',
           refreshToken: 'ref',
           tokenExpiresAtSeconds: 9999,
+          externalUserId: null,
         }
       },
     })

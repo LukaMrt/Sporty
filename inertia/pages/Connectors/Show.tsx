@@ -11,7 +11,6 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
-import stravaLogo from '~/assets/strava-logo.svg'
 import { useTranslation } from '~/hooks/use_translation'
 import { pushToast } from '~/hooks/use_toast'
 import {
@@ -27,13 +26,22 @@ import { Switch } from '~/components/ui/switch'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import SessionsDataTable from '~/components/import/SessionsDataTable'
+import ApiKeyConnectForm from '~/components/connectors/ApiKeyConnectForm'
 import type { StagingSession } from '~/types/staging_session'
-
-type ConnectorStatus = 'connected' | 'error'
+import {
+  connectorBrand,
+  connectorAuthorizePath,
+  connectorDisconnectPath,
+  connectorSettingsPath,
+  type ConnectorAuthKind,
+  type ConnectorStatus,
+} from '~/lib/connector_catalog'
 
 interface ConnectorsShowProps {
-  stravaStatus: ConnectorStatus | null
-  stravaConfigured: boolean
+  provider: string
+  authKind: ConnectorAuthKind
+  status: ConnectorStatus | null
+  configured: boolean
   sessions: StagingSession[] | null
   connectorError: boolean
   initialAfter?: string
@@ -43,8 +51,10 @@ interface ConnectorsShowProps {
 }
 
 export default function ConnectorsShow({
-  stravaStatus,
-  stravaConfigured,
+  provider,
+  authKind,
+  status,
+  configured,
   sessions,
   connectorError,
   initialAfter,
@@ -58,11 +68,13 @@ export default function ConnectorsShow({
   const [interval, setInterval] = useState(pollingIntervalMinutes)
   const intervalDirty = interval !== pollingIntervalMinutes
 
-  const isConnected = stravaStatus === 'connected'
+  const brand = connectorBrand(provider)
+  const i18n = (key: string) => t(`connectors.${brand.i18nKey}.${key}`)
+  const isConnected = status === 'connected'
 
   function submitSettings(enabled: boolean, minutes: number) {
     router.post(
-      '/connectors/strava/settings',
+      connectorSettingsPath(provider),
       { auto_import_enabled: enabled, polling_interval_minutes: minutes },
       {
         preserveScroll: true,
@@ -88,18 +100,20 @@ export default function ConnectorsShow({
     submitSettings(optimisticEnabled, clamped)
   }
 
-  function connectStrava() {
-    window.location.href = '/connectors/strava/authorize'
+  function connect() {
+    window.location.href = connectorAuthorizePath(provider)
   }
 
   function confirmDisconnect() {
     setConfirmOpen(false)
-    router.post('/connectors/strava/disconnect')
+    router.post(connectorDisconnectPath(provider))
   }
+
+  const canConnect = authKind === 'oauth'
 
   return (
     <>
-      <Head title="Strava" />
+      <Head title={brand.name} />
       <div className="p-6">
         {/* Retour */}
         <Link
@@ -112,67 +126,78 @@ export default function ConnectorsShow({
 
         {/* En-tête */}
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#FC4C02]">
-            <img src={stravaLogo} alt="Strava" className="h-8 w-8" />
+          <div
+            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ${brand.bgClass}`}
+          >
+            {brand.logo && <img src={brand.logo} alt={brand.name} className="h-8 w-8" />}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Strava</h1>
-            <p className="text-sm text-muted-foreground">{t('connectors.strava.tagline')}</p>
+            <h1 className="text-2xl font-bold text-foreground">{brand.name}</h1>
+            <p className="text-sm text-muted-foreground">{i18n('tagline')}</p>
           </div>
           <div className="ml-auto flex flex-col items-end gap-2">
-            {!stravaConfigured && (
+            {!configured && (
               <span className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700">
                 <TriangleAlert className="h-4 w-4" />
-                {t('connectors.strava.missingConfig')}
+                {i18n('missingConfig')}
               </span>
             )}
-            {stravaStatus === 'connected' && (
+            {status === 'connected' && (
               <>
                 <span className="flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
                   <CheckCircle2 className="h-4 w-4" />
-                  {t('connectors.strava.status')}
+                  {i18n('status')}
                 </span>
                 <button
                   onClick={() => setConfirmOpen(true)}
                   className="flex cursor-pointer items-center gap-1.5 rounded-md border border-destructive/50 px-3 py-1.5 text-xs font-medium text-destructive transition hover:bg-destructive/10 active:scale-95"
                 >
                   <Unlink className="h-3.5 w-3.5" />
-                  {t('connectors.strava.disconnect')}
+                  {i18n('disconnect')}
                 </button>
               </>
             )}
-            {stravaStatus === 'error' && (
+            {status === 'error' && (
               <>
                 <span className="flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-700">
                   <AlertCircle className="h-4 w-4" />
-                  {t('connectors.strava.statusError')}
+                  {i18n('statusError')}
                 </span>
                 <p className="text-xs text-orange-700 max-w-xs text-right">
-                  {t('connectors.strava.errorMessage')}
+                  {i18n('errorMessage')}
                 </p>
-                <button
-                  onClick={connectStrava}
-                  disabled={!stravaConfigured}
-                  className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#e04400] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  {t('connectors.strava.reconnect')}
-                </button>
+                {canConnect && (
+                  <button
+                    onClick={connect}
+                    disabled={!configured}
+                    className={`flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${brand.buttonClass}`}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    {i18n('reconnect')}
+                  </button>
+                )}
               </>
             )}
-            {stravaStatus === null && (
+            {status === null && canConnect && (
               <button
-                onClick={connectStrava}
-                disabled={!stravaConfigured}
-                className="flex cursor-pointer items-center gap-1.5 rounded-md bg-[#FC4C02] px-3 py-1.5 text-xs font-medium text-white transition hover:bg-[#e04400] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={connect}
+                disabled={!configured}
+                className={`flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${brand.buttonClass}`}
               >
                 <Link2 className="h-3.5 w-3.5" />
-                {t('connectors.strava.connect')}
+                {i18n('connect')}
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {/* Connexion par cle API (providers sans OAuth) */}
+      {authKind === 'api_key' && status !== 'connected' && (
+        <div className="px-6 pb-4">
+          <ApiKeyConnectForm brand={brand} disabled={!configured} />
+        </div>
+      )}
 
       {/* Settings auto import */}
       <div className="px-6 pb-4">
@@ -226,11 +251,9 @@ export default function ConnectorsShow({
         <div className="mx-6 mb-4 flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-orange-800">
-              {t('connectors.strava.errorBannerTitle')}
-            </p>
+            <p className="text-sm font-medium text-orange-800">{i18n('errorBannerTitle')}</p>
             <p className="mt-0.5 text-sm text-orange-700">
-              {t('connectors.strava.errorBannerText')}{' '}
+              {i18n('errorBannerText')}{' '}
               <Link href="/connectors" className="underline hover:no-underline">
                 {t('connectors.title')}
               </Link>
@@ -244,6 +267,7 @@ export default function ConnectorsShow({
         <div className="px-6 pb-6">
           <h2 className="text-lg font-semibold text-foreground">{t('import.title')}</h2>
           <SessionsDataTable
+            provider={provider}
             sessions={sessions}
             connectorError={connectorError}
             initialAfter={initialAfter}
@@ -256,8 +280,10 @@ export default function ConnectorsShow({
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t('connectors.strava.disconnect')} Strava ?</DialogTitle>
-            <DialogDescription>{t('connectors.strava.disconnectDescription')}</DialogDescription>
+            <DialogTitle>
+              {i18n('disconnect')} {brand.name} ?
+            </DialogTitle>
+            <DialogDescription>{i18n('disconnectDescription')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
@@ -269,7 +295,7 @@ export default function ConnectorsShow({
               onClick={confirmDisconnect}
               className="cursor-pointer rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition hover:bg-destructive/90"
             >
-              {t('connectors.strava.disconnect')}
+              {i18n('disconnect')}
             </button>
           </DialogFooter>
         </DialogContent>

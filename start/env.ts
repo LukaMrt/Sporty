@@ -51,4 +51,16 @@ export default await Env.create(new URL('../', import.meta.url), {
   APP_URL: Env.schema.string.optional(),
   STRAVA_CLIENT_ID: Env.schema.string.optional(),
   STRAVA_CLIENT_SECRET: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring the open-wearables connector
+  |----------------------------------------------------------
+  | BASE_URL doit inclure le prefixe d'API, ex :
+  |   https://wearables-api.example.com/api/v1
+  | La cle API est saisie par chaque utilisateur, pas ici.
+  */
+  OPEN_WEARABLES_BASE_URL: Env.schema.string.optional(),
+  OPEN_WEARABLES_API_KEY_HEADER: Env.schema.string.optional(),
+  OPEN_WEARABLES_MAX_RPM: Env.schema.number.optional(),
 })
