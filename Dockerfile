@@ -1,9 +1,9 @@
 # =============================================================================
 # Stage 1: All dependencies (dev + prod) — needed for build tools
 # =============================================================================
-FROM node:25-alpine AS deps
+FROM node:24-alpine AS deps
 
-RUN npm install -g pnpm@latest && npm cache clean --force
+RUN npm install -g pnpm@10.33.0 && npm cache clean --force
 
 WORKDIR /app
 
@@ -13,11 +13,11 @@ RUN pnpm install --frozen-lockfile
 # =============================================================================
 # Stage 2: Production dependencies only — no devDependencies
 # =============================================================================
-FROM node:25-alpine AS prod-deps
+FROM node:24-alpine AS prod-deps
 
 RUN apk add --no-cache curl && \
     curl -sf https://gobinaries.com/tj/node-prune | sh && \
-    npm install -g pnpm@latest && npm cache clean --force
+    npm install -g pnpm@10.33.0 && npm cache clean --force
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ RUN pnpm build
 # =============================================================================
 # Stage 4: Runtime — minimal image, prod deps only, no pnpm needed
 # =============================================================================
-FROM node:25-alpine AS runtime
+FROM node:24-alpine AS runtime
 
 WORKDIR /app/build
 
