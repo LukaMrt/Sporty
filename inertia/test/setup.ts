@@ -1,10 +1,11 @@
 import { afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
-import { createElement, type ComponentProps } from 'react'
+import { cloneElement, type ReactElement } from 'react'
 import type * as InertiaReactModule from '@inertiajs/react'
 import type * as RechartsModule from 'recharts'
 
 type InertiaReact = typeof InertiaReactModule
+type ChartSize = { width: number; height: number }
 
 afterEach(() => cleanup())
 
@@ -28,14 +29,11 @@ vi.mock('@inertiajs/react', async (importOriginal) => {
   }
 })
 
-// jsdom ne calcule aucune mise en page : sans taille initiale, ResponsiveContainer
-// mesure 0×0 et Recharts avertit à chaque rendu de graphique
+// jsdom ne calcule aucune mise en page : ResponsiveContainer y mesure 0×0 et Recharts
+// avertit à chaque rendu. En test, le graphique reçoit directement une taille fixe.
 vi.mock('recharts', async (importOriginal) => {
   const actual = await importOriginal<typeof RechartsModule>()
-  const ResponsiveContainer = (props: ComponentProps<typeof actual.ResponsiveContainer>) =>
-    createElement(actual.ResponsiveContainer, {
-      initialDimension: { width: 800, height: 400 },
-      ...props,
-    })
+  const ResponsiveContainer = ({ children }: { children: ReactElement<ChartSize> }) =>
+    cloneElement(children, { width: 800, height: 400 })
   return { ...actual, ResponsiveContainer }
 })
