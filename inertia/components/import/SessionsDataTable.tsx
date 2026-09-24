@@ -8,7 +8,12 @@ import {
   columnVisibilityFeature,
   columnSizingFeature,
   createSortedRowModel,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_alphanumericCaseSensitive,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
+  sortFn_textCaseSensitive,
   type SortingState,
 } from '@tanstack/react-table'
 import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2, Calendar, RefreshCw } from 'lucide-react'
@@ -45,7 +50,15 @@ const features = tableFeatures({
   columnVisibilityFeature,
   columnSizingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  // Enregistrement explicite (l'export groupé `sortFns` est déprécié)
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    alphanumericCaseSensitive: sortFn_alphanumericCaseSensitive,
+    basic: sortFn_basic,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+    textCaseSensitive: sortFn_textCaseSensitive,
+  },
 })
 
 const columnHelper = createColumnHelper<typeof features, StagingSession>()

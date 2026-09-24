@@ -10,6 +10,9 @@ import { SEEDED_USER_EMAIL, SEEDED_USER_2_EMAIL, SEEDED_ADMIN_EMAIL } from './2_
  * Covers: easy runs, long runs, intervals, tempo, recovery, races, and edge cases.
  */
 export default class SessionSeeder extends BaseSeeder {
+  /** Données de démo (utilisées aussi par les tests) : jamais en production. */
+  static environment = ['development', 'test']
+
   async run() {
     const user = await User.findByOrFail('email', SEEDED_USER_EMAIL)
     const user2 = await User.findByOrFail('email', SEEDED_USER_2_EMAIL)

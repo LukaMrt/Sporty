@@ -1,14 +1,30 @@
 import { defineConfig } from '@adonisjs/shield'
+import app from '@adonisjs/core/services/app'
 
 const shieldConfig = defineConfig({
   /**
-   * Configure CSP policies for your app. Refer documentation
-   * to learn more
+   * Content Security Policy — en mode rapport d'abord (les violations sont
+   * signalées dans la console du navigateur sans rien bloquer). Passer
+   * `reportOnly` à false une fois la console propre.
+   * `@nonce` est remplacé par le nonce de la requête (`cspNonce` dans Edge).
    */
   csp: {
-    enabled: false,
-    directives: {},
-    reportOnly: false,
+    enabled: true,
+    reportOnly: true,
+    directives: {
+      defaultSrc: [`'self'`],
+      scriptSrc: [`'self'`, '@nonce', ...(app.inDev ? [`'unsafe-eval'`] : [])],
+      styleSrc: [`'self'`, `'unsafe-inline'`, 'https://fonts.bunny.net'],
+      fontSrc: [`'self'`, 'https://fonts.bunny.net', 'data:'],
+      // Tuiles Leaflet (carte des séances)
+      imgSrc: [`'self'`, 'data:', 'blob:', 'https://*.tile.openstreetmap.org'],
+      // HMR Vite en développement
+      connectSrc: [`'self'`, ...(app.inDev ? ['ws:', 'http://localhost:*'] : [])],
+      frameAncestors: [`'none'`],
+      objectSrc: [`'none'`],
+      baseUri: [`'self'`],
+      formAction: [`'self'`, 'https://www.strava.com'],
+    },
   },
 
   /**

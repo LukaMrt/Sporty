@@ -148,5 +148,6 @@
       "invalid_bounds": "Les bornes doivent être strictement croissantes, entre 30 et 250 bpm",
       "invalid_physiology": "FC repos et FC max incohérentes"
     }
-  }
+  },
+  "athleteProfileLink": "Profil athlète — VDOT & zones d'allure"
 }

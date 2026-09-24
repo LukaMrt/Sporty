@@ -167,7 +167,9 @@
     "save": "Save",
     "saving": "Saving…",
     "moveSuccess": "Session moved",
-    "editSuccess": "Session updated"
+    "editSuccess": "Session updated",
+    "duration": "{{n}} min",
+    "distance": "{{n}} km"
   },
   "sessions": {
     "types": {
@@ -382,7 +384,9 @@
     "plannedSessionNotFound": "Planned session not found",
     "plannedSessionForbidden": "This planned session is not part of your active plan",
     "sessionNotFound": "Session not found",
-    "activeGoalExists": "Only one active goal at a time"
+    "activeGoalExists": "Only one active goal at a time",
+    "goalCreation": "Could not create the goal",
+    "planGeneration": "Could not generate the plan"
   },
   "flash": {
     "volumeAdjusted": "Your current training volume is too low for this distance. The plan was adjusted to the minimum recommended volume: build your base progressively before starting."

@@ -96,7 +96,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
             href="/profile/athlete"
             className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 text-sm hover:bg-muted/50 transition-colors"
           >
-            <span>Profil athlète — VDOT & zones d'allure</span>
+            <span>{t('profile.athleteProfileLink')}</span>
             <span className="text-muted-foreground">→</span>
           </Link>
 

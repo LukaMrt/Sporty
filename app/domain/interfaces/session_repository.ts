@@ -30,6 +30,7 @@ export abstract class SessionRepository {
   abstract create(
     data: Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
   ): Promise<TrainingSession>
+  /** Liste paginée — sans `sportMetrics` (vide) pour ne pas charger les courbes */
   abstract findAllByUserId(
     userId: number,
     opts?: ListSessionsOptions
@@ -40,9 +41,11 @@ export abstract class SessionRepository {
     id: number,
     data: Partial<Omit<TrainingSession, 'id' | 'userId' | 'createdAt' | 'sportName'>>
   ): Promise<TrainingSession>
+  /** Sans `sportMetrics` (vide) */
   abstract findTrashedByUserId(userId: number): Promise<TrainingSession[]>
   abstract softDelete(id: number): Promise<void>
   abstract restore(id: number): Promise<void>
+  /** Sans `sportMetrics` (vide) : utiliser findByIds pour les séances complètes */
   abstract findByUserIdAndDateRange(
     userId: number,
     startDate: string,

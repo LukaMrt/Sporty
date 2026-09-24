@@ -71,7 +71,11 @@ export default class LucidUserRepository extends UserRepository {
     if (!model) throw new UserNotFoundError(id)
     if (data.fullName !== undefined) model.fullName = data.fullName
     if (data.email !== undefined) model.email = data.email
-    if (data.password !== undefined) model.password = data.password
+    if (data.password !== undefined) {
+      model.password = data.password
+      // Toutes les sessions ouvertes avant ce changement deviennent invalides
+      model.sessionVersion = (model.sessionVersion ?? 0) + 1
+    }
     if (data.role !== undefined) model.role = data.role
     if (data.onboardingCompleted !== undefined) model.onboardingCompleted = data.onboardingCompleted
     await model.save()

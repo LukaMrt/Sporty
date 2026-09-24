@@ -12,6 +12,31 @@ import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import SessionModel from '#models/session'
 import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
 
+/**
+ * Colonnes des requêtes de liste : sans `sport_metrics`, dont les courbes et la
+ * trace GPS peuvent peser des centaines de Ko par séance. Les entités renvoyées
+ * par ces requêtes ont donc `sportMetrics: {}` (voir le port).
+ */
+const LIST_COLUMNS = [
+  'id',
+  'user_id',
+  'sport_id',
+  'date',
+  'duration_minutes',
+  'distance_km',
+  'avg_heart_rate',
+  'perceived_effort',
+  'notes',
+  'imported_from',
+  'external_id',
+  'gpx_file_path',
+  'training_load',
+  'load_method',
+  'deleted_at',
+  'created_at',
+  'updated_at',
+]
+
 export default class LucidSessionRepository extends SessionRepository {
   async create(
     data: Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
@@ -48,6 +73,7 @@ export default class LucidSessionRepository extends SessionRepository {
     const sortBy = opts?.sortBy ?? 'date'
     const sortOrder = opts?.sortOrder ?? 'desc'
     const query = SessionModel.query()
+      .select(LIST_COLUMNS)
       .preload('sport')
       .withScopes((s) => s.withoutTrashed())
       .where('userId', userId)
@@ -111,6 +137,7 @@ export default class LucidSessionRepository extends SessionRepository {
 
   async findTrashedByUserId(userId: number): Promise<TrainingSession[]> {
     const models = await SessionModel.query()
+      .select(LIST_COLUMNS)
       .preload('sport')
       .withScopes((s) => s.onlyTrashed())
       .where('userId', userId)
@@ -141,6 +168,7 @@ export default class LucidSessionRepository extends SessionRepository {
     endDate: string
   ): Promise<TrainingSession[]> {
     const models = await SessionModel.query()
+      .select(LIST_COLUMNS)
       .where('userId', userId)
       .where('date', '>=', startDate)
       .where('date', '<=', endDate)
@@ -234,7 +262,7 @@ export default class LucidSessionRepository extends SessionRepository {
       distanceKm: model.distanceKm,
       avgHeartRate: model.avgHeartRate,
       perceivedEffort: model.perceivedEffort,
-      sportMetrics: model.sportMetrics,
+      sportMetrics: model.sportMetrics ?? {},
       notes: model.notes,
       importedFrom: model.importedFrom ?? null,
       externalId: model.externalId ?? null,

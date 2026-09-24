@@ -3,6 +3,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import ChangePassword from '#use_cases/profile/change_password'
 import { changePasswordValidator } from '#validators/profile/change_password_validator'
 import { InvalidCredentialsError } from '#domain/errors/invalid_credentials_error'
+import { SESSION_VERSION_KEY } from '#lib/session_version'
 
 @inject()
 export default class PasswordController {
@@ -12,6 +13,9 @@ export default class PasswordController {
     const data = await request.validateUsing(changePasswordValidator)
     try {
       await this.changePassword.execute(auth.user!.id, data.current_password, data.new_password)
+      // Les autres sessions sont invalidées ; celle-ci reste ouverte
+      await auth.user!.refresh()
+      session.put(SESSION_VERSION_KEY, auth.user!.sessionVersion)
       session.flash('success', i18n.t('profile.flash.passwordChanged'))
       return response.redirect().back()
     } catch (error) {

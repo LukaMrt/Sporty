@@ -148,5 +148,6 @@
       "invalid_bounds": "Bounds must be strictly increasing, between 30 and 250 bpm",
       "invalid_physiology": "Resting and max HR are inconsistent"
     }
-  }
+  },
+  "athleteProfileLink": "Athlete profile — VDOT & pace zones"
 }

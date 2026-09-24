@@ -12,7 +12,7 @@ const inertiaConfig = defineConfig({
    * Chaque déploiement change la version, ce qui force les clients ouverts à recharger.
    * En dev, une valeur fixe évite de lire le manifest Vite.
    */
-  assetsVersion: env.get('APP_VERSION', 'dev'),
+  assetsVersion: env.get('APP_VERSION', '1'),
 
   /**
    * Options for the server-side rendering

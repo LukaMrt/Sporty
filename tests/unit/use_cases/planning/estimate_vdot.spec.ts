@@ -173,7 +173,8 @@ test.group('EstimateVdot — use case', () => {
     const useCase = new EstimateVdot(
       makeMockSessionRepository([]),
       makeMockProfileRepository({ ...DEFAULT_PROFILE, vma: 15 }),
-      stubGetFitnessProfile()
+      // GetFitnessProfile renvoie null sans séance (testé dans get_fitness_profile.spec)
+      stubGetFitnessProfile(null)
     )
 
     const result = await useCase.execute(1)

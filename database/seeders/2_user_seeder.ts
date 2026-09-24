@@ -10,6 +10,9 @@ export const SEEDED_NON_ONBOARDED_USER_EMAIL = 'non-onboarded@example.com'
 export const SEEDED_PASSWORD = 'password123'
 
 export default class UserSeeder extends BaseSeeder {
+  /** Comptes de démo aux mots de passe connus : jamais en production. */
+  static environment = ['development', 'test']
+
   async run() {
     await User.updateOrCreate(
       { email: SEEDED_ADMIN_EMAIL },

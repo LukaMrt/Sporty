@@ -151,5 +151,8 @@
       "invalid_format": "Format GPX invalide",
       "no_trackpoints": "Aucun point de trace trouvé dans le fichier"
     }
+  },
+  "fab": {
+    "newSession": "Nouvelle séance"
   }
 }

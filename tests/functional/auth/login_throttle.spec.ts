@@ -23,3 +23,24 @@ test.group('Auth / Limitation des tentatives de connexion', (group) => {
     assert.match(errors.form[0], /(tentatives|attempts)/i)
   })
 })
+
+test.group('Auth / Invalidation des sessions après reset du mot de passe', (group) => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+
+  test('une session ouverte avant un reset admin est refusée', async ({ client }) => {
+    const { getUser } = await import('#tests/helpers')
+    const user = await getUser()
+    // Simule une session ouverte avant le changement : version stockée = 0
+    user.sessionVersion = 1
+    await user.save()
+
+    const response = await client
+      .get('/sessions')
+      .loginAs(user)
+      .withSession({ session_version: 0 })
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', '/login')
+  })
+})

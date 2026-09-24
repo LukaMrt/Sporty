@@ -10,6 +10,8 @@ import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
 import InactivityBanner from '~/components/planning/InactivityBanner'
 import RecalibrationDialog from '~/components/planning/RecalibrationDialog'
 import PostPlanProposal from '~/components/planning/PostPlanProposal'
+// Module pur du domaine (aucune dépendance serveur) : même calcul de date que le backend
+// eslint-disable-next-line @adonisjs/no-backend-import-in-frontend
 import { plannedSessionDate } from '../../../app/domain/services/planned_session_date'
 
 interface Props {

@@ -159,7 +159,7 @@ export default function GoalCreate() {
       })
       if (!goalRes.ok) {
         const err = (await goalRes.json()) as { message?: string }
-        pushToast(err.message ?? 'Erreur création objectif', 'error')
+        pushToast(err.message ?? t('planning.errors.goalCreation'), 'error')
         return
       }
 
@@ -179,7 +179,7 @@ export default function GoalCreate() {
         router.visit('/planning')
       } else {
         const err = (await planRes.json()) as { message?: string }
-        pushToast(err.message ?? 'Erreur génération plan', 'error')
+        pushToast(err.message ?? t('planning.errors.planGeneration'), 'error')
       }
     } catch {
       pushToast('Erreur réseau', 'error')

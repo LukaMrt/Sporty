@@ -33,6 +33,10 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare onboardingCompleted: boolean
 
+  /** Voir SESSION_VERSION_KEY : invalide les sessions après un changement de mot de passe */
+  @column()
+  declare sessionVersion: number
+
   @hasMany(() => Session)
   declare sessions: HasMany<typeof Session>
 
