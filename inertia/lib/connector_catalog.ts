@@ -1,5 +1,5 @@
 import stravaLogo from '~/assets/strava-logo.svg'
-import openWearablesLogo from '~/assets/open-wearables-logo.svg'
+import openWearablesLogo from '~/assets/open-wearables-mark.svg'
 
 export type ConnectorStatus = 'connected' | 'error' | 'disconnected'
 export type ConnectorAuthKind = 'oauth' | 'api_key'
