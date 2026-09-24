@@ -1,4 +1,3 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import type { PlannedSession } from '~/types/planning'
@@ -10,7 +9,7 @@ function parsePaceString(pace: string): number {
   return min + (sec ?? 0) / 60
 }
 
-interface PlannedSessionDetailProps {
+type PlannedSessionDetailProps = {
   session: PlannedSession
   borderClass?: string
   onEditClick?: () => void

@@ -9,7 +9,7 @@ import type { TrainingLoad, TrainingLoadMethod } from '#domain/value_objects/tra
 import { addDaysIso, todayInTimezone } from '#domain/services/calendar'
 import { buildSessionLoadInput } from '#domain/services/session_load'
 
-export interface FitnessProfileResult {
+export type FitnessProfileResult = {
   asOf: string
   profile: FitnessProfile | null
   /** Série quotidienne, uniquement si demandée */
@@ -18,7 +18,7 @@ export interface FitnessProfileResult {
   methods: Record<TrainingLoadMethod, number>
 }
 
-export interface GetFitnessProfileOptions {
+export type GetFitnessProfileOptions = {
   /** Date de calcul (défaut : aujourd'hui dans le fuseau de l'athlète) */
   asOf?: string
   /** Profondeur d'historique en jours (défaut : 365) */

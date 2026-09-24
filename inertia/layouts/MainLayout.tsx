@@ -7,17 +7,17 @@ import LocaleSwitcher from '~/components/shared/LocaleSwitcher'
 import logo from '~/assets/logo.png'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface AuthUser {
+type AuthUser = {
   id: number
   fullName: string
   role: string
 }
 
-interface SharedProps {
+type SharedProps = {
   auth?: { user: AuthUser | null }
 }
 
-interface NavItem {
+type NavItem = {
   href: string
   labelKey: string
   icon: React.ComponentType<{ className?: string }>

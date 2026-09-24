@@ -1,8 +1,7 @@
 import { useTranslation } from '~/hooks/use_translation'
-import React from 'react'
 import { Plus } from 'lucide-react'
 
-interface FABProps {
+type FABProps = {
   onClick: () => void
 }
 

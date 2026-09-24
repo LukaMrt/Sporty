@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { Calendar } from 'lucide-react'
 
-interface DateFilterInputProps {
+type DateFilterInputProps = {
   value: string
   onChange: (v: string) => void
   formatDate: (d: string) => string

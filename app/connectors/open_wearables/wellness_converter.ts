@@ -19,7 +19,7 @@ const TIMESERIES_FIELDS: Record<string, { field: keyof DailyWellness; mode: 'mea
 export const WELLNESS_TIMESERIES_TYPES = Object.keys(TIMESERIES_FIELDS)
 
 /** Événement de sommeil OW (champs optionnels : la couverture dépend de la montre) */
-export interface RawOwSleep {
+export type RawOwSleep = {
   start_time: string
   end_time: string
   duration_seconds?: number | null
@@ -33,7 +33,7 @@ export interface RawOwSleep {
   is_nap?: boolean | null
 }
 
-export interface RawOwActivitySummary {
+export type RawOwActivitySummary = {
   date: string
   steps?: number | null
   intensity_minutes?: { moderate?: number | null; vigorous?: number | null } | null
@@ -41,7 +41,7 @@ export interface RawOwActivitySummary {
   vigorous_minutes?: number | null
 }
 
-export interface RawOwHealthScore {
+export type RawOwHealthScore = {
   date?: string
   timestamp?: string
   type?: string

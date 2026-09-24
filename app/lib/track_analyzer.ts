@@ -1,6 +1,6 @@
 import type { DataPoint, GpsPoint, KmSplit } from '#domain/value_objects/run_metrics'
 
-export interface RawTrackpoint {
+export type RawTrackpoint = {
   lat: number
   lon: number
   timeMs: number
@@ -16,7 +16,7 @@ export interface RawTrackpoint {
   pausedBefore?: boolean
 }
 
-export interface TrackAnalysisResult {
+export type TrackAnalysisResult = {
   durationSeconds: number
   distanceMeters: number
   minHeartRate?: number

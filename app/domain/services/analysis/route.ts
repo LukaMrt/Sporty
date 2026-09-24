@@ -5,7 +5,7 @@ import { cumulativeDistances, distanceMeters } from '#domain/services/analysis/g
 const CELL_DEG = 0.002
 const SIGNATURE_POINTS = 12
 
-export interface RouteSignature {
+export type RouteSignature = {
   start: string
   end: string
   distanceM: number
@@ -74,7 +74,7 @@ export function trackPreview(track: GpsPoint[], maxPoints = 200): [number, numbe
 
 // ── Zones de confidentialité (masquage autour du domicile) ───────────────────
 
-export interface PrivacyZone {
+export type PrivacyZone = {
   lat: number
   lon: number
   radiusM: number
@@ -93,7 +93,7 @@ export function maskPoints<T extends { lat: number; lon: number }>(
 
 // ── F3 · Alignement sur la distance ───────────────────────────────────────────
 
-export interface DistancePoint {
+export type DistancePoint = {
   /** Distance cumulée (km) */
   km: number
   /** Temps écoulé (s) */

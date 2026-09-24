@@ -8,7 +8,7 @@ import SyncWellness from '#use_cases/wellness/sync_wellness'
 
 export type WebhookOutcome = 'invalid_signature' | 'ignored' | 'processed'
 
-interface OwWebhookEvent {
+type OwWebhookEvent = {
   type?: string
   data?: { user_id?: string; userId?: string }
 }

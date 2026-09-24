@@ -5,14 +5,14 @@ import { postMultipart } from '~/lib/http'
 
 const SessionMap = React.lazy(() => import('~/components/sessions/SessionMap'))
 
-export interface GpsPoint {
+export type GpsPoint = {
   lat: number
   lon: number
   ele?: number
   time: number
 }
 
-export interface GpxParsedData {
+export type GpxParsedData = {
   tempId: string
   startDate: string
   durationMinutes: number

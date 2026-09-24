@@ -3,7 +3,7 @@ import { TrainingGoalRepository } from '#domain/interfaces/training_goal_reposit
 import type { TrainingGoal } from '#domain/entities/training_goal'
 import { GoalNotFoundError } from '#domain/errors/goal_not_found_error'
 
-export interface UpdateGoalInput {
+export type UpdateGoalInput = {
   goalId: number
   userId: number
   targetDistanceKm?: number

@@ -19,13 +19,13 @@ const ZONE_COLORS = ['#9ca3af', '#60a5fa', '#34d399', '#fb923c', '#f87171']
 
 const METHODS: HrZoneMethod[] = ['auto', 'karvonen', 'percent_max', 'lthr', 'custom']
 
-export interface HrZonesValue {
+export type HrZonesValue = {
   method: HrZoneMethod
   lthr: number | null
   customBounds: ZoneBoundsBpm | null
 }
 
-interface Props {
+type Props = {
   maxHeartRate: number | null
   restingHeartRate: number | null
   value: HrZonesValue

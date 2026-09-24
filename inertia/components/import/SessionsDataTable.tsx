@@ -29,7 +29,7 @@ import type { StagingSession } from '~/types/staging_session'
 import { formatDuration } from '~/lib/format'
 import { connectorPath } from '~/lib/connector_catalog'
 
-interface SessionsDataTableProps {
+type SessionsDataTableProps = {
   provider: string
   sessions: StagingSession[]
   connectorError?: boolean
@@ -109,117 +109,120 @@ export default function SessionsDataTable({
   }, [localSessions, dateFrom, dateTo, showIgnored])
 
   const columns = useMemo(
-    () => [
-      columnHelper.accessor('date', {
-        header: ({ column }) => (
-          <SortableHeader
-            label={t('import.table.date')}
-            sorted={column.getIsSorted()}
-            onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-        cell: ({ getValue }) => formatDate(getValue()),
-      }),
-      columnHelper.accessor('name', {
-        header: t('import.table.name'),
-        cell: ({ getValue }) => <span className="max-w-[200px] truncate block">{getValue()}</span>,
-        enableSorting: false,
-      }),
-      columnHelper.accessor('sportType', {
-        header: ({ column }) => (
-          <SortableHeader
-            label={t('import.table.type')}
-            sorted={column.getIsSorted()}
-            onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-      }),
-      columnHelper.accessor('durationMinutes', {
-        header: t('import.table.duration'),
-        cell: ({ getValue }) => formatDuration(getValue()),
-        enableSorting: false,
-      }),
-      columnHelper.accessor('distanceKm', {
-        header: ({ column }) => (
-          <SortableHeader
-            label={t('import.table.distance')}
-            sorted={column.getIsSorted()}
-            onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-        cell: ({ getValue }) => {
-          const v = getValue()
-          return v !== null ? `${v.toFixed(2)} ${t('import.table.distanceUnit')}` : '—'
-        },
-      }),
-      columnHelper.accessor('status', {
-        header: t('import.table.status'),
-        cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
-        enableSorting: false,
-        size: 120,
-        minSize: 120,
-        maxSize: 120,
-      }),
-      columnHelper.display({
-        id: 'actions',
-        header: t('import.table.actions'),
-        cell: ({ row }) => {
-          const { id, status } = row.original
-          const isImporting = importingIds.has(id)
-          const isPending = pendingIds.has(id)
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor('date', {
+          header: ({ column }) => (
+            <SortableHeader
+              label={t('import.table.date')}
+              sorted={column.getIsSorted()}
+              onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            />
+          ),
+          cell: ({ getValue }) => formatDate(getValue()),
+        }),
+        columnHelper.accessor('name', {
+          header: t('import.table.name'),
+          cell: ({ getValue }) => (
+            <span className="max-w-[200px] truncate block">{getValue()}</span>
+          ),
+          enableSorting: false,
+        }),
+        columnHelper.accessor('sportType', {
+          header: ({ column }) => (
+            <SortableHeader
+              label={t('import.table.type')}
+              sorted={column.getIsSorted()}
+              onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            />
+          ),
+        }),
+        columnHelper.accessor('durationMinutes', {
+          header: t('import.table.duration'),
+          cell: ({ getValue }) => formatDuration(getValue()),
+          enableSorting: false,
+        }),
+        columnHelper.accessor('distanceKm', {
+          header: ({ column }) => (
+            <SortableHeader
+              label={t('import.table.distance')}
+              sorted={column.getIsSorted()}
+              onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            />
+          ),
+          cell: ({ getValue }) => {
+            const v = getValue()
+            return v !== null ? `${v.toFixed(2)} ${t('import.table.distanceUnit')}` : '—'
+          },
+        }),
+        columnHelper.accessor('status', {
+          header: t('import.table.status'),
+          cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
+          enableSorting: false,
+          size: 120,
+          minSize: 120,
+          maxSize: 120,
+        }),
+        columnHelper.display({
+          id: 'actions',
+          header: t('import.table.actions'),
+          cell: ({ row }) => {
+            const { id, status } = row.original
+            const isImporting = importingIds.has(id)
+            const isPending = pendingIds.has(id)
 
-          if (status === 'new' || status === 'failed') {
-            return (
-              <div className="flex items-center gap-2">
+            if (status === 'new' || status === 'failed') {
+              return (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => void importOne(id)}
+                    disabled={isImporting || isPending || connectorError}
+                    className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isImporting ? t('import.batch.importing') : t('import.batch.button')}
+                  </button>
+                  <button
+                    onClick={() => void ignoreOne(id)}
+                    disabled={isPending}
+                    className="w-[90px] cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {t('import.ignore.button')}
+                  </button>
+                </div>
+              )
+            }
+
+            if (status === 'ignored') {
+              return (
                 <button
-                  onClick={() => void importOne(id)}
-                  disabled={isImporting || isPending || connectorError}
-                  className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {isImporting ? t('import.batch.importing') : t('import.batch.button')}
-                </button>
-                <button
-                  onClick={() => void ignoreOne(id)}
+                  onClick={() => void restoreOne(id)}
                   disabled={isPending}
-                  className="w-[90px] cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {t('import.ignore.button')}
+                  <Undo2 className="h-3.5 w-3.5" />
+                  {t('import.restore.button')}
                 </button>
-              </div>
-            )
-          }
+              )
+            }
 
-          if (status === 'ignored') {
-            return (
-              <button
-                onClick={() => void restoreOne(id)}
-                disabled={isPending}
-                className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <Undo2 className="h-3.5 w-3.5" />
-                {t('import.restore.button')}
-              </button>
-            )
-          }
+            if (status === 'imported') {
+              return (
+                <button
+                  onClick={() => void reimportOne(id)}
+                  disabled={isImporting || connectorError}
+                  className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  {isImporting ? t('import.reimport.importing') : t('import.reimport.button')}
+                </button>
+              )
+            }
 
-          if (status === 'imported') {
-            return (
-              <button
-                onClick={() => void reimportOne(id)}
-                disabled={isImporting || connectorError}
-                className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                {isImporting ? t('import.reimport.importing') : t('import.reimport.button')}
-              </button>
-            )
-          }
-
-          return null
-        },
-        enableSorting: false,
-      }),
-    ],
+            return null
+          },
+          enableSorting: false,
+        }),
+      ]),
     [
       t,
       formatDate,

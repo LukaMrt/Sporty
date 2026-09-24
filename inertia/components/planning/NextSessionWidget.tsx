@@ -1,4 +1,3 @@
-import React from 'react'
 import { router } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 import { ZONE_COLORS } from '~/lib/planning_colors'
@@ -10,7 +9,7 @@ export type NextSessionResult =
   | { state: 'upcoming'; session: PlannedSession; date: string; isToday: boolean }
   | { state: 'rest_today'; nextSession: PlannedSession; nextDate: string }
 
-interface Props {
+type Props = {
   result: NextSessionResult
 }
 
@@ -79,7 +78,7 @@ export default function NextSessionWidget({ result }: Props) {
   )
 }
 
-interface SessionSummaryProps {
+type SessionSummaryProps = {
   session: PlannedSession
   zoneColor: string
   isToday: boolean

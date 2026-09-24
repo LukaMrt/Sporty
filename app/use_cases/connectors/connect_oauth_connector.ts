@@ -4,7 +4,7 @@ import { OAuthClient } from '#domain/interfaces/oauth_client'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
 
-export interface ConnectOAuthConnectorInput {
+export type ConnectOAuthConnectorInput = {
   userId: number
   provider: ConnectorProvider
   /** Code d'autorisation renvoyé par le provider */

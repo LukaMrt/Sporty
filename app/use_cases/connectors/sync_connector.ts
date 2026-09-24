@@ -13,7 +13,7 @@ import { syncWindowStart } from '#domain/services/sync_window'
 import ImportedSessionWriter from '#use_cases/import/imported_session_writer'
 import SyncWellness from '#use_cases/wellness/sync_wellness'
 
-export interface SyncConnectorInput {
+export type SyncConnectorInput = {
   connectorId: number
 }
 
@@ -75,7 +75,7 @@ export default class SyncConnector {
         connectorId,
         sessions.map((a) => ({
           externalId: a.externalId,
-          rawData: a as unknown as Record<string, unknown>,
+          rawData: a,
         }))
       )
 

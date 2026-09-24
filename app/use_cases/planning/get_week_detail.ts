@@ -4,7 +4,7 @@ import type { PlannedWeek } from '#domain/entities/planned_week'
 import { plannedSessionDate } from '#domain/services/planned_session_date'
 import type { PlannedSessionView } from '#use_cases/planning/get_plan_overview'
 
-export interface WeekDetail {
+export type WeekDetail = {
   week: PlannedWeek
   sessions: PlannedSessionView[]
 }

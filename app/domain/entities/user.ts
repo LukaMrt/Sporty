@@ -5,7 +5,7 @@ import type { UserRole } from '#domain/value_objects/user_role'
  * Le hash du mot de passe n'en fait volontairement pas partie : il ne sort jamais
  * de la couche de persistance (vérification via `UserRepository.verifyPassword`).
  */
-export interface User {
+export type User = {
   id: number
   email: string
   fullName: string

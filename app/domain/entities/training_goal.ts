@@ -1,6 +1,6 @@
 export type TrainingGoalStatus = 'active' | 'achieved' | 'abandoned'
 
-export interface TrainingGoal {
+export type TrainingGoal = {
   id: number
   userId: number
   targetDistanceKm: number

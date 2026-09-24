@@ -1,4 +1,4 @@
-export interface ImportedPlanEntry {
+export type ImportedPlanEntry = {
   date: string
   title: string
   targetDurationMinutes: number | null

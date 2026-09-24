@@ -9,7 +9,7 @@ import {
 } from '~/components/ui/select'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface Sport {
+type Sport = {
   id: number
   name: string
 }
@@ -17,13 +17,13 @@ interface Sport {
 export type SortByField = 'date' | 'duration_minutes' | 'distance_km'
 export type SortOrder = 'asc' | 'desc'
 
-export interface Filters {
+export type Filters = {
   sportId: number | null
   sortBy: SortByField | null
   sortOrder: SortOrder | null
 }
 
-interface SessionFiltersProps {
+type SessionFiltersProps = {
   sports: Sport[]
   filters: Filters
   onSportChange: (value: string) => void

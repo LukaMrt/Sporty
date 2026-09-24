@@ -1,4 +1,4 @@
-export interface FitnessProfile {
+export type FitnessProfile = {
   chronicTrainingLoad: number
   acuteTrainingLoad: number
   trainingStressBalance: number
@@ -7,7 +7,7 @@ export interface FitnessProfile {
 }
 
 /** Un point du graphique de forme (Performance Management Chart) */
-export interface FitnessDay {
+export type FitnessDay = {
   date: string
   /** Charge du jour (somme des TSS) */
   tss: number

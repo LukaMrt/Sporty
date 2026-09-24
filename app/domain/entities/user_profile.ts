@@ -17,7 +17,7 @@ export enum UserObjective {
   PrepareCompetition = 'prepare_competition',
 }
 
-export interface UserProfile {
+export type UserProfile = {
   id: number
   userId: number
   sportId: number

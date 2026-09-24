@@ -1,6 +1,6 @@
 import type { PaceZones } from '#domain/value_objects/pace_zones'
 
-export interface TransitionPlanRequest {
+export type TransitionPlanRequest = {
   vdot: number
   paceZones: PaceZones
   sessionsPerWeek: number

@@ -6,7 +6,7 @@ import EmptyState from '~/components/shared/EmptyState'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface TrashedSession {
+type TrashedSession = {
   id: number
   sportName: string
   date: string
@@ -15,7 +15,7 @@ interface TrashedSession {
   deletedAt: string | null
 }
 
-interface TrashProps {
+type TrashProps = {
   sessions: TrashedSession[]
 }
 

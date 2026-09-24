@@ -3,26 +3,26 @@ import type { SportMetrics } from '#domain/value_objects/sport_metrics'
 import type { HrZonesConfig } from '#domain/value_objects/heart_rate_zones_config'
 import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 
-export interface ConnectorTokens {
+export type ConnectorTokens = {
   accessToken: string
   refreshToken: string
   expiresAt: number
 }
 
-export interface SessionFilters {
+export type SessionFilters = {
   after?: Date
   before?: Date
   perPage?: number
 }
 
-export interface MappingContext {
+export type MappingContext = {
   maxHeartRate?: number
   restingHeartRate?: number
   /** Zones choisies par l'athlète (absent = auto) */
   hrZonesConfig?: HrZonesConfig
 }
 
-export interface MappedSessionSummary {
+export type MappedSessionSummary = {
   externalId: string
   name: string
   sportSlug: string
@@ -32,7 +32,7 @@ export interface MappedSessionSummary {
   avgHeartRate: number | null
 }
 
-export interface MappedSessionData {
+export type MappedSessionData = {
   sportSlug: string
   date: string
   durationMinutes: number

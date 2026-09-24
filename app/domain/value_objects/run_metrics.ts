@@ -1,16 +1,16 @@
-export interface DataPoint {
+export type DataPoint = {
   time: number
   value: number
 }
 
-export interface GpsPoint {
+export type GpsPoint = {
   lat: number
   lon: number
   ele?: number
   time: number
 }
 
-export interface KmSplit {
+export type KmSplit = {
   km: number
   paceSeconds: number
   avgHeartRate?: number
@@ -18,7 +18,7 @@ export interface KmSplit {
   partial?: boolean
 }
 
-export interface HeartRateZones {
+export type HeartRateZones = {
   z1: number
   z2: number
   z3: number
@@ -26,7 +26,7 @@ export interface HeartRateZones {
   z5: number
 }
 
-export interface RunMetrics {
+export type RunMetrics = {
   // Métriques de base enrichies (saisie manuelle ou GPX)
   minHeartRate?: number
   maxHeartRate?: number

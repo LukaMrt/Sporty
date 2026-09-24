@@ -8,7 +8,7 @@ import type { RateLimitManager } from '#connectors/rate_limit_manager'
 type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>
 type Backoff = (attempt: number) => Promise<void>
 
-interface StravaRefreshResponse {
+type StravaRefreshResponse = {
   access_token: string
   refresh_token: string
   expires_at: number

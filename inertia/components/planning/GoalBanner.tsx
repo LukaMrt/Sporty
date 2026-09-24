@@ -1,8 +1,7 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import type { TrainingGoal, PlannedWeek } from '~/types/planning'
 
-interface GoalBannerProps {
+type GoalBannerProps = {
   goal: TrainingGoal
   weeks: PlannedWeek[]
   currentWeek: PlannedWeek | undefined

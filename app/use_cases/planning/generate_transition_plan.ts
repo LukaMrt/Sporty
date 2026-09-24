@@ -11,7 +11,7 @@ import type { TrainingPlan } from '#domain/entities/training_plan'
 import { NoCompletedPlanError } from '#domain/errors/no_completed_plan_error'
 import PlanPersister from '#use_cases/planning/plan_persister'
 
-export interface GenerateTransitionPlanResult {
+export type GenerateTransitionPlanResult = {
   plan: TrainingPlan
 }
 

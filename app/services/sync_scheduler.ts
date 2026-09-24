@@ -6,7 +6,7 @@ export type SyncOutcome = 'success' | 'permanent_error' | 'temporary_error'
 export type SyncFn = (connectorId: number) => Promise<{ outcome: SyncOutcome }>
 export type LoadConnectorsFn = () => Promise<ActiveConnectorRecord[]>
 
-interface ConnectorTimer {
+type ConnectorTimer = {
   userId: number
   intervalMinutes: number
   /** Timeout du premier tick (jitter), puis intervalle régulier */

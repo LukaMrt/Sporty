@@ -38,7 +38,7 @@ import {
   type ConnectorStatus,
 } from '~/lib/connector_catalog'
 
-interface ConnectorsShowProps {
+type ConnectorsShowProps = {
   provider: string
   authKind: ConnectorAuthKind
   status: ConnectorStatus | null

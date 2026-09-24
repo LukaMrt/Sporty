@@ -11,13 +11,13 @@ import GpxImportZone, { type GpxParsedData } from '~/components/sessions/GpxImpo
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface Sport {
+type Sport = {
   id: number
   name: string
   slug: string
 }
 
-interface RunMetrics {
+type RunMetrics = {
   minHeartRate?: number | null
   maxHeartRate?: number | null
   cadenceAvg?: number | null
@@ -25,7 +25,7 @@ interface RunMetrics {
   elevationLoss?: number | null
 }
 
-interface TrainingSession {
+type TrainingSession = {
   id: number
   sportId: number
   date: string
@@ -37,7 +37,7 @@ interface TrainingSession {
   sportMetrics?: RunMetrics | null
 }
 
-interface SessionFormProps {
+type SessionFormProps = {
   sports: Sport[]
   defaultSportId?: number
   speedUnit?: 'min_km' | 'km_h'

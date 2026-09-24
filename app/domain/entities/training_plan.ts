@@ -6,7 +6,7 @@ import type {
 
 export type { TrainingMethodology, PlanType, PlanStatus }
 
-export interface TrainingPlan {
+export type TrainingPlan = {
   id: number
   userId: number
   goalId: number | null

@@ -5,7 +5,7 @@ import type { ConnectorProvider } from '#domain/value_objects/connector_provider
 import { Logger } from '#domain/interfaces/logger'
 import { ConnectorScheduler } from '#domain/interfaces/connector_scheduler'
 
-export interface DisconnectConnectorInput {
+export type DisconnectConnectorInput = {
   userId: number
   provider: ConnectorProvider
 }

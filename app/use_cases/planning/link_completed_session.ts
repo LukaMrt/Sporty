@@ -8,7 +8,7 @@ import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { PlannedSessionStatus } from '#domain/value_objects/planning_types'
 import type { PlannedSession } from '#domain/entities/planned_session'
 
-export interface LinkCompletedSessionInput {
+export type LinkCompletedSessionInput = {
   userId: number
   plannedSessionId: number
   completedSessionId: number

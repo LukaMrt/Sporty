@@ -11,7 +11,7 @@ const DAY_MS = 86_400_000
 /** Fenêtre par requête : limite la taille des réponses et permet la progression */
 const CHUNK_DAYS = 90
 
-export interface BackfillResult {
+export type BackfillResult = {
   stagedSessions: number
   wellnessDays: number
 }
@@ -50,7 +50,7 @@ export default class BackfillConnector {
         record.id,
         sessions.map((s) => ({
           externalId: s.externalId,
-          rawData: s as unknown as Record<string, unknown>,
+          rawData: s,
         }))
       )
       stagedSessions += sessions.length

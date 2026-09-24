@@ -4,12 +4,12 @@ import { useTranslation } from '~/hooks/use_translation'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface PaceZoneRange {
+type PaceZoneRange = {
   minPacePerKm: number
   maxPacePerKm: number
 }
 
-export interface PaceZones {
+export type PaceZones = {
   easy: PaceZoneRange
   marathon: PaceZoneRange
   threshold: PaceZoneRange
@@ -17,7 +17,7 @@ export interface PaceZones {
   repetition: PaceZoneRange
 }
 
-export interface VdotEstimationResult {
+export type VdotEstimationResult = {
   vdot: number
   method: 'history' | 'vma' | 'questionnaire' | 'recent' | 'manual_vma'
   paceZones: PaceZones
@@ -25,7 +25,7 @@ export interface VdotEstimationResult {
 
 type FunnelMethod = 'recent' | 'vma' | 'questionnaire'
 
-interface VdotEstimationFormProps {
+type VdotEstimationFormProps = {
   onConfirm: (result: VdotEstimationResult) => void
 }
 

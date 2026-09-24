@@ -1,7 +1,7 @@
 import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 import { addDaysIso } from '#domain/services/calendar'
 
-export interface Baseline {
+export type Baseline = {
   mean: number
   sd: number
   samples: number
@@ -26,7 +26,7 @@ export function baseline(
 
 // ── E1 · Tendances FC repos & HRV ────────────────────────────────────────────
 
-export interface RecoveryPoint {
+export type RecoveryPoint = {
   date: string
   hrv: number | null
   hrv7: number | null
@@ -78,7 +78,7 @@ export function hrvBelowBandStreak(points: RecoveryPoint[]): number {
 
 export type ReadinessLevel = 'good' | 'moderate' | 'low' | 'unknown'
 
-export interface ReadinessComponent {
+export type ReadinessComponent = {
   key: 'hrv' | 'restingHr' | 'sleep' | 'tsb'
   /** Score de la composante, de −1 (défavorable) à +1 (favorable) */
   score: number
@@ -86,7 +86,7 @@ export interface ReadinessComponent {
   reference: number | null
 }
 
-export interface Readiness {
+export type Readiness = {
   level: ReadinessLevel
   /** Moyenne des composantes disponibles (−1 → +1) */
   score: number | null

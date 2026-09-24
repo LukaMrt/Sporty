@@ -7,7 +7,7 @@ import {
   type WizardState,
 } from '~/components/planning/wizard_types'
 
-interface Props {
+type Props = {
   onCommit: (data: Pick<WizardState, 'distanceKm' | 'targetTimeMinutes' | 'eventDate'>) => void
 }
 

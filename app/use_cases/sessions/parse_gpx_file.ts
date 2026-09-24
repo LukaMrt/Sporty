@@ -2,7 +2,7 @@ import { inject } from '@adonisjs/core'
 import { GpxParser, type GpxParseResult } from '#domain/interfaces/gpx_parser'
 import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 
-export interface ParseGpxFileResult {
+export type ParseGpxFileResult = {
   tempId: string
   parsed: GpxParseResult
 }

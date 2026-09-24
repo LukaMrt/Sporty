@@ -13,7 +13,7 @@ import { deriveSessionFields } from '#domain/services/session_derived_fields'
 import { gpxToSportMetrics } from '#domain/services/gpx_metrics'
 import { assertHeartRateConsistency } from '#domain/services/session_validation'
 
-export interface CreateSessionInput {
+export type CreateSessionInput = {
   sportId: number
   date: string
   durationMinutes: number

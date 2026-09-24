@@ -3,7 +3,7 @@ import { GpxParser, type GpxParseResult } from '#domain/interfaces/gpx_parser'
 import { GpxParseError } from '#domain/errors/gpx_parse_error'
 import { analyze, type RawTrackpoint } from '#lib/track_analyzer'
 
-interface ParsedXml {
+type ParsedXml = {
   gpx?: {
     trk?: Array<{
       trkseg?: Array<{

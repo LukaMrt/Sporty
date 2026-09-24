@@ -1,8 +1,7 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import InfoTooltip from '~/components/shared/InfoTooltip'
 
-interface Zone {
+type Zone = {
   labelKey: string
   color: string // classes Tailwind bg + text
   dot: string // classe Tailwind bg seule
@@ -10,7 +9,7 @@ interface Zone {
   max: number
 }
 
-interface MetricInsightConfig {
+type MetricInsightConfig = {
   descriptionKey: string
   unit: string
   zones: Zone[]
@@ -95,7 +94,7 @@ function getZone(zones: Zone[], value: number): Zone {
   return zones.find((z) => value >= z.min && value < z.max) ?? zones[zones.length - 1]
 }
 
-interface MetricInsightProps {
+type MetricInsightProps = {
   metricKey: string
   value: number
   /** Affiche uniquement l'icône tooltip, sans le badge de zone */

@@ -4,7 +4,7 @@ import { UserProfileRepository } from '#domain/interfaces/user_profile_repositor
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { PlanStatus, TrainingState } from '#domain/value_objects/planning_types'
 
-export interface PostPlanState {
+export type PostPlanState = {
   trainingState: string
   goalDistanceKm: number | null
 }

@@ -1,17 +1,17 @@
 import type { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 
-export interface ImportSessionConnectorRef {
+export type ImportSessionConnectorRef = {
   connectorId: number
   provider: ConnectorProvider
 }
 
-export interface StagingSessionInput {
+export type StagingSessionInput = {
   externalId: string
   rawData: Record<string, unknown>
 }
 
-export interface StagingSessionRecord {
+export type StagingSessionRecord = {
   id: number
   externalId: string
   status: ImportSessionStatus
@@ -20,7 +20,7 @@ export interface StagingSessionRecord {
   failedAttempts?: number
 }
 
-export interface ImportedSessionRef {
+export type ImportedSessionRef = {
   externalId: string
   sessionId: number
 }

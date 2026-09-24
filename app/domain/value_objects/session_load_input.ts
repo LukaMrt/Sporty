@@ -1,6 +1,6 @@
 import type { DataPoint } from '#domain/value_objects/run_metrics'
 
-export interface SessionLoadInput {
+export type SessionLoadInput = {
   /** Durée de la séance en heures */
   durationHours: number
 

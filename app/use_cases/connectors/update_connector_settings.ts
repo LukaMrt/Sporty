@@ -5,14 +5,14 @@ import { ConnectorNotFoundError } from '#domain/errors/connector_not_found_error
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 
-export interface UpdateConnectorSettingsInput {
+export type UpdateConnectorSettingsInput = {
   userId: number
   provider: ConnectorProvider
   autoImportEnabled: boolean
   pollingIntervalMinutes: number
 }
 
-export interface UpdateConnectorSettingsResult {
+export type UpdateConnectorSettingsResult = {
   connectorId: number
 }
 

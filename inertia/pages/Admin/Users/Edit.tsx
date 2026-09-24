@@ -9,18 +9,18 @@ import PasswordInput from '~/components/forms/PasswordInput'
 import RoleSelector from '~/components/admin/RoleSelector'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface UserData {
+type UserData = {
   id: number
   fullName: string
   email: string
   role: string
 }
 
-interface AdminUsersEditProps {
+type AdminUsersEditProps = {
   user: UserData
 }
 
-interface SharedProps {
+type SharedProps = {
   auth?: { user: { id: number; fullName: string; role: string } | null }
 }
 

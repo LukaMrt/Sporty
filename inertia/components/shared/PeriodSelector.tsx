@@ -1,9 +1,8 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 
 export type Period = 'week' | 'month' | 'all'
 
-interface PeriodSelectorProps {
+type PeriodSelectorProps = {
   value: Period
   onChange: (period: Period) => void
 }

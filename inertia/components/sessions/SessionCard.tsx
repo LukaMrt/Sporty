@@ -4,7 +4,7 @@ import { formatDate, formatDuration } from '~/lib/format'
 import { connectorBrand } from '~/lib/connector_catalog'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
-interface SessionCardProps {
+type SessionCardProps = {
   id: number
   sportName: string
   date: string

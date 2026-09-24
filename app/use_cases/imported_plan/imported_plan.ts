@@ -6,7 +6,7 @@ import { parseImportedPlan, type PlanParseResult } from '#domain/services/plan_i
 import { addDaysIso, todayInTimezone } from '#domain/services/calendar'
 import { weekStart } from '#domain/services/analysis/aggregations'
 
-export interface PlanDay {
+export type PlanDay = {
   date: string
   planned: {
     id: number

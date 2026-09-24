@@ -1,4 +1,4 @@
-export interface SegmentedOption<T extends string> {
+export type SegmentedOption<T extends string> = {
   value: T
   label: string
 }

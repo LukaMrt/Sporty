@@ -11,7 +11,7 @@ import { computeZoneBounds, isZoneBoundsResult } from '#domain/services/heart_ra
 import { isValidTimezone } from '#domain/services/calendar'
 import { InvalidHeartRateZonesError } from '#domain/errors/invalid_heart_rate_zones_error'
 
-export interface UpdateProfileInput {
+export type UpdateProfileInput = {
   fullName?: string
   email?: string
   sportId?: number
@@ -28,7 +28,7 @@ export interface UpdateProfileInput {
   privacyZones?: UserProfile['privacyZones']
 }
 
-export interface UpdateProfileResult {
+export type UpdateProfileResult = {
   user: Pick<User, 'id' | 'fullName' | 'email'>
   profile: UserProfile | null
 }

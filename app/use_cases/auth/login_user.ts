@@ -5,7 +5,7 @@ import { NoRegisteredUserError } from '#domain/errors/no_registered_user_error'
 import type { UserPreferences } from '#domain/entities/user_preferences'
 import { inject } from '@adonisjs/core'
 
-export interface LoginResult {
+export type LoginResult = {
   /** Langue préférée enregistrée dans le profil, à restaurer en session */
   locale: UserPreferences['locale'] | null
 }

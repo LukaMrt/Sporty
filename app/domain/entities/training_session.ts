@@ -2,7 +2,7 @@ import type { SportMetrics } from '#domain/value_objects/sport_metrics'
 import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
 import type { SessionAnalysis } from '#domain/value_objects/session_analysis'
 
-export interface TrainingSession {
+export type TrainingSession = {
   id: number
   userId: number
   sportId: number

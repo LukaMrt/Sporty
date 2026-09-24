@@ -1,11 +1,11 @@
-export interface QualitySessionSummary {
+export type QualitySessionSummary = {
   sessionType: string
   actualTss: number
   plannedTss: number
 }
 
 /** Bilan d'une semaine de plan terminée */
-export interface WeekSummary {
+export type WeekSummary = {
   weekNumber: number
   plannedLoadTss: number
   actualLoadTss: number

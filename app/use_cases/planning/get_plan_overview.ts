@@ -21,7 +21,7 @@ const INACTIVITY_CRITICAL_DAYS = 28
 /** Séance planifiée avec sa date calculée (le frontend n'a plus à la recalculer) */
 export type PlannedSessionView = PlannedSession & { date: string }
 
-export interface PlanOverview {
+export type PlanOverview = {
   goal: TrainingGoal | null
   plan: TrainingPlan
   weeks: PlannedWeek[]

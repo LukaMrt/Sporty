@@ -1,6 +1,6 @@
 import { useTranslation } from '~/hooks/use_translation'
 
-export interface PrivacyZoneInput {
+export type PrivacyZoneInput = {
   lat: number
   lon: number
   radius_m: number

@@ -10,7 +10,7 @@ import { Button } from '~/components/ui/button'
 import type { Filters, SortByField, SortOrder } from '~/components/sessions/SessionFilters'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface SessionSummary {
+type SessionSummary = {
   id: number
   sportType: number
   sportName: string
@@ -21,19 +21,19 @@ interface SessionSummary {
   importedFrom: string | null
 }
 
-interface PaginationMeta {
+type PaginationMeta = {
   total: number
   page: number
   perPage: number
   lastPage: number
 }
 
-interface Sport {
+type Sport = {
   id: number
   name: string
 }
 
-interface SessionsIndexProps {
+type SessionsIndexProps = {
   sessions: { data: SessionSummary[]; meta: PaginationMeta }
   sports: Sport[]
   filters: Filters

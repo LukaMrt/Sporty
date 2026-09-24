@@ -4,7 +4,7 @@ import { addDaysIso } from '#domain/services/calendar'
 import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
 
-export interface SessionContext {
+export type SessionContext = {
   /** Nuit précédant la séance (rattachée au jour de la séance) et récupération du jour */
   wellness: Pick<
     DailyWellness,

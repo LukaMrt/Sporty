@@ -18,13 +18,13 @@ import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 
 export type VdotEstimationMethod = 'history' | 'vma' | 'manual_vma' | 'recent' | 'questionnaire'
 
-export interface QuestionnaireAnswers {
+export type QuestionnaireAnswers = {
   frequency: RunningFrequency
   experience: RunningExperience
   typicalDistance: TypicalDistance
 }
 
-export interface EstimateVdotResult {
+export type EstimateVdotResult = {
   vdot: number
   method: VdotEstimationMethod
   paceZones: PaceZones

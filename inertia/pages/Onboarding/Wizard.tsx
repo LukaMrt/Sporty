@@ -1,20 +1,20 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import logo from '~/assets/logo.png'
 import OptionCards from '~/components/forms/OptionCards'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface SharedProps {
+type SharedProps = {
   auth?: { user: { fullName: string } | null }
 }
 
-interface Sport {
+type Sport = {
   id: number
   name: string
   slug: string
 }
 
-interface WizardProps {
+type WizardProps = {
   sports: Sport[]
 }
 

@@ -11,12 +11,12 @@ import ImportedSessionWriter from '#use_cases/import/imported_session_writer'
 
 export { ConnectorNotConnectedError }
 
-export interface ImportSessionsInput {
+export type ImportSessionsInput = {
   userId: number
   importSessionIds: number[]
 }
 
-export interface ImportSessionsResult {
+export type ImportSessionsResult = {
   total: number
   completed: number
   failed: number

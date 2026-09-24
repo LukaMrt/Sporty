@@ -3,7 +3,7 @@ import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import { useTranslation } from '~/hooks/use_translation'
 import type { KmSplit } from '../../../app/domain/value_objects/run_metrics'
 
-interface SplitsTableProps {
+type SplitsTableProps = {
   splits: KmSplit[] | undefined
 }
 

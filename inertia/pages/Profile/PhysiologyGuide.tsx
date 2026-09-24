@@ -7,7 +7,7 @@ import MainLayout from '~/layouts/MainLayout'
 import { useTranslation } from '~/hooks/use_translation'
 import { Button } from '~/components/ui/button'
 
-interface Props {
+type Props = {
   currentMaxHeartRate: number | null
   currentVma: number | null
 }

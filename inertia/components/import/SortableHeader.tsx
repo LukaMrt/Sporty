@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 
-interface SortableHeaderProps {
+type SortableHeaderProps = {
   label: string
   sorted: false | 'asc' | 'desc'
   onToggle: () => void

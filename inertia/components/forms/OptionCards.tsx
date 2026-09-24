@@ -1,4 +1,4 @@
-export interface OptionCard<T extends string> {
+export type OptionCard<T extends string> = {
   value: T
   label: string
   description?: string

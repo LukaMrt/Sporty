@@ -1,10 +1,9 @@
-import React from 'react'
 import { Link } from '@inertiajs/react'
 import { CheckCircle2, AlertCircle, ChevronRight, Unlink } from 'lucide-react'
 import { useTranslation } from '~/hooks/use_translation'
 import { connectorBrand, connectorPath, type ConnectorStatus } from '~/lib/connector_catalog'
 
-interface ConnectorCardProps {
+type ConnectorCardProps = {
   provider: string
   status: ConnectorStatus | null
   onDisconnect: (provider: string) => void

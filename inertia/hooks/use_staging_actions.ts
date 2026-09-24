@@ -6,7 +6,7 @@ import type { StagingSession } from '~/types/staging_session'
 
 type Status = StagingSession['status']
 
-interface ImportResult {
+type ImportResult = {
   failed: number
   completed: number
   total: number

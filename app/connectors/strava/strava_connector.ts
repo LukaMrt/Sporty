@@ -228,7 +228,7 @@ export class StravaConnector extends Connector {
   }
 }
 
-interface RawStravaDetailedSession {
+type RawStravaDetailedSession = {
   id: number
   name: string
   sport_type: string
@@ -243,7 +243,7 @@ interface RawStravaDetailedSession {
   device_name?: string | null
 }
 
-interface RawStravaSummarySession {
+type RawStravaSummarySession = {
   id: number
   name: string
   sport_type: string

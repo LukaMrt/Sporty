@@ -60,7 +60,7 @@ export const RUNNING_DYNAMICS_TYPES = {
 
 type DynamicsKey = (typeof RUNNING_DYNAMICS_TYPES)[keyof typeof RUNNING_DYNAMICS_TYPES]
 
-export interface RunningDynamics {
+export type RunningDynamics = {
   averages: Partial<Record<DynamicsKey, number>>
   /** Courbes rééchantillonnées toutes les 15 s (même pas que les courbes GPX) */
   curves: Partial<Record<DynamicsKey, DataPoint[]>>

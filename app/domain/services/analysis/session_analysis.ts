@@ -155,7 +155,7 @@ export function gradeAdjustedPace(track: GpsPoint[]): number | null {
   return distance > 0 ? Math.round((equivalentTime / distance) * 1000) : null
 }
 
-export interface SessionAnalysisInput {
+export type SessionAnalysisInput = {
   durationMinutes: number
   distanceKm: number | null
   avgHeartRate: number | null

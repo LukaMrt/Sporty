@@ -15,7 +15,7 @@ import PlanPersister from '#use_cases/planning/plan_persister'
 // depuis un plan maintenance existant lors de la boucle de maintien.
 const MAINTENANCE_RATIO = 0.35
 
-export interface GenerateMaintenancePlanResult {
+export type GenerateMaintenancePlanResult = {
   plan: TrainingPlan
 }
 

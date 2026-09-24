@@ -2,7 +2,7 @@ import type { PaceZones } from '~/components/planning/VdotEstimationForm'
 
 export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
 
-export interface WizardState {
+export type WizardState = {
   distanceKm: number | null
   targetTimeMinutes: number | null
   eventDate: string | null

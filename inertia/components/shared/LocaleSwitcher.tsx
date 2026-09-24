@@ -1,4 +1,3 @@
-import React from 'react'
 import { router } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 

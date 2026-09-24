@@ -1,13 +1,12 @@
-import React from 'react'
 import { router } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface Props {
+type Props = {
   trainingState: string
-  _goalDistanceKm?: number | null
+  goalDistanceKm?: number | null
 }
 
-interface ProposalOption {
+type ProposalOption = {
   titleKey: string
   descKey: string
   action: () => void

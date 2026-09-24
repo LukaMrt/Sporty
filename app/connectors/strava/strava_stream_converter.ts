@@ -4,7 +4,7 @@ import type { RawTrackpoint } from '#lib/track_analyzer'
  * Format brut retourné par l'API Strava : tableau de streams.
  * Chaque entrée a un `type` (ex. "time", "heartrate") et un `data`.
  */
-export interface RawStravaStream {
+export type RawStravaStream = {
   type: string
   data: unknown[]
 }
@@ -13,7 +13,7 @@ export interface RawStravaStream {
  * Dict normalisé (type → data) utilisé par le converteur.
  * Construit depuis le tableau brut de l'API via `indexStravaStreams()`.
  */
-export interface StravaStreams {
+export type StravaStreams = {
   time?: { data: number[] }
   heartrate?: { data: number[] }
   latlng?: { data: [number, number][] }

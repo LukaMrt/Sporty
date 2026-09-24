@@ -14,7 +14,7 @@ import { isRunMetrics } from '#domain/value_objects/sport_metrics'
 const ALL_TIME: [string, string] = ['1970-01-01', '2999-12-31']
 const MAX_COMPARED = 4
 
-export interface ComparedSession {
+export type ComparedSession = {
   id: number
   date: string
   sportSlug: string

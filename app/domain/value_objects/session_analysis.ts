@@ -9,7 +9,7 @@ export type EffortDistance = (typeof EFFORT_DISTANCES)[number]
  * `sessions.analysis` : petits, ils sont lus par les graphiques sans charger
  * les courbes complètes.
  */
-export interface SessionAnalysis {
+export type SessionAnalysis = {
   /** Meilleur temps (s) sur chaque distance standard, à l'intérieur de la séance */
   bestEfforts: Partial<Record<EffortDistance, number>>
   /** Efficiency Factor : vitesse (m/min) / FC moyenne */

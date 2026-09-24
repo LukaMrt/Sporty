@@ -57,8 +57,6 @@ export default class AthleteProfileController {
       vdot,
       paceZones: vdot !== null ? derivePaceZones(vdot) : null,
       fitnessProfile: toFitnessDto(fitness.profile),
-      // Transparence : combien de séances sont évaluées par FC, allure ou ressenti
-      loadMethods: fitness.methods,
     })
   }
 

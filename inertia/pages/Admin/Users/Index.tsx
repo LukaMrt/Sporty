@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface User {
+type User = {
   id: number
   fullName: string
   email: string
@@ -11,7 +11,7 @@ interface User {
   createdAt: string
 }
 
-interface AdminUsersIndexProps {
+type AdminUsersIndexProps = {
   users: User[]
 }
 

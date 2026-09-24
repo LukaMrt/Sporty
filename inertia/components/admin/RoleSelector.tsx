@@ -1,10 +1,9 @@
-import React from 'react'
 import { User, ShieldCheck } from 'lucide-react'
 import { useTranslation } from '~/hooks/use_translation'
 
 type RoleValue = 'user' | 'admin'
 
-interface RoleSelectorProps {
+type RoleSelectorProps = {
   value: string
   onChange: (role: RoleValue) => void
   error?: string

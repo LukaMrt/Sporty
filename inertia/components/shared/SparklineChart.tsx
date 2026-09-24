@@ -1,6 +1,6 @@
 import { LineChart, Line, YAxis } from 'recharts'
 
-interface SparklineChartProps {
+type SparklineChartProps = {
   data: { date: string; value: number }[]
   width?: number
   height?: number

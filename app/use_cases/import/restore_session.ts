@@ -1,7 +1,7 @@
 import { inject } from '@adonisjs/core'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 
-export interface RestoreSessionInput {
+export type RestoreSessionInput = {
   id: number
   userId: number
 }

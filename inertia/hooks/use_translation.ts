@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/react'
 
-interface TranslationProps {
+type TranslationProps = {
   locale: string
   translations: Record<string, string>
 }

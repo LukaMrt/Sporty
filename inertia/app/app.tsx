@@ -3,7 +3,7 @@
 
 import '../css/app.css'
 import { createRoot } from 'react-dom/client'
-import { createInertiaApp } from '@inertiajs/react'
+import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Sporty'
@@ -13,8 +13,12 @@ createInertiaApp({
 
   title: (title) => `${title} - ${appName}`,
 
-  resolve: (name) => {
-    return resolvePageComponent(`../pages/${name}.tsx`, import.meta.glob('../pages/**/*.tsx'))
+  resolve: async (name) => {
+    const page = await resolvePageComponent(
+      `../pages/${name}.tsx`,
+      import.meta.glob<{ default: ResolvedComponent }>('../pages/**/*.tsx')
+    )
+    return page.default
   },
 
   setup({ el, App, props }) {

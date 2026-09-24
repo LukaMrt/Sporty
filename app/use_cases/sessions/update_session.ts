@@ -9,7 +9,7 @@ import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
 import { deriveSessionFields } from '#domain/services/session_derived_fields'
 import { assertHeartRateConsistency } from '#domain/services/session_validation'
 
-export interface UpdateSessionInput {
+export type UpdateSessionInput = {
   sportId: number
   date: string
   durationMinutes: number

@@ -26,7 +26,7 @@ const DISTANCE_LABELS: Record<number, string> = {
   42195: 'marathon',
 }
 
-export interface ClaudeSummaryInput {
+export type ClaudeSummaryInput = {
   asOf: string
   sessions: AnalysisSession[]
   fitness: FitnessProfile | null
@@ -178,7 +178,7 @@ export function toCsv(headers: string[], rows: unknown[][]): string {
 
 // ── H2 · Bilan de période ─────────────────────────────────────────────────────
 
-export interface PeriodTotals {
+export type PeriodTotals = {
   sessions: number
   distanceKm: number
   durationMinutes: number

@@ -1,6 +1,6 @@
 export type StagingSessionStatus = 'new' | 'imported' | 'ignored' | 'importing' | 'failed'
 
-export interface StagingSession {
+export type StagingSession = {
   id: number
   externalId: string
   status: StagingSessionStatus

@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface AcwrWarningBannerProps {
+type AcwrWarningBannerProps = {
   acwr: number
   techMode: boolean
   onDismiss: () => void

@@ -8,10 +8,11 @@ import ListPreImportSessions, {
 } from '#use_cases/import/list_pre_import_sessions'
 import GetStagedSessions from '#use_cases/import/get_staged_sessions'
 import BackfillConnector from '#use_cases/connectors/backfill_connector'
+import type { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 import { describeProvider } from '#domain/value_objects/connector_descriptor'
 import { isProviderConfigured } from '#lib/connector_config'
 
-interface RawSessionData {
+type RawSessionData = {
   name?: string
   sportSlug?: string
   date?: string
@@ -19,10 +20,10 @@ interface RawSessionData {
   durationMinutes?: number
 }
 
-interface StagingSessionDto {
+type StagingSessionDto = {
   id: number
   externalId: string
-  status: string
+  status: ImportSessionStatus
   date: string
   name: string
   sportType: string
@@ -33,7 +34,7 @@ interface StagingSessionDto {
 function toStagingDto(record: {
   id: number
   externalId: string
-  status: string
+  status: ImportSessionStatus
   rawData: Record<string, unknown> | null
 }): StagingSessionDto {
   const raw = (record.rawData ?? {}) as unknown as RawSessionData

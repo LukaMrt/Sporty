@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 
-export interface SameRouteSession {
+export type SameRouteSession = {
   id: number
   date: string
   durationMinutes: number

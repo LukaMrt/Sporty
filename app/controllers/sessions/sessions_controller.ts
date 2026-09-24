@@ -25,6 +25,14 @@ import { resolveZoneBounds, boundsToThresholds } from '#domain/services/heart_ra
 /** Date calendaire saisie : vine.date() la parse à minuit local, pas en UTC */
 const toIsoDate = (date: Date) => DateTime.fromJSDate(date).toISODate()!
 
+/** La page détail charge la trace complète : l'aperçu allégé est inutile */
+function withoutTrackPreview<T extends { trackPreview?: unknown }>({
+  trackPreview: _,
+  ...rest
+}: T) {
+  return rest
+}
+
 @inject()
 export default class SessionsController {
   constructor(
@@ -132,10 +140,10 @@ export default class SessionsController {
         : trainingSession.sportMetrics
       return inertia.render('Sessions/Show', {
         session: {
-          ...trainingSession,
+          ...withoutTrackPreview(trainingSession),
           sportMetrics,
-          trackPreview: undefined,
           gpxFilePath: trainingSession.gpxFilePath ?? null,
+          importedFrom: trainingSession.importedFrom ?? null,
         },
         sameRoute,
         hrZoneThresholds,

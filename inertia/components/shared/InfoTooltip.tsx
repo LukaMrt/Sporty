@@ -2,7 +2,7 @@ import { useTranslation } from '~/hooks/use_translation'
 import React, { useState } from 'react'
 import { Info } from 'lucide-react'
 
-interface InfoTooltipProps {
+type InfoTooltipProps = {
   /** Texte principal affiché dans le popup */
   description: string
   /** Texte secondaire en italique (interprétation, conseil…) */

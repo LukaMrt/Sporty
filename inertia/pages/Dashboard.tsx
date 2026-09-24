@@ -20,7 +20,7 @@ import { useTranslation } from '~/hooks/use_translation'
 import NextSessionWidget from '~/components/planning/NextSessionWidget'
 import type { NextSessionResult } from '~/components/planning/NextSessionWidget'
 
-interface DashboardProps {
+type DashboardProps = {
   sessionCount: number
   heroMetric: HeroMetricData | null
   quickStats: QuickStatData | null

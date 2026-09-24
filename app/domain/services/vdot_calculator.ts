@@ -157,7 +157,7 @@ export function vdotFromQuestionnaire(
 
 // ── vdotFromHistory ───────────────────────────────────────────────────────────
 
-export interface RunSession {
+export type RunSession = {
   distanceMeters: number
   durationMinutes: number
   date: Date

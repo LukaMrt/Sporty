@@ -17,7 +17,7 @@ import { addDaysIso, dayOfWeekIso, todayInTimezone } from '#domain/services/cale
 import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
 import PlanPersister from '#use_cases/planning/plan_persister'
 
-export interface GeneratePlanInput {
+export type GeneratePlanInput = {
   userId: number
   vdot: number
   sessionsPerWeek: number
@@ -25,7 +25,7 @@ export interface GeneratePlanInput {
   planDurationWeeks: number
 }
 
-export interface GeneratePlanResult {
+export type GeneratePlanResult = {
   plan: TrainingPlan
   weeks: PlannedWeek[]
   sessions: PlannedSession[]

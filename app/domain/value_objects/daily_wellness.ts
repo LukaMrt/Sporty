@@ -1,5 +1,5 @@
 /** Métriques de récupération et de santé d'une journée (toutes optionnelles : dépend de la montre) */
-export interface DailyWellness {
+export type DailyWellness = {
   date: string
   restingHeartRate: number | null
   hrvRmssd: number | null

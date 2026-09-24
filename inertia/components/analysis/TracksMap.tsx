@@ -4,7 +4,7 @@ import { MapContainer, Polyline, TileLayer, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { SPORT_COLORS } from './shared'
 
-export interface TrackPreview {
+export type TrackPreview = {
   id: number
   date: string
   sportSlug: string

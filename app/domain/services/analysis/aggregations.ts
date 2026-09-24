@@ -8,7 +8,7 @@ import { calculateVdot } from '#domain/services/vdot_calculator'
 import { addDaysIso, dayOfWeekIso } from '#domain/services/calendar'
 
 /** Séance vue par les analyses : colonnes légères + indicateurs stockés */
-export interface AnalysisSession {
+export type AnalysisSession = {
   id: number
   date: string
   sportSlug: string
@@ -29,7 +29,7 @@ export function weekStart(date: string): string {
 
 // ── B2 · Volume par semaine / mois ────────────────────────────────────────────
 
-export interface VolumeBucket {
+export type VolumeBucket = {
   period: string
   bySport: Record<string, { distanceKm: number; durationMinutes: number; sessions: number }>
 }
@@ -57,7 +57,7 @@ export function volumeByPeriod(
 
 // ── B3 · Répartition d'intensité et 80/20 ─────────────────────────────────────
 
-export interface IntensityWeek {
+export type IntensityWeek = {
   week: string
   /** Minutes par zone Z1 → Z5 */
   zoneMinutes: [number, number, number, number, number]
@@ -92,7 +92,7 @@ export function intensityByWeek(sessions: AnalysisSession[]): IntensityWeek[] {
 
 // ── B4 · Monotonie et contrainte (Foster) ────────────────────────────────────
 
-export interface MonotonyWeek {
+export type MonotonyWeek = {
   week: string
   load: number
   monotony: number | null
@@ -128,7 +128,7 @@ export function monotonyByWeek(days: FitnessDay[]): MonotonyWeek[] {
 
 // ── C1 · Meilleurs efforts ────────────────────────────────────────────────────
 
-export interface EffortRecord {
+export type EffortRecord = {
   distance: EffortDistance
   seconds: number
   sessionId: number
@@ -282,7 +282,7 @@ export function medianEasyPace(sessions: AnalysisSession[]): number | null {
 
 // ── D6 · Suggestions FCmax / LTHR ─────────────────────────────────────────────
 
-export interface PhysiologySuggestion {
+export type PhysiologySuggestion = {
   observedMaxHr: number | null
   observedMaxHrSessionId: number | null
   estimatedLthr: number | null

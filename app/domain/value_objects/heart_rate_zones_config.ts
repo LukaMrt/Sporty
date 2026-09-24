@@ -25,7 +25,7 @@ export const HR_ZONE_METHODS: HrZoneMethod[] = Object.values(HrZoneMethod)
  */
 export type ZoneBoundsBpm = [number, number, number, number, number, number]
 
-export interface HrZonesConfig {
+export type HrZonesConfig = {
   method: HrZoneMethod
   /** FC au seuil lactique (bpm), requise pour la méthode `lthr` */
   lthr: number | null
@@ -40,7 +40,7 @@ export const DEFAULT_HR_ZONES_CONFIG: HrZonesConfig = {
 }
 
 /** Données physiologiques nécessaires aux méthodes calculées */
-export interface HrPhysiology {
+export type HrPhysiology = {
   maxHeartRate: number | null
   restingHeartRate: number | null
 }

@@ -1,10 +1,10 @@
 import stravaLogo from '~/assets/strava-logo.svg'
 import openWearablesLogo from '~/assets/open-wearables-logo.svg'
 
-export type ConnectorStatus = 'connected' | 'error'
+export type ConnectorStatus = 'connected' | 'error' | 'disconnected'
 export type ConnectorAuthKind = 'oauth' | 'api_key'
 
-export interface ConnectorBrand {
+export type ConnectorBrand = {
   provider: string
   name: string
   logo: string

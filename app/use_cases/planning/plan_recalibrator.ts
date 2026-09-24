@@ -8,7 +8,7 @@ import { derivePaceZones } from '#domain/services/vdot_calculator'
 import { planTargetDistanceKm } from '#domain/services/plan_distance'
 import PlanPersister from '#use_cases/planning/plan_persister'
 
-export interface RecalibrateRemainingInput {
+export type RecalibrateRemainingInput = {
   plan: TrainingPlan
   /** Dernière semaine conservée telle quelle ; les suivantes sont régénérées */
   currentWeekNumber: number

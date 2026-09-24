@@ -13,12 +13,12 @@ import PrivacyZonesEditor from '~/components/Profile/PrivacyZonesEditor'
 import HeartRateZonesEditor, { type HrZonesValue } from '~/components/Profile/HeartRateZonesEditor'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface Sport {
+type Sport = {
   id: number
   name: string
 }
 
-interface ProfileData {
+type ProfileData = {
   sportId: number
   level: 'beginner' | 'intermediate' | 'advanced' | null
   objective:
@@ -40,6 +40,7 @@ interface ProfileData {
   maxHeartRate: number | null
   restingHeartRate: number | null
   vma: number | null
+  sex: 'male' | 'female' | null
   timezone: string | null
   privacyZones: { lat: number; lon: number; radiusM: number }[]
   hrZonesConfig: {
@@ -58,7 +59,7 @@ function browserTimezone(): string {
   }
 }
 
-interface EditProps {
+type EditProps = {
   user: { id: number; fullName: string; email: string; role: string }
   profile: ProfileData | null
   sports: Sport[]
@@ -222,7 +223,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                   onChange={(e) =>
                     form.setData(
                       'objective',
-                      (e.target.value || null) as ProfileData['objective'] | ''
+                      e.target.value as NonNullable<ProfileData['objective']> | ''
                     )
                   }
                   className="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:border-sand-9 hover:bg-sand-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"

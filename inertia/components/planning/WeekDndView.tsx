@@ -33,14 +33,14 @@ function parsePaceString(pace: string): number {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface DaySlot {
+type DaySlot = {
   dow: number
   session: PlannedSession | null
   date: Date
   isToday: boolean
 }
 
-interface Props {
+type Props = {
   days: DaySlot[]
   planStartDate: string
   selectedWeek: number

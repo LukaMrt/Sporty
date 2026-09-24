@@ -13,7 +13,7 @@ function inTransaction<T>(fn: (trx: TransactionClientContract) => Promise<T>): P
   return current ? fn(current) : db.transaction(fn)
 }
 
-interface UserProfileSportRow {
+type UserProfileSportRow = {
   sport_id: number
 }
 

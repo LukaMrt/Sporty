@@ -1,4 +1,3 @@
-import React from 'react'
 import { router } from '@inertiajs/react'
 import {
   AlertDialog,
@@ -12,7 +11,7 @@ import {
 } from '~/components/ui/AlertDialog'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface Props {
+type Props = {
   open: boolean
   currentVdot: number
   proposedVdot: number

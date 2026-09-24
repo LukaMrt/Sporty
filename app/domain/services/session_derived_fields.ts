@@ -25,7 +25,7 @@ export type ProfileForDerivation = Pick<
   'maxHeartRate' | 'restingHeartRate' | 'sex' | 'vdot' | 'hrZonesConfig'
 > | null
 
-export interface DerivedSessionFields {
+export type DerivedSessionFields = {
   sportMetrics: SportMetrics
   trainingLoad: number
   loadMethod: TrainingLoadMethod

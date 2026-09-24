@@ -27,7 +27,7 @@ export const MAX_PLAUSIBLE_BPM = 250
 /** Méthode réellement appliquée, `auto` résolu */
 export type ResolvedHrZoneMethod = Exclude<HrZoneMethod, 'auto'>
 
-export interface ZoneBoundsResult {
+export type ZoneBoundsResult = {
   method: ResolvedHrZoneMethod
   bounds: ZoneBoundsBpm
 }

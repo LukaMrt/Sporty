@@ -5,7 +5,7 @@ import type { SessionAnalysis } from '../../../app/domain/value_objects/session_
 type DynamicsKey =
   'power' | 'cadence' | 'strideLength' | 'groundContactTime' | 'verticalOscillation'
 
-export interface RunningDynamicsSummary {
+export type RunningDynamicsSummary = {
   averages: Partial<Record<DynamicsKey, number>>
 }
 

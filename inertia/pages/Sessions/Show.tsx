@@ -56,7 +56,7 @@ function formatMetricValue(key: string, value: number | string): string {
   return `${value}${unit}`
 }
 
-interface TrainingSessionProps {
+type TrainingSessionProps = {
   id: number
   userId: number
   sportId: number
@@ -74,13 +74,13 @@ interface TrainingSessionProps {
   analysis?: SessionAnalysis | null
 }
 
-interface HrZoneThreshold {
+type HrZoneThreshold = {
   zone: number
   minBpm: number
   maxBpm: number
 }
 
-interface ShowProps {
+type ShowProps = {
   session: TrainingSessionProps
   hrZoneThresholds: HrZoneThreshold[] | null
   context: SessionContext | null

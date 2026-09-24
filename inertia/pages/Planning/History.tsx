@@ -1,11 +1,10 @@
-import React from 'react'
 import { Head, Link } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { useTranslation } from '~/hooks/use_translation'
 import PlanHistoryCard from '~/components/planning/PlanHistoryCard'
 import type { TrainingPlan, PlannedWeek, PlannedSession } from '~/types/planning'
 
-interface HistoryEntry {
+type HistoryEntry = {
   plan: TrainingPlan
   weeks: PlannedWeek[]
   sessions: PlannedSession[]
@@ -14,7 +13,7 @@ interface HistoryEntry {
   totalSessionsCount: number
 }
 
-interface Props {
+type Props = {
   history: HistoryEntry[]
 }
 

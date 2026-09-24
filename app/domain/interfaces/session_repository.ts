@@ -12,7 +12,7 @@ export type ListSessionsOptions = {
 }
 
 /** Vue légère d'une séance pour les calculs de charge (sans le JSONB sport_metrics) */
-export interface SessionLoadEntry {
+export type SessionLoadEntry = {
   id: number
   date: string
   sportSlug: string
@@ -22,7 +22,7 @@ export interface SessionLoadEntry {
   loadMethod: TrainingLoadMethod | null
 }
 
-export interface SessionExternalRef {
+export type SessionExternalRef = {
   externalId: string
   id: number
 }

@@ -1,6 +1,4 @@
-import React from 'react'
-
-interface QuickStatCardProps {
+type QuickStatCardProps = {
   label: string
   value: string
   unit: string

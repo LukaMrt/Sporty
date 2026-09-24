@@ -13,7 +13,7 @@ import PostPlanProposal from '~/components/planning/PostPlanProposal'
 import WeekCard from '~/components/planning/WeekCard'
 import { isDateToday, sessionDate } from '~/lib/planning_dates'
 
-interface Props {
+type Props = {
   overview: PlanOverview | null
   postPlanState: PostPlanState | null
 }
@@ -28,20 +28,21 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
   const [view, setView] = useState<'week' | 'weeks'>('week')
   const [acwrDismissed, setAcwrDismissed] = useState(false)
   const inactivityStorageKey = overview?.plan ? `inactivity_dismissed_${overview.plan.id}` : null
+  const lastSessionDays = overview?.daysSinceLastSession ?? null
   const [inactivityDismissed, setInactivityDismissed] = useState(() => {
-    if (!inactivityStorageKey || overview?.daysSinceLastSession === null) return false
+    if (!inactivityStorageKey || lastSessionDays === null) return false
     const stored = localStorage.getItem(inactivityStorageKey)
     if (!stored) return false
     // Le dismiss est valide uniquement si la dernière séance n'a pas changé depuis.
     // On stocke le daysSinceLastSession au moment du dismiss ; si la valeur actuelle
     // est inférieure, c'est qu'une nouvelle séance a eu lieu entre-temps → on réinitialise.
     const dismissedAtDays = Number(stored)
-    return overview.daysSinceLastSession >= dismissedAtDays
+    return lastSessionDays >= dismissedAtDays
   })
 
   function dismissInactivity() {
-    if (inactivityStorageKey && overview?.daysSinceLastSession !== null) {
-      localStorage.setItem(inactivityStorageKey, String(overview.daysSinceLastSession))
+    if (inactivityStorageKey && lastSessionDays !== null) {
+      localStorage.setItem(inactivityStorageKey, String(lastSessionDays))
     }
     setInactivityDismissed(true)
   }
