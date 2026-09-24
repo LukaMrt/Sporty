@@ -161,11 +161,14 @@ export default class GeneratePlan {
         },
         generatedPlan.weeks
       )
-      await this.userProfileRepository.update(input.userId, {
-        trainingState: TrainingState.Preparation,
-        // Le VDOT du plan devient la référence de l'athlète (charge rTSS, prédictions)
-        vdot: input.vdot,
-      })
+      // Sans profil (compte incomplet), le plan reste valable : rien à synchroniser
+      if (profile) {
+        await this.userProfileRepository.update(input.userId, {
+          trainingState: TrainingState.Preparation,
+          // Le VDOT du plan devient la référence de l'athlète (charge rTSS, prédictions)
+          vdot: input.vdot,
+        })
+      }
       return result
     })
 

@@ -289,20 +289,22 @@ function makeSession(date: string, durationMinutes: number): TrainingSession {
   }
 }
 
-function makeUserProfileRepo(): UserProfileRepository {
+function makeUserProfileRepo(profile: UserProfile | null = DEFAULT_PROFILE): UserProfileRepository {
   class MockProfileRepo extends UserProfileRepository {
     async create(): Promise<UserProfile> {
       throw new Error('not implemented')
     }
     async findByUserId(): Promise<UserProfile | null> {
-      return DEFAULT_PROFILE
+      return profile
     }
     async update(
       _userId: number,
       data: Partial<Omit<UserProfile, 'id' | 'userId'>>
     ): Promise<UserProfile> {
+      // Comme le repository Lucid (firstOrFail) : pas de profil → erreur
+      if (!profile) throw new Error('Row not found')
       if (data.trainingState) capturedTrainingState = data.trainingState
-      return DEFAULT_PROFILE
+      return profile
     }
   }
   return new MockProfileRepo()
@@ -311,14 +313,15 @@ function makeUserProfileRepo(): UserProfileRepository {
 function makeUseCase(
   goal: TrainingGoal | null,
   existingPlan: TrainingPlan | null = null,
-  sessions: TrainingSession[] = []
+  sessions: TrainingSession[] = [],
+  profile: UserProfile | null = DEFAULT_PROFILE
 ) {
   return new GeneratePlan(
     makeGoalRepo(goal),
     makePlanRepo(existingPlan),
     makeSessionRepo(sessions),
     makePlanEngine(),
-    makeUserProfileRepo(),
+    makeUserProfileRepo(profile),
     stubGetFitnessProfile(),
     new PlanPersister(makePlanRepo(existingPlan)),
     new ImmediateUnitOfWork()
@@ -379,6 +382,15 @@ test.group('GeneratePlan — use case', () => {
     await useCase.execute(INPUT)
 
     assert.equal(capturedTrainingState, TrainingState.Preparation)
+  })
+
+  test('génère le plan même sans profil athlète (rien à synchroniser)', async ({ assert }) => {
+    capturedTrainingState = undefined
+    const useCase = makeUseCase(ACTIVE_GOAL, null, [], null)
+    const result = await useCase.execute(INPUT)
+
+    assert.equal(result.plan.status, PlanStatus.Active)
+    assert.isUndefined(capturedTrainingState)
   })
 
   test('les séances ont des intervals, un type et une zone', async ({ assert }) => {

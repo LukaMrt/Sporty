@@ -37,10 +37,10 @@ export default class PlanRecalibrator {
     const volumeFactor = input.volumeFactor ?? 1
     const nextWeekNumber = currentWeekNumber + 1
 
-    const [allWeeks, allSessions] = await Promise.all([
-      this.planRepository.findWeeksByPlanId(plan.id),
-      this.planRepository.findSessionsByPlanId(plan.id),
-    ])
+    // Séquentiel : appelé dans une transaction, dont la connexion unique
+    // n'accepte pas de requêtes concurrentes (déprécié par pg, interdit en pg@9)
+    const allWeeks = await this.planRepository.findWeeksByPlanId(plan.id)
+    const allSessions = await this.planRepository.findSessionsByPlanId(plan.id)
 
     const remainingWeeks: GeneratedWeek[] = allWeeks
       .filter((w) => w.weekNumber >= nextWeekNumber)

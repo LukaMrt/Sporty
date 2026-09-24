@@ -13,6 +13,19 @@ import limiter from '@adonisjs/limiter/services/main'
  */
 
 /**
+ * `wrapInGlobalTransaction` fait passer toutes les requêtes d'un test par une seule
+ * connexion : les lectures parallèles (Promise.all) des use cases, sans risque en
+ * production où chacune prend sa connexion du pool, y déclenchent un avertissement pg.
+ * On ne masque que celui-là ; tout autre avertissement reste affiché.
+ */
+const CONCURRENT_QUERY_WARNING = 'Calling client.query() when the client is already executing'
+process.removeAllListeners('warning')
+process.on('warning', (warning) => {
+  if (warning.message.startsWith(CONCURRENT_QUERY_WARNING)) return
+  process.stderr.write(`${warning.name}: ${warning.message}\n`)
+})
+
+/**
  * Configure Japa plugins in the plugins array.
  * Learn more - https://japa.dev/docs/runner-config#plugins-optional
  */

@@ -119,7 +119,9 @@ function makeConnector(fetcher: (url: string) => unknown): StravaConnector {
   const mockFetch = async (input: string | URL | Request) => {
     const url = input instanceof Request ? input.url : String(input)
     const data = fetcher(url)
-    return new Response(JSON.stringify(data), {
+    // Fetcher « activité seule » : l'appel /streams reçoit une liste vide (pas de courbes)
+    const body = url.includes('/streams') && !Array.isArray(data) ? [] : data
+    return new Response(JSON.stringify(body), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     })

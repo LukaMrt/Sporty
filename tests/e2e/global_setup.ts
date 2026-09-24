@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { execSync } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,14 +18,20 @@ const env: NodeJS.ProcessEnv = {
   TZ: 'UTC',
 }
 
-const run = (cmd: string) => execSync(cmd, { cwd: root, env, stdio: 'inherit' })
+/** Sortie des commandes Ace affichée uniquement en cas d'échec */
+function run(cmd: string) {
+  try {
+    execSync(cmd, { cwd: root, env, stdio: 'pipe' })
+  } catch (error) {
+    const { stdout, stderr } = error as { stdout?: Buffer; stderr?: Buffer }
+    const output = `${stdout?.toString() ?? ''}${stderr?.toString() ?? ''}`
+    process.stderr.write(`[e2e] Échec : ${cmd}\n${output}\n`)
+    throw error
+  }
+}
 
 export default async function globalSetup() {
-  console.log('[e2e] Running migrations on sporty_e2e...')
   run('node ace migration:run --force')
-  console.log('[e2e] Truncating tables...')
   run('node ace db:truncate --force')
-  console.log('[e2e] Seeding...')
   run('node ace db:seed')
-  console.log('[e2e] Setup complete.')
 }
