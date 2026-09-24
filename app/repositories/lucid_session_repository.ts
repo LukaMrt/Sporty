@@ -11,6 +11,7 @@ import db from '@adonisjs/lucid/services/db'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import SessionModel from '#models/session'
 import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
+import type { AnalysisSession } from '#domain/services/analysis/aggregations'
 
 /**
  * Colonnes des requêtes de liste : sans `sport_metrics`, dont les courbes et la
@@ -32,6 +33,7 @@ const LIST_COLUMNS = [
   'gpx_file_path',
   'training_load',
   'load_method',
+  'analysis',
   'deleted_at',
   'created_at',
   'updated_at',
@@ -59,6 +61,7 @@ export default class LucidSessionRepository extends SessionRepository {
       gpxFilePath: data.gpxFilePath ?? null,
       trainingLoad: data.trainingLoad ?? null,
       loadMethod: data.loadMethod ?? null,
+      analysis: data.analysis ?? null,
     })
     await model.load('sport')
     return this.#toEntity(model)
@@ -129,6 +132,7 @@ export default class LucidSessionRepository extends SessionRepository {
     if (data.gpxFilePath !== undefined) model.gpxFilePath = data.gpxFilePath
     if (data.trainingLoad !== undefined) model.trainingLoad = data.trainingLoad
     if (data.loadMethod !== undefined) model.loadMethod = data.loadMethod
+    if (data.analysis !== undefined) model.analysis = data.analysis
 
     await model.save()
     await model.load('sport')
@@ -235,6 +239,30 @@ export default class LucidSessionRepository extends SessionRepository {
     }))
   }
 
+  async findAnalysisEntries(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<AnalysisSession[]> {
+    const models = await SessionModel.query()
+      .select(LIST_COLUMNS)
+      .preload('sport')
+      .withScopes((s) => s.withoutTrashed())
+      .where('userId', userId)
+      .whereBetween('date', [startDate, endDate])
+      .orderBy('date', 'asc')
+    return models.map((m) => ({
+      id: m.id,
+      date: m.date.toISODate() ?? '',
+      sportSlug: m.sport.slug,
+      durationMinutes: m.durationMinutes,
+      distanceKm: m.distanceKm === null ? null : Number(m.distanceKm),
+      avgHeartRate: m.avgHeartRate,
+      trainingLoad: m.trainingLoad ?? null,
+      analysis: m.analysis ?? null,
+    }))
+  }
+
   async findByIds(ids: number[]): Promise<TrainingSession[]> {
     if (ids.length === 0) return []
     const models = await SessionModel.query().preload('sport').whereIn('id', ids)
@@ -271,6 +299,7 @@ export default class LucidSessionRepository extends SessionRepository {
       deletedAt: model.deletedAt?.toISO() ?? null,
       trainingLoad: model.trainingLoad ?? null,
       loadMethod: model.loadMethod ?? null,
+      analysis: model.analysis ?? null,
     }
   }
 }

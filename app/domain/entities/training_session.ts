@@ -1,5 +1,6 @@
 import type { SportMetrics } from '#domain/value_objects/sport_metrics'
 import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
+import type { SessionAnalysis } from '#domain/value_objects/session_analysis'
 
 export interface TrainingSession {
   id: number
@@ -23,4 +24,6 @@ export interface TrainingSession {
   /** TSS calculé et stocké (null = pas encore calculé) */
   trainingLoad?: number | null
   loadMethod?: TrainingLoadMethod | null
+  /** Indicateurs d'analyse calculés à l'écriture */
+  analysis?: SessionAnalysis | null
 }

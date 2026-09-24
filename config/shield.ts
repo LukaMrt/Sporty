@@ -33,7 +33,8 @@ const shieldConfig = defineConfig({
    */
   csrf: {
     enabled: process.env.NODE_ENV !== 'test',
-    exceptRoutes: [],
+    // Webhooks : authentifiés par signature HMAC, pas par cookie de session
+    exceptRoutes: ['/webhooks/open-wearables'],
     enableXsrfCookie: true,
     methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
   },

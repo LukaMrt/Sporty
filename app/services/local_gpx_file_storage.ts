@@ -42,6 +42,10 @@ export class LocalGpxFileStorage extends GpxFileStorage {
     return `${LOGICAL_PREFIX}gpx/${userId}/${sessionId}.gpx`
   }
 
+  async readFile(path: string): Promise<Buffer> {
+    return readFile(this.#resolveLogical(path))
+  }
+
   async deleteFile(path: string): Promise<void> {
     await rm(this.#resolveLogical(path), { force: true })
   }

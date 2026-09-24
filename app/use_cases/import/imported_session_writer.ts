@@ -83,6 +83,7 @@ export default class ImportedSessionWriter {
       externalId: mapped.externalId,
       trainingLoad: derived.trainingLoad,
       loadMethod: derived.loadMethod,
+      analysis: derived.analysis,
     })
 
     await this.eventEmitter.emit('session:completed', { sessionId: session.id, userId })

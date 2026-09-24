@@ -20,6 +20,8 @@ import { EventEmitter } from '#domain/interfaces/event_emitter'
 import { Logger } from '#domain/interfaces/logger'
 import { OAuthClient } from '#domain/interfaces/oauth_client'
 import { UnitOfWork } from '#domain/interfaces/unit_of_work'
+import { DailyMetricsRepository } from '#domain/interfaces/daily_metrics_repository'
+import { WebhookVerifier } from '#domain/interfaces/webhook_verifier'
 
 /** En-tête d'authentification Open Wearables par défaut (source unique) */
 const DEFAULT_OW_API_KEY_HEADER = 'X-Open-Wearables-API-Key'
@@ -148,6 +150,18 @@ export default class AppProvider {
         env.get('STRAVA_CLIENT_SECRET'),
         appUrl
       )
+    })
+
+    this.app.container.bind(DailyMetricsRepository, async () => {
+      const { default: LucidDailyMetricsRepository } =
+        await import('#repositories/lucid_daily_metrics_repository')
+      return new LucidDailyMetricsRepository()
+    })
+
+    this.app.container.bind(WebhookVerifier, async () => {
+      const { SvixWebhookVerifier } = await import('#services/svix_webhook_verifier')
+      const { default: env } = await import('#start/env')
+      return new SvixWebhookVerifier(env.get('OPEN_WEARABLES_WEBHOOK_SECRET'))
     })
 
     this.app.container.singleton(UnitOfWork, async () => {

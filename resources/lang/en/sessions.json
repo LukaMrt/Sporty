@@ -118,7 +118,8 @@
         }
       },
       "learnMore": "Learn more"
-    }
+    },
+    "downloadGpx": "Download GPX"
   },
   "edit": {
     "title": "Edit session",
@@ -154,5 +155,25 @@
   },
   "fab": {
     "newSession": "New session"
+  },
+  "insights": {
+    "title": "Session analysis",
+    "gap": "Grade adjusted pace",
+    "gapHint": "Flat equivalent",
+    "ef": "Efficiency Factor",
+    "decoupling": "Aerobic decoupling",
+    "decouplingGood": "Solid aerobic base",
+    "decouplingHigh": "Noticeable drift",
+    "dynamics": {
+      "power": "Power",
+      "cadence": "Cadence",
+      "strideLength": "Stride length",
+      "groundContactTime": "Ground contact time",
+      "verticalOscillation": "Vertical oscillation"
+    },
+    "context": "Context of the day",
+    "sleep": "Sleep",
+    "restingHr": "Resting HR",
+    "tsbBefore": "Form before the session"
   }
 }

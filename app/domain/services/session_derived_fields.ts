@@ -3,14 +3,16 @@ import type { UserProfile } from '#domain/entities/user_profile'
 import type { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
 import type { SportMetrics } from '#domain/value_objects/sport_metrics'
 import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
-import type { DataPoint } from '#domain/value_objects/run_metrics'
+import type { DataPoint, GpsPoint } from '#domain/value_objects/run_metrics'
+import type { SessionAnalysis } from '#domain/value_objects/session_analysis'
+import { computeSessionAnalysis } from '#domain/services/analysis/session_analysis'
 import { isRunMetrics } from '#domain/value_objects/sport_metrics'
 import { resolveZoneBounds } from '#domain/services/heart_rate_zone_bounds'
 import {
   computeSessionHrMetrics,
   DERIVED_HR_METRIC_KEYS,
 } from '#domain/services/heart_rate_zone_service'
-import { buildSessionLoadInput } from '#domain/services/session_load'
+import { buildSessionLoadInput, RUNNING_SLUG } from '#domain/services/session_load'
 
 export type SessionForDerivation = Pick<
   TrainingSession,
@@ -26,6 +28,7 @@ export interface DerivedSessionFields {
   sportMetrics: SportMetrics
   trainingLoad: number
   loadMethod: TrainingLoadMethod
+  analysis: SessionAnalysis
 }
 
 /**
@@ -52,9 +55,10 @@ export function deriveSessionFields(
         })?.bounds ?? null)
       : null
 
-  const curve = isRunMetrics(raw)
-    ? (raw as { heartRateCurve?: DataPoint[] }).heartRateCurve
-    : undefined
+  const run = isRunMetrics(raw)
+    ? (raw as { heartRateCurve?: DataPoint[]; gpsTrack?: GpsPoint[] })
+    : {}
+  const curve = run.heartRateCurve
   const hrMetrics = computeSessionHrMetrics(bounds, {
     heartRateCurve: curve,
     avgHeartRate: session.avgHeartRate,
@@ -66,5 +70,18 @@ export function deriveSessionFields(
     buildSessionLoadInput({ ...session, sportMetrics }, profile)
   )
 
-  return { sportMetrics, trainingLoad: load.value, loadMethod: load.method }
+  const analysis = computeSessionAnalysis(
+    {
+      durationMinutes: session.durationMinutes,
+      distanceKm: session.distanceKm,
+      avgHeartRate: session.avgHeartRate,
+      isRunning: session.sportSlug === undefined || session.sportSlug === RUNNING_SLUG,
+      gpsTrack: run.gpsTrack,
+      heartRateCurve: curve,
+      hrZonesPercent: hrMetrics.hrZones,
+    },
+    bounds
+  )
+
+  return { sportMetrics, trainingLoad: load.value, loadMethod: load.method, analysis }
 }

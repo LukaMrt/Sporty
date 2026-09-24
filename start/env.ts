@@ -81,4 +81,6 @@ export default await Env.create(new URL('../', import.meta.url), {
   OPEN_WEARABLES_BASE_URL: Env.schema.string.optional(),
   OPEN_WEARABLES_API_KEY_HEADER: Env.schema.string.optional(),
   OPEN_WEARABLES_MAX_RPM: Env.schema.number.optional(),
+  /** Secret de signature des webhooks (whsec_…), fourni par le serveur Open Wearables */
+  OPEN_WEARABLES_WEBHOOK_SECRET: Env.schema.string.optional(),
 })

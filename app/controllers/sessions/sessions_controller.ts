@@ -9,6 +9,7 @@ import RestoreSession from '#use_cases/sessions/restore_session'
 import ListSessions from '#use_cases/sessions/list_sessions'
 import GetSession from '#use_cases/sessions/get_session'
 import ListSports from '#use_cases/sports/list_sports'
+import GetSessionContext from '#use_cases/sessions/get_session_context'
 import GetProfile from '#use_cases/profile/get_profile'
 import { createSessionValidator } from '#validators/sessions/create_session_validator'
 import { updateSessionValidator } from '#validators/sessions/update_session_validator'
@@ -33,7 +34,8 @@ export default class SessionsController {
     private listTrashedSessions: ListTrashedSessions,
     private getSession: GetSession,
     private listSports: ListSports,
-    private getProfile: GetProfile
+    private getProfile: GetProfile,
+    private getSessionContext: GetSessionContext
   ) {}
 
   async trash({ inertia, auth }: HttpContext) {
@@ -115,9 +117,11 @@ export default class SessionsController {
           })
         : null
       const hrZoneThresholds = bounds ? boundsToThresholds(bounds.bounds) : null
+      const context = await this.getSessionContext.execute(auth.user!.id, trainingSession.date)
       return inertia.render('Sessions/Show', {
         session: { ...trainingSession, gpxFilePath: trainingSession.gpxFilePath ?? null },
         hrZoneThresholds,
+        context,
       })
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {

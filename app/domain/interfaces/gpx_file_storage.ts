@@ -9,6 +9,7 @@ export abstract class GpxFileStorage {
   abstract readTempFile(tempId: string, userId: number): Promise<Buffer>
   abstract moveTempFile(tempId: string, userId: number, sessionId: number): Promise<string>
   abstract saveFile(content: Buffer, userId: number, sessionId: number): Promise<string>
+  abstract readFile(path: string): Promise<Buffer>
   abstract deleteFile(path: string): Promise<void>
   abstract deleteAllForUser(userId: number): Promise<void>
   /** Supprime les fichiers temporaires plus vieux que `maxAgeMs` ; renvoie le nombre supprimé */

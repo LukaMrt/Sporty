@@ -11,6 +11,7 @@ import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
 import { syncWindowStart } from '#domain/services/sync_window'
 import ImportedSessionWriter from '#use_cases/import/imported_session_writer'
+import SyncWellness from '#use_cases/wellness/sync_wellness'
 
 export interface SyncConnectorInput {
   connectorId: number
@@ -33,7 +34,8 @@ export default class SyncConnector {
     private sportRepository: SportRepository,
     private userProfileRepository: UserProfileRepository,
     private writer: ImportedSessionWriter,
-    private logger: Logger
+    private logger: Logger,
+    private syncWellness?: SyncWellness
   ) {}
 
   async execute(input: SyncConnectorInput): Promise<SyncConnectorResult> {
@@ -78,6 +80,16 @@ export default class SyncConnector {
       )
 
       await this.connectorRepository.updateLastSyncAt(connectorId)
+
+      // Récupération des 7 derniers jours (sommeil, HRV… arrivent parfois en différé)
+      if (this.syncWellness && connector.supportsWellness()) {
+        try {
+          await this.syncWellness.execute(userId, provider, new Date(Date.now() - 7 * 86_400_000))
+        } catch (error) {
+          if (error instanceof ConnectorAuthError) throw error
+          this.logger.warn({ connectorId, err: error }, 'Wellness sync failed')
+        }
+      }
 
       // AC#2 — importer seulement si auto_import_enabled
       if (!autoImportEnabled) {

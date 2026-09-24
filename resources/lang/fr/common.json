@@ -6,7 +6,8 @@
     "profile": "Profil",
     "admin": "Administration",
     "connectors": "Connecteurs",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "analysis": "Analyse"
   },
   "actions": {
     "save": "Enregistrer",

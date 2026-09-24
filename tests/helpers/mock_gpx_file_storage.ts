@@ -6,6 +6,7 @@ export function makeMockGpxFileStorage(overrides: Partial<GpxFileStorage> = {}):
     readTempFile: async () => Buffer.from(''),
     moveTempFile: async () => 'storage/gpx/42/1.gpx',
     saveFile: async () => 'storage/gpx/42/1.gpx',
+    readFile: async () => Buffer.from(''),
     deleteFile: async () => {},
     deleteAllForUser: async () => {},
     purgeTempFiles: async () => 0,

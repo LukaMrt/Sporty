@@ -89,6 +89,7 @@ export default class UpdateSession {
       notes: data.notes ?? null,
       trainingLoad: derived.trainingLoad,
       loadMethod: derived.loadMethod,
+      analysis: derived.analysis,
     })
   }
 }

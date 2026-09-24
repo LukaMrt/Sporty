@@ -92,4 +92,12 @@ export abstract class ConnectorRepository {
     userId: number,
     provider: ConnectorProvider
   ): Promise<ConnectorSettingsRecord | null>
+
+  /** Connecteur d'un provider par identifiant utilisateur distant (webhooks) */
+  async findByExternalUserId(
+    _provider: ConnectorProvider,
+    _externalUserId: string
+  ): Promise<ConnectorByIdRecord | null> {
+    return null
+  }
 }

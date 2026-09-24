@@ -19,13 +19,25 @@ import {
 } from '#connectors/open_wearables/open_wearables_http_client'
 import { OpenWearablesSportMapper } from '#connectors/open_wearables/open_wearables_sport_mapper'
 import { dedupeWorkouts, isSameWorkout } from '#connectors/open_wearables/workout_deduplicator'
-import { toHeartRateCurve } from '#connectors/open_wearables/timeseries_converter'
+import {
+  toHeartRateCurve,
+  toRunningDynamics,
+  RUNNING_DYNAMICS_TYPES,
+} from '#connectors/open_wearables/timeseries_converter'
 import {
   encodeExternalId,
   decodeExternalId,
 } from '#connectors/open_wearables/open_wearables_external_id'
 import type { RawOwWorkout, RawOwTimeSeriesSample } from '#connectors/open_wearables/types'
 import { MAX_PAGE_SIZE } from '#connectors/open_wearables/open_wearables_http_client'
+import {
+  toDailyWellness,
+  WELLNESS_TIMESERIES_TYPES,
+  type RawOwActivitySummary,
+  type RawOwHealthScore,
+  type RawOwSleep,
+} from '#connectors/open_wearables/wellness_converter'
+import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 
 /** Pas d'échantillonnage le plus fin supposé (montre à 1 Hz) */
 const MIN_SAMPLE_PERIOD_SECONDS = 1
@@ -132,6 +144,63 @@ export class OpenWearablesConnector extends Connector {
     // La cle API appartient a l'utilisateur : rien a revoquer a distance.
   }
 
+  supportsWellness(): boolean {
+    return true
+  }
+
+  /**
+   * Récupération et santé quotidiennes : FC repos, HRV, poids, SpO2… (séries
+   * temporelles), sommeil (événements) et pas / minutes d'intensité (résumés).
+   * Chaque source est facultative : une montre qui ne la fournit pas, ou une
+   * version du serveur qui ne l'expose pas, ne bloque pas les autres.
+   */
+  async listDailyWellness(from: Date, to: Date): Promise<DailyWellness[]> {
+    const base = `/users/${this.externalUserId}`
+    const optional = async <T>(label: string, fetcher: () => Promise<T[]>): Promise<T[]> => {
+      try {
+        return await fetcher()
+      } catch (error) {
+        if (error instanceof ConnectorAuthError) throw error
+        logger.warn(
+          { err: error, connectorId: this.id, source: label },
+          'Wellness source unavailable'
+        )
+        return []
+      }
+    }
+
+    const [samples, sleeps, activities, scores] = await Promise.all([
+      optional('timeseries', () =>
+        this.#client.getAllPages<RawOwTimeSeriesSample>(`${base}/timeseries`, {
+          start_time: from.toISOString(),
+          end_time: to.toISOString(),
+          types: WELLNESS_TIMESERIES_TYPES,
+        })
+      ),
+      optional('sleep', () =>
+        this.#client.getAllPages<RawOwSleep>(`${base}/events/sleep`, {
+          start_date: toDateParam(from),
+          end_date: toDateParam(addDays(to, 1)),
+          include: ['stages'],
+        })
+      ),
+      optional('activity', () =>
+        this.#client.getAllPages<RawOwActivitySummary>(`${base}/summaries/activity`, {
+          start_date: toDateParam(from),
+          end_date: toDateParam(addDays(to, 1)),
+        })
+      ),
+      optional('health-scores', () =>
+        this.#client.getAllPages<RawOwHealthScore>(`${base}/health-scores`, {
+          start_date: toDateParam(from),
+          end_date: toDateParam(addDays(to, 1)),
+        })
+      ),
+    ])
+
+    return toDailyWellness({ samples, sleeps, activities, scores })
+  }
+
   async #fetchWorkouts(after: Date, before: Date): Promise<RawOwWorkout[]> {
     return this.#client.getAllPages<RawOwWorkout>(`/users/${this.externalUserId}/events/workouts`, {
       start_date: toDateParam(after),
@@ -178,7 +247,11 @@ export class OpenWearablesConnector extends Connector {
 
     // Degradation gracieuse : sans FC la seance reste importable.
     try {
-      const { curve, truncated } = await this.#fetchHeartRateCurve(workout)
+      const { curve, truncated, dynamics } = await this.#fetchHeartRateCurve(
+        workout,
+        sportSlug === 'running'
+      )
+      if (dynamics) metrics.runningDynamics = dynamics
       if (curve.length > 0) {
         metrics.heartRateCurve = curve
         metrics.minHeartRate = Math.min(...curve.map((p) => p.value))
@@ -220,26 +293,32 @@ export class OpenWearablesConnector extends Connector {
     }
   }
 
-  async #fetchHeartRateCurve(workout: RawOwWorkout) {
+  async #fetchHeartRateCurve(workout: RawOwWorkout, withDynamics: boolean) {
     // Plafond calculé selon la durée : une séance de 2 h à 1 Hz dépasse largement
     // les 50 pages par défaut, ce qui tronquait la courbe sans prévenir.
     const expectedSamples = Math.ceil(
       Math.max(workout.duration_seconds, 0) / MIN_SAMPLE_PERIOD_SECONDS
     )
-    const maxPages = Math.ceil(expectedSamples / MAX_PAGE_SIZE) + TIMESERIES_PAGE_MARGIN
+    // Une seule requête (types=a,b,c) : FC + dynamique de course pour la course
+    const types = withDynamics
+      ? ['heart_rate', ...Object.keys(RUNNING_DYNAMICS_TYPES)]
+      : ['heart_rate']
+    const maxPages =
+      Math.ceil((expectedSamples * types.length) / MAX_PAGE_SIZE) + TIMESERIES_PAGE_MARGIN
     const { data: samples, truncated } =
       await this.#client.getAllPagesWithMeta<RawOwTimeSeriesSample>(
         `/users/${this.externalUserId}/timeseries`,
         {
           start_time: new Date(workout.start_time).toISOString(),
           end_time: new Date(workout.end_time).toISOString(),
-          types: ['heart_rate'],
+          types,
         },
         maxPages
       )
     return {
       curve: toHeartRateCurve(samples, workout.start_time, workout.duration_seconds),
       truncated,
+      dynamics: withDynamics ? toRunningDynamics(samples, workout.start_time) : null,
     }
   }
 

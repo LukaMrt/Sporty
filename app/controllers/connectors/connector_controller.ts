@@ -1,15 +1,14 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
+import logger from '@adonisjs/core/services/logger'
 import GetConnectorStatus from '#use_cases/connectors/get_connector_status'
 import DisconnectConnector from '#use_cases/connectors/disconnect_connector'
 import ListPreImportSessions, {
   ConnectorNotConnectedError,
 } from '#use_cases/import/list_pre_import_sessions'
 import GetStagedSessions from '#use_cases/import/get_staged_sessions'
-import { ConnectorRepository } from '#domain/interfaces/connector_repository'
-import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
-import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
-import { describeProvider, isKnownProvider } from '#domain/value_objects/connector_descriptor'
+import BackfillConnector from '#use_cases/connectors/backfill_connector'
+import { describeProvider } from '#domain/value_objects/connector_descriptor'
 import { isProviderConfigured } from '#lib/connector_config'
 
 interface RawSessionData {
@@ -57,23 +56,11 @@ export default class ConnectorController {
     private disconnectConnector: DisconnectConnector,
     private listPreImportSessions: ListPreImportSessions,
     private getStagedSessions: GetStagedSessions,
-    private connectorRepository: ConnectorRepository,
-    private connectorRegistry: ConnectorRegistry
+    private backfillConnector: BackfillConnector
   ) {}
 
-  /**
-   * Un provider connu du domaine mais sans factory enregistree doit repondre 404,
-   * pas 500 : le registre est la source de verite.
-   */
-  #resolveProvider(raw: unknown): ConnectorProvider | null {
-    if (typeof raw !== 'string') return null
-    if (!isKnownProvider(raw)) return null
-    if (!this.connectorRegistry.has(raw)) return null
-    return raw
-  }
-
   async show({ inertia, auth, request, params, response, i18n }: HttpContext) {
-    const provider = this.#resolveProvider(params.provider)
+    const provider = this.getConnectorStatus.resolveProvider(params.provider)
     if (!provider) {
       return response.abort(i18n.t('connectors.settings.providerNotFound'), 404)
     }
@@ -89,7 +76,7 @@ export default class ConnectorController {
     const after = afterParam ? new Date(afterParam) : undefined
     const before = beforeParam ? new Date(beforeParam) : undefined
 
-    const settings = await this.connectorRepository.findSettings(userId, provider)
+    const settings = await this.getConnectorStatus.getSettings(userId, provider)
     const basePayload = {
       provider,
       authKind: describeProvider(provider).authKind,
@@ -129,7 +116,7 @@ export default class ConnectorController {
   }
 
   async disconnect({ response, auth, session, params, i18n }: HttpContext) {
-    const provider = this.#resolveProvider(params.provider)
+    const provider = this.getConnectorStatus.resolveProvider(params.provider)
     if (!provider) {
       return response.abort(i18n.t('connectors.settings.providerNotFound'), 404)
     }
@@ -141,5 +128,24 @@ export default class ConnectorController {
     )
 
     return response.redirect('/connectors')
+  }
+
+  /**
+   * POST /connectors/:provider/backfill — import de l'historique (A3) en tâche
+   * de fond : séances mises en staging et métriques de récupération.
+   */
+  async backfill({ response, auth, session, params, i18n }: HttpContext) {
+    const provider = this.getConnectorStatus.resolveProvider(params.provider)
+    if (!provider) {
+      return response.abort(i18n.t('connectors.settings.providerNotFound'), 404)
+    }
+    const userId = auth.user!.id
+    setImmediate(() => {
+      this.backfillConnector.execute(userId, provider).catch((error: unknown) => {
+        logger.error({ err: error, userId, provider }, 'Connector backfill failed')
+      })
+    })
+    session.flash('success', i18n.t('connectors.backfill.started'))
+    return response.redirect().back()
   }
 }

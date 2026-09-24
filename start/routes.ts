@@ -40,8 +40,13 @@ const InactivityController = () => import('#controllers/planning/inactivity_cont
 const HistoryController = () => import('#controllers/planning/history_controller')
 const GpxController = () => import('#controllers/sessions/gpx_controller')
 const HealthController = () => import('#controllers/health_controller')
+const AnalysisController = () => import('#controllers/analysis/analysis_controller')
+const OpenWearablesWebhookController = () =>
+  import('#controllers/webhooks/open_wearables_webhook_controller')
 
 router.get('/health', [HealthController, 'show'])
+// Webhooks entrants : authentifiés par signature (pas de session ni de CSRF)
+router.post('/webhooks/open-wearables', [OpenWearablesWebhookController, 'handle'])
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
@@ -70,11 +75,15 @@ router
     router.post('/sessions', [SessionsController, 'store'])
     router.post('/sessions/parse-gpx', [GpxController, 'parseGpx'])
     router.post('/sessions/:id/enrich-gpx', [GpxController, 'enrichGpx'])
+    router.get('/sessions/:id/gpx', [AnalysisController, 'exportGpx'])
     router.get('/sessions/:id', [SessionsController, 'show'])
     router.get('/sessions/:id/edit', [SessionsController, 'edit'])
     router.put('/sessions/:id', [SessionsController, 'update'])
     router.delete('/sessions/:id', [SessionsController, 'destroy'])
     router.post('/sessions/:id/restore', [SessionsController, 'restore'])
+    router.get('/analysis', [AnalysisController, 'index'])
+    router.get('/export/sessions.csv', [AnalysisController, 'exportSessions'])
+    router.get('/export/daily-metrics.csv', [AnalysisController, 'exportDailyMetrics'])
     router.get('/planning', [PlanningController, 'index'])
     router.get('/planning/week/:weekNumber', [PlanningController, 'weekDetail'])
     router.get('/planning/goal', [GoalWizardController, 'create'])
@@ -111,6 +120,7 @@ router
       .use(connectorConnectThrottle)
     router.get('/connectors/:provider', [ConnectorController, 'show'])
     router.post('/connectors/:provider/disconnect', [ConnectorController, 'disconnect'])
+    router.post('/connectors/:provider/backfill', [ConnectorController, 'backfill'])
     router.post('/connectors/:provider/settings', [ConnectorSettingsController, 'update'])
     router.post('/import/batch', [ImportController, 'batch'])
     router.post('/import/sessions/:id/ignore', [ImportSessionsController, 'ignore'])

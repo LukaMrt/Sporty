@@ -59,6 +59,7 @@ export default class EnrichSessionWithGpx {
         gpxFilePath,
         trainingLoad: derived.trainingLoad,
         loadMethod: derived.loadMethod,
+        analysis: derived.analysis,
       })
     } catch (error) {
       // Pas de fichier orphelin si la mise à jour échoue (sauf s'il remplaçait l'ancien)

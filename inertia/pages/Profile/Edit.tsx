@@ -7,7 +7,7 @@ import ChangePasswordForm from '~/components/Profile/ChangePasswordForm'
 import FormField from '~/components/forms/FormField'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
-import HeartRateZonesEditor, { type HrZonesValue } from '~/components/profile/HeartRateZonesEditor'
+import HeartRateZonesEditor, { type HrZonesValue } from '~/components/Profile/HeartRateZonesEditor'
 import { useTranslation } from '~/hooks/use_translation'
 
 interface Sport {

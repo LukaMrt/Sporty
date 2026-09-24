@@ -1,0 +1,163 @@
+{
+  "title": "Analysis",
+  "range": "Period",
+  "sections": "Sections",
+  "ranges": {
+    "3m": "3 months",
+    "6m": "6 months",
+    "12m": "12 months",
+    "all": "All"
+  },
+  "nav": {
+    "fitness": "Fitness",
+    "volume": "Volume",
+    "intensity": "Intensity",
+    "performance": "Performance",
+    "efficiency": "Efficiency",
+    "recovery": "Recovery",
+    "calendar": "Calendar",
+    "report": "Report"
+  },
+  "empty": {
+    "noSessions": "No sessions in this period.",
+    "noHeartRate": "No heart rate data: set your max HR in your profile and import sessions with heart rate.",
+    "noGps": "No running GPS track in this period: best efforts are computed from tracks (Strava or GPX).",
+    "noWellness": "No recovery data: connect Open Wearables (sleep, HRV, resting HR). If your watch doesn't provide a metric, its chart stays hidden."
+  },
+  "fitness": {
+    "title": "Fitness over time",
+    "description": "Fitness (CTL, 42 d), fatigue (ATL, 7 d) and form (TSB = CTL − ATL), with each day’s load.",
+    "ctl": "Fitness (CTL)",
+    "atl": "Fatigue (ATL)",
+    "tsb": "Form (TSB)",
+    "fresh": "Fresh",
+    "tired": "Tired",
+    "balanced": "Balanced",
+    "acwrRisk": "Risky load increase (> 1.5)",
+    "chartLabel": "CTL, ATL, TSB and daily load chart",
+    "methods": "Load computed from: HR {hr} sessions, pace {pace}, perceived effort {rpe}",
+    "estimated": "Load mostly estimated from perceived effort: set your max HR for better accuracy",
+    "monotony": "Last week monotony {monotony} (strain {strain})"
+  },
+  "volume": {
+    "title": "Volume",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "lastYear": "Previous year",
+    "metrics": {
+      "distanceKm": "Distance (km)",
+      "durationMinutes": "Duration (min)",
+      "sessions": "Sessions"
+    }
+  },
+  "sports": {
+    "running": "Running",
+    "cycling": "Cycling",
+    "swimming": "Swimming",
+    "walking": "Walking",
+    "hiking": "Hiking",
+    "other": "Other"
+  },
+  "intensity": {
+    "title": "Intensity distribution",
+    "description": "Time spent in each zone per week. Benchmark: about 80 % in Z1–Z2.",
+    "recentLowShare": "{percent} % of time in Z1–Z2 over 4 weeks:",
+    "polarized": "polarized distribution",
+    "tooGrey": "too much time in the middle zone",
+    "lowShare": "% in Z1–Z2"
+  },
+  "performance": {
+    "title": "Performance",
+    "description": "Best efforts measured within your sessions, derived VDOT and race predictions.",
+    "vdot": "Estimated VDOT",
+    "vdotHint": "Best efforts of the last 90 days",
+    "profileVdot": "Profile VDOT",
+    "watchVo2Max": "VO2max (watch)",
+    "records": "Records",
+    "distance": "Distance",
+    "allTime": "All time",
+    "last90": "Last 90 days",
+    "predictions": "Predictions",
+    "vdotHistory": "VDOT history"
+  },
+  "distances": {
+    "400m": "400 m",
+    "1k": "1 km",
+    "mile": "1 mile",
+    "5k": "5 km",
+    "10k": "10 km",
+    "half": "Half marathon",
+    "marathon": "Marathon"
+  },
+  "physiology": {
+    "title": "Suggestions for your profile",
+    "maxHr": "Observed max HR: {observed} bpm (profile: {current} bpm).",
+    "lthr": "Estimated threshold HR: {lthr} bpm (best 20-min average × 0.95).",
+    "update": "Update my profile"
+  },
+  "efficiency": {
+    "title": "Aerobic efficiency",
+    "description": "Speed / HR on easy runs: an increase is the best sign of aerobic progress. Decoupling: pace/HR drift on long runs (< 5 % = solid base).",
+    "delta": "Efficiency {delta} % over the period",
+    "ef": "Efficiency Factor (easy runs)",
+    "decoupling": "Long run decoupling",
+    "hrAtPace": "HR at reference pace ({pace})",
+    "faster": "Faster pace",
+    "slower": "Slower pace"
+  },
+  "recovery": {
+    "title": "Recovery",
+    "description": "HRV, resting HR and sleep compared with your baselines.",
+    "readiness": "Readiness",
+    "levels": {
+      "good": "good",
+      "moderate": "moderate",
+      "low": "low",
+      "unknown": "unknown"
+    },
+    "components": {
+      "hrv": "HRV",
+      "restingHr": "Resting HR",
+      "sleep": "Sleep (min)",
+      "tsb": "Form"
+    },
+    "usual": "usually",
+    "hrvLow": "HRV below your normal range for {days} days: consider easing off.",
+    "signals": {
+      "respiratory_rate_high": "Unusual overnight respiratory rate: possible onset of illness, take it easy today.",
+      "spo2_low": "Low overnight SpO2.",
+      "skin_temperature_high": "High skin temperature last night.",
+      "resting_hr_high": "Resting HR well above your normal."
+    },
+    "hrv": "HRV (ms)",
+    "normalBand": "Normal range",
+    "avg7": "7-day average",
+    "restingHr": "Resting HR (bpm)",
+    "sleep": "Sleep",
+    "stages": {
+      "deep": "Deep",
+      "rem": "REM",
+      "light": "Light",
+      "awake": "Awake",
+      "total": "Total"
+    },
+    "weight": "Weight",
+    "activity": "Intensity minutes outside sessions",
+    "activeMinutes": "Active minutes",
+    "correlation": "Previous night's sleep vs efficiency (r = {r})"
+  },
+  "calendar": {
+    "title": "Load calendar",
+    "less": "Less",
+    "more": "More"
+  },
+  "report": {
+    "title": "Summary for Claude and export",
+    "description": "A compact Markdown block of the metrics computed by Sporty, to paste into your Claude project.",
+    "copy": "Copy summary",
+    "copied": "Copied!",
+    "exportSessions": "Export sessions (CSV)",
+    "exportDaily": "Export daily metrics (CSV)",
+    "privacy": "Your health data only leaves Sporty through these exports, to you."
+  }
+}

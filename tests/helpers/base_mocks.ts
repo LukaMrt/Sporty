@@ -18,6 +18,7 @@ import type { PlannedSession } from '#domain/entities/planned_session'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import type { TrainingLoad } from '#domain/value_objects/training_load'
+import type { AnalysisSession } from '#domain/services/analysis/aggregations'
 
 const NOW = () => new Date().toISOString()
 
@@ -161,6 +162,23 @@ export class BaseMockSessionRepo extends SessionRepository {
   }
   async findAllAliveByUserId(_userId: number): Promise<TrainingSession[]> {
     return []
+  }
+  async findAnalysisEntries(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<AnalysisSession[]> {
+    const sessions = await this.findByUserIdAndDateRange(userId, startDate, endDate)
+    return sessions.map((s) => ({
+      id: s.id,
+      date: s.date,
+      sportSlug: s.sportSlug ?? 'running',
+      durationMinutes: s.durationMinutes,
+      distanceKm: s.distanceKm,
+      avgHeartRate: s.avgHeartRate,
+      trainingLoad: s.trainingLoad ?? null,
+      analysis: s.analysis ?? null,
+    }))
   }
 }
 

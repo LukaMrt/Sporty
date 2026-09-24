@@ -33,6 +33,7 @@ export default class RecomputeSessionMetrics {
           sportMetrics: derived.sportMetrics,
           trainingLoad: derived.trainingLoad,
           loadMethod: derived.loadMethod,
+          analysis: derived.analysis,
         })
         updated++
       } catch (error) {

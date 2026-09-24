@@ -1,6 +1,7 @@
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
+import type { AnalysisSession } from '#domain/services/analysis/aggregations'
 
 export type ListSessionsOptions = {
   page?: number
@@ -65,4 +66,10 @@ export abstract class SessionRepository {
   abstract findByIds(ids: number[]): Promise<TrainingSession[]>
   /** Toutes les séances non supprimées d'un utilisateur (recalculs en lot) */
   abstract findAllAliveByUserId(userId: number): Promise<TrainingSession[]>
+  /** Séances non supprimées avec leurs indicateurs d'analyse (sans les courbes) */
+  abstract findAnalysisEntries(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<AnalysisSession[]>
 }
