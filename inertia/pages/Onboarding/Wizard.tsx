@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import logo from '~/assets/logo.png'
+import OptionCards from '~/components/forms/OptionCards'
 import { useTranslation } from '~/hooks/use_translation'
 
 interface SharedProps {
@@ -222,27 +223,11 @@ export default function Wizard({ sports }: WizardProps) {
                   {/* Step 2 — Niveau */}
                   {step === 2 && (
                     <div>
-                      <div className="flex flex-col gap-3">
-                        {LEVELS.map((lvl) => (
-                          <button
-                            key={lvl.value}
-                            type="button"
-                            onClick={() => setData('level', lvl.value)}
-                            className={`rounded-xl border-2 p-4 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                              data.level === lvl.value
-                                ? 'border-sand-12 bg-sand-3 shadow-md'
-                                : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                            }`}
-                          >
-                            <p
-                              className={`font-semibold ${data.level === lvl.value ? 'text-sand-12' : 'text-sand-11'}`}
-                            >
-                              {lvl.label}
-                            </p>
-                            <p className="text-sm text-sand-10 mt-0.5">{lvl.description}</p>
-                          </button>
-                        ))}
-                      </div>
+                      <OptionCards
+                        options={LEVELS}
+                        value={data.level}
+                        onChange={(v) => setData('level', v)}
+                      />
                       {errors.level && <p className="mt-2 text-sm text-red-600">{errors.level}</p>}
                     </div>
                   )}
@@ -250,45 +235,18 @@ export default function Wizard({ sports }: WizardProps) {
                   {/* Step 3 — Objectif */}
                   {step === 3 && (
                     <div>
-                      <div className="flex flex-col gap-3">
-                        {OBJECTIVES.map((obj) => (
-                          <button
-                            key={obj.value}
-                            type="button"
-                            onClick={() => setData('objective', obj.value)}
-                            className={`rounded-xl border-2 p-4 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                              data.objective === obj.value
-                                ? 'border-sand-12 bg-sand-3 shadow-md'
-                                : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                            }`}
-                          >
-                            <p
-                              className={`font-semibold ${data.objective === obj.value ? 'text-sand-12' : 'text-sand-11'}`}
-                            >
-                              {obj.label}
-                            </p>
-                            <p className="text-sm text-sand-10 mt-0.5">{obj.description}</p>
-                          </button>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={() => setData('objective', '')}
-                          className={`rounded-xl border-2 p-4 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                            data.objective === ''
-                              ? 'border-sand-12 bg-sand-3 shadow-md'
-                              : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                          }`}
-                        >
-                          <p
-                            className={`font-semibold ${data.objective === '' ? 'text-sand-12' : 'text-sand-11'}`}
-                          >
-                            {t('onboarding.objectives.none.label')}
-                          </p>
-                          <p className="text-sm text-sand-10 mt-0.5">
-                            {t('onboarding.objectives.none.description')}
-                          </p>
-                        </button>
-                      </div>
+                      <OptionCards
+                        options={[
+                          ...OBJECTIVES,
+                          {
+                            value: 'none' as const,
+                            label: t('onboarding.objectives.none.label'),
+                            description: t('onboarding.objectives.none.description'),
+                          },
+                        ]}
+                        value={data.objective === '' ? 'none' : data.objective}
+                        onChange={(v) => setData('objective', v === 'none' ? '' : v)}
+                      />
                     </div>
                   )}
 
@@ -300,8 +258,8 @@ export default function Wizard({ sports }: WizardProps) {
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
                           {t('onboarding.speed.title')}
                         </p>
-                        <div className="flex flex-col gap-2">
-                          {(
+                        <OptionCards
+                          options={
                             [
                               {
                                 value: 'min_km',
@@ -314,26 +272,10 @@ export default function Wizard({ sports }: WizardProps) {
                                 description: t('onboarding.speed.km_h.description'),
                               },
                             ] as const
-                          ).map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => setData('preferred_unit', opt.value)}
-                              className={`rounded-xl border-2 p-3 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                                data.preferred_unit === opt.value
-                                  ? 'border-sand-12 bg-sand-3 shadow-md'
-                                  : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                              }`}
-                            >
-                              <p
-                                className={`font-semibold ${data.preferred_unit === opt.value ? 'text-sand-12' : 'text-sand-11'}`}
-                              >
-                                {opt.label}
-                              </p>
-                              <p className="text-sm text-sand-10 mt-0.5">{opt.description}</p>
-                            </button>
-                          ))}
-                        </div>
+                          }
+                          value={data.preferred_unit}
+                          onChange={(v) => setData('preferred_unit', v)}
+                        />
                       </div>
 
                       {/* Distance */}
@@ -341,8 +283,8 @@ export default function Wizard({ sports }: WizardProps) {
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
                           {t('onboarding.distance.title')}
                         </p>
-                        <div className="flex flex-col gap-2">
-                          {(
+                        <OptionCards
+                          options={
                             [
                               {
                                 value: 'km',
@@ -355,26 +297,10 @@ export default function Wizard({ sports }: WizardProps) {
                                 description: t('onboarding.distance.mi.description'),
                               },
                             ] as const
-                          ).map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => setData('distance_unit', opt.value)}
-                              className={`rounded-xl border-2 p-3 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                                data.distance_unit === opt.value
-                                  ? 'border-sand-12 bg-sand-3 shadow-md'
-                                  : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                              }`}
-                            >
-                              <p
-                                className={`font-semibold ${data.distance_unit === opt.value ? 'text-sand-12' : 'text-sand-11'}`}
-                              >
-                                {opt.label}
-                              </p>
-                              <p className="text-sm text-sand-10 mt-0.5">{opt.description}</p>
-                            </button>
-                          ))}
-                        </div>
+                          }
+                          value={data.distance_unit}
+                          onChange={(v) => setData('distance_unit', v)}
+                        />
                       </div>
 
                       {/* Poids */}
@@ -382,8 +308,8 @@ export default function Wizard({ sports }: WizardProps) {
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
                           {t('onboarding.weight.title')}
                         </p>
-                        <div className="flex flex-col gap-2">
-                          {(
+                        <OptionCards
+                          options={
                             [
                               {
                                 value: 'kg',
@@ -396,26 +322,10 @@ export default function Wizard({ sports }: WizardProps) {
                                 description: t('onboarding.weight.lbs.description'),
                               },
                             ] as const
-                          ).map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => setData('weight_unit', opt.value)}
-                              className={`rounded-xl border-2 p-3 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                                data.weight_unit === opt.value
-                                  ? 'border-sand-12 bg-sand-3 shadow-md'
-                                  : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                              }`}
-                            >
-                              <p
-                                className={`font-semibold ${data.weight_unit === opt.value ? 'text-sand-12' : 'text-sand-11'}`}
-                              >
-                                {opt.label}
-                              </p>
-                              <p className="text-sm text-sand-10 mt-0.5">{opt.description}</p>
-                            </button>
-                          ))}
-                        </div>
+                          }
+                          value={data.weight_unit}
+                          onChange={(v) => setData('weight_unit', v)}
+                        />
                       </div>
 
                       {/* Début de semaine */}
@@ -423,8 +333,8 @@ export default function Wizard({ sports }: WizardProps) {
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
                           {t('onboarding.weekStart.title')}
                         </p>
-                        <div className="flex flex-col gap-2">
-                          {(
+                        <OptionCards
+                          options={
                             [
                               {
                                 value: 'monday',
@@ -437,26 +347,10 @@ export default function Wizard({ sports }: WizardProps) {
                                 description: t('onboarding.weekStart.sunday.description'),
                               },
                             ] as const
-                          ).map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => setData('week_starts_on', opt.value)}
-                              className={`rounded-xl border-2 p-3 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                                data.week_starts_on === opt.value
-                                  ? 'border-sand-12 bg-sand-3 shadow-md'
-                                  : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                              }`}
-                            >
-                              <p
-                                className={`font-semibold ${data.week_starts_on === opt.value ? 'text-sand-12' : 'text-sand-11'}`}
-                              >
-                                {opt.label}
-                              </p>
-                              <p className="text-sm text-sand-10 mt-0.5">{opt.description}</p>
-                            </button>
-                          ))}
-                        </div>
+                          }
+                          value={data.week_starts_on}
+                          onChange={(v) => setData('week_starts_on', v)}
+                        />
                       </div>
 
                       {/* Format de date */}
@@ -464,8 +358,8 @@ export default function Wizard({ sports }: WizardProps) {
                         <p className="text-xs font-semibold uppercase tracking-wide text-sand-10 mb-2">
                           {t('onboarding.dateFormat.title')}
                         </p>
-                        <div className="flex flex-col gap-2">
-                          {(
+                        <OptionCards
+                          options={
                             [
                               {
                                 value: 'DD/MM/YYYY',
@@ -478,26 +372,10 @@ export default function Wizard({ sports }: WizardProps) {
                                 description: t('onboarding.dateFormat.mmddyyyy.description'),
                               },
                             ] as const
-                          ).map((opt) => (
-                            <button
-                              key={opt.value}
-                              type="button"
-                              onClick={() => setData('date_format', opt.value)}
-                              className={`rounded-xl border-2 p-3 text-left transition-all duration-150 cursor-pointer hover:shadow-md ${
-                                data.date_format === opt.value
-                                  ? 'border-sand-12 bg-sand-3 shadow-md'
-                                  : 'border-sand-5 bg-white hover:border-sand-9 hover:bg-sand-2'
-                              }`}
-                            >
-                              <p
-                                className={`font-semibold ${data.date_format === opt.value ? 'text-sand-12' : 'text-sand-11'}`}
-                              >
-                                {opt.label}
-                              </p>
-                              <p className="text-sm text-sand-10 mt-0.5">{opt.description}</p>
-                            </button>
-                          ))}
-                        </div>
+                          }
+                          value={data.date_format}
+                          onChange={(v) => setData('date_format', v)}
+                        />
                       </div>
                     </div>
                   )}

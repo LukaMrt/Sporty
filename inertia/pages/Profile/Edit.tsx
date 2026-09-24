@@ -4,6 +4,8 @@ import { useTechMode } from '~/hooks/use_tech_mode'
 import { Save } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import ChangePasswordForm from '~/components/Profile/ChangePasswordForm'
+import NumberField from '~/components/forms/NumberField'
+import SegmentedChoice from '~/components/forms/SegmentedChoice'
 import FormField from '~/components/forms/FormField'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
@@ -201,22 +203,11 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
 
               {/* Niveau */}
               <FormField label={t('profile.level')} error={form.errors.level}>
-                <div className="flex gap-2">
-                  {LEVELS.map((lvl) => (
-                    <button
-                      key={lvl.value}
-                      type="button"
-                      onClick={() => form.setData('level', lvl.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.level === lvl.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {lvl.label}
-                    </button>
-                  ))}
-                </div>
+                <SegmentedChoice
+                  options={LEVELS}
+                  value={form.data.level}
+                  onChange={(v) => form.setData('level', v)}
+                />
               </FormField>
 
               {/* Objectif */}
@@ -247,152 +238,86 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
 
               {/* Unité de vitesse */}
               <FormField label={t('profile.speedUnit')} error={form.errors.preferred_unit}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'min_km', label: 'min/km' },
                       { value: 'km_h', label: 'km/h' },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('preferred_unit', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.preferred_unit === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.preferred_unit}
+                  onChange={(v) => form.setData('preferred_unit', v)}
+                />
               </FormField>
 
               {/* Distance */}
               <FormField label={t('profile.distance')} error={form.errors.distance_unit}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'km', label: 'km' },
                       { value: 'mi', label: 'miles' },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('distance_unit', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.distance_unit === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.distance_unit}
+                  onChange={(v) => form.setData('distance_unit', v)}
+                />
               </FormField>
 
               {/* Poids */}
               <FormField label={t('profile.weight')} error={form.errors.weight_unit}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'kg', label: 'kg' },
                       { value: 'lbs', label: 'lbs' },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('weight_unit', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.weight_unit === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.weight_unit}
+                  onChange={(v) => form.setData('weight_unit', v)}
+                />
               </FormField>
 
               {/* Début de semaine */}
               <FormField label={t('profile.weekStart')} error={form.errors.week_starts_on}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'monday', label: t('profile.weekStartOptions.monday') },
                       { value: 'sunday', label: t('profile.weekStartOptions.sunday') },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('week_starts_on', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.week_starts_on === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.week_starts_on}
+                  onChange={(v) => form.setData('week_starts_on', v)}
+                />
               </FormField>
 
               {/* Format de date */}
               <FormField label={t('profile.dateFormat')} error={form.errors.date_format}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'DD/MM/YYYY', label: t('profile.dateFormatOptions.ddmmyyyy') },
                       { value: 'MM/DD/YYYY', label: t('profile.dateFormatOptions.mmddyyyy') },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('date_format', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.date_format === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.date_format}
+                  onChange={(v) => form.setData('date_format', v)}
+                />
               </FormField>
 
               {/* Langue */}
               <FormField label={t('profile.locale')} error={form.errors.locale}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'fr', label: t('profile.localeOptions.fr') },
                       { value: 'en', label: t('profile.localeOptions.en') },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('locale', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.locale === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.locale}
+                  onChange={(v) => form.setData('locale', v)}
+                />
               </FormField>
 
               {/* Fuseau horaire : « aujourd'hui », semaine courante, forme du jour */}
@@ -415,100 +340,44 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
             <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
               <h2 className="text-sm font-semibold">{t('profile.physiological.title')}</h2>
 
-              {/* FC max */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="max_heart_rate" className="text-sm font-medium">
-                    {t('profile.physiological.maxHeartRate')}{' '}
-                    <span className="font-normal text-muted-foreground">
-                      ({t('profile.physiological.maxHeartRateUnit')})
-                    </span>
-                  </label>
-                  <a
-                    href="/profile/physiology-guide"
-                    className="text-xs text-primary underline underline-offset-2"
-                  >
-                    {t('profile.physiological.howToMeasure')}
-                  </a>
-                </div>
-                <Input
-                  id="max_heart_rate"
-                  type="number"
-                  min={100}
-                  max={250}
-                  value={form.data.max_heart_rate ?? ''}
-                  onChange={(e) =>
-                    form.setData(
-                      'max_heart_rate',
-                      e.target.value === '' ? null : Number(e.target.value)
-                    )
-                  }
-                  placeholder={t('profile.physiological.maxHeartRatePlaceholder')}
-                />
-                {form.errors.max_heart_rate && (
-                  <p className="text-xs text-destructive">{form.errors.max_heart_rate}</p>
-                )}
-              </div>
-
-              {/* FC repos */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="resting_heart_rate" className="text-sm font-medium">
-                    {t('profile.physiological.restingHeartRate')}{' '}
-                    <span className="font-normal text-muted-foreground">
-                      ({t('profile.physiological.maxHeartRateUnit')})
-                    </span>
-                  </label>
-                </div>
-                <Input
-                  id="resting_heart_rate"
-                  type="number"
-                  min={20}
-                  max={120}
-                  value={form.data.resting_heart_rate ?? ''}
-                  onChange={(e) =>
-                    form.setData(
-                      'resting_heart_rate',
-                      e.target.value === '' ? null : Number(e.target.value)
-                    )
-                  }
-                  placeholder={t('profile.physiological.restingHeartRatePlaceholder')}
-                />
-                {form.errors.resting_heart_rate && (
-                  <p className="text-xs text-destructive">{form.errors.resting_heart_rate}</p>
-                )}
-              </div>
-
-              {/* VMA */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="vma" className="text-sm font-medium">
-                    {t('profile.physiological.vma')}{' '}
-                    <span className="font-normal text-muted-foreground">
-                      ({t('profile.physiological.vmaUnit')})
-                    </span>
-                  </label>
-                  <a
-                    href="/profile/physiology-guide"
-                    className="text-xs text-primary underline underline-offset-2"
-                  >
-                    {t('profile.physiological.howToMeasure')}
-                  </a>
-                </div>
-                <Input
-                  id="vma"
-                  type="number"
-                  min={5}
-                  max={30}
-                  step={0.1}
-                  value={form.data.vma ?? ''}
-                  onChange={(e) =>
-                    form.setData('vma', e.target.value === '' ? null : Number(e.target.value))
-                  }
-                  placeholder={t('profile.physiological.vmaPlaceholder')}
-                />
-                {form.errors.vma && <p className="text-xs text-destructive">{form.errors.vma}</p>}
-              </div>
+              <NumberField
+                id="max_heart_rate"
+                label={t('profile.physiological.maxHeartRate')}
+                unit={t('profile.physiological.maxHeartRateUnit')}
+                helpHref="/profile/physiology-guide"
+                helpLabel={t('profile.physiological.howToMeasure')}
+                min={100}
+                max={250}
+                value={form.data.max_heart_rate}
+                onChange={(v) => form.setData('max_heart_rate', v)}
+                placeholder={t('profile.physiological.maxHeartRatePlaceholder')}
+                error={form.errors.max_heart_rate}
+              />
+              <NumberField
+                id="resting_heart_rate"
+                label={t('profile.physiological.restingHeartRate')}
+                unit={t('profile.physiological.maxHeartRateUnit')}
+                min={20}
+                max={120}
+                value={form.data.resting_heart_rate}
+                onChange={(v) => form.setData('resting_heart_rate', v)}
+                placeholder={t('profile.physiological.restingHeartRatePlaceholder')}
+                error={form.errors.resting_heart_rate}
+              />
+              <NumberField
+                id="vma"
+                label={t('profile.physiological.vma')}
+                unit={t('profile.physiological.vmaUnit')}
+                helpHref="/profile/physiology-guide"
+                helpLabel={t('profile.physiological.howToMeasure')}
+                min={5}
+                max={30}
+                step={0.1}
+                value={form.data.vma}
+                onChange={(v) => form.setData('vma', v)}
+                placeholder={t('profile.physiological.vmaPlaceholder')}
+                error={form.errors.vma}
+              />
 
               <PrivacyZonesEditor
                 value={form.data.privacy_zones}

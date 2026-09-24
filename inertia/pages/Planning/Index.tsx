@@ -4,15 +4,14 @@ import MainLayout from '~/layouts/MainLayout'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 import { useTechMode } from '~/hooks/use_tech_mode'
-import type { PlanOverview, PlannedSession, PlannedWeek, PostPlanState } from '~/types/planning'
+import type { PlanOverview, PlannedSession, PostPlanState } from '~/types/planning'
 import WeekDndView from '~/components/planning/WeekDndView'
 import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
 import InactivityBanner from '~/components/planning/InactivityBanner'
 import RecalibrationDialog from '~/components/planning/RecalibrationDialog'
 import PostPlanProposal from '~/components/planning/PostPlanProposal'
-// Module pur du domaine (aucune dépendance serveur) : même calcul de date que le backend
-// eslint-disable-next-line @adonisjs/no-backend-import-in-frontend
-import { plannedSessionDate } from '../../../app/domain/services/planned_session_date'
+import WeekCard from '~/components/planning/WeekCard'
+import { isDateToday, sessionDate } from '~/lib/planning_dates'
 
 interface Props {
   overview: PlanOverview | null
@@ -21,86 +20,6 @@ interface Props {
 
 // Mon=1 … Sat=6, Sun=0 — displayed Mon→Sun
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
-
-/** Date réelle d'un jour dans une semaine du plan (même calcul que le backend) */
-function sessionDate(planStartDate: string, weekNumber: number, dayOfWeek: number): Date {
-  // Minuit LOCAL : `new Date('YYYY-MM-DD')` serait minuit UTC (veille à l'ouest de Greenwich)
-  return new Date(`${plannedSessionDate(planStartDate, weekNumber, dayOfWeek)}T00:00:00`)
-}
-
-function isDateToday(d: Date) {
-  const now = new Date()
-  return (
-    d.getDate() === now.getDate() &&
-    d.getMonth() === now.getMonth() &&
-    d.getFullYear() === now.getFullYear()
-  )
-}
-
-function WeekCard({
-  week,
-  sessions,
-  planStartDate,
-  isCurrentWeek,
-  isSelected,
-  locale,
-  onClick,
-}: {
-  week: PlannedWeek
-  sessions: PlannedSession[]
-  planStartDate: string
-  isCurrentWeek: boolean
-  isSelected: boolean
-  locale: string
-  onClick: () => void
-}) {
-  const { t } = useTranslation()
-
-  const start = sessionDate(planStartDate, week.weekNumber, 1)
-  const end = sessionDate(planStartDate, week.weekNumber, 0)
-  const fmt = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
-
-  const runningSessions = sessions.filter((s) => s.sessionType !== 'rest')
-  const phaseLabel = t(`planning.phases.${week.phaseName}`) ?? week.phaseLabel
-
-  return (
-    <button
-      onClick={onClick}
-      className={[
-        'cursor-pointer w-full text-left rounded-xl border p-3 transition-colors',
-        isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-muted/40',
-      ].join(' ')}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground">
-            {t('planning.overview.weekLabel', { n: week.weekNumber })}
-          </span>
-          {isCurrentWeek && (
-            <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full font-medium">
-              {t('planning.overview.inProgress')}
-            </span>
-          )}
-          {week.isRecoveryWeek && (
-            <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
-              {t('planning.overview.recoveryWeek')}
-            </span>
-          )}
-        </div>
-        <span className="text-xs text-muted-foreground flex-shrink-0">
-          {fmt.format(start)} – {fmt.format(end)}
-        </span>
-      </div>
-      <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-        <span>{phaseLabel}</span>
-        <span>·</span>
-        <span>{week.targetVolumeMinutes} min</span>
-        <span>·</span>
-        <span>{t('planning.overview.sessionCount', { n: runningSessions.length })}</span>
-      </div>
-    </button>
-  )
-}
 
 export default function PlanningIndex({ overview, postPlanState }: Props) {
   const { t, locale } = useTranslation()
