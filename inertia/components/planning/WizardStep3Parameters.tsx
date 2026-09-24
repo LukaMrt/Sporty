@@ -8,7 +8,7 @@ import {
   type WizardState,
 } from '~/components/planning/wizard_types'
 
-interface Props {
+type Props = {
   state: WizardState
   onSessionsChange: (n: 3 | 4 | 5) => void
   onToggleDay: (day: DayKey) => void

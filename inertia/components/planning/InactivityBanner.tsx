@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 import type { InactivityLevel } from '~/types/planning'
 
-interface InactivityBannerProps {
+type InactivityBannerProps = {
   level: InactivityLevel
   daysSince: number
   onDismiss: () => void

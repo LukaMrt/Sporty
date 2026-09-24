@@ -4,13 +4,13 @@ import MainLayout from '~/layouts/MainLayout'
 import SessionForm from '~/components/sessions/SessionForm'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface Sport {
+type Sport = {
   id: number
   name: string
   slug: string
 }
 
-interface CreateProps {
+type CreateProps = {
   sports: Sport[]
   defaultSportId?: number
   speedUnit: 'min_km' | 'km_h'

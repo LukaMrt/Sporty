@@ -1,13 +1,15 @@
 import stravaLogo from '~/assets/strava-logo.svg'
-import openWearablesLogo from '~/assets/open-wearables-logo.svg'
+import openWearablesLogo from '~/assets/open-wearables-mark.svg'
 
-export type ConnectorStatus = 'connected' | 'error'
+export type ConnectorStatus = 'connected' | 'error' | 'disconnected'
 export type ConnectorAuthKind = 'oauth' | 'api_key'
 
-export interface ConnectorBrand {
+export type ConnectorBrand = {
   provider: string
   name: string
   logo: string
+  /** Taille du logo dans la vignette de la carte (le dessin des logos n'a pas les mêmes marges) */
+  logoClass: string
   /** Classe Tailwind de la pastille de marque. */
   bgClass: string
   /** Classe Tailwind du bouton de connexion (couleur de marque + hover). */
@@ -23,6 +25,7 @@ export const CONNECTOR_BRANDS: Record<string, ConnectorBrand> = {
     provider: 'strava',
     name: 'Strava',
     logo: stravaLogo,
+    logoClass: 'h-8 w-8',
     bgClass: 'bg-[#FC4C02]',
     buttonClass: 'bg-[#FC4C02] hover:bg-[#e04400] text-white',
     badgeClass: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
@@ -32,6 +35,7 @@ export const CONNECTOR_BRANDS: Record<string, ConnectorBrand> = {
     provider: 'open-wearables',
     name: 'Open Wearables',
     logo: openWearablesLogo,
+    logoClass: 'h-6 w-6',
     bgClass: 'bg-[#0F172A]',
     buttonClass: 'bg-[#0F172A] hover:bg-[#1E293B] text-white',
     badgeClass: 'bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-300',
@@ -46,6 +50,7 @@ export function connectorBrand(provider: string): ConnectorBrand {
       provider,
       name: provider.charAt(0).toUpperCase() + provider.slice(1),
       logo: '',
+      logoClass: 'h-6 w-6',
       bgClass: 'bg-muted',
       buttonClass: 'bg-primary hover:bg-primary/90 text-primary-foreground',
       badgeClass: 'bg-muted text-muted-foreground',

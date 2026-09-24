@@ -12,7 +12,7 @@ export const ConnectorAuthKind = {
 
 export type ConnectorAuthKind = (typeof ConnectorAuthKind)[keyof typeof ConnectorAuthKind]
 
-export interface ConnectorDescriptor {
+export type ConnectorDescriptor = {
   provider: ConnectorProvider
   authKind: ConnectorAuthKind
   /** Segment du namespace i18n : `connectors.<i18nKey>.*` */

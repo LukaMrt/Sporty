@@ -1,4 +1,4 @@
-export interface QuickStatData {
+export type QuickStatData = {
   weeklyVolumeKm: number
   weeklyVolumeTrend: number | null
   weeklyVolumePreviousAvg: number | null
@@ -10,25 +10,25 @@ export interface QuickStatData {
   weeklySessionPreviousAvg: number | null
 }
 
-export interface HeroMetricData {
+export type HeroMetricData = {
   currentPace: number // min/km
   previousPace: number | null // min/km (null si pas assez de données période précédente)
   trendSeconds: number | null // différence en secondes (négatif = amélioration)
   sparklineData: { date: string; pace: number }[] // 8 dernières séances
 }
 
-export interface ChartDataPoint {
+export type ChartDataPoint = {
   date: string // ISO date
   pace: number | null // min/km (null si pas de distance)
   heartRate: number | null
   distance: number | null // km
 }
 
-export interface ChartData {
+export type ChartData = {
   points: ChartDataPoint[]
 }
 
-export interface DashboardMetrics {
+export type DashboardMetrics = {
   heroMetric: HeroMetricData | null // null si < 2 séances avec distance
   sessionCount: number
   quickStats: QuickStatData | null // null si < 2 séances totales

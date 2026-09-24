@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ i18n?.locale ?? 'fr' }}">
 
   <head>
     <meta charset="utf-8" />
@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrfToken }}" />
 
     <title inertia>
-      AdonisJS x Inertia x React
+      Sporty
     </title>
 
     <link rel="preconnect" href="https://fonts.bunny.net" />
@@ -17,9 +17,9 @@
     />
 
     @stack('dumper')
-    @viteReactRefresh()
+    @viteReactRefresh({ nonce: cspNonce })
     @inertiaHead()
-    @vite(['inertia/app/app.tsx', `inertia/pages/${page.component}.tsx`])
+    @vite(['inertia/app/app.tsx', `inertia/pages/${page.component}.tsx`], { nonce: cspNonce })
   </head>
 
   <body class="min-h-screen w-screen font-sans">

@@ -9,6 +9,7 @@ import GenerateTransitionPlan from '#use_cases/planning/generate_transition_plan
 import GenerateMaintenancePlan from '#use_cases/planning/generate_maintenance_plan'
 import AbandonPlan from '#use_cases/planning/abandon_plan'
 import GetPostPlanState from '#use_cases/planning/get_post_plan_state'
+import AdvancePlanLifecycle from '#use_cases/planning/advance_plan_lifecycle'
 import { generatePlanValidator } from '#validators/planning/generate_plan_validator'
 import {
   adjustSessionValidator,
@@ -32,11 +33,20 @@ export default class PlanningController {
     private generateTransitionPlanUseCase: GenerateTransitionPlan,
     private generateMaintenancePlanUseCase: GenerateMaintenancePlan,
     private abandonPlanUseCase: AbandonPlan,
-    private getPostPlanStateUseCase: GetPostPlanState
+    private getPostPlanStateUseCase: GetPostPlanState,
+    private advancePlanLifecycle: AdvancePlanLifecycle
   ) {}
+
+  /** Traduit une erreur métier (clé i18n si disponible) */
+  #message(error: Error, i18n: HttpContext['i18n']): string {
+    const key = (error as Error & { i18nKey?: string }).i18nKey
+    return key ? i18n.t(key) : error.message
+  }
 
   async index({ inertia, auth }: HttpContext) {
     const user = auth.getUserOrFail()
+    // Transitions explicites (idempotentes, sous verrou) avant la lecture
+    await this.advancePlanLifecycle.execute(user.id)
     const overview = await this.getPlanOverview.execute(user.id)
 
     if (overview) {
@@ -79,7 +89,7 @@ export default class PlanningController {
     return response.ok(detail)
   }
 
-  async generate({ request, response, auth, session }: HttpContext) {
+  async generate({ request, response, auth, session, i18n }: HttpContext) {
     const user = auth.getUserOrFail()
     const data = await request.validateUsing(generatePlanValidator)
 
@@ -96,46 +106,43 @@ export default class PlanningController {
         return response.ok({ ok: true, volumeAdjusted: result.volumeAdjusted })
       }
       if (result.volumeAdjusted) {
-        session.flash(
-          'warning',
-          "Votre volume d'entraînement actuel est insuffisant pour cette distance. Le plan a été ajusté au volume minimal recommandé — augmentez progressivement votre base avant de commencer."
-        )
+        session.flash('warning', i18n.t('planning.flash.volumeAdjusted'))
       }
       return response.redirect().toPath('/planning')
     } catch (error) {
       if (error instanceof NoActiveGoalError || error instanceof ActivePlanExistsError) {
         if (request.accepts(['json'])) {
-          return response.unprocessableEntity({ message: error.message })
+          return response.unprocessableEntity({ message: this.#message(error, i18n) })
         }
-        session.flash('error', error.message)
+        session.flash('error', this.#message(error, i18n))
         return response.redirect().back()
       }
       throw error
     }
   }
 
-  async generateTransition({ response, auth, session }: HttpContext) {
+  async generateTransition({ response, auth, session, i18n }: HttpContext) {
     const user = auth.getUserOrFail()
     try {
       await this.generateTransitionPlanUseCase.execute(user.id)
       return response.redirect().toPath('/planning')
     } catch (error) {
       if (error instanceof NoCompletedPlanError) {
-        session.flash('error', error.message)
+        session.flash('error', this.#message(error, i18n))
         return response.redirect().back()
       }
       throw error
     }
   }
 
-  async generateMaintenance({ response, auth, session }: HttpContext) {
+  async generateMaintenance({ response, auth, session, i18n }: HttpContext) {
     const user = auth.getUserOrFail()
     try {
       await this.generateMaintenancePlanUseCase.execute(user.id)
       return response.redirect().toPath('/planning')
     } catch (error) {
       if (error instanceof NoCompletedPlanError) {
-        session.flash('error', error.message)
+        session.flash('error', this.#message(error, i18n))
         return response.redirect().back()
       }
       throw error
@@ -148,7 +155,7 @@ export default class PlanningController {
     return response.redirect().toPath('/planning')
   }
 
-  async updateSession({ params, request, response, auth, session }: HttpContext) {
+  async updateSession({ params, request, response, auth, session, i18n }: HttpContext) {
     const user = auth.getUserOrFail()
     const data = await request.validateUsing(adjustSessionValidator)
 
@@ -163,18 +170,18 @@ export default class PlanningController {
       return response.redirect().back()
     } catch (error) {
       if (error instanceof PlannedSessionNotFoundError) {
-        session.flash('error', error.message)
+        session.flash('error', this.#message(error, i18n))
         return response.redirect().back()
       }
       if (error instanceof PlannedSessionForbiddenError) {
-        session.flash('error', error.message)
+        session.flash('error', this.#message(error, i18n))
         return response.redirect().back()
       }
       throw error
     }
   }
 
-  async linkSession({ params, request, response, auth, session }: HttpContext) {
+  async linkSession({ params, request, response, auth, session, i18n }: HttpContext) {
     const user = auth.getUserOrFail()
     const data = await request.validateUsing(linkCompletedSessionValidator)
 
@@ -191,7 +198,7 @@ export default class PlanningController {
         error instanceof PlannedSessionForbiddenError ||
         error instanceof SessionNotFoundError
       ) {
-        session.flash('error', error.message)
+        session.flash('error', this.#message(error, i18n))
         return response.redirect().back()
       }
       throw error

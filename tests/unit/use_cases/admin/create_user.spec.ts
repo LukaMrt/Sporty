@@ -1,17 +1,17 @@
 import { test } from '@japa/runner'
 import CreateUser from '#use_cases/admin/create_user'
 import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
-import type { User } from '#domain/entities/user'
+import type { NewUser } from '#domain/entities/user'
 
 test.group('CreateUser — use case', () => {
   test('crée un utilisateur avec le rôle fourni et onboardingCompleted false', async ({
     assert,
   }) => {
-    let capturedData: Omit<User, 'id'> | null = null
+    let capturedData: NewUser | null = null
     const repo = makeMockUserRepository({
       create: async (data) => {
         capturedData = data
-        return { id: 42, ...data }
+        return { id: 42, createdAt: '', ...data }
       },
     })
 
@@ -38,7 +38,7 @@ test.group('CreateUser — use case', () => {
     const repo = makeMockUserRepository({
       create: async (data) => {
         capturedRole = data.role
-        return { id: 1, ...data }
+        return { id: 1, createdAt: '', ...data }
       },
     })
 
@@ -60,7 +60,7 @@ test.group('CreateUser — use case', () => {
     const repo = makeMockUserRepository({
       create: async (data) => {
         capturedPassword = data.password
-        return { id: 1, ...data }
+        return { id: 1, createdAt: '', ...data }
       },
     })
 

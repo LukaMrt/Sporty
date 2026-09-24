@@ -1,11 +1,9 @@
-import React from 'react'
-
-interface GpsPoint {
+type GpsPoint = {
   lat: number
   lon: number
 }
 
-interface GpsTrackPreviewProps {
+type GpsTrackPreviewProps = {
   track: GpsPoint[]
   label?: string
   className?: string

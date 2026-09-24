@@ -1,8 +1,7 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import type { PlannedSession } from '~/types/planning'
 
-interface ComparisonBlockProps {
+type ComparisonBlockProps = {
   session: PlannedSession
 }
 

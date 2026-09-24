@@ -4,17 +4,21 @@ import { useTechMode } from '~/hooks/use_tech_mode'
 import { Save } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import ChangePasswordForm from '~/components/Profile/ChangePasswordForm'
+import NumberField from '~/components/forms/NumberField'
+import SegmentedChoice from '~/components/forms/SegmentedChoice'
 import FormField from '~/components/forms/FormField'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
+import PrivacyZonesEditor from '~/components/Profile/PrivacyZonesEditor'
+import HeartRateZonesEditor, { type HrZonesValue } from '~/components/Profile/HeartRateZonesEditor'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface Sport {
+type Sport = {
   id: number
   name: string
 }
 
-interface ProfileData {
+type ProfileData = {
   sportId: number
   level: 'beginner' | 'intermediate' | 'advanced' | null
   objective:
@@ -36,9 +40,26 @@ interface ProfileData {
   maxHeartRate: number | null
   restingHeartRate: number | null
   vma: number | null
+  sex: 'male' | 'female' | null
+  timezone: string | null
+  privacyZones: { lat: number; lon: number; radiusM: number }[]
+  hrZonesConfig: {
+    method: HrZonesValue['method']
+    lthr: number | null
+    customBoundsBpm: HrZonesValue['customBounds']
+  } | null
 }
 
-interface EditProps {
+/** Fuseau du navigateur, proposé par défaut */
+function browserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    return 'UTC'
+  }
+}
+
+type EditProps = {
   user: { id: number; fullName: string; email: string; role: string }
   profile: ProfileData | null
   sports: Sport[]
@@ -62,6 +83,15 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     max_heart_rate: profile?.maxHeartRate ?? (null as number | null),
     resting_heart_rate: profile?.restingHeartRate ?? (null as number | null),
     vma: profile?.vma ?? (null as number | null),
+    timezone: profile?.timezone ?? browserTimezone(),
+    privacy_zones: (profile?.privacyZones ?? []).map((z) => ({
+      lat: z.lat,
+      lon: z.lon,
+      radius_m: z.radiusM,
+    })),
+    hr_zones_method: profile?.hrZonesConfig?.method ?? 'auto',
+    lthr: profile?.hrZonesConfig?.lthr ?? (null as number | null),
+    hr_zones_custom_bounds: profile?.hrZonesConfig?.customBoundsBpm ?? null,
   })
 
   const LEVELS = [
@@ -96,7 +126,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
             href="/profile/athlete"
             className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 text-sm hover:bg-muted/50 transition-colors"
           >
-            <span>Profil athlète — VDOT & zones d'allure</span>
+            <span>{t('profile.athleteProfileLink')}</span>
             <span className="text-muted-foreground">→</span>
           </Link>
 
@@ -174,22 +204,11 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
 
               {/* Niveau */}
               <FormField label={t('profile.level')} error={form.errors.level}>
-                <div className="flex gap-2">
-                  {LEVELS.map((lvl) => (
-                    <button
-                      key={lvl.value}
-                      type="button"
-                      onClick={() => form.setData('level', lvl.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.level === lvl.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {lvl.label}
-                    </button>
-                  ))}
-                </div>
+                <SegmentedChoice
+                  options={LEVELS}
+                  value={form.data.level}
+                  onChange={(v) => form.setData('level', v)}
+                />
               </FormField>
 
               {/* Objectif */}
@@ -204,7 +223,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                   onChange={(e) =>
                     form.setData(
                       'objective',
-                      (e.target.value || null) as ProfileData['objective'] | ''
+                      e.target.value as NonNullable<ProfileData['objective']> | ''
                     )
                   }
                   className="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:border-sand-9 hover:bg-sand-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -220,152 +239,101 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
 
               {/* Unité de vitesse */}
               <FormField label={t('profile.speedUnit')} error={form.errors.preferred_unit}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'min_km', label: 'min/km' },
                       { value: 'km_h', label: 'km/h' },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('preferred_unit', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.preferred_unit === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.preferred_unit}
+                  onChange={(v) => form.setData('preferred_unit', v)}
+                />
               </FormField>
 
               {/* Distance */}
               <FormField label={t('profile.distance')} error={form.errors.distance_unit}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'km', label: 'km' },
                       { value: 'mi', label: 'miles' },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('distance_unit', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.distance_unit === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.distance_unit}
+                  onChange={(v) => form.setData('distance_unit', v)}
+                />
               </FormField>
 
               {/* Poids */}
               <FormField label={t('profile.weight')} error={form.errors.weight_unit}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'kg', label: 'kg' },
                       { value: 'lbs', label: 'lbs' },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('weight_unit', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.weight_unit === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.weight_unit}
+                  onChange={(v) => form.setData('weight_unit', v)}
+                />
               </FormField>
 
               {/* Début de semaine */}
               <FormField label={t('profile.weekStart')} error={form.errors.week_starts_on}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'monday', label: t('profile.weekStartOptions.monday') },
                       { value: 'sunday', label: t('profile.weekStartOptions.sunday') },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('week_starts_on', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.week_starts_on === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.week_starts_on}
+                  onChange={(v) => form.setData('week_starts_on', v)}
+                />
               </FormField>
 
               {/* Format de date */}
               <FormField label={t('profile.dateFormat')} error={form.errors.date_format}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'DD/MM/YYYY', label: t('profile.dateFormatOptions.ddmmyyyy') },
                       { value: 'MM/DD/YYYY', label: t('profile.dateFormatOptions.mmddyyyy') },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('date_format', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.date_format === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                  }
+                  value={form.data.date_format}
+                  onChange={(v) => form.setData('date_format', v)}
+                />
               </FormField>
 
               {/* Langue */}
               <FormField label={t('profile.locale')} error={form.errors.locale}>
-                <div className="flex gap-2">
-                  {(
+                <SegmentedChoice
+                  options={
                     [
                       { value: 'fr', label: t('profile.localeOptions.fr') },
                       { value: 'en', label: t('profile.localeOptions.en') },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => form.setData('locale', opt.value)}
-                      className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium transition-all duration-150 cursor-pointer ${
-                        form.data.locale === opt.value
-                          ? 'border-sand-12 bg-sand-3 text-sand-12'
-                          : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
+                  }
+                  value={form.data.locale}
+                  onChange={(v) => form.setData('locale', v)}
+                />
+              </FormField>
+
+              {/* Fuseau horaire : « aujourd'hui », semaine courante, forme du jour */}
+              <FormField label={t('profile.timezone')} error={form.errors.timezone}>
+                <input
+                  list="timezones"
+                  value={form.data.timezone ?? ''}
+                  onChange={(e) => form.setData('timezone', e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+                <datalist id="timezones">
+                  {(Intl.supportedValuesOf?.('timeZone') ?? []).map((tz) => (
+                    <option key={tz} value={tz} />
                   ))}
-                </div>
+                </datalist>
               </FormField>
             </div>
 
@@ -373,100 +341,73 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
             <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
               <h2 className="text-sm font-semibold">{t('profile.physiological.title')}</h2>
 
-              {/* FC max */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="max_heart_rate" className="text-sm font-medium">
-                    {t('profile.physiological.maxHeartRate')}{' '}
-                    <span className="font-normal text-muted-foreground">
-                      ({t('profile.physiological.maxHeartRateUnit')})
-                    </span>
-                  </label>
-                  <a
-                    href="/profile/physiology-guide"
-                    className="text-xs text-primary underline underline-offset-2"
-                  >
-                    {t('profile.physiological.howToMeasure')}
-                  </a>
-                </div>
-                <Input
-                  id="max_heart_rate"
-                  type="number"
-                  min={100}
-                  max={250}
-                  value={form.data.max_heart_rate ?? ''}
-                  onChange={(e) =>
-                    form.setData(
-                      'max_heart_rate',
-                      e.target.value === '' ? null : Number(e.target.value)
-                    )
-                  }
-                  placeholder={t('profile.physiological.maxHeartRatePlaceholder')}
-                />
-                {form.errors.max_heart_rate && (
-                  <p className="text-xs text-destructive">{form.errors.max_heart_rate}</p>
-                )}
-              </div>
+              <NumberField
+                id="max_heart_rate"
+                label={t('profile.physiological.maxHeartRate')}
+                unit={t('profile.physiological.maxHeartRateUnit')}
+                helpHref="/profile/physiology-guide"
+                helpLabel={t('profile.physiological.howToMeasure')}
+                min={100}
+                max={250}
+                value={form.data.max_heart_rate}
+                onChange={(v) => form.setData('max_heart_rate', v)}
+                placeholder={t('profile.physiological.maxHeartRatePlaceholder')}
+                error={form.errors.max_heart_rate}
+              />
+              <NumberField
+                id="resting_heart_rate"
+                label={t('profile.physiological.restingHeartRate')}
+                unit={t('profile.physiological.maxHeartRateUnit')}
+                min={20}
+                max={120}
+                value={form.data.resting_heart_rate}
+                onChange={(v) => form.setData('resting_heart_rate', v)}
+                placeholder={t('profile.physiological.restingHeartRatePlaceholder')}
+                error={form.errors.resting_heart_rate}
+              />
+              <NumberField
+                id="vma"
+                label={t('profile.physiological.vma')}
+                unit={t('profile.physiological.vmaUnit')}
+                helpHref="/profile/physiology-guide"
+                helpLabel={t('profile.physiological.howToMeasure')}
+                min={5}
+                max={30}
+                step={0.1}
+                value={form.data.vma}
+                onChange={(v) => form.setData('vma', v)}
+                placeholder={t('profile.physiological.vmaPlaceholder')}
+                error={form.errors.vma}
+              />
 
-              {/* FC repos */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="resting_heart_rate" className="text-sm font-medium">
-                    {t('profile.physiological.restingHeartRate')}{' '}
-                    <span className="font-normal text-muted-foreground">
-                      ({t('profile.physiological.maxHeartRateUnit')})
-                    </span>
-                  </label>
-                </div>
-                <Input
-                  id="resting_heart_rate"
-                  type="number"
-                  min={20}
-                  max={120}
-                  value={form.data.resting_heart_rate ?? ''}
-                  onChange={(e) =>
-                    form.setData(
-                      'resting_heart_rate',
-                      e.target.value === '' ? null : Number(e.target.value)
-                    )
-                  }
-                  placeholder={t('profile.physiological.restingHeartRatePlaceholder')}
-                />
-                {form.errors.resting_heart_rate && (
-                  <p className="text-xs text-destructive">{form.errors.resting_heart_rate}</p>
-                )}
-              </div>
+              <PrivacyZonesEditor
+                value={form.data.privacy_zones}
+                onChange={(zones) => form.setData('privacy_zones', zones)}
+                error={form.errors.privacy_zones}
+              />
 
-              {/* VMA */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="vma" className="text-sm font-medium">
-                    {t('profile.physiological.vma')}{' '}
-                    <span className="font-normal text-muted-foreground">
-                      ({t('profile.physiological.vmaUnit')})
-                    </span>
-                  </label>
-                  <a
-                    href="/profile/physiology-guide"
-                    className="text-xs text-primary underline underline-offset-2"
-                  >
-                    {t('profile.physiological.howToMeasure')}
-                  </a>
-                </div>
-                <Input
-                  id="vma"
-                  type="number"
-                  min={5}
-                  max={30}
-                  step={0.1}
-                  value={form.data.vma ?? ''}
-                  onChange={(e) =>
-                    form.setData('vma', e.target.value === '' ? null : Number(e.target.value))
-                  }
-                  placeholder={t('profile.physiological.vmaPlaceholder')}
-                />
-                {form.errors.vma && <p className="text-xs text-destructive">{form.errors.vma}</p>}
-              </div>
+              <HeartRateZonesEditor
+                maxHeartRate={form.data.max_heart_rate}
+                restingHeartRate={form.data.resting_heart_rate}
+                value={{
+                  method: form.data.hr_zones_method,
+                  lthr: form.data.lthr,
+                  customBounds: form.data.hr_zones_custom_bounds,
+                }}
+                onChange={(zones) =>
+                  form.setData((data) => ({
+                    ...data,
+                    hr_zones_method: zones.method,
+                    lthr: zones.lthr,
+                    hr_zones_custom_bounds: zones.customBounds,
+                  }))
+                }
+                error={
+                  form.errors.hr_zones_method ??
+                  form.errors.lthr ??
+                  form.errors.hr_zones_custom_bounds
+                }
+              />
             </div>
 
             <Button

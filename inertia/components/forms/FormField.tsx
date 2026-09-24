@@ -1,6 +1,6 @@
 import React from 'react'
 
-interface FormFieldProps {
+type FormFieldProps = {
   label: string
   htmlFor?: string
   error?: string

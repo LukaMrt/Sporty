@@ -5,6 +5,7 @@ import User from '#models/user'
 import type { UserLevel } from '#domain/entities/user_profile'
 import type { UserPreferences } from '#domain/entities/user_preferences'
 import type { BiologicalSex, TrainingState } from '#domain/value_objects/planning_types'
+import type { HrZonesConfig } from '#domain/value_objects/heart_rate_zones_config'
 
 export default class UserProfile extends BaseModel {
   @column({ isPrimary: true })
@@ -36,6 +37,23 @@ export default class UserProfile extends BaseModel {
 
   @column()
   declare trainingState: TrainingState
+
+  @column({
+    prepare: (value: HrZonesConfig | null) => (value ? JSON.stringify(value) : null),
+  })
+  declare hrZonesConfig: HrZonesConfig | null
+
+  @column()
+  declare vdot: number | null
+
+  @column()
+  declare timezone: string | null
+
+  @column({
+    prepare: (value: { lat: number; lon: number; radiusM: number }[] | null) =>
+      value ? JSON.stringify(value) : null,
+  })
+  declare privacyZones: { lat: number; lon: number; radiusM: number }[] | null
 
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>

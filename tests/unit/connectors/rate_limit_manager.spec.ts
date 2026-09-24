@@ -64,3 +64,33 @@ test.group('RateLimitManager — StravaRateLimitManager', () => {
     assert.isAtMost(ms, 15 * 60 * 1000)
   })
 })
+
+test.group('StravaRateLimitManager — fenêtres (audit S6)', () => {
+  test('le quota quotidien saturé se libère le lendemain (UTC)', async ({ assert }) => {
+    let now = Date.parse('2026-03-01T23:50:00Z')
+    const manager = new StravaRateLimitManager({ now: () => now, sleeper: async () => {} })
+    manager.update(10, 1000)
+    await assert.rejects(() => manager.waitIfNeeded())
+
+    now = Date.parse('2026-03-02T00:01:00Z')
+    await manager.waitIfNeeded()
+    assert.equal(manager.usageDaily, 0)
+  })
+
+  test('le quota 15 min se libère au quart d’heure suivant', async ({ assert }) => {
+    let now = Date.parse('2026-03-01T10:14:00Z')
+    let slept = 0
+    const manager = new StravaRateLimitManager({
+      now: () => now,
+      sleeper: async (ms) => {
+        slept += ms
+      },
+    })
+    manager.update(100, 200)
+    now = Date.parse('2026-03-01T10:15:30Z')
+    await manager.waitIfNeeded()
+    assert.equal(slept, 0)
+    assert.equal(manager.usage15min, 0)
+    assert.equal(manager.usageDaily, 200)
+  })
+})

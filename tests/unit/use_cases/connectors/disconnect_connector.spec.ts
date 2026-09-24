@@ -1,4 +1,5 @@
 import { test } from '@japa/runner'
+import { SilentLogger, RecordingScheduler } from '#tests/helpers/base_mocks'
 import DisconnectConnector from '#use_cases/connectors/disconnect_connector'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
@@ -101,7 +102,9 @@ test.group('DisconnectConnector', () => {
             revoked = true
           },
         })
-      )
+      ),
+      new SilentLogger(),
+      new RecordingScheduler()
     )
 
     await useCase.execute({ userId: 7, provider: PROVIDER })
@@ -120,7 +123,9 @@ test.group('DisconnectConnector', () => {
             throw new Error('Network error')
           },
         })
-      )
+      ),
+      new SilentLogger(),
+      new RecordingScheduler()
     )
 
     await useCase.execute({ userId: 7, provider: PROVIDER })
@@ -132,7 +137,12 @@ test.group('DisconnectConnector', () => {
     assert,
   }) => {
     const calls: DisconnectCall[] = []
-    const useCase = new DisconnectConnector(makeConnectorRepository(calls), makeRegistry(null))
+    const useCase = new DisconnectConnector(
+      makeConnectorRepository(calls),
+      makeRegistry(null),
+      new SilentLogger(),
+      new RecordingScheduler()
+    )
 
     await useCase.execute({ userId: 7, provider: PROVIDER })
 
@@ -143,7 +153,9 @@ test.group('DisconnectConnector', () => {
     const calls: DisconnectCall[] = []
     const useCase = new DisconnectConnector(
       makeConnectorRepository(calls),
-      makeRegistry(makeConnector(), false)
+      makeRegistry(makeConnector(), false),
+      new SilentLogger(),
+      new RecordingScheduler()
     )
 
     await useCase.execute({ userId: 7, provider: PROVIDER })

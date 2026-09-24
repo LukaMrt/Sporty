@@ -1,8 +1,9 @@
 import { test } from '@japa/runner'
+import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import ToggleAutoRecalibrate, {
   NoActivePlanError,
 } from '#use_cases/planning/toggle_auto_recalibrate'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { PlanStatus, PlanType, TrainingMethodology } from '#domain/value_objects/planning_types'
 import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedSession } from '#domain/entities/planned_session'
@@ -33,7 +34,7 @@ function makePlanRepo(
 ): TrainingPlanRepository & { lastUpdate: Partial<TrainingPlan> | null } {
   let lastUpdate: Partial<TrainingPlan> | null = null
 
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(): Promise<TrainingPlan> {
       throw new Error('not implemented')
     }

@@ -4,7 +4,7 @@ import { ApiKeyConnectorVerifier } from '#domain/interfaces/api_key_connector_ve
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
 
-export interface ConnectApiKeyConnectorInput {
+export type ConnectApiKeyConnectorInput = {
   userId: number
   provider: ConnectorProvider
   apiKey: string

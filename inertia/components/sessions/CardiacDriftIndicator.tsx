@@ -1,7 +1,7 @@
 import { TrendingUp } from 'lucide-react'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface CardiacDriftIndicatorProps {
+type CardiacDriftIndicatorProps = {
   value: number
 }
 

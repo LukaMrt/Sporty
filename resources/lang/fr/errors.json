@@ -16,5 +16,6 @@
     "heading": "Erreur serveur",
     "description": "Une erreur inattendue s'est produite. Réessaie dans quelques instants.",
     "back": "Retour à l'accueil"
-  }
+  },
+  "resourceNotFound": "Élément introuvable."
 }

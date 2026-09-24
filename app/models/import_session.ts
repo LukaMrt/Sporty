@@ -28,6 +28,12 @@ export default class ImportSession extends BaseModel {
   @column()
   declare importedSessionId: number | null
 
+  @column()
+  declare failureReason: string | null
+
+  @column()
+  declare failedAttempts: number
+
   @belongsTo(() => Connector)
   declare connector: BelongsTo<typeof Connector>
 

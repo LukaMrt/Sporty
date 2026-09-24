@@ -10,6 +10,9 @@ export const SEEDED_NON_ONBOARDED_USER_EMAIL = 'non-onboarded@example.com'
 export const SEEDED_PASSWORD = 'password123'
 
 export default class UserSeeder extends BaseSeeder {
+  /** Comptes de démo aux mots de passe connus : jamais en production. */
+  static environment = ['development', 'test']
+
   async run() {
     await User.updateOrCreate(
       { email: SEEDED_ADMIN_EMAIL },
@@ -43,6 +46,26 @@ export default class UserSeeder extends BaseSeeder {
         onboardingCompleted: true,
       }
     )
+
+    // Tout compte onboardé a un profil (comme après le vrai parcours d'onboarding)
+    for (const email of [SEEDED_USER_EMAIL, SEEDED_USER_2_EMAIL]) {
+      const user = await User.findByOrFail('email', email)
+      await UserProfile.updateOrCreate(
+        { userId: user.id },
+        {
+          level: UserLevel.Intermediate,
+          objective: 'endurance_progress',
+          preferences: {
+            speedUnit: 'min_km',
+            distanceUnit: 'km',
+            weightUnit: 'kg',
+            weekStartsOn: 'monday',
+            dateFormat: 'DD/MM/YYYY',
+            locale: 'fr',
+          },
+        }
+      )
+    }
 
     const admin = await User.findByOrFail('email', SEEDED_ADMIN_EMAIL)
     await UserProfile.updateOrCreate(

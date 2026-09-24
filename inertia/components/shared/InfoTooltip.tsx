@@ -1,7 +1,8 @@
+import { useTranslation } from '~/hooks/use_translation'
 import React, { useState } from 'react'
 import { Info } from 'lucide-react'
 
-interface InfoTooltipProps {
+type InfoTooltipProps = {
   /** Texte principal affiché dans le popup */
   description: string
   /** Texte secondaire en italique (interprétation, conseil…) */
@@ -18,6 +19,7 @@ export default function InfoTooltip({
   children,
   align = 'right',
 }: InfoTooltipProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   return (
@@ -29,7 +31,7 @@ export default function InfoTooltip({
         onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
-        aria-label="Plus d'informations"
+        aria-label={t('common.moreInfo')}
       >
         <Info size={14} />
       </button>

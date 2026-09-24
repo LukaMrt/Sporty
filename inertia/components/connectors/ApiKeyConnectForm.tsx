@@ -6,7 +6,7 @@ import { Label } from '~/components/ui/label'
 import { connectorConnectPath, type ConnectorBrand } from '~/lib/connector_catalog'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface ApiKeyConnectFormProps {
+type ApiKeyConnectFormProps = {
   brand: ConnectorBrand
   disabled?: boolean
 }

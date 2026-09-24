@@ -14,7 +14,7 @@ import type { DataPoint } from '../../../app/domain/value_objects/run_metrics'
 import { formatPaceMinSec, paceToKmh } from '~/lib/format'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface ChartDataPoint {
+type ChartDataPoint = {
   time: number // secondes
   heartRate?: number
   pace?: number // valeur affichée (min/km ou km/h selon speedUnit)
@@ -31,13 +31,13 @@ const ZONE_COLORS: Record<number, string> = {
   5: '#f87171',
 }
 
-interface HrZoneThreshold {
+type HrZoneThreshold = {
   zone: number
   minBpm: number
   maxBpm: number
 }
 
-interface SessionCurvesChartProps {
+type SessionCurvesChartProps = {
   heartRateCurve?: DataPoint[]
   paceCurve?: DataPoint[]
   altitudeCurve?: DataPoint[]
@@ -102,7 +102,7 @@ function mergeDataPoints(
   })
 }
 
-interface CustomTooltipProps {
+type CustomTooltipProps = {
   active?: boolean
   payload?: Array<{ name: string; value: number; payload: ChartDataPoint }>
   label?: number

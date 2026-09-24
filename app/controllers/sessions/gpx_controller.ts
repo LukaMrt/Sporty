@@ -1,6 +1,7 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import { readFile } from 'node:fs/promises'
+import { DateTime } from 'luxon'
 import ParseGpxFile from '#use_cases/sessions/parse_gpx_file'
 import EnrichSessionWithGpx from '#use_cases/sessions/enrich_session_with_gpx'
 import { GpxParseError } from '#domain/errors/gpx_parse_error'
@@ -19,24 +20,25 @@ export default class GpxController {
    * POST /sessions/parse-gpx
    * Parse un fichier GPX et retourne les données extraites + un tempId.
    */
-  async parseGpx({ request, response }: HttpContext) {
+  async parseGpx({ request, response, auth, i18n }: HttpContext) {
     const data = await request.validateUsing(parseGpxValidator)
     const content = await readFile(data.gpx_file.tmpPath!)
 
     let result
     try {
-      result = await this.parseGpxFile.execute(content)
+      result = await this.parseGpxFile.execute(content, auth.user!.id)
     } catch (error) {
       if (error instanceof GpxParseError) {
-        return response.badRequest({ error: error.message })
+        return response.badRequest({ error: i18n.t(error.i18nKey) })
       }
       throw error
     }
 
     const { tempId, parsed } = result
-    const startDate = parsed.startTime
-      ? parsed.startTime.split('T')[0]
-      : new Date().toISOString().split('T')[0]
+    // Date locale du départ (l'heure GPX est en UTC) ; à défaut, aujourd'hui
+    const startDate = (
+      parsed.startTime ? DateTime.fromISO(parsed.startTime) : DateTime.now()
+    ).toISODate()
 
     return response.json({
       tempId,
@@ -76,6 +78,10 @@ export default class GpxController {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
         session.flash('error', i18n.t('sessions.flash.notFound'))
         return response.redirect('/sessions')
+      }
+      if (error instanceof GpxParseError) {
+        session.flash('error', i18n.t(error.i18nKey))
+        return response.redirect(`/sessions/${params.id}`)
       }
       throw error
     }

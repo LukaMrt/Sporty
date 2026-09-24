@@ -1,10 +1,14 @@
 import type { SportMetrics } from '#domain/value_objects/sport_metrics'
+import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
+import type { SessionAnalysis } from '#domain/value_objects/session_analysis'
 
-export interface TrainingSession {
+export type TrainingSession = {
   id: number
   userId: number
   sportId: number
   sportName: string
+  /** Slug du sport (running, cycling…) ; absent sur les objets construits à la main */
+  sportSlug?: string
   date: string
   durationMinutes: number
   distanceKm: number | null
@@ -17,4 +21,11 @@ export interface TrainingSession {
   gpxFilePath?: string | null
   createdAt: string
   deletedAt?: string | null
+  /** TSS calculé et stocké (null = pas encore calculé) */
+  trainingLoad?: number | null
+  loadMethod?: TrainingLoadMethod | null
+  /** Indicateurs d'analyse calculés à l'écriture */
+  analysis?: SessionAnalysis | null
+  /** Trace allégée [lat, lon][] pour les cartes */
+  trackPreview?: [number, number][] | null
 }

@@ -5,7 +5,7 @@ import { ActiveGoalExistsError } from '#domain/errors/active_goal_exists_error'
 import { TrainingState } from '#domain/value_objects/planning_types'
 import type { TrainingGoal } from '#domain/entities/training_goal'
 
-export interface CreateGoalInput {
+export type CreateGoalInput = {
   userId: number
   targetDistanceKm: number
   targetTimeMinutes?: number | null

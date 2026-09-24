@@ -1,0 +1,207 @@
+{
+  "title": "Analyse",
+  "range": "Période",
+  "sections": "Sections",
+  "ranges": {
+    "3m": "3 mois",
+    "6m": "6 mois",
+    "12m": "12 mois",
+    "all": "Tout"
+  },
+  "nav": {
+    "fitness": "Forme",
+    "volume": "Volume",
+    "intensity": "Intensité",
+    "performance": "Performance",
+    "efficiency": "Efficacité",
+    "recovery": "Récupération",
+    "calendar": "Calendrier",
+    "report": "Rapport"
+  },
+  "empty": {
+    "noSessions": "Aucune séance sur la période.",
+    "noHeartRate": "Pas de données de fréquence cardiaque : renseigne ta FC max dans ton profil et importe des séances avec cardio.",
+    "noGps": "Aucune trace GPS de course sur la période : les meilleurs efforts se calculent à partir des traces (Strava ou GPX).",
+    "noWellness": "Aucune donnée de récupération : connecte Open Wearables (sommeil, HRV, FC repos). Si ta montre ne fournit pas une donnée, le graphique correspondant reste masqué."
+  },
+  "fitness": {
+    "title": "Forme dans le temps",
+    "description": "Forme (CTL, 42 j), fatigue (ATL, 7 j) et fraîcheur (TSB = CTL − ATL), avec la charge de chaque jour.",
+    "ctl": "Forme (CTL)",
+    "atl": "Fatigue (ATL)",
+    "tsb": "Fraîcheur (TSB)",
+    "fresh": "Frais",
+    "tired": "Fatigué",
+    "balanced": "Équilibré",
+    "acwrRisk": "Hausse de charge risquée (> 1,5)",
+    "chartLabel": "Graphique CTL, ATL, TSB et charge quotidienne",
+    "methods": "Charge calculée par : FC {hr} séances, allure {pace}, ressenti {rpe}",
+    "estimated": "Charge surtout estimée depuis le ressenti : renseigne ta FC max pour plus de précision",
+    "monotony": "Monotonie de la dernière semaine {monotony} (contrainte {strain})"
+  },
+  "volume": {
+    "title": "Volume",
+    "weekly": "Par semaine",
+    "monthly": "Par mois",
+    "lastYear": "Année précédente",
+    "metrics": {
+      "distanceKm": "Distance (km)",
+      "durationMinutes": "Durée (min)",
+      "sessions": "Séances"
+    }
+  },
+  "sports": {
+    "running": "Course",
+    "cycling": "Vélo",
+    "swimming": "Natation",
+    "walking": "Marche",
+    "hiking": "Randonnée",
+    "other": "Autre"
+  },
+  "intensity": {
+    "title": "Répartition d'intensité",
+    "description": "Temps passé dans chaque zone par semaine. Repère : environ 80 % en Z1–Z2.",
+    "recentLowShare": "{percent} % du temps en Z1–Z2 sur 4 semaines :",
+    "polarized": "répartition polarisée",
+    "tooGrey": "trop de temps en zone intermédiaire",
+    "lowShare": "% en Z1–Z2"
+  },
+  "performance": {
+    "title": "Performance",
+    "description": "Meilleurs efforts mesurés à l’intérieur de tes séances, VDOT dérivé et prédictions de course.",
+    "vdot": "VDOT estimé",
+    "vdotHint": "Meilleurs efforts des 90 derniers jours",
+    "profileVdot": "VDOT du profil",
+    "watchVo2Max": "VO2max (montre)",
+    "records": "Records",
+    "distance": "Distance",
+    "allTime": "Tout temps",
+    "last90": "90 derniers jours",
+    "predictions": "Prédictions",
+    "vdotHistory": "Évolution du VDOT"
+  },
+  "distances": {
+    "400m": "400 m",
+    "1k": "1 km",
+    "mile": "1 mile",
+    "5k": "5 km",
+    "10k": "10 km",
+    "half": "Semi-marathon",
+    "marathon": "Marathon"
+  },
+  "physiology": {
+    "title": "Suggestions pour ton profil",
+    "maxHr": "FC max observée : {observed} bpm (profil : {current} bpm).",
+    "lthr": "FC au seuil estimée : {lthr} bpm (meilleure moyenne sur 20 min × 0,95).",
+    "update": "Mettre à jour mon profil"
+  },
+  "efficiency": {
+    "title": "Efficacité aérobie",
+    "description": "Vitesse / FC sur les sorties faciles : sa hausse est le meilleur signe de progression aérobie. Découplage : dérive du rapport allure/FC sur les sorties longues (< 5 % = bonne base).",
+    "delta": "Efficacité {delta} % sur la période",
+    "ef": "Efficiency Factor (sorties faciles)",
+    "decoupling": "Découplage des sorties longues",
+    "hrAtPace": "FC à allure de référence ({pace})",
+    "faster": "Allure plus rapide",
+    "slower": "Allure plus lente"
+  },
+  "recovery": {
+    "title": "Récupération",
+    "description": "HRV, FC repos et sommeil comparés à tes lignes de base.",
+    "readiness": "Forme du jour",
+    "levels": {
+      "good": "bonne",
+      "moderate": "moyenne",
+      "low": "basse",
+      "unknown": "inconnue"
+    },
+    "components": {
+      "hrv": "HRV",
+      "restingHr": "FC repos",
+      "sleep": "Sommeil (min)",
+      "tsb": "Fraîcheur"
+    },
+    "usual": "habituellement",
+    "hrvLow": "HRV sous ta normale depuis {days} jours : pense à alléger.",
+    "signals": {
+      "respiratory_rate_high": "Fréquence respiratoire nocturne inhabituelle : possible début de maladie, allège aujourd’hui.",
+      "spo2_low": "SpO2 nocturne basse.",
+      "skin_temperature_high": "Température cutanée élevée cette nuit.",
+      "resting_hr_high": "FC repos nettement au-dessus de ta normale."
+    },
+    "hrv": "HRV (ms)",
+    "normalBand": "Zone normale",
+    "avg7": "Moyenne 7 j",
+    "restingHr": "FC repos (bpm)",
+    "sleep": "Sommeil",
+    "stages": {
+      "deep": "Profond",
+      "rem": "Paradoxal",
+      "light": "Léger",
+      "awake": "Éveil",
+      "total": "Total"
+    },
+    "weight": "Poids",
+    "activity": "Minutes d'intensité hors séances",
+    "activeMinutes": "Minutes actives",
+    "correlation": "Sommeil de la veille vs efficacité (r = {r})"
+  },
+  "calendar": {
+    "title": "Calendrier de charge",
+    "less": "Moins",
+    "more": "Plus"
+  },
+  "report": {
+    "title": "Résumé pour Claude et export",
+    "description": "Un bloc Markdown compact des indicateurs calculés par Sporty, à coller dans ton projet Claude.",
+    "copy": "Copier le résumé",
+    "copied": "Copié !",
+    "exportSessions": "Exporter les séances (CSV)",
+    "exportDaily": "Exporter les métriques quotidiennes (CSV)",
+    "privacy": "Tes données de santé ne quittent Sporty que par ces exports, vers toi."
+  },
+  "more": "Autres vues",
+  "links": {
+    "report": "Bilan de la semaine / du mois",
+    "map": "Carte de mes traces",
+    "plan": "Plan importé de Claude"
+  },
+  "map": {
+    "title": "Carte de mes traces",
+    "description": "{count} traces superposées : tes parcours favoris ressortent par accumulation. Clique sur une trace pour ouvrir la séance.",
+    "privacy": "Les zones de confidentialité sont masquées.",
+    "privacyLink": "Gérer mes zones"
+  },
+  "compare": {
+    "title": "Comparaison de séances",
+    "session": "Séance",
+    "distance": "Distance",
+    "duration": "Durée",
+    "heartRate": "FC moy.",
+    "metrics": {
+      "pace": "Allure",
+      "heartRate": "FC",
+      "gap": "Écart cumulé"
+    },
+    "gapHint": "Écart de temps (s) par rapport à la première séance au même kilomètre : négatif = en avance."
+  },
+  "periodReport": {
+    "title": "Bilan",
+    "previous": "Période précédente",
+    "next": "Période suivante",
+    "periods": {
+      "week": "Semaine",
+      "month": "Mois"
+    },
+    "sessions": "Séances",
+    "distance": "Distance",
+    "duration": "Durée",
+    "load": "Charge",
+    "highlights": "Faits saillants",
+    "record": "Nouveau record sur {distance} : {time}",
+    "longest": "Plus longue sortie : {distance} km",
+    "busiestWeek": "Semaine la plus chargée : {week} ({load} TSS)",
+    "intensity": "{percent} % du temps en Z1–Z2",
+    "efficiency": "Efficacité aérobie : {from} → {to}"
+  }
+}

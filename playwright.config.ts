@@ -34,13 +34,18 @@ export default defineConfig({
 
   globalSetup: './tests/e2e/global_setup.ts',
 
+  /**
+   * Build de production servi tel qu'en prod (`node build/bin/server.js`) :
+   * assets Vite compilés, CSRF actif, cookies `secure` (acceptés sur localhost).
+   */
   webServer: {
-    command: 'node ace serve --hmr',
-    url: `${BASE_URL}/@vite/client`,
+    command: 'node ace build && node build/bin/server.js',
+    // Fichier statique : répond avant que le globalSetup ait migré la base
+    url: `${BASE_URL}/favicon.ico`,
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    timeout: 180_000,
     env: {
-      NODE_ENV: 'test',
+      NODE_ENV: 'production',
       PORT: '3334',
       HOST: '0.0.0.0',
       DB_DATABASE: 'sporty_e2e',
@@ -49,8 +54,11 @@ export default defineConfig({
       DB_USER: process.env.DB_USER ?? 'sporty',
       DB_PASSWORD: process.env.DB_PASSWORD ?? 'sporty',
       APP_KEY: process.env.APP_KEY ?? 'kDvkrhtbc8N2L0ftV-wQbX4Msfce8-IrF4AsJwtJ4do',
+      APP_URL: BASE_URL,
       LOG_LEVEL: 'error',
       SESSION_DRIVER: 'cookie',
+      LIMITER_STORE: 'memory',
+      SCHEDULER_ENABLED: 'false',
       TZ: 'UTC',
     },
   },

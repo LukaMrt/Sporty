@@ -1,0 +1,18 @@
+{
+  "title": "Plan importé",
+  "adherence": "{percent} % des séances prévues réalisées",
+  "missed": "Non faite",
+  "importLabel": "Coller un plan",
+  "importHelp": "Colle le plan rédigé dans Claude : une séance par ligne commençant par une date (AAAA-MM-JJ ou JJ/MM/AAAA), ou un tableau JSON [{ date, title, duration_minutes, distance_km, notes }]. Les séances prévues sur la même période sont remplacées.",
+  "import": "Importer",
+  "clear": "Effacer le plan",
+  "clearConfirm": "Effacer toutes les séances prévues ?",
+  "imported": "{count} séances prévues importées",
+  "cleared": "Plan effacé",
+  "errors": {
+    "empty": "Le plan est vide",
+    "no_entries": "Aucune séance datée trouvée",
+    "invalid_json": "JSON invalide",
+    "invalid_date": "Date invalide dans le plan"
+  }
+}

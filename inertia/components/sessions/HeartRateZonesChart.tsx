@@ -9,13 +9,13 @@ const ZONES = [
   { key: 'z5' as const, label: 'Z5', color: '#f87171' },
 ]
 
-interface HrZoneThreshold {
+type HrZoneThreshold = {
   zone: number
   minBpm: number
   maxBpm: number
 }
 
-interface HeartRateZonesChartProps {
+type HeartRateZonesChartProps = {
   hrZones: HeartRateZones
   hrZoneThresholds?: HrZoneThreshold[]
 }

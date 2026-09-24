@@ -1,12 +1,24 @@
 {
   "extends": "@adonisjs/tsconfig/tsconfig.client.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "module": "ESNext",
     "jsx": "react-jsx",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "~/*": ["./*"]
     }
   },
-  "include": ["./**/*.ts", "./**/*.tsx"]
+  "include": [
+    "./**/*.ts",
+    "./**/*.tsx",
+    "../.adonisjs/server/*.d.ts",
+    "../config/auth.ts",
+    "../config/hash.ts",
+    "../config/limiter.ts",
+    "../config/logger.ts",
+    "../start/events.ts",
+    "../app/middleware/detect_user_locale_middleware.ts",
+    "../app/middleware/inertia_middleware.ts"
+  ]
 }

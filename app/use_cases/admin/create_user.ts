@@ -15,10 +15,6 @@ export default class CreateUser {
   constructor(private userRepository: UserRepository) {}
 
   async execute(input: CreateUserInput): Promise<User> {
-    return this.userRepository.create({
-      ...input,
-      onboardingCompleted: false,
-      createdAt: new Date().toISOString(),
-    })
+    return this.userRepository.create({ ...input, onboardingCompleted: false })
   }
 }

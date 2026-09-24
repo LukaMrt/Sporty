@@ -1,4 +1,5 @@
-import vine, { SimpleMessagesProvider } from '@vinejs/vine'
+import vine from '@vinejs/vine'
+import { UserRole } from '#domain/value_objects/user_role'
 
 export const updateUserValidator = vine.create(
   vine.object({
@@ -17,9 +18,6 @@ export const updateUserValidator = vine.create(
         return !row
       })
       .optional(),
+    role: vine.enum(Object.values(UserRole)).optional(),
   })
 )
-
-updateUserValidator.messagesProvider = new SimpleMessagesProvider({
-  'email.database.unique': 'Cet email est déjà utilisé',
-})

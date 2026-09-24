@@ -20,7 +20,7 @@ export default class RegisterController {
     return inertia.render('Auth/Register', {})
   }
 
-  async register({ request, response }: HttpContext) {
+  async register({ request, response, i18n }: HttpContext) {
     const data = await request.validateUsing(registerValidator)
     try {
       await this.registerUser.registerUser({
@@ -31,7 +31,7 @@ export default class RegisterController {
       return response.redirect('/')
     } catch (error) {
       if (error instanceof UserAlreadyExistsError) {
-        return response.abort('Inscription fermée', 403)
+        return response.abort(i18n.t('auth.register.closed'), 403)
       }
       throw error
     }

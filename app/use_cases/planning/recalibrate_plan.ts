@@ -1,45 +1,35 @@
 import { inject } from '@adonisjs/core'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { EventEmitter } from '#domain/interfaces/event_emitter'
-import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
-import { PlannedSessionStatus, SessionType } from '#domain/value_objects/planning_types'
-import { calculateVdot, derivePaceZones } from '#domain/services/vdot_calculator'
-import type { GeneratedWeek } from '#domain/interfaces/training_plan_engine'
+import { UnitOfWork } from '#domain/interfaces/unit_of_work'
+import { PlannedSessionStatus } from '#domain/value_objects/planning_types'
+import { calculateVdot } from '#domain/services/vdot_calculator'
+import { RUNNING_SLUG } from '#domain/services/session_load'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import type { TrainingSession } from '#domain/entities/training_session'
+import type { WeekSummary } from '#domain/value_objects/week_summary'
+import PlanRecalibrator from '#use_cases/planning/plan_recalibrator'
+import { QUALITY_SESSION_TYPES } from '#use_cases/planning/week_summary_builder'
 
-export interface QualitySessionSummary {
-  sessionType: string
-  actualTss: number
-  plannedTss: number
-}
-
-export interface WeekSummary {
-  weekNumber: number
-  plannedLoadTss: number
-  actualLoadTss: number
-  qualitySessions: QualitySessionSummary[]
-}
+export type { WeekSummary, QualitySessionSummary } from '#domain/value_objects/week_summary'
 
 const DELTA_THRESHOLD_SILENT = 0.1 // ±10 %
 const DELTA_THRESHOLD_VDOT = 0.2 // ±20 %
 const CONSECUTIVE_UNDER_TARGET = 3
-
-const QUALITY_SESSION_TYPES: string[] = [
-  SessionType.Tempo,
-  SessionType.Interval,
-  SessionType.Repetition,
-]
+const UNDER_TARGET_RATIO = 0.85
+/** Distance minimale d'une séance qualité pour estimer un VDOT fiable */
+const MIN_VDOT_DISTANCE_KM = 3
+/** Fenêtre (semaines) des séances qualité prises en compte pour la hausse de VDOT */
+const VDOT_LOOKBACK_WEEKS = 4
 
 @inject()
 export default class RecalibratePlan {
   constructor(
     private planRepository: TrainingPlanRepository,
     private sessionRepository: SessionRepository,
-    private goalRepository: TrainingGoalRepository,
-    private planEngine: TrainingPlanEngine,
+    private planRecalibrator: PlanRecalibrator,
+    private unitOfWork: UnitOfWork,
     private eventEmitter: EventEmitter
   ) {}
 
@@ -48,12 +38,10 @@ export default class RecalibratePlan {
     if (!plan || !plan.autoRecalibrate) return
 
     const { weekNumber, plannedLoadTss, actualLoadTss, qualitySessions } = weekSummary
-
-    // 0. Charger les séances planifiées (utilisées à plusieurs étapes)
     const allPlannedSessions = await this.planRepository.findSessionsByPlanId(plan.id)
 
-    // Reporter une séance qualité manquée (max 1)
-    await this.#deferMissedQualitySession(plan.id, weekNumber, plan.startDate, allPlannedSessions)
+    // Reporter une séance qualité manquée de la semaine close (max 1)
+    await this.#deferMissedQualitySession(weekNumber, allPlannedSessions)
 
     // 1. Delta de charge
     const delta = plannedLoadTss > 0 ? (actualLoadTss - plannedLoadTss) / plannedLoadTss : 0
@@ -61,137 +49,57 @@ export default class RecalibratePlan {
     // 2. < ±10 % → rien
     if (Math.abs(delta) < DELTA_THRESHOLD_SILENT) return
 
-    // 3. Récupérer l'historique des 12 semaines pour analyses VDOT
-    const twelveWeeksAgo = new Date(Date.now() - 84 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10)
-    const today = new Date().toISOString().slice(0, 10)
-    const recentSessions = await this.sessionRepository.findByUserIdAndDateRange(
-      userId,
-      twelveWeeksAgo,
-      today
+    // Séances réalisées liées aux séances qualité récentes (seules comparables aux cibles)
+    const recentQuality = allPlannedSessions.filter(
+      (ps) =>
+        ps.weekNumber > weekNumber - VDOT_LOOKBACK_WEEKS &&
+        ps.weekNumber <= weekNumber &&
+        QUALITY_SESSION_TYPES.includes(ps.sessionType) &&
+        ps.status === PlannedSessionStatus.Completed &&
+        ps.completedSessionId !== null
+    )
+    const linkedSessions = await this.sessionRepository.findByIds(
+      recentQuality.map((ps) => ps.completedSessionId!)
     )
 
-    // 4. Identifier séances qualité sous cibles (3+ consécutives)
-    const underTargetFlag = this.#detectConsecutiveUnderTarget(
-      weekNumber,
-      allPlannedSessions,
-      recentSessions
-    )
+    // 3. 3+ séances qualité consécutives sous cibles → proposition de baisse
+    const underTarget = this.#detectConsecutiveUnderTarget(recentQuality, linkedSessions)
 
     let newVdot = plan.currentVdot
     let vdotChanged = false
 
-    // 5a. > +20 % sur séances qualité → réévaluation VDOT à la hausse auto
+    // 4. > +20 % avec séances qualité → réévaluation VDOT à la hausse
     if (delta > DELTA_THRESHOLD_VDOT && qualitySessions.length > 0) {
-      const bestPaceMs = this.#getBestQualityPace(recentSessions)
-      if (bestPaceMs) {
-        const estimatedVdot = calculateVdot(5000, 5000 / bestPaceMs)
-        if (estimatedVdot > plan.currentVdot + 0.5) {
-          newVdot = Math.round(estimatedVdot * 2) / 2 // arrondi au 0.5
-          vdotChanged = true
-        }
+      const estimated = this.#bestQualityVdot(linkedSessions)
+      if (estimated !== null && estimated > plan.currentVdot + 0.5) {
+        newVdot = Math.round(estimated * 2) / 2 // arrondi au 0.5
+        vdotChanged = true
       }
     }
 
-    // 5b. > -20 % → réduire la charge (sans changer VDOT)
-    // 5c. 3+ séances qualité consécutives sous cibles → proposition baisse VDOT
-    if (underTargetFlag && !vdotChanged) {
-      // Créer une proposition de baisse VDOT (confirmation utilisateur requise)
-      const proposedVdot = Math.max(plan.currentVdot - 2, 30)
-      await this.planRepository.update(plan.id, { pendingVdotDown: proposedVdot })
+    // 5. Proposition de baisse VDOT (confirmation utilisateur requise)
+    if (underTarget && !vdotChanged) {
+      await this.planRepository.update(plan.id, {
+        pendingVdotDown: Math.max(plan.currentVdot - 2, 30),
+      })
       return
     }
 
-    // 6. Préparer le contexte de recalibration
-    const nextWeekNumber = weekNumber + 1
-    const remainingSessions = allPlannedSessions.filter((s) => s.weekNumber >= nextWeekNumber)
+    // 6. Charge nettement inférieure au prévu (delta < −20 %) → volume réduit de 15 %,
+    //    VDOT inchangé. Entre −10 % et −20 % : régénération sans réduction de volume.
+    const volumeFactor = delta < -DELTA_THRESHOLD_VDOT ? 0.85 : 1.0
 
-    if (remainingSessions.length === 0) return
+    const recalibrated = await this.unitOfWork.run(() =>
+      this.planRecalibrator.recalibrateRemaining({
+        plan,
+        currentWeekNumber: weekNumber,
+        newVdot,
+        volumeFactor,
+      })
+    )
 
-    // Construire les GeneratedWeek restantes pour le contexte
-    const allWeeks = await this.planRepository.findWeeksByPlanId(plan.id)
-    const remainingWeeks: GeneratedWeek[] = allWeeks
-      .filter((w) => w.weekNumber >= nextWeekNumber)
-      .map((w) => ({
-        weekNumber: w.weekNumber,
-        phaseName: w.phaseName,
-        isRecoveryWeek: w.isRecoveryWeek,
-        targetVolumeMinutes: w.targetVolumeMinutes,
-        sessions: remainingSessions
-          .filter((s) => s.weekNumber === w.weekNumber)
-          .map((s) => ({
-            dayOfWeek: s.dayOfWeek,
-            sessionType: s.sessionType,
-            targetDurationMinutes: s.targetDurationMinutes,
-            targetDistanceKm: s.targetDistanceKm,
-            targetPacePerKm: s.targetPacePerKm,
-            intensityZone: s.intensityZone,
-            intervals: s.intervals,
-          })),
-      }))
-
-    const goal = plan.goalId ? await this.goalRepository.findById(plan.goalId) : null
-    const paceZones = derivePaceZones(newVdot)
-
-    // Appliquer un facteur de charge si delta négatif (-10 à -20 %)
-    const loadFactor = delta < -DELTA_THRESHOLD_VDOT ? 0.85 : 1.0
-
-    const recalibrationContext = {
-      currentWeekNumber: weekNumber,
-      newVdot,
-      newPaceZones: paceZones,
-      remainingWeeks,
-      originalRequest: {
-        targetDistanceKm: goal?.targetDistanceKm ?? 42.195,
-        targetTimeMinutes: goal?.targetTimeMinutes ?? null,
-        eventDate: goal?.eventDate ?? null,
-        vdot: newVdot,
-        paceZones,
-        totalWeeks: allWeeks.length,
-        sessionsPerWeek: plan.sessionsPerWeek,
-        preferredDays: plan.preferredDays,
-        startDate: plan.startDate,
-        currentWeeklyVolumeMinutes: Math.round(
-          (remainingWeeks[0]?.targetVolumeMinutes ?? 0) * loadFactor
-        ),
-      },
-    }
-
-    // 7. Recalibrer via le moteur
-    const recalibrated = this.planEngine.recalibrate(recalibrationContext)
-
-    // 8. Supprimer les sessions futures et les remplacer
-    await this.planRepository.deleteSessionsFromWeek(plan.id, nextWeekNumber)
-
-    for (const week of recalibrated.weeks.filter((w) => w.weekNumber >= nextWeekNumber)) {
-      for (const session of week.sessions) {
-        await this.planRepository.createSession({
-          planId: plan.id,
-          weekNumber: week.weekNumber,
-          dayOfWeek: session.dayOfWeek,
-          sessionType: session.sessionType,
-          targetDurationMinutes: session.targetDurationMinutes,
-          targetDistanceKm: session.targetDistanceKm,
-          targetPacePerKm: session.targetPacePerKm,
-          intensityZone: session.intensityZone,
-          intervals: session.intervals,
-          targetLoadTss: null,
-          completedSessionId: null,
-          status: PlannedSessionStatus.Pending,
-        })
-      }
-    }
-
-    // 9. Persister les changements sur le plan
-    await this.planRepository.update(plan.id, {
-      currentVdot: newVdot,
-      lastRecalibratedAt: new Date().toISOString(),
-      pendingVdotDown: null,
-    })
-
-    // 10. Notifier hausse VDOT (toast via émission d'un événement)
-    if (vdotChanged) {
+    // 7. Notifier la hausse de VDOT
+    if (recalibrated && vdotChanged) {
       await this.eventEmitter.emit('plan:vdot_increased', {
         userId,
         planId: plan.id,
@@ -202,91 +110,63 @@ export default class RecalibratePlan {
   }
 
   #detectConsecutiveUnderTarget(
-    currentWeek: number,
-    plannedSessions: PlannedSession[],
-    recentSessions: TrainingSession[]
+    recentQuality: PlannedSession[],
+    linkedSessions: TrainingSession[]
   ): boolean {
-    const QUALITY_TYPES: string[] = [
-      SessionType.Tempo,
-      SessionType.Interval,
-      SessionType.Repetition,
-    ]
-    const UNDER_TARGET_RATIO = 0.85
+    const sessionById = new Map(linkedSessions.map((s) => [s.id, s]))
+    const sorted = [...recentQuality].sort(
+      (a, b) => a.weekNumber - b.weekNumber || a.dayOfWeek - b.dayOfWeek
+    )
+    if (sorted.length < CONSECUTIVE_UNDER_TARGET) return false
 
-    const sessionById = new Map(recentSessions.map((s) => [s.id, s]))
-
-    // Séances qualité complétées sur les 3 dernières semaines, triées chronologiquement
-    const recentQuality = plannedSessions
-      .filter(
-        (ps) =>
-          ps.weekNumber >= currentWeek - 2 &&
-          ps.weekNumber <= currentWeek &&
-          QUALITY_TYPES.includes(ps.sessionType) &&
-          ps.status === PlannedSessionStatus.Completed
-      )
-      .sort((a, b) => a.weekNumber - b.weekNumber || a.dayOfWeek - b.dayOfWeek)
-
-    if (recentQuality.length < CONSECUTIVE_UNDER_TARGET) return false
-
-    // Vérifier que les 3 dernières séances qualité sont toutes sous cible
-    const lastThree = recentQuality.slice(-CONSECUTIVE_UNDER_TARGET)
-    return lastThree.every((ps) => {
-      if (!ps.completedSessionId) return true
-      const actual = sessionById.get(ps.completedSessionId)
+    return sorted.slice(-CONSECUTIVE_UNDER_TARGET).every((ps) => {
+      const actual = ps.completedSessionId ? sessionById.get(ps.completedSessionId) : undefined
       if (!actual || !ps.targetDurationMinutes) return true
       return actual.durationMinutes < ps.targetDurationMinutes * UNDER_TARGET_RATIO
     })
   }
 
+  /**
+   * Séance qualité de la semaine close restée non faite (`skipped` par la
+   * clôture de semaine) : on la reporte sur un jour libre de la semaine suivante.
+   */
   async #deferMissedQualitySession(
-    _planId: number,
-    currentWeek: number,
-    planStartDate: string,
+    closedWeek: number,
     allPlannedSessions: PlannedSession[]
   ): Promise<void> {
-    const today = new Date()
+    const missed = allPlannedSessions.find(
+      (s) =>
+        s.weekNumber === closedWeek &&
+        QUALITY_SESSION_TYPES.includes(s.sessionType) &&
+        s.status === PlannedSessionStatus.Skipped
+    )
+    if (!missed) return
 
-    // Séances qualité de la semaine courante encore en attente
-    const missedQuality = allPlannedSessions.filter((s) => {
-      if (s.weekNumber !== currentWeek) return false
-      if (!QUALITY_SESSION_TYPES.includes(s.sessionType)) return false
-      if (s.status !== PlannedSessionStatus.Pending) return false
+    const nextWeekSessions = allPlannedSessions.filter((s) => s.weekNumber === closedWeek + 1)
+    if (nextWeekSessions.length === 0) return // dernière semaine du plan
 
-      // Vérifier que la date est passée
-      const start = new Date(planStartDate)
-      const sessionDate = new Date(start)
-      sessionDate.setDate(start.getDate() + (currentWeek - 1) * 7 + s.dayOfWeek)
-      return sessionDate < today
-    })
-
-    if (missedQuality.length === 0) return
-
-    // Prendre la première séance manquée (max 1)
-    const toDefer = missedQuality[0]
-
-    // Trouver un créneau libre dans la semaine suivante
-    const nextWeekSessions = allPlannedSessions.filter((s) => s.weekNumber === currentWeek + 1)
     const occupiedDays = new Set(nextWeekSessions.map((s) => s.dayOfWeek))
-    const allDays = [1, 2, 3, 4, 5, 6, 0] // Lun–Dim
-    const freeDays = allDays.filter((d) => !occupiedDays.has(d))
+    const freeDay = [1, 2, 3, 4, 5, 6, 0].find((d) => !occupiedDays.has(d)) // Lun–Dim
+    if (freeDay === undefined) return
 
-    if (freeDays.length === 0) return // Pas de créneau libre
-
-    await this.planRepository.updateSession(toDefer.id, {
-      weekNumber: currentWeek + 1,
-      dayOfWeek: freeDays[0],
+    await this.planRepository.updateSession(missed.id, {
+      weekNumber: closedWeek + 1,
+      dayOfWeek: freeDay,
+      status: PlannedSessionStatus.Pending,
     })
   }
 
-  #getBestQualityPace(sessions: TrainingSession[]): number | null {
-    // Trouver la meilleure allure (min/km → m/min) sur les séances récentes > 3km
-    const runSessions = sessions.filter(
-      (s) => s.distanceKm && s.distanceKm >= 3 && s.durationMinutes > 0
-    )
-
-    if (runSessions.length === 0) return null
-
-    const paces = runSessions.map((s) => (s.distanceKm! * 1000) / s.durationMinutes)
-    return Math.max(...paces)
+  /**
+   * VDOT le plus élevé parmi les séances qualité de COURSE réellement liées au plan.
+   * Chaque séance est évaluée sur sa propre distance (et non comme un 5 km), et
+   * les autres sports sont exclus : une sortie vélo donnait un VDOT de 85+.
+   */
+  #bestQualityVdot(sessions: TrainingSession[]): number | null {
+    const vdots = sessions
+      .filter((s) => s.sportSlug === undefined || s.sportSlug === RUNNING_SLUG)
+      .filter((s) => (s.distanceKm ?? 0) >= MIN_VDOT_DISTANCE_KM && s.durationMinutes > 0)
+      .map((s) => calculateVdot(s.distanceKm! * 1000, s.durationMinutes))
+      .filter((v) => Number.isFinite(v))
+    return vdots.length > 0 ? Math.max(...vdots) : null
   }
 }

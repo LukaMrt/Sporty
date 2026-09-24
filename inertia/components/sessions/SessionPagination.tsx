@@ -1,7 +1,7 @@
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface SessionPaginationProps {
+type SessionPaginationProps = {
   page: number
   lastPage: number
   onPrevious: () => void

@@ -1,0 +1,18 @@
+{
+  "title": "Imported plan",
+  "adherence": "{percent} % of planned sessions completed",
+  "missed": "Missed",
+  "importLabel": "Paste a plan",
+  "importHelp": "Paste the plan written in Claude: one session per line starting with a date (YYYY-MM-DD or DD/MM/YYYY), or a JSON array [{ date, title, duration_minutes, distance_km, notes }]. Planned sessions over the same period are replaced.",
+  "import": "Import",
+  "clear": "Clear plan",
+  "clearConfirm": "Clear all planned sessions?",
+  "imported": "{count} planned sessions imported",
+  "cleared": "Plan cleared",
+  "errors": {
+    "empty": "The plan is empty",
+    "no_entries": "No dated session found",
+    "invalid_json": "Invalid JSON",
+    "invalid_date": "Invalid date in the plan"
+  }
+}

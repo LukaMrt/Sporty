@@ -1,7 +1,7 @@
 import { Activity } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 
-interface EmptyStateProps {
+type EmptyStateProps = {
   title: string
   description?: string
   ctaLabel?: string

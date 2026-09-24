@@ -6,51 +6,72 @@ import { TrainingPlanRepository } from '#domain/interfaces/training_plan_reposit
 import TrainingPlanModel from '#models/training_plan'
 import PlannedWeekModel from '#models/planned_week'
 import PlannedSessionModel from '#models/planned_session'
+import { txOptions } from '#repositories/transaction_context'
 
 export default class LucidTrainingPlanRepository extends TrainingPlanRepository {
   async create(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<TrainingPlan> {
-    const model = await TrainingPlanModel.create({
-      userId: data.userId,
-      goalId: data.goalId ?? null,
-      methodology: data.methodology,
-      level: data.level,
-      status: data.status,
-      autoRecalibrate: data.autoRecalibrate,
-      vdotAtCreation: data.vdotAtCreation,
-      currentVdot: data.currentVdot,
-      sessionsPerWeek: data.sessionsPerWeek,
-      preferredDays: data.preferredDays,
-      startDate: DateTime.fromISO(data.startDate),
-      endDate: DateTime.fromISO(data.endDate),
-      lastRecalibratedAt: data.lastRecalibratedAt
-        ? DateTime.fromISO(data.lastRecalibratedAt)
-        : null,
-    })
+    const model = await TrainingPlanModel.create(
+      {
+        userId: data.userId,
+        goalId: data.goalId ?? null,
+        methodology: data.methodology,
+        level: data.level,
+        status: data.status,
+        autoRecalibrate: data.autoRecalibrate,
+        vdotAtCreation: data.vdotAtCreation,
+        currentVdot: data.currentVdot,
+        sessionsPerWeek: data.sessionsPerWeek,
+        preferredDays: data.preferredDays,
+        startDate: DateTime.fromISO(data.startDate),
+        endDate: DateTime.fromISO(data.endDate),
+        lastRecalibratedAt: data.lastRecalibratedAt
+          ? DateTime.fromISO(data.lastRecalibratedAt)
+          : null,
+      },
+      txOptions()
+    )
     return this.#toEntity(model)
   }
 
   async findById(id: number): Promise<TrainingPlan | null> {
-    const model = await TrainingPlanModel.find(id)
+    const model = await TrainingPlanModel.find(id, txOptions())
     return model ? this.#toEntity(model) : null
   }
 
   async findByUserId(userId: number): Promise<TrainingPlan[]> {
-    const models = await TrainingPlanModel.query()
+    const models = await TrainingPlanModel.query(txOptions())
       .where('userId', userId)
       .orderBy('created_at', 'desc')
     return models.map((m) => this.#toEntity(m))
   }
 
   async findActiveByUserId(userId: number): Promise<TrainingPlan | null> {
-    const model = await TrainingPlanModel.query()
+    const model = await TrainingPlanModel.query(txOptions())
       .where('userId', userId)
       .whereIn('status', ['active', 'draft'])
+      // Déterministe même si l'invariant (index unique partiel) était violé
+      .orderBy('id', 'desc')
       .first()
     return model ? this.#toEntity(model) : null
   }
 
+  async lockActiveByUserId(userId: number): Promise<TrainingPlan | null> {
+    const model = await TrainingPlanModel.query(txOptions())
+      .where('userId', userId)
+      .whereIn('status', ['active', 'draft'])
+      .orderBy('id', 'desc')
+      .forUpdate()
+      .first()
+    return model ? this.#toEntity(model) : null
+  }
+
+  async findAllActive(): Promise<TrainingPlan[]> {
+    const models = await TrainingPlanModel.query(txOptions()).where('status', 'active')
+    return models.map((m) => this.#toEntity(m))
+  }
+
   async findActiveByGoalId(goalId: number): Promise<TrainingPlan | null> {
-    const model = await TrainingPlanModel.query()
+    const model = await TrainingPlanModel.query(txOptions())
       .where('goalId', goalId)
       .whereIn('status', ['active', 'draft'])
       .first()
@@ -61,7 +82,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     id: number,
     data: Partial<Omit<TrainingPlan, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>
   ): Promise<TrainingPlan> {
-    const model = await TrainingPlanModel.findOrFail(id)
+    const model = await TrainingPlanModel.findOrFail(id, txOptions())
     if (data.goalId !== undefined) model.goalId = data.goalId
     if (data.methodology !== undefined) model.methodology = data.methodology
     if (data.level !== undefined) model.level = data.level
@@ -82,18 +103,26 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
   }
 
   async delete(id: number): Promise<void> {
-    await TrainingPlanModel.query().where('id', id).delete()
+    await TrainingPlanModel.query(txOptions()).where('id', id).delete()
   }
 
   async createWeek(
     data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<PlannedWeek> {
-    const model = await PlannedWeekModel.create(data)
+    const model = await PlannedWeekModel.create(data, txOptions())
     return this.#weekToEntity(model)
   }
 
+  async createWeeks(
+    data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>[]
+  ): Promise<PlannedWeek[]> {
+    if (data.length === 0) return []
+    const models = await PlannedWeekModel.createMany(data, txOptions())
+    return models.map((m) => this.#weekToEntity(m))
+  }
+
   async findWeeksByPlanId(planId: number): Promise<PlannedWeek[]> {
-    const models = await PlannedWeekModel.query()
+    const models = await PlannedWeekModel.query(txOptions())
       .where('planId', planId)
       .orderBy('week_number', 'asc')
     return models.map((m) => this.#weekToEntity(m))
@@ -102,17 +131,25 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
   async createSession(
     data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<PlannedSession> {
-    const model = await PlannedSessionModel.create(data)
+    const model = await PlannedSessionModel.create(data, txOptions())
     return this.#sessionToEntity(model)
   }
 
+  async createSessions(
+    data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>[]
+  ): Promise<PlannedSession[]> {
+    if (data.length === 0) return []
+    const models = await PlannedSessionModel.createMany(data, txOptions())
+    return models.map((m) => this.#sessionToEntity(m))
+  }
+
   async findSessionById(id: number): Promise<PlannedSession | null> {
-    const model = await PlannedSessionModel.find(id)
+    const model = await PlannedSessionModel.find(id, txOptions())
     return model ? this.#sessionToEntity(model) : null
   }
 
   async findSessionsByPlanId(planId: number): Promise<PlannedSession[]> {
-    const models = await PlannedSessionModel.query()
+    const models = await PlannedSessionModel.query(txOptions())
       .where('planId', planId)
       .orderBy('week_number', 'asc')
       .orderBy('day_of_week', 'asc')
@@ -123,14 +160,14 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     id: number,
     data: Partial<Omit<PlannedSession, 'id' | 'planId' | 'createdAt' | 'updatedAt'>>
   ): Promise<PlannedSession> {
-    const model = await PlannedSessionModel.findOrFail(id)
+    const model = await PlannedSessionModel.findOrFail(id, txOptions())
     Object.assign(model, data)
     await model.save()
     return this.#sessionToEntity(model)
   }
 
   async deleteSessionsFromWeek(planId: number, fromWeekNumber: number): Promise<void> {
-    await PlannedSessionModel.query()
+    await PlannedSessionModel.query(txOptions())
       .where('planId', planId)
       .where('week_number', '>=', fromWeekNumber)
       .delete()

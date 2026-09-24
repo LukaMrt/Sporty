@@ -10,12 +10,12 @@ import { useTranslation } from '~/hooks/use_translation'
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
 import iconUrl from 'leaflet/dist/images/marker-icon.png'
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
-delete (L.Icon.Default.prototype as Record<string, unknown>)._getIconUrl
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl })
 
 type ColorMode = 'pace' | 'hr' | 'none'
 
-interface SessionMapProps {
+type SessionMapProps = {
   gpsTrack: GpsPoint[]
   heartRateCurve?: DataPoint[]
   paceCurve?: DataPoint[]
@@ -80,7 +80,7 @@ function FitBounds({ bounds }: { bounds: LatLngBounds }) {
   return null
 }
 
-interface PopupData {
+type PopupData = {
   lat: number
   lon: number
   km: number
@@ -223,7 +223,10 @@ export default function SessionMap({
 
         {/* Popup interactif */}
         {popupData && (
-          <Popup position={[popupData.lat, popupData.lon]} onClose={() => setPopupData(null)}>
+          <Popup
+            position={[popupData.lat, popupData.lon]}
+            eventHandlers={{ remove: () => setPopupData(null) }}
+          >
             <div className="text-sm space-y-0.5">
               <p>
                 <span className="font-medium">Km :</span> {popupData.km.toFixed(2)} km

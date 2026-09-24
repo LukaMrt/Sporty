@@ -1,4 +1,5 @@
 import { test } from '@japa/runner'
+import { BaseMockSessionRepo } from '#tests/helpers/base_mocks'
 import ListPreImportSessions, {
   ConnectorNotConnectedError,
 } from '#use_cases/import/list_pre_import_sessions'
@@ -23,7 +24,7 @@ import type {
 } from '#domain/interfaces/connector'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
-import { SessionRepository } from '#domain/interfaces/session_repository'
+import { type SessionRepository } from '#domain/interfaces/session_repository'
 import type { SessionExternalRef } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
@@ -100,6 +101,9 @@ function makeImportSessionRepository(
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
+    async recordFailure(): Promise<boolean> {
+      return false
+    }
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null
@@ -119,7 +123,7 @@ function makeSessionRepository(
     ) => Promise<SessionExternalRef[]>
   }> = {}
 ): SessionRepository {
-  class Mock extends SessionRepository {
+  class Mock extends BaseMockSessionRepo {
     async create(): Promise<TrainingSession> {
       throw new Error('not implemented')
     }

@@ -6,7 +6,8 @@
     "profile": "Profile",
     "admin": "Administration",
     "connectors": "Connectors",
-    "logout": "Log out"
+    "logout": "Log out",
+    "analysis": "Analysis"
   },
   "actions": {
     "save": "Save",
@@ -19,5 +20,6 @@
     "backToList": "Back to list",
     "close": "Close",
     "undo": "Undo"
-  }
+  },
+  "moreInfo": "More information"
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type SyntheticEvent } from 'react'
+import { useState, useEffect, type SyntheticEvent } from 'react'
 import { useTechMode } from '~/hooks/use_tech_mode'
 import { Head, useForm, router } from '@inertiajs/react'
 import { ChevronLeft, Edit2, Check, X } from 'lucide-react'
@@ -12,12 +12,12 @@ import InfoTooltip from '~/components/shared/InfoTooltip'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
-interface PaceZoneRange {
+type PaceZoneRange = {
   minPacePerKm: number
   maxPacePerKm: number
 }
 
-interface PaceZones {
+type PaceZones = {
   easy: PaceZoneRange
   marathon: PaceZoneRange
   threshold: PaceZoneRange
@@ -25,15 +25,15 @@ interface PaceZones {
   repetition: PaceZoneRange
 }
 
-interface FitnessData {
+type FitnessData = {
   ctl: number
   atl: number
   tsb: number
   acwr: number
 }
 
-interface Profile {
-  trainingState: 'idle' | 'preparation' | 'transition' | 'maintenance'
+type Profile = {
+  trainingState: 'idle' | 'in_plan' | 'preparation' | 'transition' | 'maintenance'
   maxHeartRate: number | null
   restingHeartRate: number | null
   vma: number | null
@@ -41,7 +41,7 @@ interface Profile {
   speedUnit: 'min_km' | 'km_h'
 }
 
-interface AthleteProfileProps {
+type AthleteProfileProps = {
   profile: Profile | null
   vdot: number | null
   paceZones: PaceZones | null

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Lock, Eye, EyeOff } from 'lucide-react'
 import IconInput from './IconInput'
 
-interface PasswordInputProps {
+type PasswordInputProps = {
   id?: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void

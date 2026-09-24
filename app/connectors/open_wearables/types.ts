@@ -5,7 +5,7 @@
  * open-wearables, qui applique son propre renommage. Ce sont ceux de l'API REST.
  */
 
-export interface RawOwSource {
+export type RawOwSource = {
   provider: string
   source: string | null
   device: string | null
@@ -13,7 +13,7 @@ export interface RawOwSource {
   device_name: string | null
 }
 
-export interface RawOwWorkout {
+export type RawOwWorkout = {
   id: string
   type: string
   name: string | null
@@ -30,7 +30,7 @@ export interface RawOwWorkout {
   elevation_gain_meters: number | null
 }
 
-export interface RawOwTimeSeriesSample {
+export type RawOwTimeSeriesSample = {
   timestamp: string
   zone_offset: string | null
   type: string
@@ -40,7 +40,7 @@ export interface RawOwTimeSeriesSample {
   is_daily_total: boolean | null
 }
 
-export interface RawOwPagination {
+export type RawOwPagination = {
   next_cursor: string | null
   previous_cursor: string | null
   has_more: boolean
@@ -48,13 +48,13 @@ export interface RawOwPagination {
 }
 
 /** Enveloppe des endpoints events/timeseries. */
-export interface OwPaginated<T> {
+export type OwPaginated<T> = {
   data: T[]
   pagination: RawOwPagination
   metadata?: Record<string, unknown>
 }
 
-export interface RawOwUser {
+export type RawOwUser = {
   id: string
   first_name: string | null
   last_name: string | null
@@ -62,7 +62,7 @@ export interface RawOwUser {
 }
 
 /** `GET /users` utilise une pagination par page, pas par cursor. */
-export interface OwUserList {
+export type OwUserList = {
   items: RawOwUser[]
   total: number
 }

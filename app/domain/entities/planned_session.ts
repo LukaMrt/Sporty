@@ -6,7 +6,7 @@ import type {
 
 export type { SessionType, IntensityZone, PlannedSessionStatus }
 
-export interface IntervalBlock {
+export type IntervalBlock = {
   type: 'warmup' | 'work' | 'recovery' | 'cooldown'
   durationMinutes: number | null
   distanceMeters: number | null
@@ -17,7 +17,7 @@ export interface IntervalBlock {
   recoveryType: 'jog' | 'rest' | null
 }
 
-export interface PlannedSession {
+export type PlannedSession = {
   id: number
   planId: number
   weekNumber: number

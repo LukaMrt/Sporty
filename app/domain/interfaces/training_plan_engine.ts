@@ -9,7 +9,7 @@ import type { RecalibrationContext } from '#domain/value_objects/recalibration_c
 import type { MaintenancePlanRequest } from '#domain/value_objects/maintenance_plan_request'
 import type { TransitionPlanRequest } from '#domain/value_objects/transition_plan_request'
 
-export interface GeneratedSession {
+export type GeneratedSession = {
   dayOfWeek: number
   sessionType: SessionType
   targetDurationMinutes: number
@@ -19,7 +19,7 @@ export interface GeneratedSession {
   intervals: IntervalBlock[] | null
 }
 
-export interface GeneratedWeek {
+export type GeneratedWeek = {
   weekNumber: number
   phaseName: string
   isRecoveryWeek: boolean
@@ -27,7 +27,7 @@ export interface GeneratedWeek {
   sessions: GeneratedSession[]
 }
 
-export interface GeneratedPlan {
+export type GeneratedPlan = {
   weeks: GeneratedWeek[]
   methodology: TrainingMethodology
   totalWeeks: number

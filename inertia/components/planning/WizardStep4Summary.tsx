@@ -6,7 +6,7 @@ import {
   type WizardState,
 } from '~/components/planning/wizard_types'
 
-interface Props {
+type Props = {
   state: WizardState
   generating: boolean
   onGenerate: () => void

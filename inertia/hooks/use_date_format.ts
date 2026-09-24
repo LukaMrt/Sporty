@@ -1,7 +1,7 @@
 import { usePage } from '@inertiajs/react'
 import type { UserPreferences } from '../../app/domain/entities/user_preferences'
 
-interface PageProps {
+type PageProps = {
   userPreferences?: UserPreferences | null
 }
 

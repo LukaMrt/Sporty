@@ -1,23 +1,23 @@
 import React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
-import { Home, Activity, Calendar, User, LogOut, ShieldCheck, Plug } from 'lucide-react'
+import { Home, Activity, Calendar, User, LogOut, ShieldCheck, Plug, LineChart } from 'lucide-react'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import FlashMessages from '~/components/shared/FlashMessages'
 import LocaleSwitcher from '~/components/shared/LocaleSwitcher'
 import logo from '~/assets/logo.png'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface AuthUser {
+type AuthUser = {
   id: number
   fullName: string
   role: string
 }
 
-interface SharedProps {
+type SharedProps = {
   auth?: { user: AuthUser | null }
 }
 
-interface NavItem {
+type NavItem = {
   href: string
   labelKey: string
   icon: React.ComponentType<{ className?: string }>
@@ -26,6 +26,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/', labelKey: 'common.nav.home', icon: Home },
   { href: '/sessions', labelKey: 'common.nav.sessions', icon: Activity },
+  { href: '/analysis', labelKey: 'common.nav.analysis', icon: LineChart },
   { href: '/planning', labelKey: 'common.nav.planning', icon: Calendar },
   { href: '/connectors', labelKey: 'common.nav.connectors', icon: Plug },
   { href: '/profile', labelKey: 'common.nav.profile', icon: User },

@@ -1,8 +1,7 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
-import ToggleAutoRecalibrate, {
-  NoActivePlanError,
-} from '#use_cases/planning/toggle_auto_recalibrate'
+import ToggleAutoRecalibrate from '#use_cases/planning/toggle_auto_recalibrate'
+import { NoActivePlanError } from '#domain/errors/no_active_plan_error'
 import HandleVdotDownProposal from '#use_cases/planning/handle_vdot_down_proposal'
 import { vdotDownProposalValidator } from '#validators/planning/recalibration_validator'
 
@@ -41,7 +40,7 @@ export default class RecalibrationController {
       return response.redirect().back()
     } catch (error) {
       if (error instanceof NoActivePlanError) {
-        return response.notFound({ message: error.message })
+        return response.notFound({ message: i18n.t(error.i18nKey) })
       }
       throw error
     }

@@ -1,6 +1,6 @@
 import type { DataPoint, GpsPoint, KmSplit } from '#domain/value_objects/run_metrics'
 
-export interface GpxParseResult {
+export type GpxParseResult = {
   // Durée et distance
   durationSeconds: number
   distanceMeters: number

@@ -1,7 +1,7 @@
 import { Flame } from 'lucide-react'
 import { useTranslation } from '~/hooks/use_translation'
 
-interface TrimpIndicatorProps {
+type TrimpIndicatorProps = {
   value: number
 }
 

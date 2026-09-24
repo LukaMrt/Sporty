@@ -1,8 +1,8 @@
-import React, { Suspense, useRef, useState } from 'react'
+import React, { Suspense, useState } from 'react'
 
 const SessionMap = React.lazy(() => import('~/components/sessions/SessionMap'))
 import { Head, Link, router } from '@inertiajs/react'
-import { ChevronLeft, Pencil, Trash2, Upload, Loader2 } from 'lucide-react'
+import { ChevronLeft, Download, Pencil, Trash2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { formatDate, formatDuration } from '~/lib/format'
@@ -24,6 +24,11 @@ import HeartRateZonesChart from '~/components/sessions/HeartRateZonesChart'
 import CardiacDriftIndicator from '~/components/sessions/CardiacDriftIndicator'
 import TrimpIndicator from '~/components/sessions/TrimpIndicator'
 import SplitsTable from '~/components/sessions/SplitsTable'
+import EnrichGpxButton from '~/components/sessions/EnrichGpxButton'
+import SameRouteSessions, { type SameRouteSession } from '~/components/sessions/SameRouteSessions'
+import SessionInsights, { type RunningDynamicsSummary } from '~/components/sessions/SessionInsights'
+import type { SessionContext } from '../../../app/use_cases/sessions/get_session_context'
+import type { SessionAnalysis } from '../../../app/domain/value_objects/session_analysis'
 import type { RunMetrics } from '../../../app/domain/value_objects/run_metrics'
 
 const METRIC_LABELS: Record<string, string> = {
@@ -51,7 +56,7 @@ function formatMetricValue(key: string, value: number | string): string {
   return `${value}${unit}`
 }
 
-interface TrainingSessionProps {
+type TrainingSessionProps = {
   id: number
   userId: number
   sportId: number
@@ -66,70 +71,27 @@ interface TrainingSessionProps {
   importedFrom: string | null
   gpxFilePath: string | null
   createdAt: string
+  analysis?: SessionAnalysis | null
 }
 
-interface HrZoneThreshold {
+type HrZoneThreshold = {
   zone: number
   minBpm: number
   maxBpm: number
 }
 
-interface ShowProps {
+type ShowProps = {
   session: TrainingSessionProps
   hrZoneThresholds: HrZoneThreshold[] | null
+  context: SessionContext | null
+  sameRoute: SameRouteSession[]
 }
 
-export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
+export default function SessionShow({ session, hrZoneThresholds, context, sameRoute }: ShowProps) {
   const [open, setOpen] = useState(false)
-  const [enriching, setEnriching] = useState(false)
-  const [enrichError, setEnrichError] = useState<string | null>(null)
-  const enrichFileRef = useRef<HTMLInputElement>(null)
   const { formatSpeed, formatDistanceParts, speedUnit } = useUnitConversion()
   const { t } = useTranslation()
 
-  async function handleEnrichGpxChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setEnrichError(null)
-
-    if (file.size > 10 * 1024 * 1024) {
-      setEnrichError(t('sessions.form.gpxTooLarge'))
-      return
-    }
-
-    setEnriching(true)
-    try {
-      const formData = new FormData()
-      formData.append('gpx_file', file)
-      const csrfToken =
-        document.cookie
-          .split(';')
-          .map((c) => c.trim())
-          .find((c) => c.startsWith('XSRF-TOKEN='))
-          ?.split('=')[1] ?? ''
-
-      const res = await fetch(`/sessions/${session.id}/enrich-gpx`, {
-        method: 'POST',
-        headers: { 'X-XSRF-TOKEN': decodeURIComponent(csrfToken) },
-        body: formData,
-      })
-
-      if (res.redirected) {
-        router.reload()
-        return
-      }
-
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string }
-        setEnrichError(body.error ?? t('sessions.form.gpxError'))
-      }
-    } catch {
-      setEnrichError(t('sessions.form.gpxError'))
-    } finally {
-      setEnriching(false)
-      if (enrichFileRef.current) enrichFileRef.current.value = ''
-    }
-  }
   const rawPaceMinPerKm =
     session.distanceKm && session.distanceKm > 0
       ? session.durationMinutes / session.distanceKm
@@ -194,49 +156,23 @@ export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
           >
             <Pencil size={18} />
           </Link>
+          {session.gpxFilePath && (
+            // Téléchargement de fichier : lien natif, pas une visite Inertia
+            <a
+              href={`/sessions/${session.id}/gpx`}
+              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={t('sessions.show.downloadGpx')}
+            >
+              <Download size={18} />
+            </a>
+          )}
         </div>
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
         {/* Bouton enrichissement GPX (visible uniquement si pas de données GPX) */}
         {!session.gpxFilePath && !hasCurves && !hasGpsTrack && (
-          <div className="space-y-1">
-            <input
-              ref={enrichFileRef}
-              type="file"
-              accept=".gpx"
-              className="hidden"
-              onChange={(e) => {
-                void handleEnrichGpxChange(e)
-              }}
-              aria-label={t('sessions.form.enrichGpx')}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => enrichFileRef.current?.click()}
-              disabled={enriching}
-            >
-              {enriching ? (
-                <>
-                  <Loader2 size={14} className="animate-spin" />
-                  {t('sessions.form.gpxParsing')}
-                </>
-              ) : (
-                <>
-                  <Upload size={14} />
-                  {t('sessions.form.enrichGpx')}
-                </>
-              )}
-            </Button>
-            {enrichError && (
-              <p className="text-sm text-destructive" role="alert">
-                {enrichError}
-              </p>
-            )}
-          </div>
+          <EnrichGpxButton sessionId={session.id} />
         )}
 
         {/* Badge source d'import */}
@@ -430,6 +366,17 @@ export default function SessionShow({ session, hrZoneThresholds }: ShowProps) {
             )}
           </div>
         )}
+
+        <SessionInsights
+          analysis={session.analysis ?? null}
+          dynamics={
+            (session.sportMetrics as { runningDynamics?: RunningDynamicsSummary })
+              .runningDynamics ?? null
+          }
+          context={context}
+        />
+
+        <SameRouteSessions sessionId={session.id} sessions={sameRoute ?? []} />
 
         {/* Carte GPS du parcours */}
         {hasGpsTrack && (

@@ -24,7 +24,19 @@ export default class LucidConnectorRepository extends ConnectorRepository {
       provider: connector.provider,
       status: connector.status,
       autoImportEnabled: connector.autoImportEnabled,
+      lastSyncAt: connector.lastSyncAt?.toISO() ?? null,
     }
+  }
+
+  async findByExternalUserId(
+    provider: ConnectorProvider,
+    externalUserId: string
+  ): Promise<ConnectorByIdRecord | null> {
+    const connector = await ConnectorModel.query()
+      .where('provider', provider)
+      .where('externalUserId', externalUserId)
+      .first()
+    return connector ? this.findById(connector.id) : null
   }
 
   async updateLastSyncAt(id: number): Promise<void> {

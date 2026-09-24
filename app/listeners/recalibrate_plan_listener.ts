@@ -1,6 +1,6 @@
 import { inject } from '@adonisjs/core'
 import RecalibratePlan from '#use_cases/planning/recalibrate_plan'
-import type { WeekSummary } from '#use_cases/planning/recalibrate_plan'
+import type { WeekSummary } from '#domain/value_objects/week_summary'
 
 @inject()
 export default class RecalibratePlanListener {

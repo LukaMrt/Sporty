@@ -1,4 +1,4 @@
-import vine, { SimpleMessagesProvider } from '@vinejs/vine'
+import vine from '@vinejs/vine'
 
 export const updateProfileValidator = vine.create(
   vine.object({
@@ -38,9 +38,27 @@ export const updateProfileValidator = vine.create(
     week_starts_on: vine.enum(['monday', 'sunday'] as const).optional(),
     date_format: vine.enum(['DD/MM/YYYY', 'MM/DD/YYYY'] as const).optional(),
     locale: vine.enum(['fr', 'en'] as const).optional(),
+    timezone: vine.string().trim().maxLength(64).nullable().optional(),
+    // Zones masquées sur les cartes (domicile…), rayon 100 m à 2 km
+    privacy_zones: vine
+      .array(
+        vine.object({
+          lat: vine.number().min(-90).max(90),
+          lon: vine.number().min(-180).max(180),
+          radius_m: vine.number().withoutDecimals().min(100).max(2000),
+        })
+      )
+      .maxLength(5)
+      .optional(),
+    // Zones cardiaques (§21)
+    hr_zones_method: vine
+      .enum(['auto', 'karvonen', 'percent_max', 'lthr', 'custom'] as const)
+      .optional(),
+    lthr: vine.number().withoutDecimals().min(100).max(230).nullable().optional(),
+    hr_zones_custom_bounds: vine
+      .array(vine.number().withoutDecimals().min(30).max(250))
+      .fixedLength(6)
+      .nullable()
+      .optional(),
   })
 )
-
-updateProfileValidator.messagesProvider = new SimpleMessagesProvider({
-  'email.database.unique': 'Cet email est déjà utilisé',
-})

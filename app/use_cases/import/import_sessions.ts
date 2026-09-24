@@ -1,23 +1,22 @@
 import { inject } from '@adonisjs/core'
-import emitter from '@adonisjs/core/services/emitter'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import type { MappingContext } from '#domain/interfaces/connector'
 import { ConnectorNotConnectedError } from '#domain/errors/connector_not_connected_error'
 import { MixedConnectorBatchError } from '#domain/errors/mixed_connector_batch_error'
 import { DailyRateLimitError } from '#domain/errors/daily_rate_limit_error'
+import ImportedSessionWriter from '#use_cases/import/imported_session_writer'
 
 export { ConnectorNotConnectedError }
 
-export interface ImportSessionsInput {
+export type ImportSessionsInput = {
   userId: number
   importSessionIds: number[]
 }
 
-export interface ImportSessionsResult {
+export type ImportSessionsResult = {
   total: number
   completed: number
   failed: number
@@ -32,7 +31,8 @@ export default class ImportSessions {
     private connectorRegistry: ConnectorRegistry,
     private sportRepository: SportRepository,
     private sessionRepository: SessionRepository,
-    private userProfileRepository: UserProfileRepository
+    private userProfileRepository: UserProfileRepository,
+    private writer: ImportedSessionWriter
   ) {}
 
   async reimport(input: { id: number; userId: number }): Promise<ImportSessionsResult | null> {
@@ -72,13 +72,8 @@ export default class ImportSessions {
     }
 
     const sports = await this.sportRepository.findAll()
-    const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
-
     const profile = await this.userProfileRepository.findByUserId(userId)
-    const context: MappingContext = {
-      maxHeartRate: profile?.maxHeartRate ?? undefined,
-      restingHeartRate: profile?.restingHeartRate ?? undefined,
-    }
+    const context = ImportedSessionWriter.mappingContext(profile)
 
     const records = await this.importSessionRepository.findByIds(importSessionIds, connector.id)
     const recordById = new Map(records.map((r) => [r.id, r]))
@@ -93,32 +88,29 @@ export default class ImportSessions {
 
       try {
         const mapped = await connector.getSessionDetail(record.externalId, context)
+        const result = await this.writer.write(userId, mapped, sports, profile)
 
-        const sportId = sportBySlug.get(mapped.sportSlug)
-        if (!sportId) {
+        if (result.kind === 'unsupported_sport') {
           failed++
+          await this.importSessionRepository.setFailed(id, `unsupported_sport:${result.sportSlug}`)
           errors.push(
-            `id=${id} externalId=${record.externalId}: sport slug '${mapped.sportSlug}' not found in DB (available: ${[...sportBySlug.keys()].join(', ')})`
+            `id=${id} externalId=${record.externalId}: unsupported sport '${result.sportSlug}'`
+          )
+          continue
+        }
+        if (result.kind === 'duplicate') {
+          failed++
+          await this.importSessionRepository.setFailed(
+            id,
+            `duplicate_of:${result.existingSessionId}`
+          )
+          errors.push(
+            `id=${id} externalId=${record.externalId}: duplicate of session ${result.existingSessionId}`
           )
           continue
         }
 
-        const session = await this.sessionRepository.create({
-          userId,
-          sportId,
-          date: mapped.date,
-          durationMinutes: mapped.durationMinutes,
-          distanceKm: mapped.distanceKm,
-          avgHeartRate: mapped.avgHeartRate,
-          perceivedEffort: null,
-          sportMetrics: mapped.sportMetrics,
-          notes: null,
-          importedFrom: mapped.importedFrom,
-          externalId: mapped.externalId,
-        })
-
-        await this.importSessionRepository.setImported(id, session.id)
-        await emitter.emit('session:completed', { sessionId: session.id, userId })
+        await this.importSessionRepository.setImported(id, result.session.id)
         completed++
       } catch (err) {
         if (err instanceof DailyRateLimitError) {

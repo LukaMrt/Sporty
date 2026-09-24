@@ -56,5 +56,9 @@
     "userDeleted": "Utilisateur supprimé",
     "passwordReset": "Mot de passe réinitialisé",
     "notFound": "Utilisateur introuvable"
+  },
+  "errors": {
+    "cannotDeleteSelf": "Impossible de supprimer votre propre compte",
+    "lastAdmin": "Il doit rester au moins un administrateur"
   }
 }

@@ -2,6 +2,10 @@ import app from '@adonisjs/core/services/app'
 import { type HttpContext, ExceptionHandler } from '@adonisjs/core/http'
 import type { StatusPageRange, StatusPageRenderer } from '@adonisjs/core/types/http'
 
+function isRowNotFound(error: unknown): boolean {
+  return (error as { code?: string } | null)?.code === 'E_ROW_NOT_FOUND'
+}
+
 export default class HttpExceptionHandler extends ExceptionHandler {
   /**
    * In debug mode, the exception handler will display verbose errors
@@ -31,6 +35,11 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    // Appels fetch JSON : message traduit plutôt que le « Row not found » technique de Lucid
+    if (isRowNotFound(error) && ctx.request.accepts(['html', 'json']) === 'json') {
+      const message = ctx.i18n?.t('errors.resourceNotFound') ?? 'Not found'
+      return ctx.response.status(404).send({ message })
+    }
     return super.handle(error, ctx)
   }
 

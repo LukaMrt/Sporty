@@ -1,7 +1,7 @@
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 
-export interface UpsertConnectorInput {
+export type UpsertConnectorInput = {
   userId: number
   provider: ConnectorProvider
   accessToken: string
@@ -13,12 +13,12 @@ export interface UpsertConnectorInput {
   status: ConnectorStatus
 }
 
-export interface ConnectorRecord {
+export type ConnectorRecord = {
   status: ConnectorStatus
   accessToken: string | null
 }
 
-export interface ConnectorFullRecord {
+export type ConnectorFullRecord = {
   id: number
   status: ConnectorStatus
   accessToken: string | null
@@ -27,34 +27,36 @@ export interface ConnectorFullRecord {
   externalUserId: string | null
 }
 
-export interface UpdateTokensInput {
+export type UpdateTokensInput = {
   accessToken: string
   refreshToken: string
   tokenExpiresAtSeconds: number
 }
 
-export interface UpdateSettingsInput {
+export type UpdateSettingsInput = {
   autoImportEnabled: boolean
   pollingIntervalMinutes: number
 }
 
-export interface ConnectorSettingsRecord {
+export type ConnectorSettingsRecord = {
   autoImportEnabled: boolean
   pollingIntervalMinutes: number
 }
 
-export interface ActiveConnectorRecord {
+export type ActiveConnectorRecord = {
   id: number
   userId: number
   pollingIntervalMinutes: number
 }
 
-export interface ConnectorByIdRecord {
+export type ConnectorByIdRecord = {
   id: number
   userId: number
   provider: ConnectorProvider
   status: ConnectorStatus
   autoImportEnabled: boolean
+  /** Dernière synchronisation réussie (ISO) */
+  lastSyncAt?: string | null
 }
 
 export abstract class ConnectorRepository {
@@ -90,4 +92,12 @@ export abstract class ConnectorRepository {
     userId: number,
     provider: ConnectorProvider
   ): Promise<ConnectorSettingsRecord | null>
+
+  /** Connecteur d'un provider par identifiant utilisateur distant (webhooks) */
+  async findByExternalUserId(
+    _provider: ConnectorProvider,
+    _externalUserId: string
+  ): Promise<ConnectorByIdRecord | null> {
+    return null
+  }
 }

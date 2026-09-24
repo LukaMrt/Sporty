@@ -3,7 +3,7 @@ import { GpxParser, type GpxParseResult } from '#domain/interfaces/gpx_parser'
 import { GpxParseError } from '#domain/errors/gpx_parse_error'
 import { analyze, type RawTrackpoint } from '#lib/track_analyzer'
 
-interface ParsedXml {
+type ParsedXml = {
   gpx?: {
     trk?: Array<{
       trkseg?: Array<{
@@ -25,18 +25,25 @@ export class GpxParserService extends GpxParser {
     try {
       root = this.parser.parse(content) as ParsedXml
     } catch {
-      throw new GpxParseError('Format GPX invalide')
+      throw new GpxParseError('invalid_format')
     }
 
-    const trkpts = root?.gpx?.trk?.[0]?.trkseg?.[0]?.trkpt
-    if (!trkpts) {
-      throw new GpxParseError('Aucun trackpoint trouvé')
+    // Toutes les traces et tous les segments : les montres coupent un segment à
+    // chaque pause automatique. Le premier point de chaque segment suivant est
+    // marqué pour ne pas compter la pause (ni distance ni durée).
+    const rawPoints: RawTrackpoint[] = []
+    for (const trk of root?.gpx?.trk ?? []) {
+      for (const seg of trk.trkseg ?? []) {
+        const segmentPoints = this.extractTrackpoints(seg.trkpt ?? [])
+        if (segmentPoints.length === 0) continue
+        if (rawPoints.length > 0) segmentPoints[0].pausedBefore = true
+        rawPoints.push(...segmentPoints)
+      }
     }
-
-    const rawPoints = this.extractTrackpoints(trkpts)
+    rawPoints.sort((a, b) => a.timeMs - b.timeMs)
 
     if (rawPoints.length < 2) {
-      throw new GpxParseError('Aucun trackpoint trouvé')
+      throw new GpxParseError('no_trackpoints')
     }
 
     const startTime = new Date(rawPoints[0].timeMs).toISOString()

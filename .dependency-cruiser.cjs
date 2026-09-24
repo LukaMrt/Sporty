@@ -19,42 +19,33 @@ module.exports = {
     },
 
     {
-      name: 'domain-no-internal-deps',
+      name: 'domain-only-domain',
       severity: 'error',
       comment:
-        'Le domaine (entités, interfaces, value objects) ne doit importer aucune autre couche interne.',
+        "Liste blanche : le domaine n'importe QUE le domaine (ni autre couche, ni package npm, ni module Node).",
       from: { path: '^app/domain/' },
-      to: {
-        path: layerPattern([
-          'use_cases',
-          'repositories',
-          'services',
-          'models',
-          'controllers',
-          'middleware',
-          'validators',
-          'exceptions',
-        ]),
-      },
+      to: { pathNot: layerPattern(['domain']) },
     },
 
     {
       name: 'use-cases-only-domain',
       severity: 'error',
       comment:
-        "Les use cases ne doivent dépendre que du domaine — jamais de l'infra ni de la couche HTTP.",
+        "Liste blanche : les use cases n'importent que le domaine, les autres use cases et @adonisjs/core (pour @inject uniquement). Les services Adonis (emitter, logger…) passent par des ports.",
       from: { path: '^app/use_cases/' },
       to: {
-        path: layerPattern([
-          'repositories',
-          'connectors',
-          'services',
-          'models',
-          'controllers',
-          'middleware',
-          'validators',
-          'exceptions',
-        ]),
+        pathNot: [layerPattern(['domain', 'use_cases']), '@adonisjs/core/build/index\\.js$'],
+      },
+    },
+
+    {
+      name: 'listeners-thin',
+      severity: 'error',
+      comment:
+        'Les listeners délèguent à un use case : domaine, use cases et @adonisjs/core seulement.',
+      from: { path: '^app/listeners/' },
+      to: {
+        pathNot: [layerPattern(['domain', 'use_cases']), '@adonisjs/core/build/index\\.js$'],
       },
     },
 
@@ -71,12 +62,16 @@ module.exports = {
     {
       name: 'models-isolated',
       severity: 'error',
+      // Les entités et value objects du domaine (enums, types) peuvent typer les
+      // colonnes des models ; ports, services et erreurs du domaine restent interdits.
+      // (Les alias #… ne sont pas résolus par depcruise : on ne peut pas distinguer
+      // les `import type`, d'où ce découpage par dossier.)
       comment:
         'Les models Lucid ne doivent importer aucune couche métier interne (domain, use_cases, infra, HTTP).',
       from: { path: '^app/models/' },
       to: {
         path: layerPattern([
-          'domain',
+          'domain/(interfaces|services|errors)',
           'use_cases',
           'repositories',
           'services',
@@ -129,6 +124,9 @@ module.exports = {
   ],
 
   options: {
+    // Les `import type` sont aussi contrôlés (invisibles par défaut)
+    tsPreCompilationDeps: true,
+
     doNotFollow: {
       path: 'node_modules',
     },

@@ -19,14 +19,14 @@ import {
   DialogClose,
 } from '~/components/ui/dialog'
 
-interface ConnectorCardDto {
+type ConnectorCardDto = {
   provider: string
   authKind: ConnectorAuthKind
   configured: boolean
   status: ConnectorStatus | null
 }
 
-interface ConnectorsIndexProps {
+type ConnectorsIndexProps = {
   connectors: ConnectorCardDto[]
 }
 

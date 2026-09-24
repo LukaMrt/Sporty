@@ -6,10 +6,24 @@ import { pluginAdonisJS } from '@japa/plugin-adonisjs'
 import { sessionApiClient } from '@adonisjs/session/plugins/api_client'
 import { authApiClient } from '@adonisjs/auth/plugins/api_client'
 import testUtils from '@adonisjs/core/services/test_utils'
+import limiter from '@adonisjs/limiter/services/main'
 
 /**
  * This file is imported by the "bin/test.ts" entrypoint file
  */
+
+/**
+ * `wrapInGlobalTransaction` fait passer toutes les requêtes d'un test par une seule
+ * connexion : les lectures parallèles (Promise.all) des use cases, sans risque en
+ * production où chacune prend sa connexion du pool, y déclenchent un avertissement pg.
+ * On ne masque que celui-là ; tout autre avertissement reste affiché.
+ */
+const CONCURRENT_QUERY_WARNING = 'Calling client.query() when the client is already executing'
+process.removeAllListeners('warning')
+process.on('warning', (warning) => {
+  if (warning.message.startsWith(CONCURRENT_QUERY_WARNING)) return
+  process.stderr.write(`${warning.name}: ${warning.message}\n`)
+})
 
 /**
  * Configure Japa plugins in the plugins array.
@@ -42,5 +56,8 @@ export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
 export const configureSuite: Config['configureSuite'] = (suite) => {
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
     suite.setup(() => testUtils.httpServer().start())
+    // Les compteurs de rate limiting (store mémoire) ne doivent pas fuir d'un test à l'autre
+    suite.onGroup((group) => group.each.setup(() => limiter.clear()))
+    suite.onTest((t) => t.setup(() => limiter.clear()))
   }
 }

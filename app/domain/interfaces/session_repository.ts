@@ -1,5 +1,7 @@
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
+import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
+import type { AnalysisSession } from '#domain/services/analysis/aggregations'
 
 export type ListSessionsOptions = {
   page?: number
@@ -9,7 +11,18 @@ export type ListSessionsOptions = {
   sortOrder?: 'asc' | 'desc'
 }
 
-export interface SessionExternalRef {
+/** Vue légère d'une séance pour les calculs de charge (sans le JSONB sport_metrics) */
+export type SessionLoadEntry = {
+  id: number
+  date: string
+  sportSlug: string
+  durationMinutes: number
+  distanceKm: number | null
+  trainingLoad: number | null
+  loadMethod: TrainingLoadMethod | null
+}
+
+export type SessionExternalRef = {
   externalId: string
   id: number
 }
@@ -18,6 +31,7 @@ export abstract class SessionRepository {
   abstract create(
     data: Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
   ): Promise<TrainingSession>
+  /** Liste paginée — sans `sportMetrics` (vide) pour ne pas charger les courbes */
   abstract findAllByUserId(
     userId: number,
     opts?: ListSessionsOptions
@@ -28,9 +42,11 @@ export abstract class SessionRepository {
     id: number,
     data: Partial<Omit<TrainingSession, 'id' | 'userId' | 'createdAt' | 'sportName'>>
   ): Promise<TrainingSession>
+  /** Sans `sportMetrics` (vide) */
   abstract findTrashedByUserId(userId: number): Promise<TrainingSession[]>
   abstract softDelete(id: number): Promise<void>
   abstract restore(id: number): Promise<void>
+  /** Sans `sportMetrics` (vide) : utiliser findByIds pour les séances complètes */
   abstract findByUserIdAndDateRange(
     userId: number,
     startDate: string,
@@ -41,4 +57,23 @@ export abstract class SessionRepository {
     externalIds: string[]
   ): Promise<SessionExternalRef[]>
   abstract forceDelete(id: number): Promise<void>
+  /** Séances non supprimées entre deux dates, colonnes légères uniquement */
+  abstract findLoadEntries(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<SessionLoadEntry[]>
+  abstract findByIds(ids: number[]): Promise<TrainingSession[]>
+  /** Toutes les séances non supprimées d'un utilisateur (recalculs en lot) */
+  abstract findAllAliveByUserId(userId: number): Promise<TrainingSession[]>
+  /** Séances non supprimées avec leurs indicateurs d'analyse (sans les courbes) */
+  /** Traces allégées des séances non supprimées (carte de toutes les traces) */
+  abstract findTrackPreviews(
+    userId: number
+  ): Promise<{ id: number; date: string; sportSlug: string; track: [number, number][] }[]>
+  abstract findAnalysisEntries(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<AnalysisSession[]>
 }

@@ -51,5 +51,10 @@
     "autoImport": "Auto import",
     "interval": "Interval",
     "error": "Failed to update settings"
+  },
+  "backfill": {
+    "started": "History import started: sessions from the last 2 years will appear in the import list within a few minutes.",
+    "button": "Import history (2 years)",
+    "description": "Stages every session from the last 2 years for import and fetches recovery data (sleep, HRV…)."
   }
 }

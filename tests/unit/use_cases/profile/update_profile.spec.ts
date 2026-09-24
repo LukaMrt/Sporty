@@ -1,4 +1,5 @@
 import { test } from '@japa/runner'
+import { RecordingEventEmitter } from '#tests/helpers/base_mocks'
 import UpdateProfile from '#use_cases/profile/update_profile'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { UserProfile } from '#domain/entities/user_profile'
@@ -64,7 +65,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const profileRepo = makeMockProfileRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, { fullName: 'Nouveau Nom' })
 
@@ -89,7 +90,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const profileRepo = makeMockProfileRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, { email: 'new@email.com' })
 
@@ -105,7 +106,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const userRepo = makeMockUserRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, {
       sportId: 3,
@@ -135,7 +136,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const profileRepo = makeMockProfileRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, { level: UserLevel.Intermediate })
 
@@ -151,7 +152,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const userRepo = makeMockUserRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, { fullName: 'Test' })
 
@@ -174,7 +175,7 @@ test.group('UpdateProfile — use case', () => {
     const profileRepo = makeMockProfileRepository({
       update: async () => updatedProfile,
     })
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     const result = await useCase.execute(42, {
       fullName: 'Luka',
@@ -194,7 +195,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const userRepo = makeMockUserRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, { maxHeartRate: 185 })
 
@@ -210,7 +211,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const userRepo = makeMockUserRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, { vma: 14.5 })
 
@@ -226,7 +227,7 @@ test.group('UpdateProfile — use case', () => {
       },
     })
     const userRepo = makeMockUserRepository()
-    const useCase = new UpdateProfile(userRepo, profileRepo)
+    const useCase = new UpdateProfile(userRepo, profileRepo, new RecordingEventEmitter())
 
     await useCase.execute(42, { maxHeartRate: null })
 

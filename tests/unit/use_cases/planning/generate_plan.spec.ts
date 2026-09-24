@@ -1,10 +1,11 @@
 import { test } from '@japa/runner'
+import { ImmediateUnitOfWork, stubGetFitnessProfile } from '#tests/helpers/base_mocks'
+import PlanPersister from '#use_cases/planning/plan_persister'
+import { BaseMockPlanRepo, BaseMockSessionRepo } from '#tests/helpers/base_mocks'
 import GeneratePlan from '#use_cases/planning/generate_plan'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
-import { SessionRepository } from '#domain/interfaces/session_repository'
-import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
-import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type SessionRepository } from '#domain/interfaces/session_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { ActivePlanExistsError } from '#domain/errors/active_plan_exists_error'
@@ -23,8 +24,6 @@ import type { PlannedWeek } from '#domain/entities/planned_week'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { UserProfile } from '#domain/entities/user_profile'
-import type { TrainingLoad } from '#domain/value_objects/training_load'
-import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 import type { GeneratedPlan } from '#domain/interfaces/training_plan_engine'
 import type { PlanRequest } from '#domain/value_objects/plan_request'
 import type { PaginatedResult } from '#domain/entities/pagination'
@@ -141,7 +140,7 @@ function makeGoalRepo(goal: TrainingGoal | null): TrainingGoalRepository {
 let capturedTrainingState: TrainingState | undefined
 
 function makePlanRepo(existingActivePlan: TrainingPlan | null): TrainingPlanRepository {
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(): Promise<TrainingPlan> {
       return PLAN_TEMPLATE
     }
@@ -199,7 +198,7 @@ function makePlanRepo(existingActivePlan: TrainingPlan | null): TrainingPlanRepo
 }
 
 function makeSessionRepo(sessions: TrainingSession[]): SessionRepository {
-  class MockSessionRepo extends SessionRepository {
+  class MockSessionRepo extends BaseMockSessionRepo {
     async create(): Promise<TrainingSession> {
       throw new Error('not implemented')
     }
@@ -232,30 +231,6 @@ function makeSessionRepo(sessions: TrainingSession[]): SessionRepository {
     async forceDelete(): Promise<void> {}
   }
   return new MockSessionRepo()
-}
-
-function makeLoadCalculator(): TrainingLoadCalculator {
-  class MockCalc extends TrainingLoadCalculator {
-    calculate(): TrainingLoad {
-      return { value: 50, method: 'rpe' }
-    }
-  }
-  return new MockCalc()
-}
-
-function makeFitnessCalculator(): FitnessProfileCalculator {
-  class MockFitness extends FitnessProfileCalculator {
-    calculate(): FitnessProfile {
-      return {
-        chronicTrainingLoad: 45,
-        acuteTrainingLoad: 50,
-        trainingStressBalance: -5,
-        acuteChronicWorkloadRatio: 1.1,
-        calculatedAt: new Date(),
-      }
-    }
-  }
-  return new MockFitness()
 }
 
 function makePlanEngine(): TrainingPlanEngine {
@@ -314,20 +289,22 @@ function makeSession(date: string, durationMinutes: number): TrainingSession {
   }
 }
 
-function makeUserProfileRepo(): UserProfileRepository {
+function makeUserProfileRepo(profile: UserProfile | null = DEFAULT_PROFILE): UserProfileRepository {
   class MockProfileRepo extends UserProfileRepository {
     async create(): Promise<UserProfile> {
       throw new Error('not implemented')
     }
     async findByUserId(): Promise<UserProfile | null> {
-      return DEFAULT_PROFILE
+      return profile
     }
     async update(
       _userId: number,
       data: Partial<Omit<UserProfile, 'id' | 'userId'>>
     ): Promise<UserProfile> {
+      // Comme le repository Lucid (firstOrFail) : pas de profil → erreur
+      if (!profile) throw new Error('Row not found')
       if (data.trainingState) capturedTrainingState = data.trainingState
-      return DEFAULT_PROFILE
+      return profile
     }
   }
   return new MockProfileRepo()
@@ -336,16 +313,18 @@ function makeUserProfileRepo(): UserProfileRepository {
 function makeUseCase(
   goal: TrainingGoal | null,
   existingPlan: TrainingPlan | null = null,
-  sessions: TrainingSession[] = []
+  sessions: TrainingSession[] = [],
+  profile: UserProfile | null = DEFAULT_PROFILE
 ) {
   return new GeneratePlan(
     makeGoalRepo(goal),
     makePlanRepo(existingPlan),
     makeSessionRepo(sessions),
-    makeLoadCalculator(),
-    makeFitnessCalculator(),
     makePlanEngine(),
-    makeUserProfileRepo()
+    makeUserProfileRepo(profile),
+    stubGetFitnessProfile(),
+    new PlanPersister(makePlanRepo(existingPlan)),
+    new ImmediateUnitOfWork()
   )
 }
 
@@ -358,10 +337,11 @@ function makeUseCaseCapturing(sessions: TrainingSession[]) {
     makeGoalRepo(FIVE_K_GOAL_FOR_VOLUME),
     makePlanRepo(null),
     makeSessionRepo(sessions),
-    makeLoadCalculator(),
-    makeFitnessCalculator(),
     makePlanEngineCapturing(),
-    makeUserProfileRepo()
+    makeUserProfileRepo(),
+    stubGetFitnessProfile(),
+    new PlanPersister(makePlanRepo(null)),
+    new ImmediateUnitOfWork()
   )
 }
 
@@ -402,6 +382,15 @@ test.group('GeneratePlan — use case', () => {
     await useCase.execute(INPUT)
 
     assert.equal(capturedTrainingState, TrainingState.Preparation)
+  })
+
+  test('génère le plan même sans profil athlète (rien à synchroniser)', async ({ assert }) => {
+    capturedTrainingState = undefined
+    const useCase = makeUseCase(ACTIVE_GOAL, null, [], null)
+    const result = await useCase.execute(INPUT)
+
+    assert.equal(result.plan.status, PlanStatus.Active)
+    assert.isUndefined(capturedTrainingState)
   })
 
   test('les séances ont des intervals, un type et une zone', async ({ assert }) => {
@@ -465,10 +454,11 @@ function makeUseCaseCapturingWithGoal(goal: TrainingGoal, sessions: TrainingSess
     makeGoalRepo(goal),
     makePlanRepo(null),
     makeSessionRepo(sessions),
-    makeLoadCalculator(),
-    makeFitnessCalculator(),
     makePlanEngineCapturing(),
-    makeUserProfileRepo()
+    makeUserProfileRepo(),
+    stubGetFitnessProfile(),
+    new PlanPersister(makePlanRepo(null)),
+    new ImmediateUnitOfWork()
   )
 }
 

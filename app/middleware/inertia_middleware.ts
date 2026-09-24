@@ -3,17 +3,12 @@ import type { NextFn } from '@adonisjs/core/types/http'
 import type { UserPreferences } from '#domain/entities/user_preferences'
 import app from '@adonisjs/core/services/app'
 import BaseInertiaMiddleware from '@adonisjs/inertia/inertia_middleware'
-import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
+import GetUserPreferences from '#use_cases/profile/get_user_preferences'
 
 export default class InertiaMiddleware extends BaseInertiaMiddleware {
   async share(ctx: HttpContext) {
-    let userPreferences = null
-    if (ctx.auth?.user) {
-      const repo = await app.container.make(UserProfileRepository)
-      const profile = await repo.findByUserId(ctx.auth.user.id)
-      userPreferences = profile?.preferences ?? DEFAULT_USER_PREFERENCES
-    }
+    const user = ctx.auth?.user
+    const locale = ctx.i18n?.locale ?? 'fr'
 
     return {
       errors: this.getValidationErrors(ctx),
@@ -23,9 +18,18 @@ export default class InertiaMiddleware extends BaseInertiaMiddleware {
           : null,
       },
       flash: (ctx.session?.flashMessages.all() ?? {}) as Record<string, string>,
-      userPreferences,
-      locale: ctx.i18n?.locale ?? 'fr',
-      translations: ctx.i18n?.localeTranslations ?? {},
+      // Callback : non évalué (donc pas de requête) lors des rechargements partiels
+      userPreferences: async () => {
+        if (!user) return null
+        const useCase = await app.container.make(GetUserPreferences)
+        return useCase.execute(user.id)
+      },
+      locale,
+      // Mises en cache côté client : renvoyées seulement au premier chargement
+      // et quand la langue change (la clé inclut la locale)
+      translations: ctx.inertia.once(() => ctx.i18n?.localeTranslations ?? {}, {
+        key: `translations:${locale}`,
+      }),
     }
   }
 

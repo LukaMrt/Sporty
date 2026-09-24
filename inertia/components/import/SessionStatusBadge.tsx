@@ -2,7 +2,7 @@ import { Badge } from '~/components/ui/badge'
 import { useTranslation } from '~/hooks/use_translation'
 import type { StagingSessionStatus } from '~/types/staging_session'
 
-interface SessionStatusBadgeProps {
+type SessionStatusBadgeProps = {
   status: StagingSessionStatus
 }
 

@@ -26,8 +26,22 @@ function fillIfMissing<K extends MergeableField>(
   if (donor) target[field] = donor[field]
 }
 
-function groupKey(workout: RawOwWorkout): string {
-  return `${new Date(workout.start_time).getTime()}|${workout.type}`
+/**
+ * Tolérance sur l'heure de départ : la montre et le téléphone n'horodatent pas
+ * toujours à la milliseconde près la même séance.
+ */
+export const START_TOLERANCE_MS = 30_000
+
+/** Deux enregistrements décrivent-ils la même séance (même type, départ à ±30 s) ? */
+export function isSameWorkout(
+  a: Pick<RawOwWorkout, 'start_time' | 'type'>,
+  b: Pick<RawOwWorkout, 'start_time' | 'type'>
+): boolean {
+  return (
+    a.type === b.type &&
+    Math.abs(new Date(a.start_time).getTime() - new Date(b.start_time).getTime()) <=
+      START_TOLERANCE_MS
+  )
 }
 
 function hasDistance(workout: RawOwWorkout): boolean {
@@ -63,24 +77,23 @@ function elect(a: RawOwWorkout, b: RawOwWorkout): RawOwWorkout {
  * d'entrainement est doublee, ce qui fausse TRIMP, plans et recalibration.
  */
 export function dedupeWorkouts(workouts: RawOwWorkout[]): RawOwWorkout[] {
-  const winners = new Map<string, RawOwWorkout>()
-  const groups = new Map<string, RawOwWorkout[]>()
-
-  for (const workout of workouts) {
-    const key = groupKey(workout)
-    const group = groups.get(key)
-    if (group) {
-      group.push(workout)
-    } else {
-      groups.set(key, [workout])
-    }
-
-    const current = winners.get(key)
-    winners.set(key, current ? elect(current, workout) : workout)
+  // Regroupement par type + départ à ±30 s. Tri chronologique (puis par id pour
+  // rester déterministe) : chaque séance rejoint le groupe dont le premier départ
+  // est assez proche, sinon ouvre un nouveau groupe.
+  const sorted = [...workouts].sort(
+    (a, b) =>
+      new Date(a.start_time).getTime() - new Date(b.start_time).getTime() ||
+      a.id.localeCompare(b.id)
+  )
+  const groups: RawOwWorkout[][] = []
+  for (const workout of sorted) {
+    const group = groups.find((g) => isSameWorkout(g[0], workout))
+    if (group) group.push(workout)
+    else groups.push([workout])
   }
 
-  return [...winners.entries()].map(([key, winner]) => {
-    const group = groups.get(key) ?? []
+  return groups.map((group) => {
+    const winner = group.reduce((best, w) => elect(best, w))
     if (group.length === 1) return winner
 
     // Fusion enrichissante : on ne perd pas une donnee que seule l'autre

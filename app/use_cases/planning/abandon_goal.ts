@@ -3,6 +3,7 @@ import { TrainingGoalRepository } from '#domain/interfaces/training_goal_reposit
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { PlanStatus, TrainingState } from '#domain/value_objects/planning_types'
+import { GoalNotFoundError } from '#domain/errors/goal_not_found_error'
 
 @inject()
 export default class AbandonGoal {
@@ -13,6 +14,9 @@ export default class AbandonGoal {
   ) {}
 
   async execute(goalId: number, userId: number): Promise<void> {
+    const goal = await this.goalRepository.findById(goalId)
+    if (!goal || goal.userId !== userId) throw new GoalNotFoundError(goalId)
+
     await this.goalRepository.update(goalId, { status: 'abandoned' })
 
     const activePlan = await this.planRepository.findActiveByGoalId(goalId)

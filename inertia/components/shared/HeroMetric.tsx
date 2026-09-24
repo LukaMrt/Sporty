@@ -3,7 +3,7 @@ import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import { useTranslation } from '~/hooks/use_translation'
 import { paceToKmh } from '~/lib/format'
 
-interface HeroMetricProps {
+type HeroMetricProps = {
   pace: number
   trendSeconds: number | null
   previousPace: number | null

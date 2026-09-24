@@ -1,11 +1,11 @@
-export interface PaginationMeta {
+export type PaginationMeta = {
   total: number
   page: number
   perPage: number
   lastPage: number
 }
 
-export interface PaginatedResult<T> {
+export type PaginatedResult<T> = {
   data: T[]
   meta: PaginationMeta
 }

@@ -4,7 +4,7 @@ import { CheckCircle, AlertCircle, X } from 'lucide-react'
 import { useTranslation } from '~/hooks/use_translation'
 import { registerToastHandler } from '~/hooks/use_toast'
 
-interface Toast {
+type Toast = {
   id: number
   type: 'success' | 'error' | 'undo'
   message: string
@@ -12,7 +12,7 @@ interface Toast {
   visible: boolean
 }
 
-interface FlashProps {
+type FlashProps = {
   flash: Record<string, string>
   [key: string]: unknown
 }

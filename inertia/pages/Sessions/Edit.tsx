@@ -4,8 +4,9 @@ import { ChevronLeft } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import SessionForm from '~/components/sessions/SessionForm'
 import { useTranslation } from '~/hooks/use_translation'
+import type { RunMetrics } from '../../../app/domain/value_objects/run_metrics'
 
-interface TrainingSessionProps {
+type TrainingSessionProps = {
   id: number
   sportId: number
   sportName: string
@@ -15,16 +16,16 @@ interface TrainingSessionProps {
   avgHeartRate: number | null
   perceivedEffort: number | null
   notes: string | null
-  sportMetrics: Record<string, unknown> | null
+  sportMetrics: RunMetrics | null
 }
 
-interface Sport {
+type Sport = {
   id: number
   name: string
   slug: string
 }
 
-interface EditProps {
+type EditProps = {
   session: TrainingSessionProps
   sports: Sport[]
 }

@@ -16,5 +16,6 @@
     "heading": "Server error",
     "description": "An unexpected error occurred. Please try again in a few moments.",
     "back": "Back to home"
-  }
+  },
+  "resourceNotFound": "Item not found."
 }

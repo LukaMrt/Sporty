@@ -118,7 +118,8 @@
         }
       },
       "learnMore": "En savoir plus"
-    }
+    },
+    "downloadGpx": "Télécharger le GPX"
   },
   "edit": {
     "title": "Modifier la séance",
@@ -141,5 +142,42 @@
     "notFound": "Séance introuvable",
     "forbidden": "Séance introuvable ou accès refusé",
     "gpxEnriched": "Séance enrichie avec le fichier GPX"
+  },
+  "errors": {
+    "hr_order": "La FC min doit être ≤ FC moyenne ≤ FC max",
+    "elevation_negative": "Le dénivelé ne peut pas être négatif"
+  },
+  "gpx": {
+    "errors": {
+      "invalid_format": "Format GPX invalide",
+      "no_trackpoints": "Aucun point de trace trouvé dans le fichier"
+    }
+  },
+  "fab": {
+    "newSession": "Nouvelle séance"
+  },
+  "insights": {
+    "title": "Analyse de la séance",
+    "gap": "Allure ajustée à la pente",
+    "gapHint": "Équivalent sur le plat",
+    "ef": "Efficiency Factor",
+    "decoupling": "Découplage aérobie",
+    "decouplingGood": "Bonne base aérobie",
+    "decouplingHigh": "Dérive notable",
+    "dynamics": {
+      "power": "Puissance",
+      "cadence": "Cadence",
+      "strideLength": "Longueur de foulée",
+      "groundContactTime": "Temps de contact au sol",
+      "verticalOscillation": "Oscillation verticale"
+    },
+    "context": "Contexte du jour",
+    "sleep": "Sommeil",
+    "restingHr": "FC repos",
+    "tsbBefore": "Fraîcheur avant la séance"
+  },
+  "sameRoute": {
+    "title": "Même parcours ({count})",
+    "compare": "Comparer"
   }
 }

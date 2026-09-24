@@ -1,4 +1,7 @@
 import { test } from '@japa/runner'
+import ImportedSessionWriter from '#use_cases/import/imported_session_writer'
+import { FixedLoadCalculator, RecordingEventEmitter, SilentLogger } from '#tests/helpers/base_mocks'
+import { BaseMockSessionRepo } from '#tests/helpers/base_mocks'
 import SyncConnector from '#use_cases/connectors/sync_connector'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
@@ -12,7 +15,7 @@ import type {
 } from '#domain/interfaces/import_session_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
-import { SessionRepository } from '#domain/interfaces/session_repository'
+import { type SessionRepository } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import type { UserProfile } from '#domain/entities/user_profile'
@@ -132,6 +135,9 @@ function makeImportSessionRepo(
     async setIgnored(_id: number, _userId: number) {}
     async setNew(_id: number, _userId: number) {}
     async setFailed(_id: number, _reason: string) {}
+    async recordFailure(): Promise<boolean> {
+      return false
+    }
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null
@@ -183,7 +189,7 @@ function makeSportRepo(sports: SportSummary[] = []): SportRepository {
 }
 
 function makeSessionRepo(overrides: Partial<SessionRepository> = {}): SessionRepository {
-  class Mock extends SessionRepository {
+  class Mock extends BaseMockSessionRepo {
     async create(data: Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>) {
       return { id: 100, sportName: 'Running', createdAt: '2026-03-14', ...data }
     }
@@ -248,8 +254,13 @@ function makeUseCase(
     ),
     makeImportSessionRepo(options.importRepoOverrides ?? {}),
     makeSportRepo(options.sports ?? []),
-    makeSessionRepo(options.sessionRepoOverrides ?? {}),
-    makeUserProfileRepo()
+    makeUserProfileRepo(),
+    new ImportedSessionWriter(
+      makeSessionRepo(options.sessionRepoOverrides ?? {}),
+      new FixedLoadCalculator(),
+      new RecordingEventEmitter()
+    ),
+    new SilentLogger()
   )
 }
 
@@ -340,8 +351,13 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(record),
       importRepo,
       makeSportRepo([{ id: 5, name: 'Running', slug: 'running' }]),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
@@ -358,8 +374,13 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       importRepo,
       makeSportRepo(),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
@@ -391,8 +412,13 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       importRepo,
       makeSportRepo([{ id: 5, name: 'Running', slug: 'running' }]),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 1 })
@@ -409,8 +435,13 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       importRepo,
       makeSportRepo([]),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.deepEqual(result, { outcome: 'success', imported: 0 })
@@ -434,8 +465,13 @@ test.group('SyncConnector', () => {
       }),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.equal(result.outcome, 'permanent_error')
@@ -453,8 +489,13 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.equal(result.outcome, 'temporary_error')
@@ -471,8 +512,13 @@ test.group('SyncConnector', () => {
       makeConnectorRepo(),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     const result = await uc.execute({ connectorId: 1 })
     assert.equal(result.outcome, 'temporary_error')
@@ -490,10 +536,103 @@ test.group('SyncConnector', () => {
       }),
       makeImportSessionRepo(),
       makeSportRepo(),
-      makeSessionRepo(),
-      makeUserProfileRepo()
+      makeUserProfileRepo(),
+      new ImportedSessionWriter(
+        makeSessionRepo(),
+        new FixedLoadCalculator(),
+        new RecordingEventEmitter()
+      ),
+      new SilentLogger()
     )
     await uc.execute({ connectorId: 1 })
     assert.isTrue(lastSyncUpdated)
+  })
+})
+
+test.group('SyncConnector — robustesse (audit P1-5/P1-6)', () => {
+  test('la fenêtre de synchro repart de lastSyncAt (moins 1 h)', async ({ assert }) => {
+    let after: Date | undefined
+    const connector = makeConnector({
+      async listSessions(filters) {
+        after = filters.after
+        return []
+      },
+    })
+    const lastSyncAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    const uc = makeUseCase({ connector, record: { ...makeConnectorRecord(), lastSyncAt } })
+
+    await uc.execute({ connectorId: 1 })
+
+    assert.equal(after!.getTime(), Date.parse(lastSyncAt) - 60 * 60 * 1000)
+  })
+
+  test("un échec d'import de séance est enregistré (recordFailure) au lieu d'être avalé", async ({
+    assert,
+  }) => {
+    const failures: { id: number; reason: string; max: number }[] = []
+    const connector = makeConnector({
+      async getSessionDetail() {
+        throw new Error('boom')
+      },
+    })
+    const uc = makeUseCase({
+      connector,
+      sports: [{ id: 5, name: 'Running', slug: 'running' }],
+      importRepoOverrides: {
+        async findByConnectorId() {
+          return [{ id: 7, externalId: 'ext1', status: ImportSessionStatus.New, rawData: {} }]
+        },
+        async recordFailure(id: number, reason: string, max: number) {
+          failures.push({ id, reason, max })
+          return false
+        },
+      },
+    })
+
+    const result = await uc.execute({ connectorId: 1 })
+
+    assert.deepEqual(result, { outcome: 'success', imported: 0 })
+    assert.deepEqual(failures, [{ id: 7, reason: 'boom', max: 3 }])
+  })
+
+  test('séance déjà importée depuis un autre provider → marquée en doublon', async ({ assert }) => {
+    const failed: string[] = []
+    const uc = makeUseCase({
+      sports: [{ id: 5, name: 'Running', slug: 'running' }],
+      importRepoOverrides: {
+        async findByConnectorId() {
+          return [{ id: 7, externalId: 'ext1', status: ImportSessionStatus.New, rawData: {} }]
+        },
+        async setFailed(_id: number, reason: string) {
+          failed.push(reason)
+        },
+      },
+      sessionRepoOverrides: {
+        async findByUserIdAndDateRange() {
+          return [
+            {
+              id: 99,
+              userId: 1,
+              sportId: 5,
+              sportName: 'Running',
+              date: '2026-03-14',
+              durationMinutes: 61,
+              distanceKm: 10.1,
+              avgHeartRate: 150,
+              perceivedEffort: null,
+              sportMetrics: {},
+              notes: null,
+              importedFrom: 'open-wearables',
+              createdAt: '',
+            },
+          ]
+        },
+      },
+    })
+
+    const result = await uc.execute({ connectorId: 1 })
+
+    assert.deepEqual(result, { outcome: 'success', imported: 0 })
+    assert.deepEqual(failed, ['duplicate_of:99'])
   })
 })

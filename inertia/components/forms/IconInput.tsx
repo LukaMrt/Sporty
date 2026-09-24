@@ -1,7 +1,7 @@
 import React from 'react'
 import { Input } from '~/components/ui/input'
 
-interface IconInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+type IconInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   icon: React.ReactNode
   trailing?: React.ReactNode
 }

@@ -4,7 +4,7 @@ import { useTranslation } from '~/hooks/use_translation'
 import type { StagingSession } from '~/types/staging_session'
 import { formatDuration } from '~/lib/format'
 
-interface StagingSessionCardProps {
+type StagingSessionCardProps = {
   session: StagingSession
 }
 

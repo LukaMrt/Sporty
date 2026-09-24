@@ -3,7 +3,7 @@
 
 export type TrainingGoalStatus = 'active' | 'achieved' | 'abandoned'
 
-export interface TrainingGoal {
+export type TrainingGoal = {
   id: number
   userId: number
   targetDistanceKm: number
@@ -18,7 +18,7 @@ export type TrainingMethodology = 'polarized' | 'pyramidal' | 'threshold' | 'dan
 export type PlanType = 'marathon' | 'half_marathon' | '10km' | '5km' | 'custom'
 export type PlanStatus = 'draft' | 'active' | 'completed' | 'abandoned'
 
-export interface TrainingPlan {
+export type TrainingPlan = {
   id: number
   userId: number
   goalId: number | null
@@ -38,7 +38,7 @@ export interface TrainingPlan {
   updatedAt: string
 }
 
-export interface PlannedWeek {
+export type PlannedWeek = {
   id: number
   planId: number
   weekNumber: number
@@ -65,7 +65,7 @@ export type SessionType =
 export type IntensityZone = 'z1' | 'z2' | 'z3' | 'z4' | 'z5'
 export type PlannedSessionStatus = 'pending' | 'completed' | 'skipped'
 
-export interface IntervalBlock {
+export type IntervalBlock = {
   type: 'warmup' | 'work' | 'recovery' | 'cooldown'
   durationMinutes: number | null
   distanceMeters: number | null
@@ -76,7 +76,7 @@ export interface IntervalBlock {
   recoveryType: 'jog' | 'rest' | null
 }
 
-export interface PlannedSession {
+export type PlannedSession = {
   id: number
   planId: number
   weekNumber: number
@@ -94,7 +94,7 @@ export interface PlannedSession {
   updatedAt: string
 }
 
-export interface FitnessData {
+export type FitnessData = {
   ctl: number
   atl: number
   tsb: number
@@ -103,12 +103,12 @@ export interface FitnessData {
 
 export type InactivityLevel = 'none' | 'warning' | 'critical'
 
-export interface PostPlanState {
+export type PostPlanState = {
   trainingState: string
   goalDistanceKm: number | null
 }
 
-export interface PlanOverview {
+export type PlanOverview = {
   goal: TrainingGoal | null
   plan: TrainingPlan
   weeks: PlannedWeek[]

@@ -6,7 +6,7 @@ import type { PlannedWeek } from '#domain/entities/planned_week'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import { PlanStatus, PlannedSessionStatus, SessionType } from '#domain/value_objects/planning_types'
 
-export interface PlanHistoryEntry {
+export type PlanHistoryEntry = {
   plan: TrainingPlan
   weeks: PlannedWeek[]
   sessions: PlannedSession[]

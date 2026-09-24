@@ -207,21 +207,26 @@ test.group('rTSS — allure + VDOT', () => {
 // ── Session RPE ───────────────────────────────────────────────────────────────
 
 test.group('Session RPE', () => {
-  test('1h à RPE 7 → valeur ~100 TSS', ({ assert }) => {
-    // RPE 7 × 60 min / 4.2 = 100
-    const result = calc.calculate({ durationHours: 1, perceivedEffort: 7 })
+  test('1h à effort 3,5/5 (seuil) → valeur ~100 TSS', ({ assert }) => {
+    // Effort 3.5 × 60 min / 2.1 = 100 (échelle 1–5 du formulaire)
+    const result = calc.calculate({ durationHours: 1, perceivedEffort: 3.5 })
     assert.approximately(result.value, 100, 2)
   })
 
+  test('1h à effort 5/5 → charge supérieure au seuil', ({ assert }) => {
+    const result = calc.calculate({ durationHours: 1, perceivedEffort: 5 })
+    assert.approximately(result.value, 142.9, 1)
+  })
+
   test('RPE plus élevé → charge plus grande', ({ assert }) => {
-    const low = calc.calculate({ durationHours: 1, perceivedEffort: 4 })
-    const high = calc.calculate({ durationHours: 1, perceivedEffort: 8 })
+    const low = calc.calculate({ durationHours: 1, perceivedEffort: 2 })
+    const high = calc.calculate({ durationHours: 1, perceivedEffort: 4 })
     assert.isAbove(high.value, low.value)
   })
 
   test('durée plus longue à même RPE → charge plus grande', ({ assert }) => {
-    const short = calc.calculate({ durationHours: 0.5, perceivedEffort: 6 })
-    const long = calc.calculate({ durationHours: 1, perceivedEffort: 6 })
+    const short = calc.calculate({ durationHours: 0.5, perceivedEffort: 3 })
+    const long = calc.calculate({ durationHours: 1, perceivedEffort: 3 })
     assert.approximately(long.value, short.value * 2, 0.5)
   })
 })
@@ -245,5 +250,42 @@ test.group('normalisation TSS-like — 100 = 1h au seuil', () => {
   test('rTSS : IF² × durée_h × 100 → valeur positive', ({ assert }) => {
     const result = calc.calculate({ durationHours: 1, avgPaceMPerMin: 200, vdot: 50 })
     assert.isAbove(result.value, 0)
+  })
+})
+
+// ── Branches ajoutées (audit §18) ─────────────────────────────────────────────
+
+test.group('TRIMPexp mono-point et exclusion des autres sports', () => {
+  test('FC moyenne + FCmax + FC repos → trimp_exp sans courbe', ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgHeartRate: Math.round(190 * 0.88),
+      maxHR: 190,
+      restHR: 50,
+    })
+    assert.equal(result.method, 'trimp_exp')
+    assert.approximately(result.value, 100, 3)
+  })
+
+  test('LTHR saisie : 1h à la LTHR ≈ 100 quelle que soit la FCmax', ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgHeartRate: 160,
+      maxHR: 195,
+      restHR: 50,
+      lthr: 160,
+    })
+    assert.approximately(result.value, 100, 3)
+  })
+
+  test("allure d'un sport non course → pas de rTSS", ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgPaceMPerMin: 500, // 30 km/h à vélo
+      vdot: 50,
+      isRunning: false,
+      perceivedEffort: 3,
+    })
+    assert.equal(result.method, 'rpe')
   })
 })

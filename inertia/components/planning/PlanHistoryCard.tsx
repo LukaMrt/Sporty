@@ -1,9 +1,8 @@
-import React from 'react'
 import { Link } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 import type { TrainingPlan } from '~/types/planning'
 
-interface PlanHistoryCardProps {
+type PlanHistoryCardProps = {
   plan: TrainingPlan
   goalDistanceKm: number | null
   completedSessionsCount: number

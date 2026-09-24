@@ -2,9 +2,42 @@ import { DateTime } from 'luxon'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import type { ListSessionsOptions, SessionExternalRef } from '#domain/interfaces/session_repository'
+import type {
+  ListSessionsOptions,
+  SessionExternalRef,
+  SessionLoadEntry,
+} from '#domain/interfaces/session_repository'
+import db from '@adonisjs/lucid/services/db'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import SessionModel from '#models/session'
+import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
+import type { AnalysisSession } from '#domain/services/analysis/aggregations'
+
+/**
+ * Colonnes des requêtes de liste : sans `sport_metrics`, dont les courbes et la
+ * trace GPS peuvent peser des centaines de Ko par séance. Les entités renvoyées
+ * par ces requêtes ont donc `sportMetrics: {}` (voir le port).
+ */
+const LIST_COLUMNS = [
+  'id',
+  'user_id',
+  'sport_id',
+  'date',
+  'duration_minutes',
+  'distance_km',
+  'avg_heart_rate',
+  'perceived_effort',
+  'notes',
+  'imported_from',
+  'external_id',
+  'gpx_file_path',
+  'training_load',
+  'load_method',
+  'analysis',
+  'deleted_at',
+  'created_at',
+  'updated_at',
+]
 
 export default class LucidSessionRepository extends SessionRepository {
   async create(
@@ -26,6 +59,10 @@ export default class LucidSessionRepository extends SessionRepository {
       importedFrom: data.importedFrom ?? null,
       externalId: data.externalId ?? null,
       gpxFilePath: data.gpxFilePath ?? null,
+      trainingLoad: data.trainingLoad ?? null,
+      loadMethod: data.loadMethod ?? null,
+      analysis: data.analysis ?? null,
+      trackPreview: data.trackPreview ?? null,
     })
     await model.load('sport')
     return this.#toEntity(model)
@@ -40,6 +77,7 @@ export default class LucidSessionRepository extends SessionRepository {
     const sortBy = opts?.sortBy ?? 'date'
     const sortOrder = opts?.sortOrder ?? 'desc'
     const query = SessionModel.query()
+      .select(LIST_COLUMNS)
       .preload('sport')
       .withScopes((s) => s.withoutTrashed())
       .where('userId', userId)
@@ -93,6 +131,10 @@ export default class LucidSessionRepository extends SessionRepository {
     if (data.sportMetrics !== undefined) model.sportMetrics = data.sportMetrics
     if (data.notes !== undefined) model.notes = data.notes
     if (data.gpxFilePath !== undefined) model.gpxFilePath = data.gpxFilePath
+    if (data.trainingLoad !== undefined) model.trainingLoad = data.trainingLoad
+    if (data.loadMethod !== undefined) model.loadMethod = data.loadMethod
+    if (data.analysis !== undefined) model.analysis = data.analysis
+    if (data.trackPreview !== undefined) model.trackPreview = data.trackPreview
 
     await model.save()
     await model.load('sport')
@@ -101,6 +143,7 @@ export default class LucidSessionRepository extends SessionRepository {
 
   async findTrashedByUserId(userId: number): Promise<TrainingSession[]> {
     const models = await SessionModel.query()
+      .select(LIST_COLUMNS)
       .preload('sport')
       .withScopes((s) => s.onlyTrashed())
       .where('userId', userId)
@@ -131,6 +174,7 @@ export default class LucidSessionRepository extends SessionRepository {
     endDate: string
   ): Promise<TrainingSession[]> {
     const models = await SessionModel.query()
+      .select(LIST_COLUMNS)
       .where('userId', userId)
       .where('date', '>=', startDate)
       .where('date', '<=', endDate)
@@ -156,24 +200,126 @@ export default class LucidSessionRepository extends SessionRepository {
     return models.map((m) => ({ externalId: m.externalId!, id: m.id }))
   }
 
+  async findLoadEntries(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<SessionLoadEntry[]> {
+    const rows = (await db
+      .from('sessions')
+      .join('sports', 'sports.id', 'sessions.sport_id')
+      .where('sessions.user_id', userId)
+      .whereNull('sessions.deleted_at')
+      .where('sessions.date', '>=', startDate)
+      .where('sessions.date', '<=', endDate)
+      .orderBy('sessions.date', 'asc')
+      .select(
+        'sessions.id',
+        db.raw("to_char(sessions.date, 'YYYY-MM-DD') as date"),
+        'sports.slug as sport_slug',
+        'sessions.duration_minutes',
+        'sessions.distance_km',
+        'sessions.training_load',
+        'sessions.load_method'
+      )) as Array<{
+      id: number
+      date: string
+      sport_slug: string
+      duration_minutes: number
+      distance_km: string | number | null
+      training_load: number | null
+      load_method: TrainingLoadMethod | null
+    }>
+    return rows.map((r) => ({
+      id: r.id,
+      date: r.date,
+      sportSlug: r.sport_slug,
+      durationMinutes: r.duration_minutes,
+      distanceKm: r.distance_km === null ? null : Number(r.distance_km),
+      trainingLoad: r.training_load,
+      loadMethod: r.load_method,
+    }))
+  }
+
+  async findTrackPreviews(
+    userId: number
+  ): Promise<{ id: number; date: string; sportSlug: string; track: [number, number][] }[]> {
+    const models = await SessionModel.query()
+      .select(['id', 'date', 'sport_id', 'track_preview'])
+      .preload('sport')
+      .withScopes((s) => s.withoutTrashed())
+      .where('userId', userId)
+      .whereNotNull('track_preview')
+      .orderBy('date', 'desc')
+    return models.map((m) => ({
+      id: m.id,
+      date: m.date.toISODate() ?? '',
+      sportSlug: m.sport.slug,
+      track: m.trackPreview ?? [],
+    }))
+  }
+
+  async findAnalysisEntries(
+    userId: number,
+    startDate: string,
+    endDate: string
+  ): Promise<AnalysisSession[]> {
+    const models = await SessionModel.query()
+      .select(LIST_COLUMNS)
+      .preload('sport')
+      .withScopes((s) => s.withoutTrashed())
+      .where('userId', userId)
+      .whereBetween('date', [startDate, endDate])
+      .orderBy('date', 'asc')
+    return models.map((m) => ({
+      id: m.id,
+      date: m.date.toISODate() ?? '',
+      sportSlug: m.sport.slug,
+      durationMinutes: m.durationMinutes,
+      distanceKm: m.distanceKm === null ? null : Number(m.distanceKm),
+      avgHeartRate: m.avgHeartRate,
+      trainingLoad: m.trainingLoad ?? null,
+      analysis: m.analysis ?? null,
+    }))
+  }
+
+  async findByIds(ids: number[]): Promise<TrainingSession[]> {
+    if (ids.length === 0) return []
+    const models = await SessionModel.query().preload('sport').whereIn('id', ids)
+    return models.map((m) => this.#toEntity(m))
+  }
+
+  async findAllAliveByUserId(userId: number): Promise<TrainingSession[]> {
+    const models = await SessionModel.query()
+      .preload('sport')
+      .withScopes((s) => s.withoutTrashed())
+      .where('userId', userId)
+      .orderBy('date', 'asc')
+    return models.map((m) => this.#toEntity(m))
+  }
+
   #toEntity(model: SessionModel): TrainingSession {
     return {
       id: model.id,
       userId: model.userId,
       sportId: model.sportId,
       sportName: model.sport.name,
+      sportSlug: model.sport.slug,
       date: model.date.toISODate() ?? '',
       durationMinutes: model.durationMinutes,
       distanceKm: model.distanceKm,
       avgHeartRate: model.avgHeartRate,
       perceivedEffort: model.perceivedEffort,
-      sportMetrics: model.sportMetrics,
+      sportMetrics: model.sportMetrics ?? {},
       notes: model.notes,
       importedFrom: model.importedFrom ?? null,
       externalId: model.externalId ?? null,
       gpxFilePath: model.gpxFilePath ?? null,
       createdAt: model.createdAt.toISO() ?? '',
       deletedAt: model.deletedAt?.toISO() ?? null,
+      trainingLoad: model.trainingLoad ?? null,
+      loadMethod: model.loadMethod ?? null,
+      analysis: model.analysis ?? null,
     }
   }
 }

@@ -1,4 +1,3 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import { formatBlockDuration } from '~/lib/format'
@@ -10,7 +9,7 @@ function parsePaceString(pace: string): number {
   return min + (sec ?? 0) / 60
 }
 
-interface IntervalBreakdownProps {
+type IntervalBreakdownProps = {
   intervals: IntervalBlock[]
 }
 

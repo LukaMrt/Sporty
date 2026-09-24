@@ -1,6 +1,6 @@
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
 
-export interface VerifiedApiKeyIdentity {
+export type VerifiedApiKeyIdentity = {
   externalUserId: string
   displayName: string
 }

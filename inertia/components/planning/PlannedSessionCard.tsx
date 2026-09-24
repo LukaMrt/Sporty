@@ -1,9 +1,8 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import { ZONE_COLORS } from '~/lib/planning_colors'
 import type { PlannedSession } from '~/types/planning'
 
-interface PlannedSessionCardProps {
+type PlannedSessionCardProps = {
   session: PlannedSession
   isToday: boolean
   onClick: () => void

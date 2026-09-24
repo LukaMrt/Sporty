@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   createColumnHelper,
   flexRender,
@@ -8,21 +8,28 @@ import {
   columnVisibilityFeature,
   columnSizingFeature,
   createSortedRowModel,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_alphanumericCaseSensitive,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
+  sortFn_textCaseSensitive,
   type SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown, X, Undo2, Calendar, RefreshCw } from 'lucide-react'
+import { X, Undo2, RefreshCw } from 'lucide-react'
 import { router } from '@inertiajs/react'
 import SessionStatusBadge from '~/components/import/SessionStatusBadge'
 import StagingSessionCard from '~/components/import/StagingSessionCard'
+import DateFilterInput from '~/components/import/DateFilterInput'
+import SortableHeader from '~/components/import/SortableHeader'
 import { useTranslation } from '~/hooks/use_translation'
 import { useDateFormat } from '~/hooks/use_date_format'
-import { pushToast } from '~/hooks/use_toast'
+import { useStagingActions } from '~/hooks/use_staging_actions'
 import type { StagingSession } from '~/types/staging_session'
 import { formatDuration } from '~/lib/format'
 import { connectorPath } from '~/lib/connector_catalog'
 
-interface SessionsDataTableProps {
+type SessionsDataTableProps = {
   provider: string
   sessions: StagingSession[]
   connectorError?: boolean
@@ -45,7 +52,15 @@ const features = tableFeatures({
   columnVisibilityFeature,
   columnSizingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  // Enregistrement explicite (l'export groupé `sortFns` est déprécié)
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    alphanumericCaseSensitive: sortFn_alphanumericCaseSensitive,
+    basic: sortFn_basic,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+    textCaseSensitive: sortFn_textCaseSensitive,
+  },
 })
 
 const columnHelper = createColumnHelper<typeof features, StagingSession>()
@@ -63,14 +78,7 @@ export default function SessionsDataTable({
   const [sorting, setSorting] = useState<SortingState>([{ id: 'date', desc: true }])
   const [dateFrom, setDateFrom] = useState(initialAfter ?? defaults.after)
   const [dateTo, setDateTo] = useState(initialBefore ?? defaults.before)
-  const [importingIds, setImportingIds] = useState<Set<number>>(new Set())
-  const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
-  const [localSessions, setLocalSessions] = useState(sessions)
   const [showIgnored, setShowIgnored] = useState(false)
-
-  useEffect(() => {
-    setLocalSessions(sessions)
-  }, [sessions])
 
   const isFirstRender = useRef(true)
   useEffect(() => {
@@ -88,214 +96,8 @@ export default function SessionsDataTable({
     return () => clearTimeout(timer)
   }, [dateFrom, dateTo, provider])
 
-  const importOne = useCallback(
-    async (id: number) => {
-      let prevStatus: StagingSession['status'] = 'new'
-      setLocalSessions((cur) => {
-        const found = cur.find((s) => s.id === id)
-        if (found) prevStatus = found.status
-        return cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s))
-      })
-      setImportingIds((prev) => new Set(prev).add(id))
-
-      try {
-        const raw = document.cookie
-          .split('; ')
-          .find((c) => c.startsWith('XSRF-TOKEN='))
-          ?.split('=')[1]
-        const csrfToken = raw ? decodeURIComponent(raw) : undefined
-
-        const res = await fetch('/import/batch', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
-          },
-          body: JSON.stringify({ importSessionIds: [id] }),
-        })
-
-        if (!res.ok) {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
-          )
-          pushToast(t('import.batch.error'), 'error')
-          return
-        }
-
-        const data = (await res.json()) as {
-          failed: number
-          completed: number
-          total: number
-          dailyLimitReached?: boolean
-        }
-        if (data.dailyLimitReached) {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
-          )
-          pushToast(t('import.rateLimit.daily'), 'error')
-        } else if (data.failed > 0) {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s))
-          )
-          pushToast(t('import.batch.error'), 'error')
-        } else {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
-          )
-          pushToast(t('import.batch.success'), 'success')
-        }
-      } catch {
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s)))
-        pushToast(t('import.batch.error'), 'error')
-      } finally {
-        setImportingIds((prev) => {
-          const next = new Set(prev)
-          next.delete(id)
-          return next
-        })
-      }
-    },
-    [t]
-  )
-
-  const reimportOne = useCallback(
-    async (id: number) => {
-      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'importing' } : s)))
-      setImportingIds((prev) => new Set(prev).add(id))
-
-      try {
-        const raw = document.cookie
-          .split('; ')
-          .find((c) => c.startsWith('XSRF-TOKEN='))
-          ?.split('=')[1]
-        const csrfToken = raw ? decodeURIComponent(raw) : undefined
-
-        const res = await fetch(`/import/sessions/${id}/reimport`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
-          },
-        })
-
-        if (!res.ok) {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
-          )
-          pushToast(t('import.reimport.error'), 'error')
-          return
-        }
-
-        const data = (await res.json()) as {
-          failed: number
-          completed: number
-          total: number
-          dailyLimitReached?: boolean
-        }
-        if (data.dailyLimitReached) {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
-          )
-          pushToast(t('import.rateLimit.daily'), 'error')
-        } else if (data.failed > 0) {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
-          )
-          pushToast(t('import.reimport.error'), 'error')
-        } else {
-          setLocalSessions((cur) =>
-            cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s))
-          )
-          pushToast(t('import.reimport.success'), 'success')
-        }
-      } catch {
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'imported' } : s)))
-        pushToast(t('import.reimport.error'), 'error')
-      } finally {
-        setImportingIds((prev) => {
-          const next = new Set(prev)
-          next.delete(id)
-          return next
-        })
-      }
-    },
-    [t]
-  )
-
-  const postAction = useCallback(
-    async (url: string, successKey: string, errorKey: string): Promise<boolean> => {
-      const raw = document.cookie
-        .split('; ')
-        .find((c) => c.startsWith('XSRF-TOKEN='))
-        ?.split('=')[1]
-      const csrfToken = raw ? decodeURIComponent(raw) : undefined
-
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
-        },
-      })
-
-      if (res.ok) {
-        pushToast(t(successKey), 'success')
-        return true
-      } else {
-        pushToast(t(errorKey), 'error')
-        return false
-      }
-    },
-    [t]
-  )
-
-  const ignoreOne = useCallback(
-    async (id: number) => {
-      let prevStatus: StagingSession['status'] = 'new'
-      setLocalSessions((cur) => {
-        const found = cur.find((s) => s.id === id)
-        if (found) prevStatus = found.status
-        return cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s))
-      })
-      setPendingIds((s) => new Set(s).add(id))
-      const ok = await postAction(
-        `/import/sessions/${id}/ignore`,
-        'import.ignore.success',
-        'import.ignore.error'
-      )
-      if (!ok)
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: prevStatus } : s)))
-      setPendingIds((s) => {
-        const n = new Set(s)
-        n.delete(id)
-        return n
-      })
-    },
-    [postAction]
-  )
-
-  const restoreOne = useCallback(
-    async (id: number) => {
-      setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'new' } : s)))
-      setPendingIds((s) => new Set(s).add(id))
-      const ok = await postAction(
-        `/import/sessions/${id}/restore`,
-        'import.restore.success',
-        'import.restore.error'
-      )
-      if (!ok)
-        setLocalSessions((cur) => cur.map((s) => (s.id === id ? { ...s, status: 'ignored' } : s)))
-      setPendingIds((s) => {
-        const n = new Set(s)
-        n.delete(id)
-        return n
-      })
-    },
-    [postAction]
-  )
+  const { localSessions, importingIds, pendingIds, importOne, reimportOne, ignoreOne, restoreOne } =
+    useStagingActions(sessions)
 
   const filtered = useMemo(() => {
     const from = dateFrom ? new Date(dateFrom).getTime() : -Infinity
@@ -307,117 +109,120 @@ export default function SessionsDataTable({
   }, [localSessions, dateFrom, dateTo, showIgnored])
 
   const columns = useMemo(
-    () => [
-      columnHelper.accessor('date', {
-        header: ({ column }) => (
-          <SortableHeader
-            label={t('import.table.date')}
-            sorted={column.getIsSorted()}
-            onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-        cell: ({ getValue }) => formatDate(getValue()),
-      }),
-      columnHelper.accessor('name', {
-        header: t('import.table.name'),
-        cell: ({ getValue }) => <span className="max-w-[200px] truncate block">{getValue()}</span>,
-        enableSorting: false,
-      }),
-      columnHelper.accessor('sportType', {
-        header: ({ column }) => (
-          <SortableHeader
-            label={t('import.table.type')}
-            sorted={column.getIsSorted()}
-            onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-      }),
-      columnHelper.accessor('durationMinutes', {
-        header: t('import.table.duration'),
-        cell: ({ getValue }) => formatDuration(getValue()),
-        enableSorting: false,
-      }),
-      columnHelper.accessor('distanceKm', {
-        header: ({ column }) => (
-          <SortableHeader
-            label={t('import.table.distance')}
-            sorted={column.getIsSorted()}
-            onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-        cell: ({ getValue }) => {
-          const v = getValue()
-          return v !== null ? `${v.toFixed(2)} ${t('import.table.distanceUnit')}` : '—'
-        },
-      }),
-      columnHelper.accessor('status', {
-        header: t('import.table.status'),
-        cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
-        enableSorting: false,
-        size: 120,
-        minSize: 120,
-        maxSize: 120,
-      }),
-      columnHelper.display({
-        id: 'actions',
-        header: t('import.table.actions'),
-        cell: ({ row }) => {
-          const { id, status } = row.original
-          const isImporting = importingIds.has(id)
-          const isPending = pendingIds.has(id)
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor('date', {
+          header: ({ column }) => (
+            <SortableHeader
+              label={t('import.table.date')}
+              sorted={column.getIsSorted()}
+              onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            />
+          ),
+          cell: ({ getValue }) => formatDate(getValue()),
+        }),
+        columnHelper.accessor('name', {
+          header: t('import.table.name'),
+          cell: ({ getValue }) => (
+            <span className="max-w-[200px] truncate block">{getValue()}</span>
+          ),
+          enableSorting: false,
+        }),
+        columnHelper.accessor('sportType', {
+          header: ({ column }) => (
+            <SortableHeader
+              label={t('import.table.type')}
+              sorted={column.getIsSorted()}
+              onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            />
+          ),
+        }),
+        columnHelper.accessor('durationMinutes', {
+          header: t('import.table.duration'),
+          cell: ({ getValue }) => formatDuration(getValue()),
+          enableSorting: false,
+        }),
+        columnHelper.accessor('distanceKm', {
+          header: ({ column }) => (
+            <SortableHeader
+              label={t('import.table.distance')}
+              sorted={column.getIsSorted()}
+              onToggle={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            />
+          ),
+          cell: ({ getValue }) => {
+            const v = getValue()
+            return v !== null ? `${v.toFixed(2)} ${t('import.table.distanceUnit')}` : '—'
+          },
+        }),
+        columnHelper.accessor('status', {
+          header: t('import.table.status'),
+          cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
+          enableSorting: false,
+          size: 120,
+          minSize: 120,
+          maxSize: 120,
+        }),
+        columnHelper.display({
+          id: 'actions',
+          header: t('import.table.actions'),
+          cell: ({ row }) => {
+            const { id, status } = row.original
+            const isImporting = importingIds.has(id)
+            const isPending = pendingIds.has(id)
 
-          if (status === 'new' || status === 'failed') {
-            return (
-              <div className="flex items-center gap-2">
+            if (status === 'new' || status === 'failed') {
+              return (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => void importOne(id)}
+                    disabled={isImporting || isPending || connectorError}
+                    className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isImporting ? t('import.batch.importing') : t('import.batch.button')}
+                  </button>
+                  <button
+                    onClick={() => void ignoreOne(id)}
+                    disabled={isPending}
+                    className="w-[90px] cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {t('import.ignore.button')}
+                  </button>
+                </div>
+              )
+            }
+
+            if (status === 'ignored') {
+              return (
                 <button
-                  onClick={() => void importOne(id)}
-                  disabled={isImporting || isPending || connectorError}
-                  className="w-[110px] cursor-pointer rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {isImporting ? t('import.batch.importing') : t('import.batch.button')}
-                </button>
-                <button
-                  onClick={() => void ignoreOne(id)}
+                  onClick={() => void restoreOne(id)}
                   disabled={isPending}
-                  className="w-[90px] cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {t('import.ignore.button')}
+                  <Undo2 className="h-3.5 w-3.5" />
+                  {t('import.restore.button')}
                 </button>
-              </div>
-            )
-          }
+              )
+            }
 
-          if (status === 'ignored') {
-            return (
-              <button
-                onClick={() => void restoreOne(id)}
-                disabled={isPending}
-                className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <Undo2 className="h-3.5 w-3.5" />
-                {t('import.restore.button')}
-              </button>
-            )
-          }
+            if (status === 'imported') {
+              return (
+                <button
+                  onClick={() => void reimportOne(id)}
+                  disabled={isImporting || connectorError}
+                  className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  {isImporting ? t('import.reimport.importing') : t('import.reimport.button')}
+                </button>
+              )
+            }
 
-          if (status === 'imported') {
-            return (
-              <button
-                onClick={() => void reimportOne(id)}
-                disabled={isImporting || connectorError}
-                className="flex items-center gap-1.5 cursor-pointer rounded-md border border-input px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                {isImporting ? t('import.reimport.importing') : t('import.reimport.button')}
-              </button>
-            )
-          }
-
-          return null
-        },
-        enableSorting: false,
-      }),
-    ],
+            return null
+          },
+          enableSorting: false,
+        }),
+      ]),
     [
       t,
       formatDate,
@@ -604,62 +409,5 @@ export default function SessionsDataTable({
         )}
       </div>
     </div>
-  )
-}
-
-interface DateFilterInputProps {
-  value: string
-  onChange: (v: string) => void
-  formatDate: (d: string) => string
-  min?: string
-  max?: string
-}
-
-function DateFilterInput({ value, onChange, formatDate, min, max }: DateFilterInputProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  return (
-    <div
-      className="relative rounded-md border border-input bg-background px-2 py-1 text-sm text-foreground min-h-[44px] flex items-center min-w-[120px] cursor-pointer"
-      onClick={() => inputRef.current?.showPicker()}
-    >
-      <span className="pointer-events-none select-none flex items-center gap-1.5">
-        {value ? formatDate(value) : '—'}
-        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-      </span>
-      <input
-        ref={inputRef}
-        type="date"
-        value={value}
-        min={min}
-        max={max}
-        onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
-      />
-    </div>
-  )
-}
-
-interface SortableHeaderProps {
-  label: string
-  sorted: false | 'asc' | 'desc'
-  onToggle: () => void
-}
-
-function SortableHeader({ label, sorted, onToggle }: SortableHeaderProps) {
-  return (
-    <button
-      onClick={onToggle}
-      className="flex cursor-pointer items-center gap-1 font-medium text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px]"
-    >
-      {label}
-      {sorted === 'asc' ? (
-        <ArrowUp className="h-3.5 w-3.5" />
-      ) : sorted === 'desc' ? (
-        <ArrowDown className="h-3.5 w-3.5" />
-      ) : (
-        <ArrowUpDown className="h-3.5 w-3.5 opacity-50" />
-      )}
-    </button>
   )
 }

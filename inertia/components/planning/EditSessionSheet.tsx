@@ -6,7 +6,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import type { PlannedSession } from '~/types/planning'
 
-interface Props {
+type Props = {
   session: PlannedSession
   onClose: () => void
 }
@@ -22,7 +22,7 @@ export default function EditSessionSheet({ session, onClose }: Props) {
     const parsedDuration = Number.parseInt(duration, 10)
     if (!parsedDuration || parsedDuration <= 0) return
 
-    const payload: Record<string, unknown> = {
+    const payload: Record<string, string | number> = {
       target_duration_minutes: parsedDuration,
     }
     if (pace.trim()) payload.target_pace_per_km = pace.trim()

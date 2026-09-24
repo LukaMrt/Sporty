@@ -2,30 +2,20 @@ import { inject } from '@adonisjs/core'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
-import {
-  PlanStatus,
-  PlannedSessionStatus,
-  TrainingState,
-} from '#domain/value_objects/planning_types'
+import { UnitOfWork } from '#domain/interfaces/unit_of_work'
+import { PlanStatus, TrainingState } from '#domain/value_objects/planning_types'
 import { derivePaceZones } from '#domain/services/vdot_calculator'
+import { addDaysIso, todayInTimezone } from '#domain/services/calendar'
 import type { TrainingPlan } from '#domain/entities/training_plan'
+import type { PlannedWeek } from '#domain/entities/planned_week'
 import { NoCompletedPlanError } from '#domain/errors/no_completed_plan_error'
+import PlanPersister from '#use_cases/planning/plan_persister'
 
 // Ratio volume maintenance / pic (Daniels) — utilisé pour reconstruire le volume pic
 // depuis un plan maintenance existant lors de la boucle de maintien.
 const MAINTENANCE_RATIO = 0.35
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function addWeeks(dateIso: string, weeks: number): string {
-  const d = new Date(dateIso)
-  d.setDate(d.getDate() + weeks * 7)
-  return d.toISOString().slice(0, 10)
-}
-
-export interface GenerateMaintenancePlanResult {
+export type GenerateMaintenancePlanResult = {
   plan: TrainingPlan
 }
 
@@ -34,7 +24,9 @@ export default class GenerateMaintenancePlan {
   constructor(
     private planRepo: TrainingPlanRepository,
     private userProfileRepo: UserProfileRepository,
-    private planEngine: TrainingPlanEngine
+    private planEngine: TrainingPlanEngine,
+    private planPersister: PlanPersister,
+    private unitOfWork: UnitOfWork
   ) {}
 
   async execute(userId: number): Promise<GenerateMaintenancePlanResult> {
@@ -42,67 +34,45 @@ export default class GenerateMaintenancePlan {
     const completedPlan = allPlans.find((p) => p.status === PlanStatus.Completed)
     if (!completedPlan) throw new NoCompletedPlanError()
 
-    const weeks = await this.planRepo.findWeeksByPlanId(completedPlan.id)
-    const peakVolumeMinutes = this.#estimatePeakVolume(completedPlan, weeks)
+    return this.unitOfWork.run(() => this.fromPlan(userId, completedPlan))
+  }
 
-    const paceZones = derivePaceZones(completedPlan.currentVdot)
-
+  /**
+   * Génère un cycle de maintenance à partir d'un plan terminé (ou du cycle de
+   * maintenance qui vient de s'achever). À appeler dans une UnitOfWork.
+   */
+  async fromPlan(userId: number, sourcePlan: TrainingPlan): Promise<GenerateMaintenancePlanResult> {
+    const weeks = await this.planRepo.findWeeksByPlanId(sourcePlan.id)
     const generated = this.planEngine.generateMaintenancePlan({
-      vdot: completedPlan.currentVdot,
-      paceZones,
-      sessionsPerWeek: completedPlan.sessionsPerWeek,
-      preferredDays: completedPlan.preferredDays,
-      currentWeeklyVolumeMinutes: peakVolumeMinutes,
+      vdot: sourcePlan.currentVdot,
+      paceZones: derivePaceZones(sourcePlan.currentVdot),
+      sessionsPerWeek: sourcePlan.sessionsPerWeek,
+      preferredDays: sourcePlan.preferredDays,
+      currentWeeklyVolumeMinutes: this.#estimatePeakVolume(weeks),
     })
 
-    const startDate = todayIso()
-    const endDate = addWeeks(startDate, generated.totalWeeks)
+    const profile = await this.userProfileRepo.findByUserId(userId)
+    const startDate = todayInTimezone(profile?.timezone)
 
-    const plan = await this.planRepo.create({
-      userId,
-      goalId: null,
-      methodology: generated.methodology,
-      level: completedPlan.level,
-      status: PlanStatus.Active,
-      autoRecalibrate: false,
-      vdotAtCreation: completedPlan.currentVdot,
-      currentVdot: completedPlan.currentVdot,
-      sessionsPerWeek: completedPlan.sessionsPerWeek,
-      preferredDays: completedPlan.preferredDays,
-      startDate,
-      endDate,
-      lastRecalibratedAt: null,
-      pendingVdotDown: null,
-    })
-
-    for (const week of generated.weeks) {
-      await this.planRepo.createWeek({
-        planId: plan.id,
-        weekNumber: week.weekNumber,
-        phaseName: week.phaseName,
-        phaseLabel: week.phaseName,
-        isRecoveryWeek: week.isRecoveryWeek,
-        targetVolumeMinutes: week.targetVolumeMinutes,
-      })
-
-      for (const session of week.sessions) {
-        await this.planRepo.createSession({
-          planId: plan.id,
-          weekNumber: week.weekNumber,
-          dayOfWeek: session.dayOfWeek,
-          sessionType: session.sessionType,
-          targetDurationMinutes: session.targetDurationMinutes,
-          targetDistanceKm: session.targetDistanceKm,
-          targetPacePerKm: session.targetPacePerKm,
-          intensityZone: session.intensityZone,
-          intervals: session.intervals,
-          targetLoadTss: null,
-          completedSessionId: null,
-          status: PlannedSessionStatus.Pending,
-        })
-      }
-    }
-
+    const { plan } = await this.planPersister.createPlan(
+      {
+        userId,
+        goalId: null,
+        methodology: generated.methodology,
+        level: sourcePlan.level,
+        status: PlanStatus.Active,
+        autoRecalibrate: false,
+        vdotAtCreation: sourcePlan.currentVdot,
+        currentVdot: sourcePlan.currentVdot,
+        sessionsPerWeek: sourcePlan.sessionsPerWeek,
+        preferredDays: sourcePlan.preferredDays,
+        startDate,
+        endDate: addDaysIso(startDate, generated.totalWeeks * 7),
+        lastRecalibratedAt: null,
+        pendingVdotDown: null,
+      },
+      generated.weeks
+    )
     await this.userProfileRepo.update(userId, { trainingState: TrainingState.Maintenance })
 
     return { plan }
@@ -115,24 +85,15 @@ export default class GenerateMaintenancePlan {
    * - Plan de transition : on utilise les semaines les plus chargées
    */
   #estimatePeakVolume(
-    _completedPlan: TrainingPlan,
-    weeks: Array<{ phaseName: string; isRecoveryWeek: boolean; targetVolumeMinutes: number }>
+    weeks: Pick<PlannedWeek, 'phaseName' | 'isRecoveryWeek' | 'targetVolumeMinutes'>[]
   ): number {
     if (weeks.length === 0) return 200
 
-    const isMaintenancePlan = weeks.some((w) => w.phaseName === 'MAINT')
-    if (isMaintenancePlan) {
-      const maintenanceWeeks = weeks.filter((w) => !w.isRecoveryWeek)
-      const maintenanceVolume =
-        maintenanceWeeks.length > 0
-          ? Math.max(...maintenanceWeeks.map((w) => w.targetVolumeMinutes))
-          : Math.max(...weeks.map((w) => w.targetVolumeMinutes))
-      return Math.round(maintenanceVolume / MAINTENANCE_RATIO)
-    }
-
     const nonRecoveryWeeks = weeks.filter((w) => !w.isRecoveryWeek)
-    return nonRecoveryWeeks.length > 0
-      ? Math.max(...nonRecoveryWeeks.map((w) => w.targetVolumeMinutes))
-      : Math.max(...weeks.map((w) => w.targetVolumeMinutes))
+    const reference = nonRecoveryWeeks.length > 0 ? nonRecoveryWeeks : weeks
+    const maxVolume = Math.max(...reference.map((w) => w.targetVolumeMinutes))
+
+    const isMaintenancePlan = weeks.some((w) => w.phaseName === 'MAINT')
+    return isMaintenancePlan ? Math.round(maxVolume / MAINTENANCE_RATIO) : maxVolume
   }
 }

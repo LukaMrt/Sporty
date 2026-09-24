@@ -1,14 +1,13 @@
-import React from 'react'
 import { paceToKmh, formatPaceMinSec } from '~/lib/format'
 import { useTranslation } from '~/hooks/use_translation'
 import InfoTooltip from '~/components/shared/InfoTooltip'
 
-interface PaceZoneRange {
+type PaceZoneRange = {
   minPacePerKm: number
   maxPacePerKm: number
 }
 
-interface PaceZones {
+type PaceZones = {
   easy: PaceZoneRange
   marathon: PaceZoneRange
   threshold: PaceZoneRange
@@ -16,7 +15,7 @@ interface PaceZones {
   repetition: PaceZoneRange
 }
 
-interface PaceZonesDisplayProps {
+type PaceZonesDisplayProps = {
   paceZones: PaceZones
   speedUnit?: 'min_km' | 'km_h'
 }

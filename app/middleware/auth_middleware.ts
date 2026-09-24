@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import type { NextFn } from '@adonisjs/core/types/http'
 import type { Authenticators } from '@adonisjs/auth/types'
+import { logoutIfStaleSession } from '#middleware/session_version'
 
 /**
  * Auth middleware is used authenticate HTTP requests and deny
@@ -20,6 +21,9 @@ export default class AuthMiddleware {
     } = {}
   ) {
     await ctx.auth.authenticateUsing(options.guards, { loginRoute: this.redirectTo })
+    if (await logoutIfStaleSession(ctx)) {
+      return ctx.response.redirect(this.redirectTo)
+    }
     return next()
   }
 }

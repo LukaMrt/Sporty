@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Head, Link } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { useTranslation } from '~/hooks/use_translation'
@@ -8,7 +8,7 @@ import PlannedSessionDetail from '~/components/planning/PlannedSessionDetail'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import type { TrainingPlan, PlannedWeek, PlannedSession } from '~/types/planning'
 
-interface Props {
+type Props = {
   plan: TrainingPlan
   weeks: PlannedWeek[]
   sessionsByWeek: Record<string, PlannedSession[]>

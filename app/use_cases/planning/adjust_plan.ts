@@ -4,7 +4,7 @@ import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
 import type { PlannedSession } from '#domain/entities/planned_session'
 
-export interface AdjustPlanInput {
+export type AdjustPlanInput = {
   userId: number
   sessionId: number
   /** Jour de la semaine (0=Dimanche … 6=Samedi, convention JS Date.getDay()) — optionnel pour déplacement */

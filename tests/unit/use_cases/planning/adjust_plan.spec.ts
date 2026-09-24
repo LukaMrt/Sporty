@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
+import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import AdjustPlan from '#use_cases/planning/adjust_plan'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_found_error'
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
 import {
@@ -62,7 +63,7 @@ function makePlanRepo(opts: {
   activePlan: TrainingPlan | null
   updatedSession?: PlannedSession
 }): TrainingPlanRepository {
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(): Promise<TrainingPlan> {
       throw new Error('not implemented')
     }

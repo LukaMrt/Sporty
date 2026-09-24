@@ -179,7 +179,43 @@ test.group('GpxParserService', () => {
   })
 
   test('parse GPX sans trackpoints — lève GpxParseError avec message explicite', ({ assert }) => {
-    assert.throws(() => parser.parse(GPX_NO_TRKPT), GpxParseError, 'Aucun trackpoint trouvé')
+    try {
+      parser.parse(GPX_NO_TRKPT)
+      assert.fail('Devrait lever GpxParseError')
+    } catch (error) {
+      assert.instanceOf(error, GpxParseError)
+      assert.equal((error as GpxParseError).code, 'no_trackpoints')
+      assert.equal((error as GpxParseError).i18nKey, 'sessions.gpx.errors.no_trackpoints')
+    }
+  })
+
+  test('plusieurs segments (pause auto) — pause exclue de la durée et de la distance', ({
+    assert,
+  }) => {
+    const pt = (lat: number, time: string) =>
+      `<trkpt lat="${lat}" lon="2.35"><time>${time}</time></trkpt>`
+    const gpx = `<?xml version="1.0"?>
+<gpx version="1.1"><trk>
+  <trkseg>${pt(48.85, '2024-01-01T10:00:00Z')}${pt(48.851, '2024-01-01T10:01:00Z')}</trkseg>
+  <trkseg>${pt(48.86, '2024-01-01T10:11:00Z')}${pt(48.861, '2024-01-01T10:12:00Z')}</trkseg>
+</trk></gpx>`
+    const result = parser.parse(gpx)
+    // 2 × 60 s de course, la pause de 10 min est ignorée
+    assert.equal(result.durationSeconds, 120)
+    // 2 × ~111 m ; le saut de ~1 km entre segments n'est pas compté
+    assert.approximately(result.distanceMeters, 222, 5)
+  })
+
+  test('plusieurs traces — toutes concaténées', ({ assert }) => {
+    const pt = (lat: number, time: string) =>
+      `<trkpt lat="${lat}" lon="2.35"><time>${time}</time></trkpt>`
+    const gpx = `<?xml version="1.0"?>
+<gpx version="1.1">
+  <trk><trkseg>${pt(48.85, '2024-01-01T10:00:00Z')}${pt(48.851, '2024-01-01T10:01:00Z')}</trkseg></trk>
+  <trk><trkseg>${pt(48.852, '2024-01-01T10:02:00Z')}${pt(48.853, '2024-01-01T10:03:00Z')}</trkseg></trk>
+</gpx>`
+    const result = parser.parse(gpx)
+    assert.equal(result.durationSeconds, 120)
   })
 
   test('parse chaîne vide — lève GpxParseError', ({ assert }) => {

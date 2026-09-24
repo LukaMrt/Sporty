@@ -1,6 +1,9 @@
 import { test } from '@japa/runner'
+import { ImmediateUnitOfWork } from '#tests/helpers/base_mocks'
+import PlanPersister from '#use_cases/planning/plan_persister'
+import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import GenerateMaintenancePlan from '#use_cases/planning/generate_maintenance_plan'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import {
@@ -131,7 +134,7 @@ function makePlanRepo(
 ): TrainingPlanRepository & { createdPlans: TrainingPlan[] } {
   const createdPlans: TrainingPlan[] = []
 
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(
       data: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>
     ): Promise<TrainingPlan> {
@@ -283,7 +286,9 @@ test.group('GenerateMaintenancePlan', () => {
     const useCase = new GenerateMaintenancePlan(
       planRepo,
       makeUserProfileRepo(USER_PROFILE),
-      makeEngine()
+      makeEngine(),
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
     )
     await assert.rejects(() => useCase.execute(1), NoCompletedPlanError)
   })
@@ -295,7 +300,9 @@ test.group('GenerateMaintenancePlan', () => {
     const useCase = new GenerateMaintenancePlan(
       planRepo,
       makeUserProfileRepo(USER_PROFILE),
-      makeEngine()
+      makeEngine(),
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
     )
     const result = await useCase.execute(1)
 
@@ -311,7 +318,13 @@ test.group('GenerateMaintenancePlan', () => {
     const planRepo = makePlanRepo([COMPLETED_PREP_PLAN], weeks)
     const engine = makeEngine()
 
-    const useCase = new GenerateMaintenancePlan(planRepo, makeUserProfileRepo(USER_PROFILE), engine)
+    const useCase = new GenerateMaintenancePlan(
+      planRepo,
+      makeUserProfileRepo(USER_PROFILE),
+      engine,
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1)
 
     assert.equal(engine.capturedRequest?.currentWeeklyVolumeMinutes, 300)
@@ -324,7 +337,13 @@ test.group('GenerateMaintenancePlan', () => {
     const planRepo = makePlanRepo([COMPLETED_MAINT_PLAN], weeks)
     const engine = makeEngine()
 
-    const useCase = new GenerateMaintenancePlan(planRepo, makeUserProfileRepo(USER_PROFILE), engine)
+    const useCase = new GenerateMaintenancePlan(
+      planRepo,
+      makeUserProfileRepo(USER_PROFILE),
+      engine,
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1)
 
     const expectedPeak = Math.round(maintenanceVolume / 0.35)
@@ -336,7 +355,13 @@ test.group('GenerateMaintenancePlan', () => {
     const planRepo = makePlanRepo([COMPLETED_PREP_PLAN], weeks)
     const profileRepo = makeUserProfileRepo(USER_PROFILE)
 
-    const useCase = new GenerateMaintenancePlan(planRepo, profileRepo, makeEngine())
+    const useCase = new GenerateMaintenancePlan(
+      planRepo,
+      profileRepo,
+      makeEngine(),
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1)
 
     assert.equal(profileRepo.updatedTrainingState, TrainingState.Maintenance)

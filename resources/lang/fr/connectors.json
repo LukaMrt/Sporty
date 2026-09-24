@@ -51,5 +51,10 @@
     "autoImport": "Import automatique",
     "interval": "Intervalle",
     "error": "Erreur lors de la mise à jour des paramètres"
+  },
+  "backfill": {
+    "started": "Import de l'historique lancé : les séances des 2 dernières années apparaîtront dans la liste d'import d'ici quelques minutes.",
+    "button": "Importer l'historique (2 ans)",
+    "description": "Met en attente d'import toutes les séances des 2 dernières années et récupère les données de récupération (sommeil, HRV…)."
   }
 }

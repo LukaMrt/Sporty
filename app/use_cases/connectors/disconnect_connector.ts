@@ -2,8 +2,10 @@ import { inject } from '@adonisjs/core'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import type { ConnectorProvider } from '#domain/value_objects/connector_provider'
+import { Logger } from '#domain/interfaces/logger'
+import { ConnectorScheduler } from '#domain/interfaces/connector_scheduler'
 
-export interface DisconnectConnectorInput {
+export type DisconnectConnectorInput = {
   userId: number
   provider: ConnectorProvider
 }
@@ -12,7 +14,9 @@ export interface DisconnectConnectorInput {
 export default class DisconnectConnector {
   constructor(
     private connectorRepository: ConnectorRepository,
-    private connectorRegistry: ConnectorRegistry
+    private connectorRegistry: ConnectorRegistry,
+    private logger: Logger,
+    private scheduler: ConnectorScheduler
   ) {}
 
   async execute(input: DisconnectConnectorInput): Promise<void> {
@@ -26,10 +30,14 @@ export default class DisconnectConnector {
         const connector = await this.connectorRegistry.getFactory(provider).make(userId)
         await connector?.disconnect()
       }
-    } catch {
-      // Ignore volontairement : la suppression locale doit toujours aboutir.
+    } catch (error) {
+      // Non bloquant : la suppression locale doit toujours aboutir
+      this.logger.warn({ err: error, userId, provider }, 'Remote connector revocation failed')
     }
 
+    const record = await this.connectorRepository.findFullByUserAndProvider(userId, provider)
     await this.connectorRepository.disconnect(userId, provider)
+    // Plus de synchronisation planifiée pour un connecteur supprimé
+    if (record) this.scheduler.removeConnector(record.id)
   }
 }

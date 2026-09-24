@@ -10,7 +10,7 @@ import {
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { isProviderConfigured } from '#lib/connector_config'
 
-export interface ConnectorCardDto {
+export type ConnectorCardDto = {
   provider: ConnectorProvider
   authKind: ConnectorAuthKind
   configured: boolean

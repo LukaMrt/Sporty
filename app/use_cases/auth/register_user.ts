@@ -5,8 +5,12 @@ import { UserRepository } from '#domain/interfaces/user_repository'
 import { UserRole } from '#domain/value_objects/user_role'
 import { inject } from '@adonisjs/core'
 
-export type RegisterUserInput = Pick<User, 'email' | 'fullName' | 'password'>
+export type RegisterUserInput = { email: string; fullName: string; password: string }
 
+/**
+ * Inscription du premier utilisateur (qui devient admin). L'inscription est
+ * ensuite fermée : les autres comptes sont créés par un admin.
+ */
 @inject()
 export default class RegisterUser {
   constructor(
@@ -15,28 +19,21 @@ export default class RegisterUser {
   ) {}
 
   async show(): Promise<void> {
-    await this.checkAdminAlreadyExists()
+    const count = await this.userRepository.countAll()
+    if (count > 0) throw new UserAlreadyExistsError()
   }
 
   async registerUser(input: RegisterUserInput): Promise<User> {
-    await this.checkAdminAlreadyExists()
-
-    const user = await this.userRepository.create({
+    // Vérification + création atomiques : deux inscriptions simultanées
+    // ne peuvent plus créer deux admins
+    const user = await this.userRepository.createFirstUser({
       ...input,
       role: UserRole.Admin,
       onboardingCompleted: false,
-      createdAt: new Date().toISOString(),
     })
+    if (!user) throw new UserAlreadyExistsError()
 
     await this.authService.login(user)
-
     return user
-  }
-
-  private async checkAdminAlreadyExists(): Promise<void> {
-    const count = await this.userRepository.countAll()
-    if (count > 0) {
-      throw new UserAlreadyExistsError()
-    }
   }
 }

@@ -1,8 +1,7 @@
-import React from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import type { PlannedWeek, PlannedSession } from '~/types/planning'
 
-interface WeekSummaryProps {
+type WeekSummaryProps = {
   week: PlannedWeek
   sessions: PlannedSession[]
 }

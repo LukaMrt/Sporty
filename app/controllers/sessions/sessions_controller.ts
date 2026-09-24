@@ -1,5 +1,5 @@
 import { inject } from '@adonisjs/core'
-import logger from '@adonisjs/core/services/logger'
+import { DateTime } from 'luxon'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateSession from '#use_cases/sessions/create_session'
 import ListTrashedSessions from '#use_cases/sessions/list_trashed_sessions'
@@ -9,15 +9,29 @@ import RestoreSession from '#use_cases/sessions/restore_session'
 import ListSessions from '#use_cases/sessions/list_sessions'
 import GetSession from '#use_cases/sessions/get_session'
 import ListSports from '#use_cases/sports/list_sports'
+import GetSessionContext from '#use_cases/sessions/get_session_context'
+import RouteAnalysis from '#use_cases/analysis/route_analysis'
+import { maskPoints } from '#domain/services/analysis/route'
 import GetProfile from '#use_cases/profile/get_profile'
-import SetSessionGpxFilePath from '#use_cases/sessions/set_session_gpx_file_path'
 import { createSessionValidator } from '#validators/sessions/create_session_validator'
 import { updateSessionValidator } from '#validators/sessions/update_session_validator'
 import { listSessionsValidator } from '#validators/sessions/list_sessions_validator'
 import { DEFAULT_USER_PREFERENCES } from '#domain/entities/user_preferences'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
-import { getZoneThresholdsBpm } from '#domain/services/heart_rate_zone_service'
+import { InvalidSessionMetricsError } from '#domain/errors/invalid_session_metrics_error'
+import { resolveZoneBounds, boundsToThresholds } from '#domain/services/heart_rate_zone_bounds'
+
+/** Date calendaire saisie : vine.date() la parse à minuit local, pas en UTC */
+const toIsoDate = (date: Date) => DateTime.fromJSDate(date).toISODate()!
+
+/** La page détail charge la trace complète : l'aperçu allégé est inutile */
+function withoutTrackPreview<T extends { trackPreview?: unknown }>({
+  trackPreview: _,
+  ...rest
+}: T) {
+  return rest
+}
 
 @inject()
 export default class SessionsController {
@@ -31,7 +45,8 @@ export default class SessionsController {
     private getSession: GetSession,
     private listSports: ListSports,
     private getProfile: GetProfile,
-    private setSessionGpxFilePath: SetSessionGpxFilePath
+    private getSessionContext: GetSessionContext,
+    private routeAnalysis: RouteAnalysis
   ) {}
 
   async trash({ inertia, auth }: HttpContext) {
@@ -106,12 +121,33 @@ export default class SessionsController {
         this.getSession.execute(Number(params.id), auth.user!.id),
         this.getProfile.execute(auth.user!.id),
       ])
-      const hrZoneThresholds = profile?.maxHeartRate
-        ? getZoneThresholdsBpm(profile.maxHeartRate, profile.restingHeartRate)
+      const bounds = profile
+        ? resolveZoneBounds(profile.hrZonesConfig ?? null, {
+            maxHeartRate: profile.maxHeartRate,
+            restingHeartRate: profile.restingHeartRate,
+          })
         : null
+      const hrZoneThresholds = bounds ? boundsToThresholds(bounds.bounds) : null
+      const context = await this.getSessionContext.execute(auth.user!.id, trainingSession.date)
+      const sameRoute = await this.routeAnalysis.sameRouteSessions(
+        auth.user!.id,
+        trainingSession.id
+      )
+      // Zones de confidentialité : la trace affichée ne révèle pas le domicile
+      const metrics = trainingSession.sportMetrics as { gpsTrack?: { lat: number; lon: number }[] }
+      const sportMetrics = metrics.gpsTrack
+        ? { ...metrics, gpsTrack: maskPoints(metrics.gpsTrack, profile?.privacyZones ?? []) }
+        : trainingSession.sportMetrics
       return inertia.render('Sessions/Show', {
-        session: { ...trainingSession, gpxFilePath: trainingSession.gpxFilePath ?? null },
+        session: {
+          ...withoutTrackPreview(trainingSession),
+          sportMetrics,
+          gpxFilePath: trainingSession.gpxFilePath ?? null,
+          importedFrom: trainingSession.importedFrom ?? null,
+        },
+        sameRoute,
         hrZoneThresholds,
+        context,
       })
     } catch (error) {
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
@@ -144,12 +180,11 @@ export default class SessionsController {
       const data = await request.validateUsing(updateSessionValidator)
       await this.updateSession.execute(Number(params.id), auth.user!.id, {
         sportId: data.sport_id,
-        date: data.date.toISOString().split('T')[0],
+        date: toIsoDate(data.date),
         durationMinutes: data.duration_minutes,
         distanceKm: data.distance_km,
         avgHeartRate: data.avg_heart_rate,
         perceivedEffort: data.perceived_effort,
-        sportMetrics: data.sport_metrics,
         notes: data.notes,
         minHeartRate: data.min_heart_rate,
         maxHeartRate: data.max_heart_rate,
@@ -160,6 +195,10 @@ export default class SessionsController {
       session.flash('success', i18n.t('sessions.flash.updated'))
       return response.redirect(`/sessions/${params.id}`)
     } catch (error) {
+      if (error instanceof InvalidSessionMetricsError) {
+        session.flashErrors({ [error.field]: i18n.t(error.i18nKey) })
+        return response.redirect().back()
+      }
       if (error instanceof SessionNotFoundError || error instanceof SessionForbiddenError) {
         session.flash('error', i18n.t('sessions.flash.forbidden'))
         return response.redirect('/sessions')
@@ -200,32 +239,28 @@ export default class SessionsController {
     const data = await request.validateUsing(createSessionValidator)
     const user = auth.user!
 
-    const createdSession = await this.createSession.execute(user.id, {
-      sportId: data.sport_id,
-      date: data.date.toISOString().split('T')[0],
-      durationMinutes: data.duration_minutes,
-      distanceKm: data.distance_km,
-      avgHeartRate: data.avg_heart_rate,
-      perceivedEffort: data.perceived_effort,
-      sportMetrics: data.sport_metrics,
-      notes: data.notes,
-      minHeartRate: data.min_heart_rate,
-      maxHeartRate: data.max_heart_rate,
-      cadenceAvg: data.cadence_avg,
-      elevationGain: data.elevation_gain,
-      elevationLoss: data.elevation_loss,
-    })
-
-    // Déplacement du fichier GPX temporaire si importé depuis un GPX
-    if (data.gpx_temp_id) {
-      try {
-        await this.setSessionGpxFilePath.execute(createdSession.id, user.id, data.gpx_temp_id)
-      } catch (error) {
-        logger.warn(
-          { err: error, sessionId: createdSession.id, gpxTempId: data.gpx_temp_id },
-          'Failed to move GPX temp file after session creation'
-        )
+    try {
+      await this.createSession.execute(user.id, {
+        sportId: data.sport_id,
+        date: toIsoDate(data.date),
+        durationMinutes: data.duration_minutes,
+        distanceKm: data.distance_km,
+        avgHeartRate: data.avg_heart_rate,
+        perceivedEffort: data.perceived_effort,
+        notes: data.notes,
+        minHeartRate: data.min_heart_rate,
+        maxHeartRate: data.max_heart_rate,
+        cadenceAvg: data.cadence_avg,
+        elevationGain: data.elevation_gain,
+        elevationLoss: data.elevation_loss,
+        gpxTempId: data.gpx_temp_id,
+      })
+    } catch (error) {
+      if (error instanceof InvalidSessionMetricsError) {
+        session.flashErrors({ [error.field]: i18n.t(error.i18nKey) })
+        return response.redirect().back()
       }
+      throw error
     }
 
     session.flash('success', i18n.t('sessions.flash.created'))

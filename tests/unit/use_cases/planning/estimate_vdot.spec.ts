@@ -1,13 +1,11 @@
 import { test } from '@japa/runner'
+import { stubGetFitnessProfile } from '#tests/helpers/base_mocks'
+import { BaseMockSessionRepo } from '#tests/helpers/base_mocks'
 import EstimateVdot from '#use_cases/planning/estimate_vdot'
-import { SessionRepository } from '#domain/interfaces/session_repository'
+import { type SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
-import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { UserProfile } from '#domain/entities/user_profile'
-import type { TrainingLoad } from '#domain/value_objects/training_load'
-import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { TrainingState } from '#domain/value_objects/planning_types'
 import { UserLevel } from '#domain/entities/user_profile'
@@ -54,7 +52,7 @@ function makeRecentRunSessions(count: number): TrainingSession[] {
 }
 
 function makeMockSessionRepository(sessions: TrainingSession[]): SessionRepository {
-  class MockSessionRepository extends SessionRepository {
+  class MockSessionRepository extends BaseMockSessionRepo {
     async create(): Promise<TrainingSession> {
       throw new Error('not implemented')
     }
@@ -104,30 +102,6 @@ function makeMockProfileRepository(profile: UserProfile | null): UserProfileRepo
   return new MockProfileRepository()
 }
 
-function makeMockLoadCalculator(): TrainingLoadCalculator {
-  class MockLoadCalculator extends TrainingLoadCalculator {
-    calculate(): TrainingLoad {
-      return { value: 50, method: 'rpe' }
-    }
-  }
-  return new MockLoadCalculator()
-}
-
-function makeMockFitnessCalculator(): FitnessProfileCalculator {
-  class MockFitnessCalculator extends FitnessProfileCalculator {
-    calculate(): FitnessProfile {
-      return {
-        chronicTrainingLoad: 45,
-        acuteTrainingLoad: 52,
-        trainingStressBalance: -7,
-        acuteChronicWorkloadRatio: 1.15,
-        calculatedAt: new Date(),
-      }
-    }
-  }
-  return new MockFitnessCalculator()
-}
-
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 test.group('EstimateVdot — use case', () => {
@@ -136,8 +110,7 @@ test.group('EstimateVdot — use case', () => {
     const useCase = new EstimateVdot(
       makeMockSessionRepository(sessions),
       makeMockProfileRepository(DEFAULT_PROFILE),
-      makeMockLoadCalculator(),
-      makeMockFitnessCalculator()
+      stubGetFitnessProfile()
     )
 
     const result = await useCase.execute(1)
@@ -154,8 +127,7 @@ test.group('EstimateVdot — use case', () => {
     const useCase = new EstimateVdot(
       makeMockSessionRepository([]), // aucune séance
       makeMockProfileRepository(profileWithVma),
-      makeMockLoadCalculator(),
-      makeMockFitnessCalculator()
+      stubGetFitnessProfile()
     )
 
     const result = await useCase.execute(1)
@@ -168,8 +140,7 @@ test.group('EstimateVdot — use case', () => {
     const useCase = new EstimateVdot(
       makeMockSessionRepository([]),
       makeMockProfileRepository({ ...DEFAULT_PROFILE, vma: null }),
-      makeMockLoadCalculator(),
-      makeMockFitnessCalculator()
+      stubGetFitnessProfile()
     )
 
     const result = await useCase.execute(1, {
@@ -186,8 +157,7 @@ test.group('EstimateVdot — use case', () => {
     const useCase = new EstimateVdot(
       makeMockSessionRepository([]),
       makeMockProfileRepository({ ...DEFAULT_PROFILE, vma: 14 }),
-      makeMockLoadCalculator(),
-      makeMockFitnessCalculator()
+      stubGetFitnessProfile()
     )
 
     const result = await useCase.execute(1)
@@ -203,8 +173,8 @@ test.group('EstimateVdot — use case', () => {
     const useCase = new EstimateVdot(
       makeMockSessionRepository([]),
       makeMockProfileRepository({ ...DEFAULT_PROFILE, vma: 15 }),
-      makeMockLoadCalculator(),
-      makeMockFitnessCalculator()
+      // GetFitnessProfile renvoie null sans séance (testé dans get_fitness_profile.spec)
+      stubGetFitnessProfile(null)
     )
 
     const result = await useCase.execute(1)

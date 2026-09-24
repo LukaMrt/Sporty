@@ -1,4 +1,5 @@
 import { defineConfig } from '@adonisjs/inertia'
+import env from '#start/env'
 
 const inertiaConfig = defineConfig({
   /**
@@ -7,10 +8,11 @@ const inertiaConfig = defineConfig({
   rootView: 'inertia_layout',
 
   /**
-   * Fixed asset version to avoid reading Vite manifest in dev mode.
-   * Bump this value after each production deploy to trigger client refreshes.
+   * Version des assets : le SHA git injecté au build Docker (APP_VERSION).
+   * Chaque déploiement change la version, ce qui force les clients ouverts à recharger.
+   * En dev, une valeur fixe évite de lire le manifest Vite.
    */
-  assetsVersion: '1',
+  assetsVersion: env.get('APP_VERSION', '1'),
 
   /**
    * Options for the server-side rendering

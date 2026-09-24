@@ -10,7 +10,7 @@ export { ConnectorNotConnectedError }
 
 const DEFAULT_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
 
-export interface ListPreImportSessionsInput {
+export type ListPreImportSessionsInput = {
   userId: number
   provider: ConnectorProvider
   after?: Date
@@ -50,7 +50,7 @@ export default class ListPreImportSessions {
       connector.id,
       sessions.map((a) => ({
         externalId: a.externalId,
-        rawData: a as unknown as Record<string, unknown>,
+        rawData: a,
       }))
     )
 

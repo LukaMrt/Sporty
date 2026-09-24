@@ -1,4 +1,4 @@
-export interface PlannedWeek {
+export type PlannedWeek = {
   id: number
   planId: number
   weekNumber: number

@@ -9,6 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
+import { registerThrottle, connectorConnectThrottle } from '#start/limiter'
 
 const LocaleController = () => import('#controllers/locale_controller')
 const OnboardingController = () => import('#controllers/onboarding/onboarding_controller')
@@ -38,14 +39,26 @@ const RecalibrationController = () => import('#controllers/planning/recalibratio
 const InactivityController = () => import('#controllers/planning/inactivity_controller')
 const HistoryController = () => import('#controllers/planning/history_controller')
 const GpxController = () => import('#controllers/sessions/gpx_controller')
+const HealthController = () => import('#controllers/health_controller')
+const AnalysisController = () => import('#controllers/analysis/analysis_controller')
+const ImportedPlanController = () => import('#controllers/analysis/imported_plan_controller')
+const OpenWearablesWebhookController = () =>
+  import('#controllers/webhooks/open_wearables_webhook_controller')
+
+router.get('/health', [HealthController, 'show'])
+// Webhooks entrants : authentifiés par signature (pas de session ni de CSRF)
+router.post('/webhooks/open-wearables', [OpenWearablesWebhookController, 'handle'])
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
-router.get('/register', [RegisterController, 'show'])
-router.post('/register', [RegisterController, 'register'])
-
-router.get('/login', [LoginController, 'show'])
-router.post('/login', [LoginController, 'login'])
+router
+  .group(() => {
+    router.get('/register', [RegisterController, 'show'])
+    router.post('/register', [RegisterController, 'register']).use(registerThrottle)
+    router.get('/login', [LoginController, 'show'])
+    router.post('/login', [LoginController, 'login'])
+  })
+  .use(middleware.guest())
 
 router
   .group(() => {
@@ -63,11 +76,21 @@ router
     router.post('/sessions', [SessionsController, 'store'])
     router.post('/sessions/parse-gpx', [GpxController, 'parseGpx'])
     router.post('/sessions/:id/enrich-gpx', [GpxController, 'enrichGpx'])
+    router.get('/sessions/:id/gpx', [AnalysisController, 'exportGpx'])
     router.get('/sessions/:id', [SessionsController, 'show'])
     router.get('/sessions/:id/edit', [SessionsController, 'edit'])
     router.put('/sessions/:id', [SessionsController, 'update'])
     router.delete('/sessions/:id', [SessionsController, 'destroy'])
     router.post('/sessions/:id/restore', [SessionsController, 'restore'])
+    router.get('/analysis', [AnalysisController, 'index'])
+    router.get('/analysis/compare', [AnalysisController, 'compare'])
+    router.get('/analysis/map', [AnalysisController, 'map'])
+    router.get('/analysis/report', [AnalysisController, 'report'])
+    router.get('/plan', [ImportedPlanController, 'show'])
+    router.post('/plan', [ImportedPlanController, 'store'])
+    router.post('/plan/clear', [ImportedPlanController, 'clear'])
+    router.get('/export/sessions.csv', [AnalysisController, 'exportSessions'])
+    router.get('/export/daily-metrics.csv', [AnalysisController, 'exportDailyMetrics'])
     router.get('/planning', [PlanningController, 'index'])
     router.get('/planning/week/:weekNumber', [PlanningController, 'weekDetail'])
     router.get('/planning/goal', [GoalWizardController, 'create'])
@@ -99,9 +122,12 @@ router
     // Route litterale d'abord : l'URL de callback OAuth est enregistree chez Strava
     // et ne peut pas etre parametree.
     router.get('/connectors/strava/authorize', [StravaOAuthController, 'authorize'])
-    router.post('/connectors/:provider/connect', [ApiKeyConnectorController, 'store'])
+    router
+      .post('/connectors/:provider/connect', [ApiKeyConnectorController, 'store'])
+      .use(connectorConnectThrottle)
     router.get('/connectors/:provider', [ConnectorController, 'show'])
     router.post('/connectors/:provider/disconnect', [ConnectorController, 'disconnect'])
+    router.post('/connectors/:provider/backfill', [ConnectorController, 'backfill'])
     router.post('/connectors/:provider/settings', [ConnectorSettingsController, 'update'])
     router.post('/import/batch', [ImportController, 'batch'])
     router.post('/import/sessions/:id/ignore', [ImportSessionsController, 'ignore'])
@@ -114,7 +140,7 @@ router
 // la session est vérifiée manuellement dans le controller
 router
   .get('/connectors/strava/callback', [StravaOAuthController, 'callback'])
-  .use(middleware.silentAuth())
+  .use([middleware.silentAuth(), middleware.onboarding()])
 
 router
   .group(() => {

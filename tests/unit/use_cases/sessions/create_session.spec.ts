@@ -2,181 +2,194 @@ import { test } from '@japa/runner'
 import CreateSession from '#use_cases/sessions/create_session'
 import { makeMockSessionRepository } from '#tests/helpers/mock_session_repository'
 import { makeMockUserProfileRepository } from '#tests/helpers/mock_user_profile_repository'
+import { makeMockGpxFileStorage } from '#tests/helpers/mock_gpx_file_storage'
+import {
+  FixedLoadCalculator,
+  RecordingEventEmitter,
+  SilentLogger,
+  StaticSportRepository,
+} from '#tests/helpers/base_mocks'
+import { GpxParser, type GpxParseResult } from '#domain/interfaces/gpx_parser'
+import type { SessionRepository } from '#domain/interfaces/session_repository'
+import type { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
+import type { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
 import type { TrainingSession } from '#domain/entities/training_session'
+import type { UserProfile } from '#domain/entities/user_profile'
+import { InvalidSessionMetricsError } from '#domain/errors/invalid_session_metrics_error'
 
 type SessionData = Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
 
-test.group('CreateSession — use case', () => {
-  test('crée une séance avec le userId injecté côté serveur', async ({ assert }) => {
-    let capturedData: SessionData | null = null
-    const repo = makeMockSessionRepository({
-      create: async (data) => {
-        capturedData = data
-        return { id: 1, sportName: 'Course à pied', createdAt: new Date().toISOString(), ...data }
-      },
-    })
+class StubGpxParser extends GpxParser {
+  constructor(private result: GpxParseResult) {
+    super()
+  }
+  parse(): GpxParseResult {
+    return this.result
+  }
+}
 
-    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
-    const result = await useCase.execute(42, {
+function capturingRepo(sink: { data?: SessionData }): SessionRepository {
+  return makeMockSessionRepository({
+    create: async (data) => {
+      sink.data = data
+      return { id: 1, sportName: 'Course à pied', createdAt: '', ...data }
+    },
+  })
+}
+
+function makeUseCase(
+  deps: {
+    repo?: SessionRepository
+    profiles?: UserProfileRepository
+    storage?: GpxFileStorage
+    parser?: GpxParser
+    emitter?: RecordingEventEmitter
+  } = {}
+) {
+  return new CreateSession(
+    deps.repo ?? makeMockSessionRepository(),
+    deps.profiles ?? makeMockUserProfileRepository(),
+    new StaticSportRepository(),
+    new FixedLoadCalculator({ value: 42, method: 'rpe' }),
+    deps.storage ?? makeMockGpxFileStorage(),
+    deps.parser ?? new StubGpxParser({ durationSeconds: 0, distanceMeters: 0 }),
+    deps.emitter ?? new RecordingEventEmitter(),
+    new SilentLogger()
+  )
+}
+
+const PROFILE = { maxHeartRate: 190, restingHeartRate: 50 } as UserProfile
+
+test.group('CreateSession — use case', () => {
+  test('crée une séance avec le userId du serveur et émet session:completed', async ({
+    assert,
+  }) => {
+    const sink: { data?: SessionData } = {}
+    const emitter = new RecordingEventEmitter()
+    const result = await makeUseCase({ repo: capturingRepo(sink), emitter }).execute(42, {
       sportId: 1,
       date: '2026-02-25',
       durationMinutes: 45,
     })
 
-    assert.equal(result.id, 1)
     assert.equal(result.userId, 42)
-    assert.equal(result.sportId, 1)
-    assert.equal(result.date, '2026-02-25')
-    assert.equal(result.durationMinutes, 45)
-    assert.isNotNull(capturedData)
-    assert.equal(capturedData!.userId, 42)
-  })
-
-  test("le userId provient du paramètre serveur, pas de l'input", async ({ assert }) => {
-    let capturedUserId = 0
-    const repo = makeMockSessionRepository({
-      create: async (data) => {
-        capturedUserId = data.userId
-        return { id: 1, sportName: '', createdAt: '', ...data }
-      },
-    })
-
-    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
-    await useCase.execute(99, {
-      sportId: 1,
-      date: '2026-01-01',
-      durationMinutes: 60,
-    })
-
-    assert.equal(capturedUserId, 99)
+    assert.equal(sink.data!.userId, 42)
+    assert.deepEqual(emitter.events, [
+      { event: 'session:completed', data: { sessionId: 1, userId: 42 } },
+    ])
   })
 
   test('les champs optionnels sont null par défaut', async ({ assert }) => {
-    let capturedData: SessionData | null = null
-    const repo = makeMockSessionRepository({
-      create: async (data) => {
-        capturedData = data
-        return { id: 1, sportName: '', createdAt: '', ...data }
-      },
-    })
-
-    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
-    await useCase.execute(1, {
+    const sink: { data?: SessionData } = {}
+    await makeUseCase({ repo: capturingRepo(sink) }).execute(1, {
       sportId: 1,
-      date: '2026-02-25',
+      date: '2026-01-01',
       durationMinutes: 30,
     })
 
-    assert.isNull(capturedData!.distanceKm)
-    assert.isNull(capturedData!.avgHeartRate)
-    assert.isNull(capturedData!.perceivedEffort)
-    assert.isNull(capturedData!.notes)
-    assert.deepEqual(capturedData!.sportMetrics, {})
+    assert.isNull(sink.data!.distanceKm)
+    assert.isNull(sink.data!.avgHeartRate)
+    assert.isNull(sink.data!.perceivedEffort)
+    assert.isNull(sink.data!.notes)
   })
 
-  test("les champs optionnels sont transmis correctement s'ils sont fournis", async ({
+  test('la charge est calculée et stockée à la création', async ({ assert }) => {
+    const sink: { data?: SessionData } = {}
+    await makeUseCase({ repo: capturingRepo(sink) }).execute(1, {
+      sportId: 1,
+      date: '2026-01-01',
+      durationMinutes: 30,
+      perceivedEffort: 3,
+    })
+
+    assert.equal(sink.data!.trainingLoad, 42)
+    assert.equal(sink.data!.loadMethod, 'rpe')
+  })
+
+  test('les métriques scalaires sont stockées dans sportMetrics', async ({ assert }) => {
+    const sink: { data?: SessionData } = {}
+    await makeUseCase({ repo: capturingRepo(sink) }).execute(1, {
+      sportId: 1,
+      date: '2026-01-01',
+      durationMinutes: 30,
+      minHeartRate: 110,
+      maxHeartRate: 180,
+      cadenceAvg: 172,
+      elevationGain: null,
+    })
+
+    const metrics = sink.data!.sportMetrics as Record<string, unknown>
+    assert.equal(metrics.minHeartRate, 110)
+    assert.equal(metrics.maxHeartRate, 180)
+    assert.equal(metrics.cadenceAvg, 172)
+    assert.notProperty(metrics, 'elevationGain')
+  })
+
+  test('FC moyenne + profil → zones mono-zone et TRIMP calculés côté serveur', async ({
     assert,
   }) => {
-    let capturedData: SessionData | null = null
-    const repo = makeMockSessionRepository({
-      create: async (data) => {
-        capturedData = data
-        return { id: 1, sportName: '', createdAt: '', ...data }
-      },
-    })
+    const sink: { data?: SessionData } = {}
+    await makeUseCase({
+      repo: capturingRepo(sink),
+      profiles: makeMockUserProfileRepository({ findByUserId: async () => PROFILE }),
+    }).execute(1, { sportId: 1, date: '2026-01-01', durationMinutes: 60, avgHeartRate: 150 })
 
-    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
-    await useCase.execute(1, {
-      sportId: 2,
-      date: '2026-02-25',
-      durationMinutes: 45,
-      distanceKm: 10.5,
-      avgHeartRate: 145,
-      perceivedEffort: 4,
-      notes: 'Belle sortie',
-      sportMetrics: { elevation_gain: 200 },
-    })
-
-    assert.equal(capturedData!.sportId, 2)
-    assert.equal(capturedData!.distanceKm, 10.5)
-    assert.equal(capturedData!.avgHeartRate, 145)
-    assert.equal(capturedData!.perceivedEffort, 4)
-    assert.equal(capturedData!.notes, 'Belle sortie')
-    assert.deepEqual(capturedData!.sportMetrics, { elevation_gain: 200 })
+    const metrics = sink.data!.sportMetrics as Record<string, unknown>
+    assert.isObject(metrics.hrZones)
+    assert.isNumber(metrics.trimp)
   })
 
-  test('les métriques RunMetrics sont mergées dans sportMetrics', async ({ assert }) => {
-    let capturedData: SessionData | null = null
-    const repo = makeMockSessionRepository({
-      create: async (data) => {
-        capturedData = data
-        return { id: 1, sportName: '', createdAt: '', ...data }
+  test('avec un GPX temporaire : courbes relues côté serveur, fichier déplacé', async ({
+    assert,
+  }) => {
+    const sink: { data?: SessionData } = {}
+    let readWith: [string, number] | null = null
+    let movedWith: [string, number, number] | null = null
+    const storage = makeMockGpxFileStorage({
+      readTempFile: async (tempId, userId) => {
+        readWith = [tempId, userId]
+        return Buffer.from('<gpx/>')
+      },
+      moveTempFile: async (tempId, userId, sessionId) => {
+        movedWith = [tempId, userId, sessionId]
+        return 'storage/gpx/7/1.gpx'
       },
     })
-
-    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
-    await useCase.execute(1, {
+    const curve = [
+      { time: 0, value: 140 },
+      { time: 600, value: 150 },
+    ]
+    await makeUseCase({
+      repo: capturingRepo(sink),
+      storage,
+      parser: new StubGpxParser({
+        durationSeconds: 600,
+        distanceMeters: 2000,
+        heartRateCurve: curve,
+      }),
+    }).execute(7, {
       sportId: 1,
-      date: '2026-02-25',
-      durationMinutes: 45,
-      minHeartRate: 55,
-      maxHeartRate: 178,
-      cadenceAvg: 170,
-      elevationGain: 200,
-      elevationLoss: 180,
+      date: '2026-01-01',
+      durationMinutes: 10,
+      gpxTempId: '11111111-1111-1111-1111-111111111111',
     })
 
-    assert.deepEqual(capturedData!.sportMetrics, {
-      minHeartRate: 55,
-      maxHeartRate: 178,
-      cadenceAvg: 170,
-      elevationGain: 200,
-      elevationLoss: 180,
-    })
+    assert.deepEqual(readWith, ['11111111-1111-1111-1111-111111111111', 7])
+    assert.deepEqual(movedWith, ['11111111-1111-1111-1111-111111111111', 7, 1])
+    assert.deepEqual((sink.data!.sportMetrics as Record<string, unknown>).heartRateCurve, curve)
   })
 
-  test('les champs RunMetrics null sont ignorés dans sportMetrics', async ({ assert }) => {
-    let capturedData: SessionData | null = null
-    const repo = makeMockSessionRepository({
-      create: async (data) => {
-        capturedData = data
-        return { id: 1, sportName: '', createdAt: '', ...data }
-      },
-    })
-
-    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
-    await useCase.execute(1, {
-      sportId: 1,
-      date: '2026-02-25',
-      durationMinutes: 45,
-      minHeartRate: null,
-      maxHeartRate: null,
-    })
-
-    assert.deepEqual(capturedData!.sportMetrics, {})
-  })
-
-  test('RunMetrics est mergé avec sportMetrics existant', async ({ assert }) => {
-    let capturedData: SessionData | null = null
-    const repo = makeMockSessionRepository({
-      create: async (data) => {
-        capturedData = data
-        return { id: 1, sportName: '', createdAt: '', ...data }
-      },
-    })
-
-    const useCase = new CreateSession(repo, makeMockUserProfileRepository())
-    await useCase.execute(1, {
-      sportId: 1,
-      date: '2026-02-25',
-      durationMinutes: 45,
-      sportMetrics: { someExistingKey: 'value' },
-      elevationGain: 300,
-    })
-
-    assert.deepEqual(capturedData!.sportMetrics, {
-      someExistingKey: 'value',
-      elevationGain: 300,
-    })
+  test('FC min > FC moyenne → InvalidSessionMetricsError', async ({ assert }) => {
+    await assert.rejects(
+      () =>
+        makeUseCase().execute(1, {
+          sportId: 1,
+          date: '2026-01-01',
+          durationMinutes: 30,
+          minHeartRate: 160,
+          avgHeartRate: 150,
+        }),
+      InvalidSessionMetricsError
+    )
   })
 })

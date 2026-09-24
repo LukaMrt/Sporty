@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import {
   CartesianGrid,
@@ -16,7 +16,7 @@ import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
 type Metric = 'pace' | 'heartRate' | 'distance'
 
-interface MergedPoint {
+type MergedPoint = {
   date: string
   value: number | null
   trend: number | null
@@ -58,13 +58,13 @@ function buildMergedData(data: ChartDataPoint[], metric: Metric): MergedPoint[] 
   }))
 }
 
-interface TooltipPayloadItem {
+type TooltipPayloadItem = {
   value: number
   dataKey: string
   color: string
 }
 
-interface CustomTooltipProps {
+type CustomTooltipProps = {
   active?: boolean
   payload?: TooltipPayloadItem[]
   label?: string
@@ -93,7 +93,7 @@ function CustomTooltip({
   )
 }
 
-interface EvolutionChartProps {
+type EvolutionChartProps = {
   data: ChartDataPoint[]
   defaultMetric?: Metric
   period?: Period

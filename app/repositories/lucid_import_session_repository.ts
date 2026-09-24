@@ -44,6 +44,8 @@ export default class LucidImportSessionRepository extends ImportSessionRepositor
       externalId: row.externalId,
       status: row.status,
       rawData: row.rawData,
+      failureReason: row.failureReason ?? null,
+      failedAttempts: row.failedAttempts ?? 0,
     }))
   }
 
@@ -56,6 +58,8 @@ export default class LucidImportSessionRepository extends ImportSessionRepositor
       externalId: row.externalId,
       status: row.status,
       rawData: row.rawData,
+      failureReason: row.failureReason ?? null,
+      failedAttempts: row.failedAttempts ?? 0,
     }))
   }
 
@@ -80,11 +84,23 @@ export default class LucidImportSessionRepository extends ImportSessionRepositor
       .whereHas('connector', (q) => {
         void q.where('user_id', userId)
       })
-      .update({ status: ImportSessionStatus.New })
+      .update({ status: ImportSessionStatus.New, failedAttempts: 0, failureReason: null })
   }
 
-  async setFailed(id: number, _reason: string): Promise<void> {
-    await ImportSessionModel.query().where('id', id).update({ status: ImportSessionStatus.Failed })
+  async setFailed(id: number, reason: string): Promise<void> {
+    await ImportSessionModel.query()
+      .where('id', id)
+      .update({ status: ImportSessionStatus.Failed, failureReason: reason.slice(0, 500) })
+  }
+
+  async recordFailure(id: number, reason: string, maxAttempts: number): Promise<boolean> {
+    const row = await ImportSessionModel.find(id)
+    if (!row) return false
+    row.failedAttempts = (row.failedAttempts ?? 0) + 1
+    row.failureReason = reason.slice(0, 500)
+    if (row.failedAttempts >= maxAttempts) row.status = ImportSessionStatus.Failed
+    await row.save()
+    return row.status === ImportSessionStatus.Failed
   }
 
   async resetForReimport(id: number, userId: number): Promise<number | null> {

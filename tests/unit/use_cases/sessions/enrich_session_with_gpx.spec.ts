@@ -7,6 +7,8 @@ import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
 import type { GpxParser, GpxParseResult } from '#domain/interfaces/gpx_parser'
 import type { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
+import { makeMockGpxFileStorage as makeSharedGpxStorage } from '#tests/helpers/mock_gpx_file_storage'
+import { FixedLoadCalculator } from '#tests/helpers/base_mocks'
 
 function makeSession(overrides: Partial<TrainingSession> = {}): TrainingSession {
   return {
@@ -52,11 +54,10 @@ function makeMockGpxParser(result: GpxParseResult): GpxParser {
 }
 
 function makeMockGpxFileStorage(savedPath = 'storage/gpx/42/1.gpx'): GpxFileStorage {
-  return {
-    saveTempFile: async () => 'temp-id',
+  return makeSharedGpxStorage({
     moveTempFile: async () => savedPath,
     saveFile: async () => savedPath,
-  }
+  })
 }
 
 const gpxContent = Buffer.from('<gpx/>')
@@ -78,7 +79,8 @@ test.group('EnrichSessionWithGpx — use case', () => {
       repo,
       makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
-      makeMockGpxFileStorage()
+      makeMockGpxFileStorage(),
+      new FixedLoadCalculator()
     )
     await useCase.execute(1, 42, gpxContent)
 
@@ -105,7 +107,8 @@ test.group('EnrichSessionWithGpx — use case', () => {
       repo,
       makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
-      makeMockGpxFileStorage()
+      makeMockGpxFileStorage(),
+      new FixedLoadCalculator()
     )
     await useCase.execute(1, 42, gpxContent)
 
@@ -133,7 +136,8 @@ test.group('EnrichSessionWithGpx — use case', () => {
       repo,
       makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
-      makeMockGpxFileStorage()
+      makeMockGpxFileStorage(),
+      new FixedLoadCalculator()
     )
     await useCase.execute(1, 42, gpxContent)
 
@@ -158,7 +162,8 @@ test.group('EnrichSessionWithGpx — use case', () => {
       repo,
       makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult({ startTime: '2026-03-01T08:00:00Z' })),
-      makeMockGpxFileStorage()
+      makeMockGpxFileStorage(),
+      new FixedLoadCalculator()
     )
     await useCase.execute(1, 42, gpxContent)
 
@@ -173,7 +178,8 @@ test.group('EnrichSessionWithGpx — use case', () => {
       repo,
       makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
-      makeMockGpxFileStorage()
+      makeMockGpxFileStorage(),
+      new FixedLoadCalculator()
     )
     await assert.rejects(() => useCase.execute(999, 42, gpxContent), SessionNotFoundError)
   })
@@ -189,8 +195,62 @@ test.group('EnrichSessionWithGpx — use case', () => {
       repo,
       makeMockUserProfileRepository(),
       makeMockGpxParser(makeGpxResult()),
-      makeMockGpxFileStorage()
+      makeMockGpxFileStorage(),
+      new FixedLoadCalculator()
     )
     await assert.rejects(() => useCase.execute(1, 42, gpxContent), SessionForbiddenError)
+  })
+})
+
+test.group('EnrichSessionWithGpx — fichiers orphelins', () => {
+  test('supprime le fichier écrit si la mise à jour en base échoue', async ({ assert }) => {
+    const deleted: string[] = []
+    const repo = makeMockSessionRepository({
+      findById: async () => makeSession(),
+      update: async () => {
+        throw new Error('db down')
+      },
+    })
+    const storage = makeSharedGpxStorage({
+      saveFile: async () => 'storage/gpx/42/1.gpx',
+      deleteFile: async (path) => {
+        deleted.push(path)
+      },
+    })
+    const useCase = new EnrichSessionWithGpx(
+      repo,
+      makeMockUserProfileRepository(),
+      makeMockGpxParser(makeGpxResult()),
+      storage,
+      new FixedLoadCalculator()
+    )
+
+    await assert.rejects(() => useCase.execute(1, 42, gpxContent))
+    assert.deepEqual(deleted, ['storage/gpx/42/1.gpx'])
+  })
+
+  test("un GPX invalide n'écrit aucun fichier", async ({ assert }) => {
+    let saved = false
+    const storage = makeSharedGpxStorage({
+      saveFile: async () => {
+        saved = true
+        return 'x'
+      },
+    })
+    const parser: GpxParser = {
+      parse: () => {
+        throw new Error('invalid')
+      },
+    }
+    const useCase = new EnrichSessionWithGpx(
+      makeMockSessionRepository({ findById: async () => makeSession() }),
+      makeMockUserProfileRepository(),
+      parser,
+      storage,
+      new FixedLoadCalculator()
+    )
+
+    await assert.rejects(() => useCase.execute(1, 42, gpxContent))
+    assert.isFalse(saved)
   })
 })

@@ -1,6 +1,6 @@
 import type { PaceZones } from '#domain/value_objects/pace_zones'
 
-export interface PlanRequest {
+export type PlanRequest = {
   targetDistanceKm: number
   targetTimeMinutes: number | null
   eventDate: string | null

@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   TriangleAlert,
   AlertTriangle,
+  History,
 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { useTranslation } from '~/hooks/use_translation'
@@ -37,7 +38,7 @@ import {
   type ConnectorStatus,
 } from '~/lib/connector_catalog'
 
-interface ConnectorsShowProps {
+type ConnectorsShowProps = {
   provider: string
   authKind: ConnectorAuthKind
   status: ConnectorStatus | null
@@ -154,6 +155,14 @@ export default function ConnectorsShow({
                 >
                   <Unlink className="h-3.5 w-3.5" />
                   {i18n('disconnect')}
+                </button>
+                <button
+                  onClick={() => router.post(`/connectors/${provider}/backfill`)}
+                  title={t('connectors.backfill.description')}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition hover:bg-muted active:scale-95"
+                >
+                  <History className="h-3.5 w-3.5" />
+                  {t('connectors.backfill.button')}
                 </button>
               </>
             )}

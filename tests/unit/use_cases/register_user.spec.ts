@@ -2,25 +2,20 @@ import { test } from '@japa/runner'
 import RegisterUser from '#use_cases/auth/register_user'
 import { UserAlreadyExistsError } from '#domain/errors/user_already_exists_error'
 import { makeMockUserRepository } from '#tests/helpers/mock_user_repository'
-import { AuthService } from '#domain/interfaces/auth_service'
-import type { User } from '#domain/entities/user'
-
-function makeAuthService(): AuthService {
-  class MockAuthService extends AuthService {
-    async login(_user: User): Promise<void> {}
-    async attempt(_email: string, _password: string): Promise<void> {}
-    async logout(): Promise<void> {}
-    async isAuthenticated(): Promise<boolean> {
-      return false
-    }
-  }
-  return new MockAuthService()
-}
+import { makeMockAuthService } from '#tests/helpers/mock_auth_service'
+import type { NewUser, User } from '#domain/entities/user'
 
 test.group('RegisterUser — use case', () => {
-  test('premier utilisateur → rôle admin créé', async ({ assert }) => {
-    const repo = makeMockUserRepository()
-    const useCase = new RegisterUser(repo, makeAuthService())
+  test('premier utilisateur → rôle admin créé et connecté', async ({ assert }) => {
+    let loggedIn: User | null = null
+    const useCase = new RegisterUser(
+      makeMockUserRepository(),
+      makeMockAuthService({
+        login: async (user) => {
+          loggedIn = user
+        },
+      })
+    )
 
     const user = await useCase.registerUser({
       fullName: 'Admin User',
@@ -29,44 +24,58 @@ test.group('RegisterUser — use case', () => {
     })
 
     assert.equal(user.role, 'admin')
+    assert.equal(loggedIn!.email, 'admin@example.com')
   })
 
-  test('utilisateur déjà existant → lance UserAlreadyExistsError', async ({ assert }) => {
-    const repo = makeMockUserRepository({ countAll: async () => 1 })
-    const useCase = new RegisterUser(repo, makeAuthService())
-
-    let thrownError: unknown
-    try {
-      await useCase.registerUser({
-        fullName: 'Test',
-        email: 'test@example.com',
-        password: 'password123',
-      })
-    } catch (e) {
-      thrownError = e
-    }
-
-    assert.instanceOf(thrownError, UserAlreadyExistsError)
-  })
-
-  test('mot de passe transmis tel quel au repository (hashé par le mixin withAuthFinder)', async ({
+  test('utilisateur déjà existant (création refusée atomiquement) → UserAlreadyExistsError', async ({
     assert,
   }) => {
-    const captured: Omit<User, 'id'>[] = []
+    const repo = makeMockUserRepository({ createFirstUser: async () => null })
+    const useCase = new RegisterUser(repo, makeMockAuthService())
+
+    await assert.rejects(
+      () =>
+        useCase.registerUser({
+          fullName: 'Test',
+          email: 'test@example.com',
+          password: 'password123',
+        }),
+      UserAlreadyExistsError
+    )
+  })
+
+  test('show() refuse si un utilisateur existe déjà', async ({ assert }) => {
+    const repo = makeMockUserRepository({ countAll: async () => 1 })
+    const useCase = new RegisterUser(repo, makeMockAuthService())
+
+    await assert.rejects(() => useCase.show(), UserAlreadyExistsError)
+  })
+
+  test("l'entité renvoyée ne contient jamais le mot de passe", async ({ assert }) => {
+    const captured: NewUser[] = []
     const repo = makeMockUserRepository({
-      create: async (data) => {
+      createFirstUser: async (data) => {
         captured.push(data)
-        return { id: 1, ...data }
+        return {
+          id: 1,
+          createdAt: '',
+          email: data.email,
+          fullName: data.fullName,
+          role: data.role,
+          onboardingCompleted: data.onboardingCompleted,
+        }
       },
     })
-    const useCase = new RegisterUser(repo, makeAuthService())
+    const useCase = new RegisterUser(repo, makeMockAuthService())
 
-    await useCase.registerUser({
+    const user = await useCase.registerUser({
       fullName: 'Test',
       email: 'test@example.com',
       password: 'plaintext_password',
     })
 
+    // Transmis en clair au repository (hashé par le mixin withAuthFinder)
     assert.equal(captured[0].password, 'plaintext_password')
+    assert.notProperty(user, 'password')
   })
 })

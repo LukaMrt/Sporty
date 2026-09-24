@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from '~/hooks/use_translation'
 import type { PlannedWeek } from '~/types/planning'
 
-interface WeekSelectorProps {
+type WeekSelectorProps = {
   weeks: PlannedWeek[]
   currentWeekNumber: number
   selectedWeekNumber: number

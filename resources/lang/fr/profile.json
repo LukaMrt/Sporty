@@ -133,11 +133,67 @@
       "saved": "Sauvegardé ✓",
       "currentHr": "FC max actuelle : {value} bpm",
       "currentMas": "VMA actuelle : {value} km/h"
+    },
+    "lthr": {
+      "sectionTitle": "FC au seuil lactique (LTHR)",
+      "description": "La LTHR sert de référence à la méthode de zones de Joe Friel. Elle se mesure avec un test de 30 minutes en solo, à l'effort maximal tenable sur toute la durée.",
+      "step1": "Échauffe-toi 15 minutes, puis cours 30 minutes aussi vite que possible, à allure régulière.",
+      "step2": "Au bout de 10 minutes, lance un tour sur ta montre.",
+      "step3": "Ta LTHR est la FC moyenne des 20 dernières minutes. Si Sporty dispose de ta courbe FC, il te propose cette estimation (× 0,95 pour un effort en course)."
     }
   },
   "flash": {
     "updated": "Profil mis à jour",
     "passwordChanged": "Mot de passe modifié",
     "passwordIncorrect": "Mot de passe actuel incorrect"
+  },
+  "hrZones": {
+    "errors": {
+      "missing_max_hr": "Renseigne ta FC max",
+      "missing_resting_hr": "Renseigne ta FC repos",
+      "missing_lthr": "Renseigne ta FC au seuil (LTHR)",
+      "invalid_bounds": "Les bornes doivent être strictement croissantes, entre 30 et 250 bpm",
+      "invalid_physiology": "FC repos et FC max incohérentes"
+    },
+    "title": "Zones cardiaques",
+    "description": "Choisis la méthode de calcul de tes 5 zones. L'aperçu se met à jour avec ta FC max et ta FC repos.",
+    "methods": {
+      "auto": {
+        "label": "Automatique",
+        "description": "Karvonen si ta FC repos est connue, sinon % de la FC max."
+      },
+      "karvonen": {
+        "label": "Karvonen (FC de réserve)",
+        "description": "Pourcentages de la FC de réserve (FC max − FC repos). La plus fidèle si ta FC repos est fiable."
+      },
+      "percent_max": {
+        "label": "% de la FC max",
+        "description": "Simple, mais surestime les zones basses si ta FC repos est basse."
+      },
+      "lthr": {
+        "label": "FC au seuil (Friel)",
+        "description": "Zones calées sur ta FC au seuil lactique, mesurée par un test de 30 min."
+      },
+      "custom": {
+        "label": "Personnalisées",
+        "description": "Saisis toi-même les bornes de tes zones."
+      }
+    },
+    "customizeFrom": "Personnaliser à partir de cette méthode",
+    "lthr": "FC au seuil (LTHR, bpm)",
+    "lthrHowTo": "Comment mesurer ma LTHR ?",
+    "boundLabel": "Zone {zone}, borne {edge}",
+    "recomputeNotice": "Les zones, le TRIMP et la charge de tes séances passées seront recalculés à l'enregistrement."
+  },
+  "athleteProfileLink": "Profil athlète — VDOT & zones d'allure",
+  "timezone": "Fuseau horaire",
+  "privacyZones": {
+    "title": "Zones de confidentialité",
+    "description": "Les traces qui passent dans ces zones (domicile, travail…) sont masquées sur les cartes.",
+    "lat": "Latitude",
+    "lon": "Longitude",
+    "radius": "Rayon (m)",
+    "remove": "Retirer",
+    "add": "+ Ajouter une zone (ma position actuelle)"
   }
 }
