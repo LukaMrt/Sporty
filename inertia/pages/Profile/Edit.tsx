@@ -7,6 +7,7 @@ import ChangePasswordForm from '~/components/Profile/ChangePasswordForm'
 import FormField from '~/components/forms/FormField'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
+import HeartRateZonesEditor, { type HrZonesValue } from '~/components/profile/HeartRateZonesEditor'
 import { useTranslation } from '~/hooks/use_translation'
 
 interface Sport {
@@ -36,6 +37,21 @@ interface ProfileData {
   maxHeartRate: number | null
   restingHeartRate: number | null
   vma: number | null
+  timezone: string | null
+  hrZonesConfig: {
+    method: HrZonesValue['method']
+    lthr: number | null
+    customBoundsBpm: HrZonesValue['customBounds']
+  } | null
+}
+
+/** Fuseau du navigateur, proposé par défaut */
+function browserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
+  } catch {
+    return 'UTC'
+  }
 }
 
 interface EditProps {
@@ -62,6 +78,10 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     max_heart_rate: profile?.maxHeartRate ?? (null as number | null),
     resting_heart_rate: profile?.restingHeartRate ?? (null as number | null),
     vma: profile?.vma ?? (null as number | null),
+    timezone: profile?.timezone ?? browserTimezone(),
+    hr_zones_method: profile?.hrZonesConfig?.method ?? 'auto',
+    lthr: profile?.hrZonesConfig?.lthr ?? (null as number | null),
+    hr_zones_custom_bounds: profile?.hrZonesConfig?.customBoundsBpm ?? null,
   })
 
   const LEVELS = [
@@ -367,6 +387,21 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                   ))}
                 </div>
               </FormField>
+
+              {/* Fuseau horaire : « aujourd'hui », semaine courante, forme du jour */}
+              <FormField label={t('profile.timezone')} error={form.errors.timezone}>
+                <input
+                  list="timezones"
+                  value={form.data.timezone ?? ''}
+                  onChange={(e) => form.setData('timezone', e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+                <datalist id="timezones">
+                  {(Intl.supportedValuesOf?.('timeZone') ?? []).map((tz) => (
+                    <option key={tz} value={tz} />
+                  ))}
+                </datalist>
+              </FormField>
             </div>
 
             {/* Paramètres physiologiques */}
@@ -467,6 +502,29 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                 />
                 {form.errors.vma && <p className="text-xs text-destructive">{form.errors.vma}</p>}
               </div>
+
+              <HeartRateZonesEditor
+                maxHeartRate={form.data.max_heart_rate}
+                restingHeartRate={form.data.resting_heart_rate}
+                value={{
+                  method: form.data.hr_zones_method,
+                  lthr: form.data.lthr,
+                  customBounds: form.data.hr_zones_custom_bounds,
+                }}
+                onChange={(zones) =>
+                  form.setData((data) => ({
+                    ...data,
+                    hr_zones_method: zones.method,
+                    lthr: zones.lthr,
+                    hr_zones_custom_bounds: zones.customBounds,
+                  }))
+                }
+                error={
+                  form.errors.hr_zones_method ??
+                  form.errors.lthr ??
+                  form.errors.hr_zones_custom_bounds
+                }
+              />
             </div>
 
             <Button

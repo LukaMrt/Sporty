@@ -343,6 +343,26 @@ export default function PhysiologyGuide({ currentMaxHeartRate, currentVma }: Pro
             </details>
           </section>
 
+          {/* Section LTHR (zones Friel) */}
+          <section id="lthr" className="rounded-xl border bg-card shadow-sm overflow-hidden">
+            <details open>
+              <summary className="flex cursor-pointer items-center justify-between p-5 font-semibold text-base select-none hover:bg-muted/40 transition-colors">
+                <span>{t('profile.physiologyGuide.lthr.sectionTitle')}</span>
+                <span className="text-muted-foreground text-xs font-normal">
+                  {t('profile.physiologyGuide.collapse')}
+                </span>
+              </summary>
+              <div className="px-5 pb-5 space-y-3 text-sm text-muted-foreground">
+                <p>{t('profile.physiologyGuide.lthr.description')}</p>
+                <ol className="list-decimal space-y-1 pl-5">
+                  <li>{t('profile.physiologyGuide.lthr.step1')}</li>
+                  <li>{t('profile.physiologyGuide.lthr.step2')}</li>
+                  <li>{t('profile.physiologyGuide.lthr.step3')}</li>
+                </ol>
+              </div>
+            </details>
+          </section>
+
           {/* Sources */}
           <section className="rounded-xl border bg-muted/50 p-5 text-sm space-y-4">
             <h2 className="font-semibold text-sm">{t('profile.physiologyGuide.sources.title')}</h2>
