@@ -22,7 +22,7 @@ export default function ConnectorCard({ provider, status, onDisconnect }: Connec
         <div
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${brand.bgClass}`}
         >
-          {brand.logo && <img src={brand.logo} alt="" className="h-6 w-6" />}
+          {brand.logo && <img src={brand.logo} alt="" className={brand.logoClass} />}
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold leading-tight text-foreground">{brand.name}</p>
