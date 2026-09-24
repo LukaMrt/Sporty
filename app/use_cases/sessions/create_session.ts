@@ -89,6 +89,7 @@ export default class CreateSession {
       trainingLoad: derived.trainingLoad,
       loadMethod: derived.loadMethod,
       analysis: derived.analysis,
+      trackPreview: derived.trackPreview,
     })
 
     if (input.gpxTempId) {

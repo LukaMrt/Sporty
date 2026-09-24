@@ -1,6 +1,7 @@
 import type { UserPreferences } from '#domain/entities/user_preferences'
 import type { BiologicalSex, TrainingState } from '#domain/value_objects/planning_types'
 import type { HrZonesConfig } from '#domain/value_objects/heart_rate_zones_config'
+import type { PrivacyZone } from '#domain/services/analysis/route'
 
 export enum UserLevel {
   Beginner = 'beginner',
@@ -34,4 +35,6 @@ export interface UserProfile {
   vdot?: number | null
   /** Fuseau horaire IANA (ex. Europe/Paris) ; null = UTC */
   timezone?: string | null
+  /** Zones masquées sur les cartes (domicile, travail…) */
+  privacyZones?: PrivacyZone[] | null
 }

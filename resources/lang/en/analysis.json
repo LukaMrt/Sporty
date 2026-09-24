@@ -159,5 +159,49 @@
     "exportSessions": "Export sessions (CSV)",
     "exportDaily": "Export daily metrics (CSV)",
     "privacy": "Your health data only leaves Sporty through these exports, to you."
+  },
+  "more": "Other views",
+  "links": {
+    "report": "Weekly / monthly report",
+    "map": "Map of my tracks",
+    "plan": "Plan imported from Claude"
+  },
+  "map": {
+    "title": "Map of my tracks",
+    "description": "{count} overlaid tracks: your favourite routes stand out by accumulation. Click a track to open the session.",
+    "privacy": "Privacy zones are hidden.",
+    "privacyLink": "Manage my zones"
+  },
+  "compare": {
+    "title": "Session comparison",
+    "session": "Session",
+    "distance": "Distance",
+    "duration": "Duration",
+    "heartRate": "Avg HR",
+    "metrics": {
+      "pace": "Pace",
+      "heartRate": "HR",
+      "gap": "Cumulative gap"
+    },
+    "gapHint": "Time gap (s) versus the first session at the same kilometre: negative = ahead."
+  },
+  "periodReport": {
+    "title": "Report",
+    "previous": "Previous period",
+    "next": "Next period",
+    "periods": {
+      "week": "Week",
+      "month": "Month"
+    },
+    "sessions": "Sessions",
+    "distance": "Distance",
+    "duration": "Duration",
+    "load": "Load",
+    "highlights": "Highlights",
+    "record": "New record over {distance}: {time}",
+    "longest": "Longest run: {distance} km",
+    "busiestWeek": "Busiest week: {week} ({load} TSS)",
+    "intensity": "{percent} % of time in Z1–Z2",
+    "efficiency": "Aerobic efficiency: {from} → {to}"
   }
 }

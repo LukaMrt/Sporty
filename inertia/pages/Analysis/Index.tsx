@@ -1,5 +1,5 @@
 import React from 'react'
-import { Head, router } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
 import { useTranslation } from '~/hooks/use_translation'
 import type { AnalysisData } from '~/components/analysis/shared'
@@ -32,7 +32,20 @@ export default function AnalysisIndex({ analysis }: { analysis: AnalysisData }) 
       <Head title={t('analysis.title')} />
       <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold">{t('analysis.title')}</h1>
+          <div>
+            <h1 className="text-xl font-semibold">{t('analysis.title')}</h1>
+            <nav className="mt-1 flex flex-wrap gap-3 text-sm" aria-label={t('analysis.more')}>
+              <Link href="/analysis/report" className="text-primary hover:underline">
+                {t('analysis.links.report')}
+              </Link>
+              <Link href="/analysis/map" className="text-primary hover:underline">
+                {t('analysis.links.map')}
+              </Link>
+              <Link href="/plan" className="text-primary hover:underline">
+                {t('analysis.links.plan')}
+              </Link>
+            </nav>
+          </div>
           <div
             role="group"
             aria-label={t('analysis.range')}

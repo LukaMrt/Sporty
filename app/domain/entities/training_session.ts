@@ -26,4 +26,6 @@ export interface TrainingSession {
   loadMethod?: TrainingLoadMethod | null
   /** Indicateurs d'analyse calculés à l'écriture */
   analysis?: SessionAnalysis | null
+  /** Trace allégée [lat, lon][] pour les cartes */
+  trackPreview?: [number, number][] | null
 }

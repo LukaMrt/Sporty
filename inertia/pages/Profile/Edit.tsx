@@ -7,6 +7,7 @@ import ChangePasswordForm from '~/components/Profile/ChangePasswordForm'
 import FormField from '~/components/forms/FormField'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
+import PrivacyZonesEditor from '~/components/Profile/PrivacyZonesEditor'
 import HeartRateZonesEditor, { type HrZonesValue } from '~/components/Profile/HeartRateZonesEditor'
 import { useTranslation } from '~/hooks/use_translation'
 
@@ -38,6 +39,7 @@ interface ProfileData {
   restingHeartRate: number | null
   vma: number | null
   timezone: string | null
+  privacyZones: { lat: number; lon: number; radiusM: number }[]
   hrZonesConfig: {
     method: HrZonesValue['method']
     lthr: number | null
@@ -79,6 +81,11 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     resting_heart_rate: profile?.restingHeartRate ?? (null as number | null),
     vma: profile?.vma ?? (null as number | null),
     timezone: profile?.timezone ?? browserTimezone(),
+    privacy_zones: (profile?.privacyZones ?? []).map((z) => ({
+      lat: z.lat,
+      lon: z.lon,
+      radius_m: z.radiusM,
+    })),
     hr_zones_method: profile?.hrZonesConfig?.method ?? 'auto',
     lthr: profile?.hrZonesConfig?.lthr ?? (null as number | null),
     hr_zones_custom_bounds: profile?.hrZonesConfig?.customBoundsBpm ?? null,
@@ -502,6 +509,12 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                 />
                 {form.errors.vma && <p className="text-xs text-destructive">{form.errors.vma}</p>}
               </div>
+
+              <PrivacyZonesEditor
+                value={form.data.privacy_zones}
+                onChange={(zones) => form.setData('privacy_zones', zones)}
+                error={form.errors.privacy_zones}
+              />
 
               <HeartRateZonesEditor
                 maxHeartRate={form.data.max_heart_rate}

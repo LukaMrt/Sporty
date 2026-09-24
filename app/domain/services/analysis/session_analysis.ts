@@ -6,25 +6,10 @@ import {
   type SessionAnalysis,
 } from '#domain/value_objects/session_analysis'
 import { getZoneForBpm } from '#domain/services/heart_rate_zone_bounds'
+import { routeSignature } from '#domain/services/analysis/route'
+import { cumulativeDistances, haversine } from '#domain/services/analysis/geo'
 
-const EARTH_RADIUS_M = 6_371_000
-
-function haversine(a: GpsPoint, b: GpsPoint): number {
-  const toRad = (d: number) => (d * Math.PI) / 180
-  const dLat = toRad(b.lat - a.lat)
-  const dLon = toRad(b.lon - a.lon)
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h))
-}
-
-/** Distance cumulée (m) à chaque point de la trace */
-export function cumulativeDistances(track: GpsPoint[]): number[] {
-  const out = [0]
-  for (let i = 1; i < track.length; i++) out.push(out[i - 1] + haversine(track[i - 1], track[i]))
-  return out
-}
+export { cumulativeDistances }
 
 /**
  * Meilleur temps (s) pour parcourir `distance` mètres n'importe où dans la séance
@@ -236,5 +221,6 @@ export function computeSessionAnalysis(
     best20MinHr: input.durationMinutes >= 30 ? bestWindowMean(curve, 20 * 60) : null,
     easy,
     gradeAdjustedPace: input.isRunning ? gradeAdjustedPace(track) : null,
+    route: routeSignature(track),
   }
 }

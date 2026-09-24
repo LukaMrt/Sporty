@@ -186,5 +186,14 @@
     "recomputeNotice": "Les zones, le TRIMP et la charge de tes séances passées seront recalculés à l'enregistrement."
   },
   "athleteProfileLink": "Profil athlète — VDOT & zones d'allure",
-  "timezone": "Fuseau horaire"
+  "timezone": "Fuseau horaire",
+  "privacyZones": {
+    "title": "Zones de confidentialité",
+    "description": "Les traces qui passent dans ces zones (domicile, travail…) sont masquées sur les cartes.",
+    "lat": "Latitude",
+    "lon": "Longitude",
+    "radius": "Rayon (m)",
+    "remove": "Retirer",
+    "add": "+ Ajouter une zone (ma position actuelle)"
+  }
 }

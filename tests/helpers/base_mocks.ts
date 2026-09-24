@@ -163,6 +163,19 @@ export class BaseMockSessionRepo extends SessionRepository {
   async findAllAliveByUserId(_userId: number): Promise<TrainingSession[]> {
     return []
   }
+  async findTrackPreviews(
+    userId: number
+  ): Promise<{ id: number; date: string; sportSlug: string; track: [number, number][] }[]> {
+    const sessions = await this.findAllAliveByUserId(userId)
+    return sessions
+      .filter((s) => s.trackPreview)
+      .map((s) => ({
+        id: s.id,
+        date: s.date,
+        sportSlug: s.sportSlug ?? 'running',
+        track: s.trackPreview!,
+      }))
+  }
   async findAnalysisEntries(
     userId: number,
     startDate: string,

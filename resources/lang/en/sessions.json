@@ -175,5 +175,9 @@
     "sleep": "Sleep",
     "restingHr": "Resting HR",
     "tsbBefore": "Form before the session"
+  },
+  "sameRoute": {
+    "title": "Same route ({count})",
+    "compare": "Compare"
   }
 }

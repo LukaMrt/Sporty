@@ -34,6 +34,7 @@ export default class RecomputeSessionMetrics {
           trainingLoad: derived.trainingLoad,
           loadMethod: derived.loadMethod,
           analysis: derived.analysis,
+          trackPreview: derived.trackPreview,
         })
         updated++
       } catch (error) {

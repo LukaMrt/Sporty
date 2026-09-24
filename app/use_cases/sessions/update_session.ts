@@ -90,6 +90,7 @@ export default class UpdateSession {
       trainingLoad: derived.trainingLoad,
       loadMethod: derived.loadMethod,
       analysis: derived.analysis,
+      trackPreview: derived.trackPreview,
     })
   }
 }

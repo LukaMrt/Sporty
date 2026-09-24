@@ -54,6 +54,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         hrZonesConfig: model.hrZonesConfig ?? null,
         vdot: model.vdot ?? null,
         timezone: model.timezone ?? null,
+        privacyZones: model.privacyZones ?? null,
       }
     })
   }
@@ -82,6 +83,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       hrZonesConfig: model.hrZonesConfig ?? null,
       vdot: model.vdot ?? null,
       timezone: model.timezone ?? null,
+      privacyZones: model.privacyZones ?? null,
     }
   }
 
@@ -105,6 +107,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       if (data.hrZonesConfig !== undefined) model.hrZonesConfig = data.hrZonesConfig
       if (data.vdot !== undefined) model.vdot = data.vdot
       if (data.timezone !== undefined) model.timezone = data.timezone
+      if (data.privacyZones !== undefined) model.privacyZones = data.privacyZones
       await model.save()
 
       let sportId: number
@@ -137,6 +140,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         hrZonesConfig: model.hrZonesConfig ?? null,
         vdot: model.vdot ?? null,
         timezone: model.timezone ?? null,
+        privacyZones: model.privacyZones ?? null,
       }
     })
   }

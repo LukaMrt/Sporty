@@ -25,6 +25,7 @@ export interface UpdateProfileInput {
   /** `null` = revenir à la méthode automatique */
   hrZonesConfig?: HrZonesConfig | null
   timezone?: string | null
+  privacyZones?: UserProfile['privacyZones']
 }
 
 export interface UpdateProfileResult {
@@ -64,6 +65,7 @@ export default class UpdateProfile {
     if (data.vma !== undefined) profileUpdate.vma = data.vma
     if (data.sex !== undefined) profileUpdate.sex = data.sex
     if (data.hrZonesConfig !== undefined) profileUpdate.hrZonesConfig = data.hrZonesConfig
+    if (data.privacyZones !== undefined) profileUpdate.privacyZones = data.privacyZones
     if (data.timezone !== undefined) {
       profileUpdate.timezone =
         data.timezone && isValidTimezone(data.timezone) ? data.timezone : null

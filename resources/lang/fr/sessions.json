@@ -175,5 +175,9 @@
     "sleep": "Sommeil",
     "restingHr": "FC repos",
     "tsbBefore": "Fraîcheur avant la séance"
+  },
+  "sameRoute": {
+    "title": "Même parcours ({count})",
+    "compare": "Comparer"
   }
 }

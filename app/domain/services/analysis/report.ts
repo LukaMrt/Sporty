@@ -175,3 +175,27 @@ function csvCell(value: unknown): string {
 export function toCsv(headers: string[], rows: unknown[][]): string {
   return [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\n') + '\n'
 }
+
+// ── H2 · Bilan de période ─────────────────────────────────────────────────────
+
+export interface PeriodTotals {
+  sessions: number
+  distanceKm: number
+  durationMinutes: number
+  load: number
+}
+
+export function periodTotals(sessions: AnalysisSession[]): PeriodTotals {
+  return {
+    sessions: sessions.length,
+    distanceKm: Math.round(sessions.reduce((a, s) => a + (s.distanceKm ?? 0), 0) * 10) / 10,
+    durationMinutes: sessions.reduce((a, s) => a + s.durationMinutes, 0),
+    load: Math.round(sessions.reduce((a, s) => a + (s.trainingLoad ?? 0), 0)),
+  }
+}
+
+/** Meilleurs efforts de la période qui battent tout ce qui précède (nouveaux records) */
+export function newRecords(period: EffortRecord[], before: EffortRecord[]): EffortRecord[] {
+  const previous = new Map(before.map((r) => [r.distance, r.seconds]))
+  return period.filter((r) => !previous.has(r.distance) || r.seconds < previous.get(r.distance)!)
+}

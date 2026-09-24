@@ -37,6 +37,7 @@ export default class ProfileController {
             sex: profile.sex,
             timezone: profile.timezone ?? null,
             hrZonesConfig: profile.hrZonesConfig ?? null,
+            privacyZones: profile.privacyZones ?? [],
           }
         : null,
       sports: sports.map((s) => ({ id: s.id, name: s.name })),
@@ -92,6 +93,11 @@ export default class ProfileController {
         vma: data.vma,
         hrZonesConfig,
         timezone: data.timezone,
+        privacyZones: data.privacy_zones?.map((z) => ({
+          lat: z.lat,
+          lon: z.lon,
+          radiusM: z.radius_m,
+        })),
       })
     } catch (error) {
       if (error instanceof InvalidHeartRateZonesError) {

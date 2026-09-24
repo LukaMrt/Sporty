@@ -62,6 +62,7 @@ export default class LucidSessionRepository extends SessionRepository {
       trainingLoad: data.trainingLoad ?? null,
       loadMethod: data.loadMethod ?? null,
       analysis: data.analysis ?? null,
+      trackPreview: data.trackPreview ?? null,
     })
     await model.load('sport')
     return this.#toEntity(model)
@@ -133,6 +134,7 @@ export default class LucidSessionRepository extends SessionRepository {
     if (data.trainingLoad !== undefined) model.trainingLoad = data.trainingLoad
     if (data.loadMethod !== undefined) model.loadMethod = data.loadMethod
     if (data.analysis !== undefined) model.analysis = data.analysis
+    if (data.trackPreview !== undefined) model.trackPreview = data.trackPreview
 
     await model.save()
     await model.load('sport')
@@ -236,6 +238,24 @@ export default class LucidSessionRepository extends SessionRepository {
       distanceKm: r.distance_km === null ? null : Number(r.distance_km),
       trainingLoad: r.training_load,
       loadMethod: r.load_method,
+    }))
+  }
+
+  async findTrackPreviews(
+    userId: number
+  ): Promise<{ id: number; date: string; sportSlug: string; track: [number, number][] }[]> {
+    const models = await SessionModel.query()
+      .select(['id', 'date', 'sport_id', 'track_preview'])
+      .preload('sport')
+      .withScopes((s) => s.withoutTrashed())
+      .where('userId', userId)
+      .whereNotNull('track_preview')
+      .orderBy('date', 'desc')
+    return models.map((m) => ({
+      id: m.id,
+      date: m.date.toISODate() ?? '',
+      sportSlug: m.sport.slug,
+      track: m.trackPreview ?? [],
     }))
   }
 

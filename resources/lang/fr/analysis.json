@@ -159,5 +159,49 @@
     "exportSessions": "Exporter les séances (CSV)",
     "exportDaily": "Exporter les métriques quotidiennes (CSV)",
     "privacy": "Tes données de santé ne quittent Sporty que par ces exports, vers toi."
+  },
+  "more": "Autres vues",
+  "links": {
+    "report": "Bilan de la semaine / du mois",
+    "map": "Carte de mes traces",
+    "plan": "Plan importé de Claude"
+  },
+  "map": {
+    "title": "Carte de mes traces",
+    "description": "{count} traces superposées : tes parcours favoris ressortent par accumulation. Clique sur une trace pour ouvrir la séance.",
+    "privacy": "Les zones de confidentialité sont masquées.",
+    "privacyLink": "Gérer mes zones"
+  },
+  "compare": {
+    "title": "Comparaison de séances",
+    "session": "Séance",
+    "distance": "Distance",
+    "duration": "Durée",
+    "heartRate": "FC moy.",
+    "metrics": {
+      "pace": "Allure",
+      "heartRate": "FC",
+      "gap": "Écart cumulé"
+    },
+    "gapHint": "Écart de temps (s) par rapport à la première séance au même kilomètre : négatif = en avance."
+  },
+  "periodReport": {
+    "title": "Bilan",
+    "previous": "Période précédente",
+    "next": "Période suivante",
+    "periods": {
+      "week": "Semaine",
+      "month": "Mois"
+    },
+    "sessions": "Séances",
+    "distance": "Distance",
+    "duration": "Durée",
+    "load": "Charge",
+    "highlights": "Faits saillants",
+    "record": "Nouveau record sur {distance} : {time}",
+    "longest": "Plus longue sortie : {distance} km",
+    "busiestWeek": "Semaine la plus chargée : {week} ({load} TSS)",
+    "intensity": "{percent} % du temps en Z1–Z2",
+    "efficiency": "Efficacité aérobie : {from} → {to}"
   }
 }

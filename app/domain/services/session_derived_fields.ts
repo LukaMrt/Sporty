@@ -6,6 +6,7 @@ import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
 import type { DataPoint, GpsPoint } from '#domain/value_objects/run_metrics'
 import type { SessionAnalysis } from '#domain/value_objects/session_analysis'
 import { computeSessionAnalysis } from '#domain/services/analysis/session_analysis'
+import { trackPreview } from '#domain/services/analysis/route'
 import { isRunMetrics } from '#domain/value_objects/sport_metrics'
 import { resolveZoneBounds } from '#domain/services/heart_rate_zone_bounds'
 import {
@@ -29,6 +30,7 @@ export interface DerivedSessionFields {
   trainingLoad: number
   loadMethod: TrainingLoadMethod
   analysis: SessionAnalysis
+  trackPreview: [number, number][] | null
 }
 
 /**
@@ -83,5 +85,13 @@ export function deriveSessionFields(
     bounds
   )
 
-  return { sportMetrics, trainingLoad: load.value, loadMethod: load.method, analysis }
+  const preview = run.gpsTrack?.length ? trackPreview(run.gpsTrack) : null
+
+  return {
+    sportMetrics,
+    trainingLoad: load.value,
+    loadMethod: load.method,
+    analysis,
+    trackPreview: preview,
+  }
 }

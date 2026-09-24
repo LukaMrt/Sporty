@@ -84,6 +84,7 @@ export default class ImportedSessionWriter {
       trainingLoad: derived.trainingLoad,
       loadMethod: derived.loadMethod,
       analysis: derived.analysis,
+      trackPreview: derived.trackPreview,
     })
 
     await this.eventEmitter.emit('session:completed', { sessionId: session.id, userId })

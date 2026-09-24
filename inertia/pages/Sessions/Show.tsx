@@ -24,6 +24,7 @@ import HeartRateZonesChart from '~/components/sessions/HeartRateZonesChart'
 import CardiacDriftIndicator from '~/components/sessions/CardiacDriftIndicator'
 import TrimpIndicator from '~/components/sessions/TrimpIndicator'
 import SplitsTable from '~/components/sessions/SplitsTable'
+import SameRouteSessions, { type SameRouteSession } from '~/components/sessions/SameRouteSessions'
 import SessionInsights, { type RunningDynamicsSummary } from '~/components/sessions/SessionInsights'
 import type { SessionContext } from '../../../app/use_cases/sessions/get_session_context'
 import type { SessionAnalysis } from '../../../app/domain/value_objects/session_analysis'
@@ -82,9 +83,10 @@ interface ShowProps {
   session: TrainingSessionProps
   hrZoneThresholds: HrZoneThreshold[] | null
   context: SessionContext | null
+  sameRoute: SameRouteSession[]
 }
 
-export default function SessionShow({ session, hrZoneThresholds, context }: ShowProps) {
+export default function SessionShow({ session, hrZoneThresholds, context, sameRoute }: ShowProps) {
   const [open, setOpen] = useState(false)
   const [enriching, setEnriching] = useState(false)
   const [enrichError, setEnrichError] = useState<string | null>(null)
@@ -454,6 +456,8 @@ export default function SessionShow({ session, hrZoneThresholds, context }: Show
           }
           context={context}
         />
+
+        <SameRouteSessions sessionId={session.id} sessions={sameRoute ?? []} />
 
         {/* Carte GPS du parcours */}
         {hasGpsTrack && (

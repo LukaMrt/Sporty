@@ -67,6 +67,10 @@ export abstract class SessionRepository {
   /** Toutes les séances non supprimées d'un utilisateur (recalculs en lot) */
   abstract findAllAliveByUserId(userId: number): Promise<TrainingSession[]>
   /** Séances non supprimées avec leurs indicateurs d'analyse (sans les courbes) */
+  /** Traces allégées des séances non supprimées (carte de toutes les traces) */
+  abstract findTrackPreviews(
+    userId: number
+  ): Promise<{ id: number; date: string; sportSlug: string; track: [number, number][] }[]>
   abstract findAnalysisEntries(
     userId: number,
     startDate: string,

@@ -1,3 +1,5 @@
+import type { RouteSignature } from '#domain/services/analysis/route'
+
 /** Distances standard des meilleurs efforts (mètres) */
 export const EFFORT_DISTANCES = [400, 1000, 1609, 5000, 10000, 21097, 42195] as const
 export type EffortDistance = (typeof EFFORT_DISTANCES)[number]
@@ -24,6 +26,8 @@ export interface SessionAnalysis {
   easy: boolean
   /** Allure ajustée à la pente (s/km, modèle de Minetti) ; null sans altitude */
   gradeAdjustedPace?: number | null
+  /** Empreinte du parcours pour détecter les parcours récurrents (F4) */
+  route?: RouteSignature | null
 }
 
 export const EMPTY_SESSION_ANALYSIS: SessionAnalysis = {

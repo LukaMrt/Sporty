@@ -41,6 +41,7 @@ const HistoryController = () => import('#controllers/planning/history_controller
 const GpxController = () => import('#controllers/sessions/gpx_controller')
 const HealthController = () => import('#controllers/health_controller')
 const AnalysisController = () => import('#controllers/analysis/analysis_controller')
+const ImportedPlanController = () => import('#controllers/analysis/imported_plan_controller')
 const OpenWearablesWebhookController = () =>
   import('#controllers/webhooks/open_wearables_webhook_controller')
 
@@ -82,6 +83,12 @@ router
     router.delete('/sessions/:id', [SessionsController, 'destroy'])
     router.post('/sessions/:id/restore', [SessionsController, 'restore'])
     router.get('/analysis', [AnalysisController, 'index'])
+    router.get('/analysis/compare', [AnalysisController, 'compare'])
+    router.get('/analysis/map', [AnalysisController, 'map'])
+    router.get('/analysis/report', [AnalysisController, 'report'])
+    router.get('/plan', [ImportedPlanController, 'show'])
+    router.post('/plan', [ImportedPlanController, 'store'])
+    router.post('/plan/clear', [ImportedPlanController, 'clear'])
     router.get('/export/sessions.csv', [AnalysisController, 'exportSessions'])
     router.get('/export/daily-metrics.csv', [AnalysisController, 'exportDailyMetrics'])
     router.get('/planning', [PlanningController, 'index'])

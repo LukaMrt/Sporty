@@ -22,6 +22,7 @@ import { OAuthClient } from '#domain/interfaces/oauth_client'
 import { UnitOfWork } from '#domain/interfaces/unit_of_work'
 import { DailyMetricsRepository } from '#domain/interfaces/daily_metrics_repository'
 import { WebhookVerifier } from '#domain/interfaces/webhook_verifier'
+import { ImportedPlanRepository } from '#domain/interfaces/imported_plan_repository'
 
 /** En-tête d'authentification Open Wearables par défaut (source unique) */
 const DEFAULT_OW_API_KEY_HEADER = 'X-Open-Wearables-API-Key'
@@ -156,6 +157,12 @@ export default class AppProvider {
       const { default: LucidDailyMetricsRepository } =
         await import('#repositories/lucid_daily_metrics_repository')
       return new LucidDailyMetricsRepository()
+    })
+
+    this.app.container.bind(ImportedPlanRepository, async () => {
+      const { default: LucidImportedPlanRepository } =
+        await import('#repositories/lucid_imported_plan_repository')
+      return new LucidImportedPlanRepository()
     })
 
     this.app.container.bind(WebhookVerifier, async () => {

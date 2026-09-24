@@ -186,5 +186,14 @@
     "recomputeNotice": "Zones, TRIMP and training load of your past sessions will be recomputed on save."
   },
   "athleteProfileLink": "Athlete profile — VDOT & pace zones",
-  "timezone": "Time zone"
+  "timezone": "Time zone",
+  "privacyZones": {
+    "title": "Privacy zones",
+    "description": "Tracks passing through these zones (home, work…) are hidden on maps.",
+    "lat": "Latitude",
+    "lon": "Longitude",
+    "radius": "Radius (m)",
+    "remove": "Remove",
+    "add": "+ Add a zone (my current location)"
+  }
 }

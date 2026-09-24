@@ -10,6 +10,8 @@ import ListSessions from '#use_cases/sessions/list_sessions'
 import GetSession from '#use_cases/sessions/get_session'
 import ListSports from '#use_cases/sports/list_sports'
 import GetSessionContext from '#use_cases/sessions/get_session_context'
+import RouteAnalysis from '#use_cases/analysis/route_analysis'
+import { maskPoints } from '#domain/services/analysis/route'
 import GetProfile from '#use_cases/profile/get_profile'
 import { createSessionValidator } from '#validators/sessions/create_session_validator'
 import { updateSessionValidator } from '#validators/sessions/update_session_validator'
@@ -35,7 +37,8 @@ export default class SessionsController {
     private getSession: GetSession,
     private listSports: ListSports,
     private getProfile: GetProfile,
-    private getSessionContext: GetSessionContext
+    private getSessionContext: GetSessionContext,
+    private routeAnalysis: RouteAnalysis
   ) {}
 
   async trash({ inertia, auth }: HttpContext) {
@@ -118,8 +121,23 @@ export default class SessionsController {
         : null
       const hrZoneThresholds = bounds ? boundsToThresholds(bounds.bounds) : null
       const context = await this.getSessionContext.execute(auth.user!.id, trainingSession.date)
+      const sameRoute = await this.routeAnalysis.sameRouteSessions(
+        auth.user!.id,
+        trainingSession.id
+      )
+      // Zones de confidentialité : la trace affichée ne révèle pas le domicile
+      const metrics = trainingSession.sportMetrics as { gpsTrack?: { lat: number; lon: number }[] }
+      const sportMetrics = metrics.gpsTrack
+        ? { ...metrics, gpsTrack: maskPoints(metrics.gpsTrack, profile?.privacyZones ?? []) }
+        : trainingSession.sportMetrics
       return inertia.render('Sessions/Show', {
-        session: { ...trainingSession, gpxFilePath: trainingSession.gpxFilePath ?? null },
+        session: {
+          ...trainingSession,
+          sportMetrics,
+          trackPreview: undefined,
+          gpxFilePath: trainingSession.gpxFilePath ?? null,
+        },
+        sameRoute,
         hrZoneThresholds,
         context,
       })

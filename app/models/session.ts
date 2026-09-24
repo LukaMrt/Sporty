@@ -56,6 +56,9 @@ export default class Session extends BaseModel {
   @column({ prepare: (value: SessionAnalysis | null) => (value ? JSON.stringify(value) : null) })
   declare analysis: SessionAnalysis | null
 
+  @column({ prepare: (value: [number, number][] | null) => (value ? JSON.stringify(value) : null) })
+  declare trackPreview: [number, number][] | null
+
   @column.dateTime()
   declare deletedAt: DateTime | null
 

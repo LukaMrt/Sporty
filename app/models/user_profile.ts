@@ -49,6 +49,12 @@ export default class UserProfile extends BaseModel {
   @column()
   declare timezone: string | null
 
+  @column({
+    prepare: (value: { lat: number; lon: number; radiusM: number }[] | null) =>
+      value ? JSON.stringify(value) : null,
+  })
+  declare privacyZones: { lat: number; lon: number; radiusM: number }[] | null
+
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 
