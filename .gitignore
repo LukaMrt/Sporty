@@ -24,6 +24,9 @@ test-results/
 # User-uploaded files (GPX tracks, etc.)
 storage/
 
+# Environment (copier .env.example vers .env)
+.env
+
 # Local env overrides (non tracked)
 .env.local
 .env.production.local
@@ -43,3 +46,6 @@ yarn-error.log
 
 # Platform specific
 .DS_Store
+
+# TypeScript incremental build info
+*.tsbuildinfo

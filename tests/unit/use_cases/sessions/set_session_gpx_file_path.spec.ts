@@ -5,6 +5,7 @@ import type { TrainingSession } from '#domain/entities/training_session'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
 import type { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
+import { makeMockGpxFileStorage as makeSharedGpxStorage } from '#tests/helpers/mock_gpx_file_storage'
 
 function makeSession(overrides: Partial<TrainingSession> = {}): TrainingSession {
   return {
@@ -26,11 +27,10 @@ function makeSession(overrides: Partial<TrainingSession> = {}): TrainingSession 
 }
 
 function makeMockGpxFileStorage(movedPath = 'storage/gpx/42/1.gpx'): GpxFileStorage {
-  return {
-    saveTempFile: async () => 'temp-id',
+  return makeSharedGpxStorage({
     moveTempFile: async () => movedPath,
     saveFile: async () => movedPath,
-  }
+  })
 }
 
 test.group('SetSessionGpxFilePath — use case', () => {

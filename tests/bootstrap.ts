@@ -6,6 +6,7 @@ import { pluginAdonisJS } from '@japa/plugin-adonisjs'
 import { sessionApiClient } from '@adonisjs/session/plugins/api_client'
 import { authApiClient } from '@adonisjs/auth/plugins/api_client'
 import testUtils from '@adonisjs/core/services/test_utils'
+import limiter from '@adonisjs/limiter/services/main'
 
 /**
  * This file is imported by the "bin/test.ts" entrypoint file
@@ -42,5 +43,8 @@ export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
 export const configureSuite: Config['configureSuite'] = (suite) => {
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
     suite.setup(() => testUtils.httpServer().start())
+    // Les compteurs de rate limiting (store mémoire) ne doivent pas fuir d'un test à l'autre
+    suite.onGroup((group) => group.each.setup(() => limiter.clear()))
+    suite.onTest((t) => t.setup(() => limiter.clear()))
   }
 }

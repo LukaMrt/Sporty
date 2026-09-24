@@ -6,6 +6,7 @@ import { Button } from '~/components/ui/button'
 import FormField from '~/components/forms/FormField'
 import IconInput from '~/components/forms/IconInput'
 import PasswordInput from '~/components/forms/PasswordInput'
+import RoleSelector from '~/components/admin/RoleSelector'
 import { useTranslation } from '~/hooks/use_translation'
 
 interface UserData {
@@ -31,6 +32,7 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
   const editForm = useForm({
     full_name: user.fullName,
     email: user.email,
+    role: user.role,
   })
 
   const passwordForm = useForm({
@@ -110,6 +112,13 @@ export default function AdminUsersEdit({ user }: AdminUsersEditProps) {
                   onChange={(e) => editForm.setData('email', e.target.value)}
                 />
               </FormField>
+              {!isSelf && (
+                <RoleSelector
+                  value={editForm.data.role}
+                  onChange={(role) => editForm.setData('role', role)}
+                  error={editForm.errors.role}
+                />
+              )}
               <Button
                 type="submit"
                 disabled={editForm.processing}

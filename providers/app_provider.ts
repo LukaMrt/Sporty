@@ -17,6 +17,7 @@ import { TrainingGoalRepository } from '#domain/interfaces/training_goal_reposit
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import { EventEmitter } from '#domain/interfaces/event_emitter'
+import { Logger } from '#domain/interfaces/logger'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -126,9 +127,15 @@ export default class AppProvider {
       return new GpxParserService()
     })
 
-    this.app.container.bind(GpxFileStorage, async () => {
+    this.app.container.singleton(GpxFileStorage, async () => {
       const { LocalGpxFileStorage } = await import('#services/local_gpx_file_storage')
-      return new LocalGpxFileStorage()
+      const { default: env } = await import('#start/env')
+      return new LocalGpxFileStorage(env.get('STORAGE_PATH') ?? this.app.makePath('storage'))
+    })
+
+    this.app.container.singleton(Logger, async () => {
+      const { AdonisLogger } = await import('#services/adonis_logger')
+      return new AdonisLogger()
     })
 
     this.app.container.bind(TrainingLoadCalculator, async () => {
@@ -177,18 +184,49 @@ export default class AppProvider {
         const repo = await resolver.make(ConnectorRepository)
         return repo.findAllAutoImportEnabled()
       }
-      return new SyncScheduler(syncFn, loadConnectorsFn)
+      const logger = await resolver.make(Logger)
+      return new SyncScheduler(syncFn, loadConnectorsFn, logger)
     })
   }
 
+  /**
+   * Le planificateur ne tourne que pour le serveur web : jamais en test (appels
+   * réseau réels, non-déterminisme) ni dans les commandes ace.
+   * `SCHEDULER_ENABLED=false` permet aussi de le couper explicitement.
+   */
+  async #schedulerEnabled(): Promise<boolean> {
+    if (this.app.getEnvironment() !== 'web' || this.app.inTest) return false
+    const { default: env } = await import('#start/env')
+    return env.get('SCHEDULER_ENABLED', true)
+  }
+
   async ready() {
-    if (!['web', 'test'].includes(this.app.getEnvironment())) return
+    if (!(await this.#schedulerEnabled())) return
 
     const scheduler = await this.app.container.make(ConnectorScheduler)
     await scheduler.start()
+
+    // Uploads GPX abandonnés (formulaire jamais soumis)
+    const storage = await this.app.container.make(GpxFileStorage)
+    const logger = await this.app.container.make(Logger)
+    const purge = async () => {
+      try {
+        const removed = await storage.purgeTempFiles(24 * 60 * 60 * 1000)
+        if (removed > 0) logger.info({ removed }, 'Purged stale GPX temp files')
+      } catch (error) {
+        logger.warn({ err: error }, 'GPX temp purge failed')
+      }
+    }
+    await purge()
+    this.#purgeTimer = setInterval(() => void purge(), 6 * 60 * 60 * 1000)
+    this.#purgeTimer.unref()
   }
 
+  #purgeTimer: NodeJS.Timeout | null = null
+
   async shutdown() {
+    if (this.#purgeTimer) clearInterval(this.#purgeTimer)
+    if (!(await this.#schedulerEnabled())) return
     const scheduler = await this.app.container.make(ConnectorScheduler)
     scheduler.stop()
   }

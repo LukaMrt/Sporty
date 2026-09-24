@@ -7,6 +7,7 @@ import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
 import type { GpxParser, GpxParseResult } from '#domain/interfaces/gpx_parser'
 import type { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
+import { makeMockGpxFileStorage as makeSharedGpxStorage } from '#tests/helpers/mock_gpx_file_storage'
 
 function makeSession(overrides: Partial<TrainingSession> = {}): TrainingSession {
   return {
@@ -52,11 +53,10 @@ function makeMockGpxParser(result: GpxParseResult): GpxParser {
 }
 
 function makeMockGpxFileStorage(savedPath = 'storage/gpx/42/1.gpx'): GpxFileStorage {
-  return {
-    saveTempFile: async () => 'temp-id',
+  return makeSharedGpxStorage({
     moveTempFile: async () => savedPath,
     saveFile: async () => savedPath,
-  }
+  })
 }
 
 const gpxContent = Buffer.from('<gpx/>')

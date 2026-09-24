@@ -3,11 +3,12 @@
 # =============================================================================
 FROM node:24-alpine AS deps
 
-RUN npm install -g pnpm@10.33.0 && npm cache clean --force
+# pnpm est fourni par corepack, à la version épinglée dans package.json (packageManager)
+RUN corepack enable
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # =============================================================================
@@ -15,15 +16,12 @@ RUN pnpm install --frozen-lockfile
 # =============================================================================
 FROM node:24-alpine AS prod-deps
 
-RUN apk add --no-cache curl && \
-    curl -sf https://gobinaries.com/tj/node-prune | sh && \
-    npm install -g pnpm@10.33.0 && npm cache clean --force
+RUN corepack enable
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --prod --frozen-lockfile && \
-    node-prune && \
     find node_modules -name "*.map" -delete && \
     find node_modules -name "*.d.ts" -delete
 
@@ -31,6 +29,10 @@ RUN pnpm install --prod --frozen-lockfile && \
 # Stage 3: Build — compile TypeScript backend + Vite frontend
 # =============================================================================
 FROM deps AS build
+
+ARG GIT_SHA=dev
+ENV VITE_APP_NAME=Sporty \
+    APP_VERSION=${GIT_SHA}
 
 COPY . .
 RUN pnpm build
@@ -40,19 +42,30 @@ RUN pnpm build
 # =============================================================================
 FROM node:24-alpine AS runtime
 
+ARG GIT_SHA=dev
+
 WORKDIR /app/build
 
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3333 \
-    LOG_LEVEL=error
+    LOG_LEVEL=info \
+    APP_NAME=Sporty \
+    APP_VERSION=${GIT_SHA} \
+    STORAGE_PATH=/app/storage
 
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=build /app/build .
-COPY package.json ./
+COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/build .
+COPY --chown=node:node package.json ./
 COPY docker/entrypoint.sh /entrypoint.sh
-RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
+RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh && \
+    mkdir -p /app/storage && chown node:node /app/storage
+
+USER node
 
 EXPOSE 3333
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- "http://127.0.0.1:${PORT}/health" > /dev/null || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]

@@ -20,9 +20,20 @@ services:
     environment:
       # Dans Docker, l'app accède à PostgreSQL via le nom du service (pas localhost)
       DB_HOST: db
+      HOST: 0.0.0.0
+      STORAGE_PATH: /app/storage
+    volumes:
+      # Fichiers GPX : doivent survivre aux reconstructions de l'image
+      - appstorage:/app/storage
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:$${PORT:-3333}/health > /dev/null || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # ---------------------------------------------------------------------------
-  # Service db : PostgreSQL 16
+  # Service db : PostgreSQL 18
   # ---------------------------------------------------------------------------
   db:
     image: postgres:18-alpine
@@ -30,6 +41,8 @@ services:
       POSTGRES_USER: ${DB_USER:-sporty}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-sporty}
       POSTGRES_DB: ${DB_DATABASE:-sporty}
+    # Port exposé sur l'hôte pour le développement local uniquement :
+    # à retirer dans un déploiement de production.
     ports:
       - '${DB_PORT:-5432}:5432'
     volumes:
@@ -44,3 +57,4 @@ services:
 # Volume nommé pour la persistance des données PostgreSQL (NFR15)
 volumes:
   pgdata:
+  appstorage:

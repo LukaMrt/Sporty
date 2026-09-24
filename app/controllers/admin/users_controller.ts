@@ -11,7 +11,23 @@ import { updateUserValidator } from '#validators/admin/update_user_validator'
 import { resetPasswordValidator } from '#validators/admin/reset_password_validator'
 import { UserNotFoundError } from '#domain/errors/user_not_found_error'
 import { CannotDeleteSelfError } from '#domain/errors/cannot_delete_self_error'
-import type { UserRole } from '#domain/value_objects/user_role'
+import { LastAdminError } from '#domain/errors/last_admin_error'
+import type { User } from '#domain/entities/user'
+
+/**
+ * DTO explicite : les props Inertia sont sérialisées dans le HTML (`data-page`),
+ * on n'y envoie que les champs affichés.
+ */
+function toUserDto(user: User) {
+  return {
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    role: user.role,
+    onboardingCompleted: user.onboardingCompleted,
+    createdAt: user.createdAt,
+  }
+}
 
 @inject()
 export default class UsersController {
@@ -26,7 +42,7 @@ export default class UsersController {
 
   async index({ inertia }: HttpContext) {
     const users = await this.listUsers.listAllUsers()
-    return inertia.render('Admin/Users/Index', { users })
+    return inertia.render('Admin/Users/Index', { users: users.map(toUserDto) })
   }
 
   async create({ inertia }: HttpContext) {
@@ -34,12 +50,14 @@ export default class UsersController {
   }
 
   async store({ request, response, session, i18n }: HttpContext) {
-    const data = await request.validateUsing(createUserValidator)
+    const data = await request.validateUsing(createUserValidator, {
+      messagesProvider: i18n.createMessagesProvider(),
+    })
     await this.createUser.execute({
       fullName: data.full_name,
       email: data.email,
       password: data.password,
-      role: data.role as UserRole,
+      role: data.role,
     })
     session.flash('success', i18n.t('admin.flash.userCreated'))
     return response.redirect('/admin/users')
@@ -48,7 +66,7 @@ export default class UsersController {
   async edit({ params, inertia, response, session, i18n }: HttpContext) {
     try {
       const user = await this.getUser.execute(Number(params.id))
-      return inertia.render('Admin/Users/Edit', { user })
+      return inertia.render('Admin/Users/Edit', { user: toUserDto(user) })
     } catch (error) {
       if (error instanceof UserNotFoundError) {
         session.flash('error', i18n.t('admin.flash.notFound'))
@@ -63,10 +81,12 @@ export default class UsersController {
     try {
       const data = await request.validateUsing(updateUserValidator, {
         meta: { userId: id },
+        messagesProvider: i18n.createMessagesProvider(),
       })
       await this.updateUser.execute(id, {
         fullName: data.full_name,
         email: data.email,
+        role: data.role,
       })
       session.flash('success', i18n.t('admin.flash.userUpdated'))
       return response.redirect(`/admin/users/${id}/edit`)
@@ -74,6 +94,10 @@ export default class UsersController {
       if (error instanceof UserNotFoundError) {
         session.flash('error', i18n.t('admin.flash.notFound'))
         return response.redirect('/admin/users')
+      }
+      if (error instanceof LastAdminError) {
+        session.flash('error', i18n.t(error.i18nKey))
+        return response.redirect(`/admin/users/${id}/edit`)
       }
       throw error
     }
@@ -103,8 +127,8 @@ export default class UsersController {
       session.flash('success', i18n.t('admin.flash.userDeleted'))
       return response.redirect('/admin/users')
     } catch (error) {
-      if (error instanceof CannotDeleteSelfError) {
-        session.flash('error', error.message)
+      if (error instanceof CannotDeleteSelfError || error instanceof LastAdminError) {
+        session.flash('error', i18n.t(error.i18nKey))
         return response.redirect(`/admin/users/${id}/edit`)
       }
       if (error instanceof UserNotFoundError) {

@@ -19,20 +19,18 @@ export class AdonisAuthService extends AuthService {
     await this.ctx.auth.use('web').login(model)
   }
 
-  async attempt(email: string, password: string): Promise<void> {
+  async attempt(email: string, password: string): Promise<number> {
+    let user: UserModel
     try {
-      const user = await UserModel.verifyCredentials(email, password)
-      await this.ctx.auth.use('web').login(user)
+      user = await UserModel.verifyCredentials(email, password)
     } catch {
       throw new InvalidCredentialsError()
     }
+    await this.ctx.auth.use('web').login(user)
+    return user.id
   }
 
   async logout(): Promise<void> {
     await this.ctx.auth.use('web').logout()
-  }
-
-  async isAuthenticated(): Promise<boolean> {
-    return this.ctx.auth.use('web').check()
   }
 }

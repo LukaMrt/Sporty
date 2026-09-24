@@ -9,6 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
+import { registerThrottle, connectorConnectThrottle } from '#start/limiter'
 
 const LocaleController = () => import('#controllers/locale_controller')
 const OnboardingController = () => import('#controllers/onboarding/onboarding_controller')
@@ -38,14 +39,20 @@ const RecalibrationController = () => import('#controllers/planning/recalibratio
 const InactivityController = () => import('#controllers/planning/inactivity_controller')
 const HistoryController = () => import('#controllers/planning/history_controller')
 const GpxController = () => import('#controllers/sessions/gpx_controller')
+const HealthController = () => import('#controllers/health_controller')
+
+router.get('/health', [HealthController, 'show'])
 
 router.post('/locale', [LocaleController, 'update']).use(middleware.silentAuth())
 
-router.get('/register', [RegisterController, 'show'])
-router.post('/register', [RegisterController, 'register'])
-
-router.get('/login', [LoginController, 'show'])
-router.post('/login', [LoginController, 'login'])
+router
+  .group(() => {
+    router.get('/register', [RegisterController, 'show'])
+    router.post('/register', [RegisterController, 'register']).use(registerThrottle)
+    router.get('/login', [LoginController, 'show'])
+    router.post('/login', [LoginController, 'login'])
+  })
+  .use(middleware.guest())
 
 router
   .group(() => {
@@ -99,7 +106,9 @@ router
     // Route litterale d'abord : l'URL de callback OAuth est enregistree chez Strava
     // et ne peut pas etre parametree.
     router.get('/connectors/strava/authorize', [StravaOAuthController, 'authorize'])
-    router.post('/connectors/:provider/connect', [ApiKeyConnectorController, 'store'])
+    router
+      .post('/connectors/:provider/connect', [ApiKeyConnectorController, 'store'])
+      .use(connectorConnectThrottle)
     router.get('/connectors/:provider', [ConnectorController, 'show'])
     router.post('/connectors/:provider/disconnect', [ConnectorController, 'disconnect'])
     router.post('/connectors/:provider/settings', [ConnectorSettingsController, 'update'])

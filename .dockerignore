@@ -7,16 +7,31 @@ build
 # Version control
 .git
 .gitignore
+.github
 
 # BMAD workflow files
 _bmad*
 _bmad-output
+.claude
 
 # Environment overrides (ne jamais inclure dans l'image)
 .env
 .env.local
+.env.test
 .env.development.local
 .env.production.local
+
+# Données utilisateurs (GPX…) : jamais dans le contexte de build
+storage
+
+# Rapports de tests et de couverture
+coverage
+playwright-report
+test-results
+tests/e2e/.auth
+
+# TypeScript incremental build info
+*.tsbuildinfo
 
 # Editor configs
 .vscode
@@ -38,5 +53,5 @@ tmp
 public/assets
 
 # Documentation
+docs
 *.md
-README.md

@@ -17,6 +17,17 @@ export default await Env.create(new URL('../', import.meta.url), {
   APP_KEY: Env.schema.string(),
   HOST: Env.schema.string({ format: 'host' }),
   LOG_LEVEL: Env.schema.string(),
+  APP_NAME: Env.schema.string.optional(),
+  /** Version déployée (SHA git injecté au build Docker) */
+  APP_VERSION: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Stockage des fichiers et tâches de fond
+  |----------------------------------------------------------
+  */
+  STORAGE_PATH: Env.schema.string.optional(),
+  SCHEDULER_ENABLED: Env.schema.boolean.optional(),
 
   /*
   |----------------------------------------------------------
@@ -24,6 +35,13 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   SESSION_DRIVER: Env.schema.enum.optional(['cookie', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Rate limiting
+  |----------------------------------------------------------
+  */
+  LIMITER_STORE: Env.schema.enum.optional(['database', 'memory'] as const),
 
   /*
   |----------------------------------------------------------

@@ -56,5 +56,9 @@
     "userDeleted": "User deleted",
     "passwordReset": "Password reset",
     "notFound": "User not found"
+  },
+  "errors": {
+    "cannotDeleteSelf": "You cannot delete your own account",
+    "lastAdmin": "At least one administrator must remain"
   }
 }

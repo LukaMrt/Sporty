@@ -19,13 +19,13 @@ export default class GpxController {
    * POST /sessions/parse-gpx
    * Parse un fichier GPX et retourne les données extraites + un tempId.
    */
-  async parseGpx({ request, response }: HttpContext) {
+  async parseGpx({ request, response, auth }: HttpContext) {
     const data = await request.validateUsing(parseGpxValidator)
     const content = await readFile(data.gpx_file.tmpPath!)
 
     let result
     try {
-      result = await this.parseGpxFile.execute(content)
+      result = await this.parseGpxFile.execute(content, auth.user!.id)
     } catch (error) {
       if (error instanceof GpxParseError) {
         return response.badRequest({ error: error.message })
