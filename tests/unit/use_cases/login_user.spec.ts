@@ -18,9 +18,7 @@ test.group('LoginUser — use case', () => {
     })
     const profiles = makeMockUserProfileRepository({
       findByUserId: async (userId) =>
-        userId === 7
-          ? ({ userId: 7, preferences: { locale: 'en' } } as UserProfile)
-          : null,
+        userId === 7 ? ({ userId: 7, preferences: { locale: 'en' } } as UserProfile) : null,
     })
     const useCase = new LoginUser(authService, makeMockUserRepository(), profiles)
 

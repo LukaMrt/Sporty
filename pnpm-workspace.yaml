@@ -1,3 +1,9 @@
 onlyBuiltDependencies:
   - '@swc/core'
   - esbuild
+
+# Versions saines forcées pour des dépendances transitives vulnérables (audit 2026-09)
+overrides:
+  axios: '>=1.18.0'
+  qs: '>=6.16.0'
+  esbuild: '>=0.28.1'
