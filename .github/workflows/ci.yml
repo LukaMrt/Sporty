@@ -57,7 +57,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24.19.0
-          cache: 'pnpm'
+          # Pas de cache pnpm : ce job n'installe rien (pnpm audit lit le lockfile),
+          # le store serait absent et la sauvegarde du cache échouerait
 
       # Bloquant uniquement pour les vulnérabilités hautes/critiques des dépendances de prod
       - run: pnpm audit --prod --audit-level=high
