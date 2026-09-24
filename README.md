@@ -40,6 +40,7 @@ Comptes de démo créés par le seed (dev et test uniquement, mot de passe `pass
 | `pnpm test:e2e`   | Playwright sur le **build de production** (`node build/bin/server.js`), base `sporty_e2e` |
 | `pnpm format`     | Prettier                                                                                  |
 | `node ace build`  | Build de production dans `build/`                                                         |
+| `pnpm preview`    | Build puis lancement du serveur de production en local (`.env` + `.env.local`)            |
 
 Pour afficher les logs applicatifs pendant les tests : `LOG_LEVEL=debug pnpm test`.
 
