@@ -139,5 +139,14 @@
     "updated": "Profil mis à jour",
     "passwordChanged": "Mot de passe modifié",
     "passwordIncorrect": "Mot de passe actuel incorrect"
+  },
+  "hrZones": {
+    "errors": {
+      "missing_max_hr": "Renseigne ta FC max",
+      "missing_resting_hr": "Renseigne ta FC repos",
+      "missing_lthr": "Renseigne ta FC au seuil (LTHR)",
+      "invalid_bounds": "Les bornes doivent être strictement croissantes, entre 30 et 250 bpm",
+      "invalid_physiology": "FC repos et FC max incohérentes"
+    }
   }
 }

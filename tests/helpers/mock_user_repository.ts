@@ -14,8 +14,14 @@ export function makeUser(overrides: Partial<User> = {}): User {
 }
 
 function toUser(data: NewUser): User {
-  const { password: _password, ...rest } = data
-  return { id: 1, createdAt: '', ...rest }
+  return {
+    id: 1,
+    createdAt: '',
+    email: data.email,
+    fullName: data.fullName,
+    role: data.role,
+    onboardingCompleted: data.onboardingCompleted,
+  }
 }
 
 export function makeMockUserRepository(overrides: Partial<UserRepository> = {}): UserRepository {

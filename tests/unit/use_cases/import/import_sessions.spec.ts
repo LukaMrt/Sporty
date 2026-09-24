@@ -1,4 +1,10 @@
 import { test } from '@japa/runner'
+import {
+  BaseMockSessionRepo,
+  FixedLoadCalculator,
+  RecordingEventEmitter,
+} from '#tests/helpers/base_mocks'
+import ImportedSessionWriter from '#use_cases/import/imported_session_writer'
 import ImportSessions from '#use_cases/import/import_sessions'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import type {
@@ -23,7 +29,7 @@ import type {
   MappedSessionData,
 } from '#domain/interfaces/connector'
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
-import { SessionRepository } from '#domain/interfaces/session_repository'
+import { type SessionRepository } from '#domain/interfaces/session_repository'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import { SportRepository } from '#domain/interfaces/sport_repository'
@@ -122,6 +128,9 @@ function makeImportSessionRepository(
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
+    async recordFailure(): Promise<boolean> {
+      return false
+    }
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null
@@ -134,7 +143,7 @@ function makeImportSessionRepository(
 }
 
 function makeSessionRepository(overrides: Partial<SessionRepository> = {}): SessionRepository {
-  class Mock extends SessionRepository {
+  class Mock extends BaseMockSessionRepo {
     async create(
       data: Omit<TrainingSession, 'id' | 'createdAt' | 'sportName'>
     ): Promise<TrainingSession> {
@@ -221,7 +230,12 @@ function makeUseCase(
     overrides.connectorRegistry ?? makeConnectorRegistry(makeConnector(42)),
     overrides.sportRepo ?? makeSportRepository([{ id: 1, name: 'Running', slug: 'running' }]),
     overrides.sessionRepo ?? makeSessionRepository(),
-    overrides.userProfileRepo ?? makeUserProfileRepository()
+    overrides.userProfileRepo ?? makeUserProfileRepository(),
+    new ImportedSessionWriter(
+      overrides.sessionRepo ?? makeSessionRepository(),
+      new FixedLoadCalculator(),
+      new RecordingEventEmitter()
+    )
   )
 }
 

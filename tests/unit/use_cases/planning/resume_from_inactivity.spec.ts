@@ -1,6 +1,11 @@
 import { test } from '@japa/runner'
+import { ImmediateUnitOfWork } from '#tests/helpers/base_mocks'
+import PlanPersister from '#use_cases/planning/plan_persister'
+import PlanRecalibrator from '#use_cases/planning/plan_recalibrator'
+import { makeMockUserProfileRepository } from '#tests/helpers/mock_user_profile_repository'
+import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import ResumeFromInactivity from '#use_cases/planning/resume_from_inactivity'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import {
@@ -100,7 +105,7 @@ function makePlanRepo(
   let updatedWith: Partial<TrainingPlan> | null = null
   let deletedFromWeek: number | null = null
 
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(): Promise<TrainingPlan> {
       throw new Error('not impl')
     }
@@ -205,7 +210,12 @@ function makeEngine(): TrainingPlanEngine {
 test.group('ResumeFromInactivity', () => {
   test('ne fait rien si aucun plan actif', async ({ assert }) => {
     const planRepo = makePlanRepo(null)
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(null), makeEngine())
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeMockUserProfileRepository(),
+      new PlanRecalibrator(planRepo, makeGoalRepo(null), makeEngine(), new PlanPersister(planRepo)),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1, 20)
     assert.isNull(planRepo.updatedWith)
   })
@@ -215,7 +225,12 @@ test.group('ResumeFromInactivity', () => {
     const sessions = [makeSession(2, 1), makeSession(3, 3)]
     const planRepo = makePlanRepo(ACTIVE_PLAN, weeks, sessions)
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeMockUserProfileRepository(),
+      new PlanRecalibrator(planRepo, makeGoalRepo(GOAL), makeEngine(), new PlanPersister(planRepo)),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1, 14)
 
     assert.isNotNull(planRepo.updatedWith)
@@ -229,7 +244,12 @@ test.group('ResumeFromInactivity', () => {
     const sessions = [makeSession(2, 1)]
     const planRepo = makePlanRepo(ACTIVE_PLAN, weeks, sessions)
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeMockUserProfileRepository(),
+      new PlanRecalibrator(planRepo, makeGoalRepo(GOAL), makeEngine(), new PlanPersister(planRepo)),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1, 28)
 
     const newVdot = planRepo.updatedWith!.currentVdot!
@@ -244,7 +264,12 @@ test.group('ResumeFromInactivity', () => {
     const sessions = [makeSession(2, 1), makeSession(3, 3)]
     const planRepo = makePlanRepo(ACTIVE_PLAN, weeks, sessions)
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeMockUserProfileRepository(),
+      new PlanRecalibrator(planRepo, makeGoalRepo(GOAL), makeEngine(), new PlanPersister(planRepo)),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1, 20)
 
     assert.isNotNull(planRepo.deletedFromWeek)
@@ -255,7 +280,12 @@ test.group('ResumeFromInactivity', () => {
     const shortPlan = { ...ACTIVE_PLAN }
     const planRepo = makePlanRepo(shortPlan, makeWeeks(2), [makeSession(1, 1)])
 
-    const useCase = new ResumeFromInactivity(planRepo, makeGoalRepo(GOAL), makeEngine())
+    const useCase = new ResumeFromInactivity(
+      planRepo,
+      makeMockUserProfileRepository(),
+      new PlanRecalibrator(planRepo, makeGoalRepo(GOAL), makeEngine(), new PlanPersister(planRepo)),
+      new ImmediateUnitOfWork()
+    )
     await useCase.execute(1, 20)
 
     // Plan de 2 semaines démarré il y a 14 jours → semaine courante ≥ 2, pas de semaine future

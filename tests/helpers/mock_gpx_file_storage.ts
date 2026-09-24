@@ -10,5 +10,5 @@ export function makeMockGpxFileStorage(overrides: Partial<GpxFileStorage> = {}):
     deleteAllForUser: async () => {},
     purgeTempFiles: async () => 0,
     ...overrides,
-  } as GpxFileStorage
+  }
 }

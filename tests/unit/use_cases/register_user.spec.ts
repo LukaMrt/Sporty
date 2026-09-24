@@ -56,8 +56,14 @@ test.group('RegisterUser — use case', () => {
     const repo = makeMockUserRepository({
       createFirstUser: async (data) => {
         captured.push(data)
-        const { password: _p, ...rest } = data
-        return { id: 1, createdAt: '', ...rest }
+        return {
+          id: 1,
+          createdAt: '',
+          email: data.email,
+          fullName: data.fullName,
+          role: data.role,
+          onboardingCompleted: data.onboardingCompleted,
+        }
       },
     })
     const useCase = new RegisterUser(repo, makeMockAuthService())

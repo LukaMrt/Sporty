@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateGoal from '#use_cases/planning/create_goal'
@@ -14,7 +15,7 @@ export default class GoalsController {
     private abandonGoalUseCase: AbandonGoal
   ) {}
 
-  async store({ request, response, auth }: HttpContext) {
+  async store({ request, response, auth, i18n }: HttpContext) {
     const data = await request.validateUsing(createGoalValidator)
     const userId = auth.user!.id
 
@@ -23,12 +24,12 @@ export default class GoalsController {
         userId,
         targetDistanceKm: data.target_distance_km,
         targetTimeMinutes: data.target_time_minutes ?? null,
-        eventDate: data.event_date ? data.event_date.toISOString().slice(0, 10) : null,
+        eventDate: data.event_date ? DateTime.fromJSDate(data.event_date).toISODate() : null,
       })
       return response.json({ goal })
     } catch (error) {
       if (error instanceof ActiveGoalExistsError) {
-        return response.unprocessableEntity({ message: error.message })
+        return response.unprocessableEntity({ message: i18n.t(error.i18nKey) })
       }
       throw error
     }
@@ -42,7 +43,9 @@ export default class GoalsController {
       goalId,
       targetDistanceKm: data.target_distance_km,
       targetTimeMinutes: data.target_time_minutes,
-      eventDate: data.event_date ? data.event_date.toISOString().slice(0, 10) : data.event_date,
+      eventDate: data.event_date
+        ? DateTime.fromJSDate(data.event_date).toISODate()
+        : data.event_date,
     })
     return response.json({ goal })
   }

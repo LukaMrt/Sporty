@@ -1,5 +1,6 @@
 import type { UserPreferences } from '#domain/entities/user_preferences'
 import type { BiologicalSex, TrainingState } from '#domain/value_objects/planning_types'
+import type { HrZonesConfig } from '#domain/value_objects/heart_rate_zones_config'
 
 export enum UserLevel {
   Beginner = 'beginner',
@@ -27,4 +28,10 @@ export interface UserProfile {
   vma: number | null
   sex: BiologicalSex | null
   trainingState: TrainingState
+  /** Méthode de zones cardiaques ; absente ou null = `auto` */
+  hrZonesConfig?: HrZonesConfig | null
+  /** VDOT confirmé par l'athlète */
+  vdot?: number | null
+  /** Fuseau horaire IANA (ex. Europe/Paris) ; null = UTC */
+  timezone?: string | null
 }

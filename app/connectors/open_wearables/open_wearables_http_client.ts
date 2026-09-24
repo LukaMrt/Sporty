@@ -51,7 +51,21 @@ export class OpenWearablesHttpClient {
     query: Record<string, QueryValue> = {},
     maxPages = DEFAULT_MAX_PAGES
   ): Promise<T[]> {
+    const { data } = await this.getAllPagesWithMeta<T>(path, query, maxPages)
+    return data
+  }
+
+  /**
+   * Comme `getAllPages`, en signalant si le plafond de pages a été atteint alors
+   * que le serveur annonçait encore des résultats (données tronquées).
+   */
+  async getAllPagesWithMeta<T>(
+    path: string,
+    query: Record<string, QueryValue> = {},
+    maxPages = DEFAULT_MAX_PAGES
+  ): Promise<{ data: T[]; truncated: boolean }> {
     const all: T[] = []
+    let truncated = false
     const seenCursors = new Set<string>()
     let cursor: string | null = null
 
@@ -67,9 +81,10 @@ export class OpenWearablesHttpClient {
       if (seenCursors.has(next)) break // cursor qui ne progresse pas
       seenCursors.add(next)
       cursor = next
+      if (page === maxPages - 1) truncated = true
     }
 
-    return all
+    return { data: all, truncated }
   }
 
   async #executeWithRetry<T>(url: string, attempt: number): Promise<T> {

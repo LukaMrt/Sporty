@@ -16,6 +16,8 @@ export interface StagingSessionRecord {
   externalId: string
   status: ImportSessionStatus
   rawData: Record<string, unknown> | null
+  failureReason?: string | null
+  failedAttempts?: number
 }
 
 export interface ImportedSessionRef {
@@ -31,6 +33,12 @@ export abstract class ImportSessionRepository {
   abstract setIgnored(id: number, userId: number): Promise<void>
   abstract setNew(id: number, userId: number): Promise<void>
   abstract setFailed(id: number, reason: string): Promise<void>
+  /**
+   * Enregistre un échec transitoire ; passe la ligne en `failed` au bout de
+   * `maxAttempts` échecs pour ne plus la re-tenter à chaque synchro.
+   * Renvoie `true` si la ligne est désormais en échec définitif.
+   */
+  abstract recordFailure(id: number, reason: string, maxAttempts: number): Promise<boolean>
   abstract markImportedBulk(connectorId: number, refs: ImportedSessionRef[]): Promise<void>
   /**
    * Connecteurs distincts auxquels appartiennent ces lignes de staging, restreints

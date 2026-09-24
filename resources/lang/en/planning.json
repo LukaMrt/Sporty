@@ -373,5 +373,18 @@
     "maintenancePlan": "Maintenance plan",
     "readOnlyDetail": "Read-only view — archived plan",
     "detailBack": "Back to history"
+  },
+  "errors": {
+    "noActivePlan": "No active plan",
+    "activePlanExists": "An active plan already exists",
+    "noActiveGoal": "No active goal",
+    "noCompletedPlan": "No completed plan",
+    "plannedSessionNotFound": "Planned session not found",
+    "plannedSessionForbidden": "This planned session is not part of your active plan",
+    "sessionNotFound": "Session not found",
+    "activeGoalExists": "Only one active goal at a time"
+  },
+  "flash": {
+    "volumeAdjusted": "Your current training volume is too low for this distance. The plan was adjusted to the minimum recommended volume: build your base progressively before starting."
   }
 }

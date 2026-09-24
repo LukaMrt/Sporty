@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column, scope } from '@adonisjs/lucid/orm'
 import type { SportMetrics } from '#domain/value_objects/sport_metrics'
+import type { TrainingLoadMethod } from '#domain/value_objects/training_load'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 import Sport from '#models/sport'
@@ -44,6 +45,12 @@ export default class Session extends BaseModel {
 
   @column()
   declare gpxFilePath: string | null
+
+  @column()
+  declare trainingLoad: number | null
+
+  @column()
+  declare loadMethod: TrainingLoadMethod | null
 
   @column.dateTime()
   declare deletedAt: DateTime | null

@@ -383,3 +383,62 @@ test.group('StravaHttpClient (connectors) — Intégration RateLimitManager rée
     assert.equal(rlm.usageDaily, 300)
   })
 })
+
+test.group('StravaHttpClient (connectors) — Robustesse du refresh (audit P2-9/P2-10)', () => {
+  test('refresh en 503 → erreur transitoire, le connecteur ne passe PAS en erreur', async ({
+    assert,
+  }) => {
+    let statusSet: ConnectorStatus | null = null
+    const repo = makeConnectorRepository({
+      setStatus: async (_u, _p, status) => {
+        statusSet = status
+      },
+    })
+    const fetcher = async (input: string | URL | Request) => {
+      if (urlOf(input).includes('oauth/token')) return makeJsonResponse(null, 503)
+      return makeJsonResponse({ id: 1 })
+    }
+    const client = makeClient({ tokens: EXPIRED_TOKENS, repo, fetcher })
+
+    await assert.rejects(() => client.get('https://www.strava.com/api/v3/athlete'))
+    assert.isNull(statusSet)
+  })
+
+  test('refreshs simultanés → un seul appel au endpoint OAuth', async ({ assert }) => {
+    let refreshCalls = 0
+    const fetcher = async (input: string | URL | Request) => {
+      if (urlOf(input).includes('oauth/token')) {
+        refreshCalls++
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        return makeJsonResponse(REFRESHED_TOKENS)
+      }
+      return makeJsonResponse({ id: 1 })
+    }
+    const a = makeClient({ tokens: EXPIRED_TOKENS, fetcher })
+    const b = makeClient({ tokens: EXPIRED_TOKENS, fetcher })
+
+    await Promise.all([
+      a.get('https://www.strava.com/api/v3/athlete'),
+      b.get('https://www.strava.com/api/v3/athlete'),
+    ])
+
+    assert.equal(refreshCalls, 1)
+    assert.equal(b.tokens.accessToken, 'new_access')
+  })
+
+  test('401 persistant après refresh → ConnectorAuthError sans boucle', async ({ assert }) => {
+    let apiCalls = 0
+    const fetcher = async (input: string | URL | Request) => {
+      if (urlOf(input).includes('oauth/token')) return makeJsonResponse(REFRESHED_TOKENS)
+      apiCalls++
+      return makeJsonResponse(null, 401)
+    }
+    const client = makeClient({ fetcher })
+
+    await assert.rejects(
+      () => client.get('https://www.strava.com/api/v3/athlete'),
+      ConnectorAuthError
+    )
+    assert.equal(apiCalls, 2)
+  })
+})

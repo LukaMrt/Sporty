@@ -66,7 +66,9 @@ export class LocalGpxFileStorage extends GpxFileStorage {
         const full = join(dir, entry.name)
         if (entry.isDirectory()) {
           await walk(full)
-        } else if ((await stat(full)).mtimeMs < threshold) {
+        } else {
+          const { mtimeMs } = await stat(full)
+          if (mtimeMs >= threshold) continue
           await rm(full, { force: true })
           removed++
         }

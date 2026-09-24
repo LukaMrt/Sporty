@@ -3,14 +3,12 @@ import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { GpxParser } from '#domain/interfaces/gpx_parser'
 import { GpxFileStorage } from '#domain/interfaces/gpx_file_storage'
+import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
 import type { TrainingSession } from '#domain/entities/training_session'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
-import {
-  calculateZones,
-  calculateDrift,
-  calculateTrimp,
-} from '#domain/services/heart_rate_zone_service'
+import { deriveSessionFields } from '#domain/services/session_derived_fields'
+import { gpxToSportMetrics } from '#domain/services/gpx_metrics'
 
 @inject()
 export default class EnrichSessionWithGpx {
@@ -18,7 +16,8 @@ export default class EnrichSessionWithGpx {
     private sessionRepository: SessionRepository,
     private userProfileRepository: UserProfileRepository,
     private gpxParser: GpxParser,
-    private gpxFileStorage: GpxFileStorage
+    private gpxFileStorage: GpxFileStorage,
+    private loadCalculator: TrainingLoadCalculator
   ) {}
 
   async execute(sessionId: number, userId: number, content: Buffer): Promise<TrainingSession> {
@@ -26,55 +25,45 @@ export default class EnrichSessionWithGpx {
     if (!existing) throw new SessionNotFoundError(sessionId)
     if (existing.userId !== userId) throw new SessionForbiddenError()
 
+    // Parse AVANT toute écriture : un GPX invalide ne laisse aucun fichier
     const gpx = this.gpxParser.parse(content.toString('utf-8'))
-    const gpxFilePath = await this.gpxFileStorage.saveFile(content, userId, sessionId)
 
-    // Courbes et splits GPX ajoutés/écrasés
-    const mergedSportMetrics: Record<string, unknown> = {
-      ...(existing.sportMetrics ?? {}),
-    }
-    if (gpx.heartRateCurve !== undefined) mergedSportMetrics.heartRateCurve = gpx.heartRateCurve
-    if (gpx.paceCurve !== undefined) mergedSportMetrics.paceCurve = gpx.paceCurve
-    if (gpx.altitudeCurve !== undefined) mergedSportMetrics.altitudeCurve = gpx.altitudeCurve
-    if (gpx.gpsTrack !== undefined) mergedSportMetrics.gpsTrack = gpx.gpsTrack
-    if (gpx.splits !== undefined) mergedSportMetrics.splits = gpx.splits
-
-    // FC min/max, cadence, dénivelé (GPX écrase)
-    if (gpx.minHeartRate !== undefined) mergedSportMetrics.minHeartRate = gpx.minHeartRate
-    if (gpx.maxHeartRate !== undefined) mergedSportMetrics.maxHeartRate = gpx.maxHeartRate
-    if (gpx.cadenceAvg !== undefined) mergedSportMetrics.cadenceAvg = gpx.cadenceAvg
-    if (gpx.elevationGain !== undefined) mergedSportMetrics.elevationGain = gpx.elevationGain
-    if (gpx.elevationLoss !== undefined) mergedSportMetrics.elevationLoss = gpx.elevationLoss
-
-    // Métriques calculées si FC max profil disponible et courbe FC présente
-    if (gpx.heartRateCurve && gpx.heartRateCurve.length > 0) {
-      const profile = await this.userProfileRepository.findByUserId(userId)
-      if (profile?.maxHeartRate) {
-        const durationMinutes = Math.round(gpx.durationSeconds / 60)
-        const hrZones = calculateZones(
-          profile.maxHeartRate,
-          gpx.heartRateCurve,
-          profile.restingHeartRate ?? undefined
-        )
-        const cardiacDrift = calculateDrift(gpx.heartRateCurve)
-        const trimp = calculateTrimp(durationMinutes, hrZones)
-
-        mergedSportMetrics.hrZones = hrZones
-        mergedSportMetrics.cardiacDrift = cardiacDrift
-        mergedSportMetrics.trimp = trimp
-      }
-    }
-
+    // Courbes, splits et scalaires du GPX écrasent les valeurs existantes
+    const sportMetrics = { ...(existing.sportMetrics ?? {}), ...gpxToSportMetrics(gpx) }
+    const durationMinutes = Math.round(gpx.durationSeconds / 60)
+    const distanceKm = Math.round((gpx.distanceMeters / 1000) * 100) / 100
     const avgHeartRate = gpx.avgHeartRate ?? existing.avgHeartRate
-    return this.sessionRepository.update(sessionId, {
-      durationMinutes: Math.round(gpx.durationSeconds / 60),
-      distanceKm: Math.round((gpx.distanceMeters / 1000) * 100) / 100,
-      avgHeartRate,
-      // date conservée (l'utilisateur peut l'avoir corrigée)
-      // perceivedEffort conservé (valeur manuelle)
-      // notes conservées (valeur manuelle)
-      sportMetrics: mergedSportMetrics,
-      gpxFilePath,
-    })
+
+    const profile = await this.userProfileRepository.findByUserId(userId)
+    const derived = deriveSessionFields(
+      {
+        durationMinutes,
+        distanceKm,
+        avgHeartRate,
+        perceivedEffort: existing.perceivedEffort,
+        sportMetrics,
+        sportSlug: existing.sportSlug,
+      },
+      profile,
+      this.loadCalculator
+    )
+
+    const gpxFilePath = await this.gpxFileStorage.saveFile(content, userId, sessionId)
+    try {
+      return await this.sessionRepository.update(sessionId, {
+        durationMinutes,
+        distanceKm,
+        avgHeartRate,
+        // date, effort perçu et notes conservés (valeurs manuelles)
+        sportMetrics: derived.sportMetrics,
+        gpxFilePath,
+        trainingLoad: derived.trainingLoad,
+        loadMethod: derived.loadMethod,
+      })
+    } catch (error) {
+      // Pas de fichier orphelin si la mise à jour échoue (sauf s'il remplaçait l'ancien)
+      if (existing.gpxFilePath !== gpxFilePath) await this.gpxFileStorage.deleteFile(gpxFilePath)
+      throw error
+    }
   }
 }

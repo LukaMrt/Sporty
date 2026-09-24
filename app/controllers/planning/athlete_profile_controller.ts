@@ -1,43 +1,48 @@
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import EstimateVdot from '#use_cases/planning/estimate_vdot'
-import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
-import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
-import { SessionRepository } from '#domain/interfaces/session_repository'
+import ConfirmVdot from '#use_cases/planning/confirm_vdot'
+import GetProfile from '#use_cases/profile/get_profile'
+import UpdateProfile from '#use_cases/profile/update_profile'
+import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
 import { derivePaceZones } from '#domain/services/vdot_calculator'
 import { BiologicalSex } from '#domain/value_objects/planning_types'
+import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 import {
   confirmVdotValidator,
   updateAthleteProfileValidator,
   estimateVdotValidator,
 } from '#validators/planning/athlete_profile_validator'
 
+function toFitnessDto(fitness: FitnessProfile | null) {
+  return fitness
+    ? {
+        ctl: Math.round(fitness.chronicTrainingLoad),
+        atl: Math.round(fitness.acuteTrainingLoad),
+        tsb: Math.round(fitness.trainingStressBalance),
+        acwr: Math.round(fitness.acuteChronicWorkloadRatio * 100) / 100,
+      }
+    : null
+}
+
 @inject()
 export default class AthleteProfileController {
   constructor(
     private estimateVdotUseCase: EstimateVdot,
-    private userProfileRepository: UserProfileRepository,
-    private sessionRepository: SessionRepository,
-    private trainingLoadCalculator: TrainingLoadCalculator,
-    private fitnessProfileCalculator: FitnessProfileCalculator
+    private confirmVdotUseCase: ConfirmVdot,
+    private getProfile: GetProfile,
+    private updateProfileUseCase: UpdateProfile,
+    private getFitnessProfile: GetFitnessProfile
   ) {}
 
-  async show({ inertia, auth, session }: HttpContext) {
+  async show({ inertia, auth }: HttpContext) {
     const userId = auth.user!.id
-    const profile = await this.userProfileRepository.findByUserId(userId)
+    const [profile, fitness] = await Promise.all([
+      this.getProfile.execute(userId),
+      this.getFitnessProfile.execute(userId),
+    ])
 
-    // VDOT : priorité à la valeur confirmée en session, sinon estimation
-    const confirmedVdot: number | undefined = session.get('confirmedVdot') as number | undefined
-    let vdot: number | null = confirmedVdot ?? null
-    let paceZones = null
-    let fitnessProfile = null
-
-    if (vdot !== null) {
-      paceZones = derivePaceZones(vdot)
-    }
-    fitnessProfile = await this.#getFitnessProfile(userId, profile)
-
+    const vdot = profile?.vdot ?? null
     return inertia.render('Planning/AthleteProfile', {
       profile: profile
         ? {
@@ -50,21 +55,15 @@ export default class AthleteProfileController {
           }
         : null,
       vdot,
-      paceZones,
-      fitnessProfile: fitnessProfile
-        ? {
-            ctl: Math.round(fitnessProfile.chronicTrainingLoad),
-            atl: Math.round(fitnessProfile.acuteTrainingLoad),
-            tsb: Math.round(fitnessProfile.trainingStressBalance),
-            acwr: Math.round(fitnessProfile.acuteChronicWorkloadRatio * 100) / 100,
-          }
-        : null,
+      paceZones: vdot !== null ? derivePaceZones(vdot) : null,
+      fitnessProfile: toFitnessDto(fitness.profile),
+      // Transparence : combien de séances sont évaluées par FC, allure ou ressenti
+      loadMethods: fitness.methods,
     })
   }
 
   async estimateVdot({ request, response, auth }: HttpContext) {
     const data = await request.validateUsing(estimateVdotValidator)
-    const userId = auth.user!.id
 
     const questionnaire =
       data.frequency && data.experience && data.typical_distance
@@ -78,41 +77,31 @@ export default class AthleteProfileController {
     const recentPerformance =
       data.distance && data.time ? { distanceKm: data.distance, timeMinutes: data.time } : undefined
 
-    const manualVma = data.vma
-
     const result = await this.estimateVdotUseCase.execute(
-      userId,
+      auth.user!.id,
       questionnaire,
       recentPerformance,
-      manualVma
+      data.vma
     )
 
     return response.json({
       vdot: result.vdot,
       method: result.method,
       paceZones: result.paceZones,
-      fitnessProfile: result.fitnessProfile
-        ? {
-            ctl: Math.round(result.fitnessProfile.chronicTrainingLoad),
-            atl: Math.round(result.fitnessProfile.acuteTrainingLoad),
-            tsb: Math.round(result.fitnessProfile.trainingStressBalance),
-            acwr: Math.round(result.fitnessProfile.acuteChronicWorkloadRatio * 100) / 100,
-          }
-        : null,
+      fitnessProfile: toFitnessDto(result.fitnessProfile),
     })
   }
 
-  async confirmVdot({ request, response, session }: HttpContext) {
+  async confirmVdot({ request, response, auth }: HttpContext) {
     const { vdot } = await request.validateUsing(confirmVdotValidator)
-    session.put('confirmedVdot', vdot)
-    return response.json({ vdot, paceZones: derivePaceZones(vdot) })
+    return response.json(await this.confirmVdotUseCase.execute(auth.user!.id, vdot))
   }
 
   async updateProfile({ request, response, auth, session, i18n }: HttpContext) {
     const data = await request.validateUsing(updateAthleteProfileValidator)
-    const userId = auth.user!.id
 
-    await this.userProfileRepository.update(userId, {
+    // Via UpdateProfile : un changement de FC déclenche le recalcul des séances
+    await this.updateProfileUseCase.execute(auth.user!.id, {
       sex: data.sex ? (data.sex as BiologicalSex) : undefined,
       maxHeartRate: data.max_heart_rate ?? undefined,
       restingHeartRate: data.resting_heart_rate ?? undefined,
@@ -121,38 +110,5 @@ export default class AthleteProfileController {
 
     session.flash('success', i18n.t('profile.flash.updated'))
     return response.redirect().back()
-  }
-
-  async #getFitnessProfile(
-    userId: number,
-    profile: Awaited<ReturnType<UserProfileRepository['findByUserId']>>
-  ) {
-    try {
-      const allSessions = await this.sessionRepository.findByUserIdAndDateRange(
-        userId,
-        new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-        new Date().toISOString().slice(0, 10)
-      )
-      if (allSessions.length === 0) return null
-
-      const loadHistory = allSessions.map((s) => ({
-        date: s.date,
-        load: this.trainingLoadCalculator.calculate({
-          durationHours: s.durationMinutes / 60,
-          perceivedEffort: s.perceivedEffort ?? undefined,
-          avgPaceMPerMin:
-            s.distanceKm && s.durationMinutes > 0
-              ? (s.distanceKm * 1000) / s.durationMinutes
-              : undefined,
-          maxHR: profile?.maxHeartRate ?? undefined,
-          restHR: profile?.restingHeartRate ?? undefined,
-          sex: profile?.sex ?? undefined,
-        }),
-      }))
-
-      return this.fitnessProfileCalculator.calculate(loadHistory)
-    } catch {
-      return null
-    }
   }
 }

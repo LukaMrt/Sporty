@@ -10,6 +10,7 @@ import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
 import InactivityBanner from '~/components/planning/InactivityBanner'
 import RecalibrationDialog from '~/components/planning/RecalibrationDialog'
 import PostPlanProposal from '~/components/planning/PostPlanProposal'
+import { plannedSessionDate } from '../../../app/domain/services/planned_session_date'
 
 interface Props {
   overview: PlanOverview | null
@@ -19,16 +20,10 @@ interface Props {
 // Mon=1 … Sat=6, Sun=0 — displayed Mon→Sun
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
-/** Calcule la date réelle d'un jour dans une semaine du plan */
+/** Date réelle d'un jour dans une semaine du plan (même calcul que le backend) */
 function sessionDate(planStartDate: string, weekNumber: number, dayOfWeek: number): Date {
-  const start = new Date(planStartDate)
-  const weekStart = new Date(start)
-  weekStart.setDate(start.getDate() + (weekNumber - 1) * 7)
-  const startDow = weekStart.getDay()
-  const offset = (dayOfWeek - startDow + 7) % 7
-  const date = new Date(weekStart)
-  date.setDate(weekStart.getDate() + offset)
-  return date
+  // Minuit LOCAL : `new Date('YYYY-MM-DD')` serait minuit UTC (veille à l'ouest de Greenwich)
+  return new Date(`${plannedSessionDate(planStartDate, weekNumber, dayOfWeek)}T00:00:00`)
 }
 
 function isDateToday(d: Date) {

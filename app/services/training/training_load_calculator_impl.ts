@@ -44,8 +44,13 @@ function calculateTrImpExp(
  * Construit une courbe FC plate à lthr sur 1h (3600 secondes, 1 point/s).
  * Sert de référence pour la normalisation hrTSS.
  */
-function referenceTrImpExp1hAtLthr(maxHR: number, restHR: number, k: number): number {
-  const lthr = maxHR * LTHR_PCT_OF_MAX
+function referenceTrImpExp1hAtLthr(
+  maxHR: number,
+  restHR: number,
+  k: number,
+  lthrOverride?: number
+): number {
+  const lthr = lthrOverride ?? maxHR * LTHR_PCT_OF_MAX
   // 2 points suffisent pour une courbe plate (Δt = 3600s)
   const curve: DataPoint[] = [
     { time: 0, value: lthr },
@@ -93,8 +98,30 @@ export class TrainingLoadCalculatorImpl extends TrainingLoadCalculator {
       return this.#calcHrTss(input)
     }
 
-    // Branche 2 : rTSS (allure + VDOT disponibles)
-    if (input.avgPaceMPerMin !== undefined && input.vdot !== undefined) {
+    // Branche 1 bis : TRIMPexp mono-point (FC moyenne + durée, pas de courbe)
+    if (
+      input.avgHeartRate !== undefined &&
+      input.avgHeartRate > 0 &&
+      input.maxHR !== undefined &&
+      input.restHR !== undefined &&
+      input.durationHours > 0
+    ) {
+      const seconds = Math.round(input.durationHours * 3600)
+      return this.#calcHrTss({
+        ...input,
+        heartRateCurve: [
+          { time: 0, value: input.avgHeartRate },
+          { time: seconds, value: input.avgHeartRate },
+        ],
+      })
+    }
+
+    // Branche 2 : rTSS (allure + VDOT disponibles, course à pied uniquement)
+    if (
+      input.avgPaceMPerMin !== undefined &&
+      input.vdot !== undefined &&
+      input.isRunning !== false
+    ) {
       return this.#calcRtss(input)
     }
 
@@ -115,7 +142,7 @@ export class TrainingLoadCalculatorImpl extends TrainingLoadCalculator {
     const k = sex === 'female' ? K_FEMALE : K_MALE
 
     const trimpSession = calculateTrImpExp(heartRateCurve, maxHR, restHR, k)
-    const trimpRef = referenceTrImpExp1hAtLthr(maxHR, restHR, k)
+    const trimpRef = referenceTrImpExp1hAtLthr(maxHR, restHR, k, input.lthr)
 
     if (trimpRef === 0) return { value: 0, method: 'trimp_exp' }
 
@@ -134,10 +161,10 @@ export class TrainingLoadCalculatorImpl extends TrainingLoadCalculator {
   }
 
   #calcRpe(input: SessionLoadInput): TrainingLoad {
-    // Session RPE : effort × durée en minutes / facteur normalisation
-    // Coeff normalisation : 1h à effort 7/10 (seuil) = 100 TSS
-    // => coeff = 7 * 60 / 100 = 4.2
-    const RPE_NORM_COEFF = 4.2
+    // Session RPE : effort × durée en minutes / facteur normalisation.
+    // Le formulaire propose une échelle de 1 à 5 : le seuil correspond à ~3,5/5
+    // (7/10), donc 1h à 3,5/5 = 100 TSS => coeff = 3.5 * 60 / 100 = 2.1
+    const RPE_NORM_COEFF = 2.1
     const durationMinutes = input.durationHours * 60
     const value = ((input.perceivedEffort ?? 0) * durationMinutes) / RPE_NORM_COEFF
     return { value: Math.round(value * 10) / 10, method: 'rpe' }

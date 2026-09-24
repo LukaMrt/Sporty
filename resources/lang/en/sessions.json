@@ -141,5 +141,15 @@
     "notFound": "Session not found",
     "forbidden": "Session not found or access denied",
     "gpxEnriched": "Session enriched with GPX file"
+  },
+  "errors": {
+    "hr_order": "Min HR must be ≤ average HR ≤ max HR",
+    "elevation_negative": "Elevation cannot be negative"
+  },
+  "gpx": {
+    "errors": {
+      "invalid_format": "Invalid GPX format",
+      "no_trackpoints": "No track points found in the file"
+    }
   }
 }

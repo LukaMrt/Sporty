@@ -1,8 +1,8 @@
 import { inject } from '@adonisjs/core'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
-import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
+import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
+import { RUNNING_SLUG } from '#domain/services/session_load'
 import {
   calculateVdot,
   vdotFromHistory,
@@ -36,8 +36,7 @@ export default class EstimateVdot {
   constructor(
     private sessionRepository: SessionRepository,
     private userProfileRepository: UserProfileRepository,
-    private trainingLoadCalculator: TrainingLoadCalculator,
-    private fitnessProfileCalculator: FitnessProfileCalculator
+    private getFitnessProfile: GetFitnessProfile
   ) {}
 
   async execute(
@@ -86,7 +85,8 @@ export default class EstimateVdot {
         date >= sixWeeksAgo &&
         s.distanceKm !== null &&
         s.durationMinutes > 0 &&
-        s.sportId === profile?.sportId
+        // Course uniquement : l'allure d'un autre sport fausserait le VDOT
+        (s.sportSlug !== undefined ? s.sportSlug === RUNNING_SLUG : s.sportId === profile?.sportId)
       )
     })
 
@@ -140,34 +140,9 @@ export default class EstimateVdot {
 
   async #computeFitnessProfile(
     userId: number,
-    profile: Awaited<ReturnType<UserProfileRepository['findByUserId']>>
+    _profile: Awaited<ReturnType<UserProfileRepository['findByUserId']>>
   ): Promise<FitnessProfile | null> {
-    try {
-      const allSessions = await this.sessionRepository.findByUserIdAndDateRange(
-        userId,
-        new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-        new Date().toISOString().slice(0, 10)
-      )
-      if (allSessions.length === 0) return null
-
-      const loadHistory = allSessions.map((s) => ({
-        date: s.date,
-        load: this.trainingLoadCalculator.calculate({
-          durationHours: s.durationMinutes / 60,
-          perceivedEffort: s.perceivedEffort ?? undefined,
-          avgPaceMPerMin:
-            s.distanceKm && s.durationMinutes > 0
-              ? (s.distanceKm * 1000) / s.durationMinutes
-              : undefined,
-          maxHR: profile?.maxHeartRate ?? undefined,
-          restHR: profile?.restingHeartRate ?? undefined,
-          sex: profile?.sex ?? undefined,
-        }),
-      }))
-
-      return this.fitnessProfileCalculator.calculate(loadHistory)
-    } catch {
-      return null
-    }
+    const { profile } = await this.getFitnessProfile.execute(userId)
+    return profile
   }
 }

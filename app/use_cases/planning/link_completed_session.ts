@@ -1,6 +1,6 @@
 import { inject } from '@adonisjs/core'
-import emitter from '@adonisjs/core/services/emitter'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { EventEmitter } from '#domain/interfaces/event_emitter'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_found_error'
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
@@ -18,7 +18,8 @@ export interface LinkCompletedSessionInput {
 export default class LinkCompletedSession {
   constructor(
     private planRepository: TrainingPlanRepository,
-    private sessionRepository: SessionRepository
+    private sessionRepository: SessionRepository,
+    private eventEmitter: EventEmitter
   ) {}
 
   async execute(input: LinkCompletedSessionInput): Promise<PlannedSession> {
@@ -45,7 +46,7 @@ export default class LinkCompletedSession {
     })
 
     // 5. Émettre session:completed pour déclencher la mise à jour fitness + détection week:completed
-    await emitter.emit('session:completed', {
+    await this.eventEmitter.emit('session:completed', {
       sessionId: input.completedSessionId,
       userId: input.userId,
     })

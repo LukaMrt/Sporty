@@ -6,6 +6,8 @@ import ListSports from '#use_cases/sports/list_sports'
 import { updateProfileValidator } from '#validators/profile/update_profile_validator'
 import type { UserPreferences } from '#domain/entities/user_preferences'
 import { UserLevel, UserObjective } from '#domain/entities/user_profile'
+import { InvalidHeartRateZonesError } from '#domain/errors/invalid_heart_rate_zones_error'
+import type { HrZonesConfig, ZoneBoundsBpm } from '#domain/value_objects/heart_rate_zones_config'
 
 @inject()
 export default class ProfileController {
@@ -32,6 +34,9 @@ export default class ProfileController {
             maxHeartRate: profile.maxHeartRate,
             restingHeartRate: profile.restingHeartRate,
             vma: profile.vma,
+            sex: profile.sex,
+            timezone: profile.timezone ?? null,
+            hrZonesConfig: profile.hrZonesConfig ?? null,
           }
         : null,
       sports: sports.map((s) => ({ id: s.id, name: s.name })),
@@ -41,6 +46,7 @@ export default class ProfileController {
   async update({ request, response, session, auth, i18n }: HttpContext) {
     const data = await request.validateUsing(updateProfileValidator, {
       meta: { userId: auth.user!.id },
+      messagesProvider: i18n.createMessagesProvider(),
     })
 
     const preferences: Partial<UserPreferences> = {}
@@ -61,17 +67,39 @@ export default class ProfileController {
         ? { ...currentProfile.preferences, ...preferences }
         : undefined
 
-    await this.updateProfile.execute(auth.user!.id, {
-      fullName: data.full_name,
-      email: data.email,
-      sportId: data.sport_id,
-      level: data.level as UserLevel | undefined,
-      objective: data.objective as UserObjective | null | undefined,
-      preferences: mergedPreferences,
-      maxHeartRate: data.max_heart_rate,
-      restingHeartRate: data.resting_heart_rate,
-      vma: data.vma,
-    })
+    let hrZonesConfig: HrZonesConfig | null | undefined
+    if (data.hr_zones_method !== undefined) {
+      hrZonesConfig =
+        data.hr_zones_method === 'auto' && !data.lthr
+          ? null
+          : {
+              method: data.hr_zones_method,
+              lthr: data.lthr ?? null,
+              customBoundsBpm: (data.hr_zones_custom_bounds as ZoneBoundsBpm | null) ?? null,
+            }
+    }
+
+    try {
+      await this.updateProfile.execute(auth.user!.id, {
+        fullName: data.full_name,
+        email: data.email,
+        sportId: data.sport_id,
+        level: data.level as UserLevel | undefined,
+        objective: data.objective as UserObjective | null | undefined,
+        preferences: mergedPreferences,
+        maxHeartRate: data.max_heart_rate,
+        restingHeartRate: data.resting_heart_rate,
+        vma: data.vma,
+        hrZonesConfig,
+        timezone: data.timezone,
+      })
+    } catch (error) {
+      if (error instanceof InvalidHeartRateZonesError) {
+        session.flashErrors({ hr_zones_method: i18n.t(error.i18nKey) })
+        return response.redirect().back()
+      }
+      throw error
+    }
 
     session.flash('success', i18n.t('profile.flash.updated'))
     return response.redirect().back()

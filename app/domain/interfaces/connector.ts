@@ -1,5 +1,6 @@
 import type { ConnectorStatus } from '#domain/value_objects/connector_status'
 import type { SportMetrics } from '#domain/value_objects/sport_metrics'
+import type { HrZonesConfig } from '#domain/value_objects/heart_rate_zones_config'
 
 export interface ConnectorTokens {
   accessToken: string
@@ -16,6 +17,8 @@ export interface SessionFilters {
 export interface MappingContext {
   maxHeartRate?: number
   restingHeartRate?: number
+  /** Zones choisies par l'athlète (absent = auto) */
+  hrZonesConfig?: HrZonesConfig
 }
 
 export interface MappedSessionSummary {
@@ -37,6 +40,8 @@ export interface MappedSessionData {
   importedFrom: string
   externalId: string
   sportMetrics: SportMetrics
+  /** Effort (1–5) fourni par la source, ex. score d'effort de la montre */
+  perceivedEffort?: number | null
 }
 
 export abstract class Connector {

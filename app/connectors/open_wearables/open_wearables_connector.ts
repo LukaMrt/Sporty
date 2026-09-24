@@ -9,11 +9,8 @@ import type {
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import type { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 import type { RunMetrics } from '#domain/value_objects/run_metrics'
-import {
-  calculateZones,
-  calculateDrift,
-  calculateTrimp,
-} from '#domain/services/heart_rate_zone_service'
+import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
+import logger from '@adonisjs/core/services/logger'
 import { computeAllureFromDistance } from '#connectors/pace'
 import type { SportySportSlug } from '#connectors/sport_slug'
 import {
@@ -21,13 +18,19 @@ import {
   type Fetcher,
 } from '#connectors/open_wearables/open_wearables_http_client'
 import { OpenWearablesSportMapper } from '#connectors/open_wearables/open_wearables_sport_mapper'
-import { dedupeWorkouts } from '#connectors/open_wearables/workout_deduplicator'
+import { dedupeWorkouts, isSameWorkout } from '#connectors/open_wearables/workout_deduplicator'
 import { toHeartRateCurve } from '#connectors/open_wearables/timeseries_converter'
 import {
   encodeExternalId,
   decodeExternalId,
 } from '#connectors/open_wearables/open_wearables_external_id'
 import type { RawOwWorkout, RawOwTimeSeriesSample } from '#connectors/open_wearables/types'
+import { MAX_PAGE_SIZE } from '#connectors/open_wearables/open_wearables_http_client'
+
+/** Pas d'échantillonnage le plus fin supposé (montre à 1 Hz) */
+const MIN_SAMPLE_PERIOD_SECONDS = 1
+/** Pages de marge au-delà de l'estimation (pauses, doublons de sources) */
+const TIMESERIES_PAGE_MARGIN = 5
 
 export const IMPORTED_FROM = 'open-wearables'
 
@@ -43,6 +46,11 @@ export class OpenWearablesConnector extends Connector {
   readonly id: number
   readonly #sportMapper = new OpenWearablesSportMapper()
   readonly #client: OpenWearablesHttpClient
+  /**
+   * Workouts déjà téléchargés, par fenêtre de 3 jours. Une instance sert un lot
+   * d'import : les séances d'une même journée ne re-téléchargent plus la liste.
+   */
+  readonly #workoutsByWindow = new Map<string, Promise<RawOwWorkout[]>>()
 
   constructor(
     connectorId: number,
@@ -87,10 +95,17 @@ export class OpenWearablesConnector extends Connector {
     // puis on la retrouve par (instant, type). Le filtre est a la journee et
     // end_date est exclusif.
     const day = new Date(decoded.startUtc)
-    const workouts = await this.#fetchWorkouts(addDays(day, -1), addDays(day, 1))
-    const target = dedupeWorkouts(workouts).find(
-      (w) =>
-        new Date(w.start_time).getTime() === decoded.startUtc.getTime() && w.type === decoded.type
+    const windowKey = toDateParam(day)
+    let pending = this.#workoutsByWindow.get(windowKey)
+    if (!pending) {
+      pending = this.#fetchWorkouts(addDays(day, -1), addDays(day, 1))
+      // En cas d'échec, ne pas garder la promesse rejetée en cache
+      pending.catch(() => this.#workoutsByWindow.delete(windowKey))
+      this.#workoutsByWindow.set(windowKey, pending)
+    }
+    const workouts = await pending
+    const target = dedupeWorkouts(workouts).find((w) =>
+      isSameWorkout(w, { start_time: decoded.startUtc.toISOString(), type: decoded.type })
     )
 
     if (!target) {
@@ -104,8 +119,12 @@ export class OpenWearablesConnector extends Connector {
     try {
       await this.#client.get<unknown>(`/users/${this.externalUserId}/connections`)
       return ConnectorStatus.Connected
-    } catch {
-      return ConnectorStatus.Error
+    } catch (error) {
+      // Seule une clé refusée (401/403) est un état d'erreur ; un serveur
+      // indisponible ou un timeout ne doit pas afficher le connecteur comme cassé
+      if (error instanceof ConnectorAuthError) return ConnectorStatus.Error
+      logger.warn({ err: error, connectorId: this.id }, 'Open Wearables status check failed')
+      return ConnectorStatus.Connected
     }
   }
 
@@ -142,36 +161,50 @@ export class OpenWearablesConnector extends Connector {
     const sportSlug = this.#sportMapper.map(workout.type)
     const durationMinutes = Math.round(workout.duration_seconds / 60)
 
-    const metrics: RunMetrics = {
+    // Métriques communes à tous les sports ; les champs spécifiques à la course
+    // (courbe FC…) sont optionnels dans RunMetrics.
+    const metrics: RunMetrics & Record<string, unknown> = {
       allure: computeAllureFromDistance(
         workout.distance_meters,
         workout.duration_seconds,
         sportSlug
       ),
       calories: workout.calories_kcal,
-      elevationGain: workout.elevation_gain_meters,
-      maxHeartRate: workout.max_heart_rate_bpm,
+      elevationGain: workout.elevation_gain_meters ?? undefined,
+      maxHeartRate: workout.max_heart_rate_bpm ?? undefined,
       deviceName: workout.source?.device_name ?? null,
-    } as RunMetrics
+      subType: this.#sportMapper.subType(workout.type),
+    }
 
     // Degradation gracieuse : sans FC la seance reste importable.
     try {
-      const curve = await this.#fetchHeartRateCurve(workout)
+      const { curve, truncated } = await this.#fetchHeartRateCurve(workout)
       if (curve.length > 0) {
         metrics.heartRateCurve = curve
         metrics.minHeartRate = Math.min(...curve.map((p) => p.value))
         metrics.maxHeartRate = workout.max_heart_rate_bpm ?? Math.max(...curve.map((p) => p.value))
-
-        if (context?.maxHeartRate) {
-          const hrZones = calculateZones(context.maxHeartRate, curve, context.restingHeartRate)
-          metrics.hrZones = hrZones
-          metrics.cardiacDrift = calculateDrift(curve)
-          metrics.trimp = calculateTrimp(durationMinutes, hrZones)
-        }
       }
-    } catch {
-      // Timeseries indisponibles : on garde la seance sans enrichissement.
+      if (truncated) {
+        metrics.heartRateCurveTruncated = true
+        logger.warn(
+          {
+            connectorId: this.id,
+            workoutId: workout.id,
+            durationSeconds: workout.duration_seconds,
+          },
+          'Open Wearables heart rate curve truncated'
+        )
+      }
+    } catch (error) {
+      if (error instanceof ConnectorAuthError) throw error
+      logger.warn(
+        { err: error, connectorId: this.id, workoutId: workout.id },
+        'Open Wearables timeseries unavailable, importing without curve'
+      )
     }
+
+    // Zones, dérive et TRIMP sont calculés à l'écriture avec les zones de l'athlète
+    void context
 
     return {
       sportSlug,
@@ -188,15 +221,26 @@ export class OpenWearablesConnector extends Connector {
   }
 
   async #fetchHeartRateCurve(workout: RawOwWorkout) {
-    const samples = await this.#client.getAllPages<RawOwTimeSeriesSample>(
-      `/users/${this.externalUserId}/timeseries`,
-      {
-        start_time: new Date(workout.start_time).toISOString(),
-        end_time: new Date(workout.end_time).toISOString(),
-        types: ['heart_rate'],
-      }
+    // Plafond calculé selon la durée : une séance de 2 h à 1 Hz dépasse largement
+    // les 50 pages par défaut, ce qui tronquait la courbe sans prévenir.
+    const expectedSamples = Math.ceil(
+      Math.max(workout.duration_seconds, 0) / MIN_SAMPLE_PERIOD_SECONDS
     )
-    return toHeartRateCurve(samples, workout.start_time, workout.duration_seconds)
+    const maxPages = Math.ceil(expectedSamples / MAX_PAGE_SIZE) + TIMESERIES_PAGE_MARGIN
+    const { data: samples, truncated } =
+      await this.#client.getAllPagesWithMeta<RawOwTimeSeriesSample>(
+        `/users/${this.externalUserId}/timeseries`,
+        {
+          start_time: new Date(workout.start_time).toISOString(),
+          end_time: new Date(workout.end_time).toISOString(),
+          types: ['heart_rate'],
+        },
+        maxPages
+      )
+    return {
+      curve: toHeartRateCurve(samples, workout.start_time, workout.duration_seconds),
+      truncated,
+    }
   }
 
   #toKm(distanceMeters: number | null): number | null {

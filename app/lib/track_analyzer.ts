@@ -9,6 +9,11 @@ export interface RawTrackpoint {
   cad?: number
   /** Distance cumulée en mètres depuis le début (optionnel — fourni par Strava) */
   distanceCum?: number
+  /**
+   * Premier point d'un nouveau segment GPX (pause automatique de la montre) :
+   * ni la distance ni le temps écoulés depuis le point précédent ne sont comptés.
+   */
+  pausedBefore?: boolean
 }
 
 export interface TrackAnalysisResult {
@@ -37,7 +42,14 @@ export function analyze(points: RawTrackpoint[]): TrackAnalysisResult {
     ? (points[points.length - 1].distanceCum ?? computeTotalDistance(points))
     : computeTotalDistance(points)
 
-  const durationSeconds = Math.round((points[points.length - 1].timeMs - points[0].timeMs) / 1000)
+  // Temps en mouvement : les pauses entre segments ne comptent pas
+  let pausedMs = 0
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].pausedBefore) pausedMs += points[i].timeMs - points[i - 1].timeMs
+  }
+  const durationSeconds = Math.round(
+    (points[points.length - 1].timeMs - points[0].timeMs - pausedMs) / 1000
+  )
 
   const rawPace = computeRawPace(points)
   const smoothedPace = smoothPace(rawPace, points, 30)
@@ -120,6 +132,7 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
 function computeTotalDistance(points: RawTrackpoint[]): number {
   let total = 0
   for (let i = 1; i < points.length; i++) {
+    if (points[i].pausedBefore) continue
     total += haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon)
   }
   return total
@@ -128,6 +141,10 @@ function computeTotalDistance(points: RawTrackpoint[]): number {
 function computeRawPace(points: RawTrackpoint[]): number[] {
   const paces: number[] = [0]
   for (let i = 1; i < points.length; i++) {
+    if (points[i].pausedBefore) {
+      paces.push(0)
+      continue
+    }
     const dt = (points[i].timeMs - points[i - 1].timeMs) / 1000
     const dd = haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon)
     paces.push(dd > 0.5 ? (dt / dd) * 1000 : 0)
@@ -228,6 +245,7 @@ function computeElevation(points: RawTrackpoint[]): { gain: number; loss: number
 
   for (let i = 1; i < points.length; i++) {
     if (points[i].ele === undefined || points[i - 1].ele === undefined) continue
+    if (points[i].pausedBefore) continue
     const delta = (points[i].ele as number) - (points[i - 1].ele as number)
     if (delta > NOISE_THRESHOLD) gain += delta
     else if (delta < -NOISE_THRESHOLD) loss += Math.abs(delta)
@@ -244,9 +262,11 @@ function computeSplits(points: RawTrackpoint[], useDistanceCum: boolean): KmSpli
   let splitStartIdx = 0
 
   for (let i = 1; i < points.length; i++) {
-    const segDist = useDistanceCum
-      ? (points[i].distanceCum ?? 0) - (points[i - 1].distanceCum ?? 0)
-      : haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon)
+    const segDist = points[i].pausedBefore
+      ? 0
+      : useDistanceCum
+        ? (points[i].distanceCum ?? 0) - (points[i - 1].distanceCum ?? 0)
+        : haversine(points[i - 1].lat, points[i - 1].lon, points[i].lat, points[i].lon)
     cumDistance += segDist
 
     while (cumDistance >= currentKm * 1000) {

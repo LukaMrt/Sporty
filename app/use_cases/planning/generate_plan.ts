@@ -2,23 +2,20 @@ import { inject } from '@adonisjs/core'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { SessionRepository } from '#domain/interfaces/session_repository'
-import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
-import { FitnessProfileCalculator } from '#domain/interfaces/fitness_profile_calculator'
+import { UnitOfWork } from '#domain/interfaces/unit_of_work'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { ActivePlanExistsError } from '#domain/errors/active_plan_exists_error'
 import { NoActiveGoalError } from '#domain/errors/no_active_goal_error'
-import {
-  PlanStatus,
-  PlanType,
-  PlannedSessionStatus,
-  TrainingState,
-} from '#domain/value_objects/planning_types'
+import { PlanStatus, PlanType, TrainingState } from '#domain/value_objects/planning_types'
 import { derivePaceZones } from '#domain/services/vdot_calculator'
 import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import type { PlannedWeek } from '#domain/entities/planned_week'
 import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
+import { addDaysIso, dayOfWeekIso, todayInTimezone } from '#domain/services/calendar'
+import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
+import PlanPersister from '#use_cases/planning/plan_persister'
 
 export interface GeneratePlanInput {
   userId: number
@@ -61,22 +58,10 @@ function getPlanType(distanceKm: number): PlanType {
   return PlanType.Marathon
 }
 
-function addWeeks(dateIso: string, weeks: number): string {
-  const d = new Date(dateIso)
-  d.setDate(d.getDate() + weeks * 7)
-  return d.toISOString().slice(0, 10)
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function nextMondayIso(): string {
-  const d = new Date()
-  const day = d.getDay() // 0 = dimanche, 1 = lundi, ...
-  const daysUntilNextMonday = day === 0 ? 1 : 8 - day
-  d.setDate(d.getDate() + daysUntilNextMonday)
-  return d.toISOString().slice(0, 10)
+/** Lundi suivant `today` (jamais `today` lui-même) */
+function nextMonday(today: string): string {
+  const day = dayOfWeekIso(today) // 0 = dimanche, 1 = lundi, ...
+  return addDaysIso(today, day === 0 ? 1 : 8 - day)
 }
 
 @inject()
@@ -85,10 +70,11 @@ export default class GeneratePlan {
     private goalRepository: TrainingGoalRepository,
     private planRepository: TrainingPlanRepository,
     private sessionRepository: SessionRepository,
-    private loadCalculator: TrainingLoadCalculator,
-    private fitnessCalculator: FitnessProfileCalculator,
     private planEngine: TrainingPlanEngine,
-    private userProfileRepository: UserProfileRepository
+    private userProfileRepository: UserProfileRepository,
+    private getFitnessProfile: GetFitnessProfile,
+    private planPersister: PlanPersister,
+    private unitOfWork: UnitOfWork
   ) {}
 
   async execute(input: GeneratePlanInput): Promise<GeneratePlanResult> {
@@ -100,30 +86,17 @@ export default class GeneratePlan {
     const existingPlan = await this.planRepository.findActiveByUserId(input.userId)
     if (existingPlan) throw new ActivePlanExistsError()
 
-    // 3. Récupérer l'historique des 6 dernières semaines
-    const sixWeeksAgo = new Date(Date.now() - 6 * 7 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10)
-    const historySessions = await this.sessionRepository.findByUserIdAndDateRange(
+    // 3. Historique des 6 dernières semaines (volume) et état de forme
+    const profile = await this.userProfileRepository.findByUserId(input.userId)
+    const today = todayInTimezone(profile?.timezone)
+    const historySessions = await this.sessionRepository.findLoadEntries(
       input.userId,
-      sixWeeksAgo,
-      todayIso()
+      addDaysIso(today, -42),
+      today
     )
-
-    // 4. Calculer la charge pour chaque séance
-    const loadHistory = historySessions.map((s) => ({
-      date: s.date,
-      load: this.loadCalculator.calculate({
-        durationHours: s.durationMinutes / 60,
-        perceivedEffort: s.perceivedEffort ?? undefined,
-        avgPaceMPerMin: s.distanceKm ? (s.distanceKm * 1000) / s.durationMinutes : undefined,
-        vdot: input.vdot,
-      }),
-    }))
-
-    // 5. Calculer le profil de forme (CTL/ATL/TSB)
-    const fitnessProfile =
-      loadHistory.length > 0 ? this.fitnessCalculator.calculate(loadHistory) : null
+    const { profile: fitnessProfile } = await this.getFitnessProfile.execute(input.userId, {
+      asOf: today,
+    })
 
     // 6. Dériver les zones d'allure depuis le VDOT
     const paceZones = derivePaceZones(input.vdot)
@@ -149,7 +122,7 @@ export default class GeneratePlan {
     const effectiveVolume = Math.max(weeklyVolumeMinutes, minVolume)
 
     // 9. Assembler la PlanRequest
-    const startDate = nextMondayIso()
+    const startDate = nextMonday(today)
     const planRequest = {
       targetDistanceKm: goal.targetDistanceKm,
       targetTimeMinutes: goal.targetTimeMinutes,
@@ -166,64 +139,36 @@ export default class GeneratePlan {
     // 9. Générer le plan via le moteur
     const generatedPlan = this.planEngine.generatePlan(planRequest)
 
-    // 10. Persister le plan
-    const endDate = addWeeks(startDate, input.planDurationWeeks)
-    const plan = await this.planRepository.create({
-      userId: input.userId,
-      goalId: goal.id,
-      methodology: generatedPlan.methodology,
-      level: getPlanType(goal.targetDistanceKm),
-      status: PlanStatus.Active,
-      autoRecalibrate: true,
-      vdotAtCreation: input.vdot,
-      currentVdot: input.vdot,
-      sessionsPerWeek: input.sessionsPerWeek,
-      preferredDays: input.preferredDays,
-      startDate,
-      endDate,
-      lastRecalibratedAt: null,
-      pendingVdotDown: null,
-    })
-
-    // 11. Persister les semaines et séances
-    const savedWeeks: PlannedWeek[] = []
-    const savedSessions: PlannedSession[] = []
-
-    for (const week of generatedPlan.weeks) {
-      const savedWeek = await this.planRepository.createWeek({
-        planId: plan.id,
-        weekNumber: week.weekNumber,
-        phaseName: week.phaseName,
-        phaseLabel: week.phaseName,
-        isRecoveryWeek: week.isRecoveryWeek,
-        targetVolumeMinutes: week.targetVolumeMinutes,
+    // 10. Persister plan + semaines + séances + état d'entraînement, atomiquement
+    const endDate = addDaysIso(startDate, input.planDurationWeeks * 7)
+    const saved = await this.unitOfWork.run(async () => {
+      const result = await this.planPersister.createPlan(
+        {
+          userId: input.userId,
+          goalId: goal.id,
+          methodology: generatedPlan.methodology,
+          level: getPlanType(goal.targetDistanceKm),
+          status: PlanStatus.Active,
+          autoRecalibrate: true,
+          vdotAtCreation: input.vdot,
+          currentVdot: input.vdot,
+          sessionsPerWeek: input.sessionsPerWeek,
+          preferredDays: input.preferredDays,
+          startDate,
+          endDate,
+          lastRecalibratedAt: null,
+          pendingVdotDown: null,
+        },
+        generatedPlan.weeks
+      )
+      await this.userProfileRepository.update(input.userId, {
+        trainingState: TrainingState.Preparation,
+        // Le VDOT du plan devient la référence de l'athlète (charge rTSS, prédictions)
+        vdot: input.vdot,
       })
-      savedWeeks.push(savedWeek)
-
-      for (const session of week.sessions) {
-        const savedSession = await this.planRepository.createSession({
-          planId: plan.id,
-          weekNumber: week.weekNumber,
-          dayOfWeek: session.dayOfWeek,
-          sessionType: session.sessionType,
-          targetDurationMinutes: session.targetDurationMinutes,
-          targetDistanceKm: session.targetDistanceKm,
-          targetPacePerKm: session.targetPacePerKm,
-          intensityZone: session.intensityZone,
-          intervals: session.intervals,
-          targetLoadTss: null,
-          completedSessionId: null,
-          status: PlannedSessionStatus.Pending,
-        })
-        savedSessions.push(savedSession)
-      }
-    }
-
-    // 12. Mettre à jour le trainingState → 'preparation'
-    await this.userProfileRepository.update(input.userId, {
-      trainingState: TrainingState.Preparation,
+      return result
     })
 
-    return { plan, weeks: savedWeeks, sessions: savedSessions, fitnessProfile, volumeAdjusted }
+    return { ...saved, fitnessProfile, volumeAdjusted }
   }
 }

@@ -18,6 +18,11 @@ import { TrainingPlanRepository } from '#domain/interfaces/training_plan_reposit
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
 import { EventEmitter } from '#domain/interfaces/event_emitter'
 import { Logger } from '#domain/interfaces/logger'
+import { OAuthClient } from '#domain/interfaces/oauth_client'
+import { UnitOfWork } from '#domain/interfaces/unit_of_work'
+
+/** En-tête d'authentification Open Wearables par défaut (source unique) */
+const DEFAULT_OW_API_KEY_HEADER = 'X-Open-Wearables-API-Key'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -103,7 +108,7 @@ export default class AppProvider {
             connectorRepo,
             owRateLimiter,
             owBaseUrl,
-            env.get('OPEN_WEARABLES_API_KEY_HEADER') ?? 'X-Open-Wearables-API-Key'
+            env.get('OPEN_WEARABLES_API_KEY_HEADER') ?? DEFAULT_OW_API_KEY_HEADER
           ),
           rateLimiter: owRateLimiter,
         })
@@ -118,7 +123,7 @@ export default class AppProvider {
       const { default: env } = await import('#start/env')
       return new OpenWearablesApiKeyVerifier(
         env.get('OPEN_WEARABLES_BASE_URL') ?? '',
-        env.get('OPEN_WEARABLES_API_KEY_HEADER') ?? 'X-Open-Wearables-API-Key'
+        env.get('OPEN_WEARABLES_API_KEY_HEADER') ?? DEFAULT_OW_API_KEY_HEADER
       )
     })
 
@@ -131,6 +136,23 @@ export default class AppProvider {
       const { LocalGpxFileStorage } = await import('#services/local_gpx_file_storage')
       const { default: env } = await import('#start/env')
       return new LocalGpxFileStorage(env.get('STORAGE_PATH') ?? this.app.makePath('storage'))
+    })
+
+    // Un seul provider OAuth aujourd'hui (Strava) : le port est lié directement.
+    this.app.container.bind(OAuthClient, async () => {
+      const { StravaOAuthClient } = await import('#connectors/strava/strava_oauth_client')
+      const { default: env } = await import('#start/env')
+      const appUrl = env.get('APP_URL') ?? `http://${env.get('HOST')}:${env.get('PORT')}`
+      return new StravaOAuthClient(
+        env.get('STRAVA_CLIENT_ID'),
+        env.get('STRAVA_CLIENT_SECRET'),
+        appUrl
+      )
+    })
+
+    this.app.container.singleton(UnitOfWork, async () => {
+      const { LucidUnitOfWork } = await import('#services/lucid_unit_of_work')
+      return new LucidUnitOfWork()
     })
 
     this.app.container.singleton(Logger, async () => {
@@ -218,14 +240,31 @@ export default class AppProvider {
       }
     }
     await purge()
-    this.#purgeTimer = setInterval(() => void purge(), 6 * 60 * 60 * 1000)
-    this.#purgeTimer.unref()
+
+    // Clôture des semaines écoulées et fin des plans, même sans visite du planning
+    const { default: AdvancePlanLifecycle } =
+      await import('#use_cases/planning/advance_plan_lifecycle')
+    const advancePlans = async () => {
+      try {
+        const useCase = await this.app.container.make(AdvancePlanLifecycle)
+        await useCase.executeForAll()
+      } catch (error) {
+        logger.error({ err: error }, 'Plan lifecycle job failed')
+      }
+    }
+
+    // Tâches de maintenance : toutes les 6 h (idempotentes)
+    const everySixHours = 6 * 60 * 60 * 1000
+    this.#timers.push(setInterval(() => void purge(), everySixHours))
+    this.#timers.push(setInterval(() => void advancePlans(), everySixHours))
+    for (const timer of this.#timers) timer.unref()
+    void advancePlans()
   }
 
-  #purgeTimer: NodeJS.Timeout | null = null
+  #timers: NodeJS.Timeout[] = []
 
   async shutdown() {
-    if (this.#purgeTimer) clearInterval(this.#purgeTimer)
+    for (const timer of this.#timers) clearInterval(timer)
     if (!(await this.#schedulerEnabled())) return
     const scheduler = await this.app.container.make(ConnectorScheduler)
     scheduler.stop()

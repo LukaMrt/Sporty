@@ -24,6 +24,7 @@ export default class LucidConnectorRepository extends ConnectorRepository {
       provider: connector.provider,
       status: connector.status,
       autoImportEnabled: connector.autoImportEnabled,
+      lastSyncAt: connector.lastSyncAt?.toISO() ?? null,
     }
   }
 

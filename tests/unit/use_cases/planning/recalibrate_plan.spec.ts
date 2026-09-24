@@ -1,419 +1,151 @@
 import { test } from '@japa/runner'
 import RecalibratePlan from '#use_cases/planning/recalibrate_plan'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
-import { SessionRepository } from '#domain/interfaces/session_repository'
-import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
-import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
-import { EventEmitter } from '#domain/interfaces/event_emitter'
+import PlanRecalibrator from '#use_cases/planning/plan_recalibrator'
+import PlanPersister from '#use_cases/planning/plan_persister'
 import {
-  PlanStatus,
-  PlanType,
-  PlannedSessionStatus,
-  SessionType,
-  IntensityZone,
-  TrainingMethodology,
-} from '#domain/value_objects/planning_types'
-import type { TrainingPlan } from '#domain/entities/training_plan'
-import type { PlannedSession } from '#domain/entities/planned_session'
-import type { PlannedWeek } from '#domain/entities/planned_week'
-import type { TrainingSession } from '#domain/entities/training_session'
-import type { PaginatedResult } from '#domain/entities/pagination'
-import type { GeneratedPlan } from '#domain/interfaces/training_plan_engine'
-import type { WeekSummary } from '#use_cases/planning/recalibrate_plan'
+  EchoPlanEngine,
+  ImmediateUnitOfWork,
+  InMemoryPlanRepo,
+  InMemorySessionRepo,
+  RecordingEventEmitter,
+  StaticGoalRepo,
+} from '#tests/helpers/base_mocks'
+import { PlannedSessionStatus, SessionType } from '#domain/value_objects/planning_types'
+import type { WeekSummary } from '#domain/value_objects/week_summary'
+import { calculateVdot } from '#domain/services/vdot_calculator'
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
-
-const ACTIVE_PLAN: TrainingPlan = {
-  id: 1,
-  userId: 1,
-  goalId: 1,
-  methodology: TrainingMethodology.Daniels,
-  level: PlanType.Marathon,
-  status: PlanStatus.Active,
-  autoRecalibrate: true,
-  vdotAtCreation: 45,
-  currentVdot: 45,
-  sessionsPerWeek: 4,
-  preferredDays: [1, 3, 5, 6],
-  startDate: '2026-01-01',
-  endDate: '2026-06-01',
-  lastRecalibratedAt: null,
-  pendingVdotDown: null,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+async function setup(options: { autoRecalibrate?: boolean; sessionType?: SessionType } = {}) {
+  const plans = new InMemoryPlanRepo()
+  const sessions = new InMemorySessionRepo()
+  const engine = new EchoPlanEngine()
+  const emitter = new RecordingEventEmitter()
+  const plan = await plans.seedPlan({
+    startDate: '2026-01-05',
+    weeks: 4,
+    sessionType: options.sessionType ?? SessionType.Tempo,
+    autoRecalibrate: options.autoRecalibrate,
+  })
+  const useCase = new RecalibratePlan(
+    plans,
+    sessions,
+    new PlanRecalibrator(plans, new StaticGoalRepo(), engine, new PlanPersister(plans)),
+    new ImmediateUnitOfWork(),
+    emitter
+  )
+  return { plans, sessions, engine, emitter, plan, useCase }
 }
 
-const WEEK_SUMMARY_WITHIN_THRESHOLD: WeekSummary = {
-  weekNumber: 2,
-  plannedLoadTss: 100,
-  actualLoadTss: 105, // +5 % → sous le seuil de 10 %
-  qualitySessions: [],
-}
-
-const WEEK_SUMMARY_MODERATE_OVERSHOOT: WeekSummary = {
-  weekNumber: 2,
-  plannedLoadTss: 100,
-  actualLoadTss: 115, // +15 % → ajustement allures
-  qualitySessions: [{ sessionType: SessionType.Tempo, actualTss: 30, plannedTss: 25 }],
-}
-
-const WEEK_SUMMARY_UNDERSHOOT: WeekSummary = {
-  weekNumber: 2,
-  plannedLoadTss: 100,
-  actualLoadTss: 70, // -30 % → réduction charge
-  qualitySessions: [],
-}
-
-// ── Mocks ─────────────────────────────────────────────────────────────────────
-
-function makePlanRepo(
-  plan: TrainingPlan | null,
-  sessions: PlannedSession[] = [],
-  weeks: PlannedWeek[] = []
-): TrainingPlanRepository & {
-  updatedWith: Partial<TrainingPlan> | null
-  deletedFromWeek: number | null
-} {
-  let updatedWith: Partial<TrainingPlan> | null = null
-  let deletedFromWeek: number | null = null
-
-  class MockPlanRepo extends TrainingPlanRepository {
-    async create(): Promise<TrainingPlan> {
-      throw new Error('not implemented')
-    }
-    async findById(): Promise<TrainingPlan | null> {
-      return plan
-    }
-    async findByUserId(): Promise<TrainingPlan[]> {
-      return plan ? [plan] : []
-    }
-    async findActiveByUserId(): Promise<TrainingPlan | null> {
-      return plan
-    }
-    async findActiveByGoalId(): Promise<TrainingPlan | null> {
-      return plan
-    }
-    async update(_id: number, data: Partial<TrainingPlan>): Promise<TrainingPlan> {
-      updatedWith = data
-      return { ...ACTIVE_PLAN, ...data }
-    }
-    async delete(): Promise<void> {}
-    async createWeek(): Promise<PlannedWeek> {
-      throw new Error('not implemented')
-    }
-    async findWeeksByPlanId(): Promise<PlannedWeek[]> {
-      return weeks
-    }
-    async createSession(): Promise<PlannedSession> {
-      throw new Error('not implemented')
-    }
-    async findSessionById(): Promise<PlannedSession | null> {
-      return null
-    }
-    async findSessionsByPlanId(): Promise<PlannedSession[]> {
-      return sessions
-    }
-    async updateSession(): Promise<PlannedSession> {
-      throw new Error('not implemented')
-    }
-    async deleteSessionsFromWeek(_planId: number, fromWeek: number): Promise<void> {
-      deletedFromWeek = fromWeek
-    }
-  }
-
-  const repo = new MockPlanRepo()
-  Object.defineProperty(repo, 'updatedWith', { get: () => updatedWith })
-  Object.defineProperty(repo, 'deletedFromWeek', { get: () => deletedFromWeek })
-  return repo as unknown as TrainingPlanRepository & {
-    updatedWith: Partial<TrainingPlan> | null
-    deletedFromWeek: number | null
-  }
-}
-
-function makeSessionRepo(sessions: TrainingSession[] = []): SessionRepository {
-  class MockSessionRepo extends SessionRepository {
-    async create(): Promise<TrainingSession> {
-      throw new Error('not implemented')
-    }
-    async findAllByUserId(): Promise<PaginatedResult<TrainingSession>> {
-      return { data: [], meta: { page: 1, lastPage: 1, perPage: 100, total: 0 } }
-    }
-    async findById(): Promise<TrainingSession | null> {
-      return null
-    }
-    async findByIdIncludingTrashed(): Promise<TrainingSession | null> {
-      return null
-    }
-    async update(): Promise<TrainingSession> {
-      throw new Error('not implemented')
-    }
-    async findTrashedByUserId(): Promise<TrainingSession[]> {
-      return []
-    }
-    async softDelete(): Promise<void> {}
-    async restore(): Promise<void> {}
-    async findByUserIdAndDateRange(): Promise<TrainingSession[]> {
-      return sessions
-    }
-    async findByUserAndExternalIds(): Promise<{ externalId: string; id: number }[]> {
-      return []
-    }
-    async forceDelete(): Promise<void> {}
-  }
-  return new MockSessionRepo()
-}
-
-function makeGoalRepo(): TrainingGoalRepository {
-  class MockGoalRepo extends TrainingGoalRepository {
-    async create(): ReturnType<TrainingGoalRepository['create']> {
-      throw new Error('not implemented')
-    }
-    async findById(): ReturnType<TrainingGoalRepository['findById']> {
-      return null
-    }
-    async findByUserId(): ReturnType<TrainingGoalRepository['findByUserId']> {
-      return []
-    }
-    async findActiveByUserId(): ReturnType<TrainingGoalRepository['findActiveByUserId']> {
-      return null
-    }
-    async update(): ReturnType<TrainingGoalRepository['update']> {
-      throw new Error('not implemented')
-    }
-    async delete(): Promise<void> {}
-  }
-  return new MockGoalRepo()
-}
-
-function makeEventEmitter(): EventEmitter {
-  class MockEventEmitter extends EventEmitter {
-    async emit(): Promise<void> {}
-  }
-  return new MockEventEmitter()
-}
-
-function makePlanEngine(): TrainingPlanEngine {
-  const EMPTY_PLAN: GeneratedPlan = {
-    weeks: [],
-    methodology: TrainingMethodology.Daniels,
-    totalWeeks: 0,
-  }
-  class MockPlanEngine extends TrainingPlanEngine {
-    generatePlan() {
-      return EMPTY_PLAN
-    }
-    recalibrate() {
-      return EMPTY_PLAN
-    }
-    generateMaintenancePlan() {
-      return EMPTY_PLAN
-    }
-    generateTransitionPlan() {
-      return EMPTY_PLAN
-    }
-  }
-  return new MockPlanEngine()
-}
-
-// ── Tests ─────────────────────────────────────────────────────────────────────
+const summary = (planned: number, actual: number, quality = true): WeekSummary => ({
+  weekNumber: 1,
+  plannedLoadTss: planned,
+  actualLoadTss: actual,
+  qualitySessions: quality
+    ? [{ sessionType: 'tempo', actualTss: actual, plannedTss: planned }]
+    : [],
+})
 
 test.group('RecalibratePlan', () => {
   test('ne fait rien si autoRecalibrate === false', async ({ assert }) => {
-    const planRepo = makePlanRepo({ ...ACTIVE_PLAN, autoRecalibrate: false })
-    const useCase = new RecalibratePlan(
-      planRepo,
-      makeSessionRepo(),
-      makeGoalRepo(),
-      makePlanEngine(),
-      makeEventEmitter()
-    )
-
-    await useCase.execute(1, WEEK_SUMMARY_MODERATE_OVERSHOOT)
-
-    assert.isNull(planRepo.updatedWith)
+    const { useCase, engine } = await setup({ autoRecalibrate: false })
+    await useCase.execute(1, summary(100, 200))
+    assert.lengthOf(engine.recalibrations, 0)
   })
 
   test('ne fait rien si delta < ±10 %', async ({ assert }) => {
-    const planRepo = makePlanRepo(ACTIVE_PLAN)
-    const useCase = new RecalibratePlan(
-      planRepo,
-      makeSessionRepo(),
-      makeGoalRepo(),
-      makePlanEngine(),
-      makeEventEmitter()
-    )
-
-    await useCase.execute(1, WEEK_SUMMARY_WITHIN_THRESHOLD)
-
-    assert.isNull(planRepo.updatedWith)
+    const { useCase, engine } = await setup()
+    await useCase.execute(1, summary(100, 105))
+    assert.lengthOf(engine.recalibrations, 0)
   })
 
-  test('met à jour le plan si delta > +20 % avec séances qualité', async ({ assert }) => {
-    // Session semaine 3 (future) pour que le use case ne retourne pas tôt
-    const futureSessions: PlannedSession[] = [
-      {
-        id: 99,
-        planId: 1,
-        weekNumber: 3,
-        dayOfWeek: 2,
-        sessionType: SessionType.Easy,
-        targetDurationMinutes: 45,
-        targetDistanceKm: null,
-        targetPacePerKm: null,
-        intensityZone: IntensityZone.Z2,
-        intervals: null,
-        targetLoadTss: 40,
-        completedSessionId: null,
-        status: PlannedSessionStatus.Pending,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ]
-    const futureWeeks: PlannedWeek[] = [
-      {
-        id: 3,
-        planId: 1,
-        weekNumber: 3,
-        phaseName: 'FI',
-        phaseLabel: 'Foundation',
-        isRecoveryWeek: false,
-        targetVolumeMinutes: 180,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ]
-    const planRepo = makePlanRepo(ACTIVE_PLAN, futureSessions, futureWeeks)
-    const useCase = new RecalibratePlan(
-      planRepo,
-      makeSessionRepo(),
-      makeGoalRepo(),
-      makePlanEngine(),
-      makeEventEmitter()
-    )
-
-    const highOvershoot: WeekSummary = {
-      weekNumber: 2,
-      plannedLoadTss: 100,
-      actualLoadTss: 130, // +30 %
-      qualitySessions: [{ sessionType: SessionType.Interval, actualTss: 40, plannedTss: 30 }],
-    }
-
-    await useCase.execute(1, highOvershoot)
-
-    // Le plan doit être mis à jour (lastRecalibratedAt)
-    assert.isNotNull(planRepo.updatedWith)
+  test('ne fait rien sans plan actif', async ({ assert }) => {
+    const { useCase, engine } = await setup()
+    await useCase.execute(99, summary(100, 200))
+    assert.lengthOf(engine.recalibrations, 0)
   })
 
-  test('réduit la charge si delta > -20 %', async ({ assert }) => {
-    const futureSessions: PlannedSession[] = [
-      {
-        id: 99,
-        planId: 1,
-        weekNumber: 3,
-        dayOfWeek: 2,
-        sessionType: SessionType.Easy,
-        targetDurationMinutes: 45,
-        targetDistanceKm: null,
-        targetPacePerKm: null,
-        intensityZone: IntensityZone.Z2,
-        intervals: null,
-        targetLoadTss: 40,
-        completedSessionId: null,
-        status: PlannedSessionStatus.Pending,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ]
-    const futureWeeks: PlannedWeek[] = [
-      {
-        id: 3,
-        planId: 1,
-        weekNumber: 3,
-        phaseName: 'FI',
-        phaseLabel: 'Foundation',
-        isRecoveryWeek: false,
-        targetVolumeMinutes: 180,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ]
-    const planRepo = makePlanRepo(ACTIVE_PLAN, futureSessions, futureWeeks)
-    const useCase = new RecalibratePlan(
-      planRepo,
-      makeSessionRepo(),
-      makeGoalRepo(),
-      makePlanEngine(),
-      makeEventEmitter()
-    )
+  test('delta < −20 % → semaines suivantes régénérées avec 85 % du volume', async ({ assert }) => {
+    const { useCase, engine } = await setup()
+    await useCase.execute(1, summary(100, 70, false))
 
-    await useCase.execute(1, WEEK_SUMMARY_UNDERSHOOT)
-
-    assert.isNotNull(planRepo.updatedWith)
+    assert.lengthOf(engine.recalibrations, 1)
+    const ctx = engine.recalibrations[0]
+    assert.equal(ctx.remainingWeeks[0].weekNumber, 2)
+    assert.equal(ctx.remainingWeeks[0].targetVolumeMinutes, Math.round(180 * 0.85))
   })
 
-  test('ne recalibre pas si pas de plan actif', async ({ assert }) => {
-    const planRepo = makePlanRepo(null)
-    const useCase = new RecalibratePlan(
-      planRepo,
-      makeSessionRepo(),
-      makeGoalRepo(),
-      makePlanEngine(),
-      makeEventEmitter()
-    )
-
-    await useCase.execute(1, WEEK_SUMMARY_MODERATE_OVERSHOOT)
-
-    assert.isNull(planRepo.updatedWith)
+  test('delta entre −10 % et −20 % → régénération sans réduction de volume', async ({ assert }) => {
+    const { useCase, engine } = await setup()
+    await useCase.execute(1, summary(100, 85, false))
+    assert.equal(engine.recalibrations[0].remainingWeeks[0].targetVolumeMinutes, 180)
   })
 
-  test('crée une proposition de baisse VDOT après 3 séances qualité sous cibles', async ({
+  test('hausse de VDOT estimée sur la séance qualité de course liée (sa propre distance)', async ({
     assert,
   }) => {
-    // Simuler 3 semaines de séances qualité complétées mais qui n'ont pas atteint les cibles
-    const sessions: PlannedSession[] = [1, 2, 3].flatMap((week) => [
-      {
-        id: week * 10,
-        planId: 1,
-        weekNumber: week,
-        dayOfWeek: 2,
-        sessionType: SessionType.Tempo,
-        targetDurationMinutes: 60,
-        targetDistanceKm: null,
-        targetPacePerKm: null,
-        intensityZone: IntensityZone.Z4,
-        intervals: null,
-        targetLoadTss: 50,
-        completedSessionId: week * 100,
+    const { useCase, plans, sessions, emitter, plan } = await setup()
+    const quality = plans.sessions.find((s) => s.weekNumber === 1)!
+    sessions.add({ id: 50, date: '2026-01-06', distanceKm: 10, durationMinutes: 38 })
+    await plans.updateSession(quality.id, {
+      completedSessionId: 50,
+      status: PlannedSessionStatus.Completed,
+    })
+
+    await useCase.execute(1, summary(100, 130))
+
+    const expected = Math.round(calculateVdot(10_000, 38) * 2) / 2
+    assert.equal((await plans.findById(plan.id))!.currentVdot, expected)
+    assert.equal(emitter.events[0]?.event, 'plan:vdot_increased')
+  })
+
+  test('une sortie vélo liée ne fait jamais monter le VDOT', async ({ assert }) => {
+    const { useCase, plans, sessions, plan } = await setup()
+    const quality = plans.sessions.find((s) => s.weekNumber === 1)!
+    sessions.add({
+      id: 51,
+      date: '2026-01-06',
+      distanceKm: 30,
+      durationMinutes: 60,
+      sportSlug: 'cycling',
+    })
+    await plans.updateSession(quality.id, {
+      completedSessionId: 51,
+      status: PlannedSessionStatus.Completed,
+    })
+
+    await useCase.execute(1, summary(100, 130))
+
+    assert.equal((await plans.findById(plan.id))!.currentVdot, 45)
+  })
+
+  test('3 séances qualité consécutives sous cible → proposition de baisse', async ({ assert }) => {
+    const { useCase, plans, sessions, plan, engine } = await setup()
+    const week1 = plans.sessions.filter((s) => s.weekNumber === 1)
+    for (const [i, ps] of week1.entries()) {
+      sessions.add({ id: 60 + i, date: '2026-01-06', durationMinutes: 30 })
+      await plans.updateSession(ps.id, {
+        completedSessionId: 60 + i,
         status: PlannedSessionStatus.Completed,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ])
-
-    const planRepo = makePlanRepo(ACTIVE_PLAN, sessions)
-    const useCase = new RecalibratePlan(
-      planRepo,
-      makeSessionRepo(),
-      makeGoalRepo(),
-      makePlanEngine(),
-      makeEventEmitter()
-    )
-
-    // Semaine courante = 3, pas de sous-performance marquée sur le delta global
-    // mais les séances qualité des 3 dernières semaines sont complétées (doit déclencher check)
-    const weekSummary: WeekSummary = {
-      weekNumber: 3,
-      plannedLoadTss: 100,
-      actualLoadTss: 115, // +15 % → dans la plage modérée
-      qualitySessions: [{ sessionType: SessionType.Tempo, actualTss: 20, plannedTss: 50 }],
+      })
     }
 
-    await useCase.execute(1, weekSummary)
+    await useCase.execute(1, summary(100, 60))
 
-    // Chaque séance qualité a completedSessionId non nul mais recentSessions est vide
-    // → la session liée est introuvable → détectée comme sous-cible pour les 3 semaines
-    // → pendingVdotDown doit être créé (currentVdot - 2 = 43)
-    assert.isNotNull(planRepo.updatedWith)
-    assert.equal(planRepo.updatedWith?.pendingVdotDown, 43)
+    assert.equal((await plans.findById(plan.id))!.pendingVdotDown, 43)
+    assert.lengthOf(engine.recalibrations, 0)
+  })
+
+  test('séance qualité manquée (skipped) reportée sur un jour libre de la semaine suivante', async ({
+    assert,
+  }) => {
+    const { useCase, plans } = await setup()
+    const missed = plans.sessions.find((s) => s.weekNumber === 1)!
+    await plans.updateSession(missed.id, { status: PlannedSessionStatus.Skipped })
+
+    await useCase.execute(1, summary(100, 100))
+
+    const moved = await plans.findSessionById(missed.id)
+    assert.equal(moved!.weekNumber, 2)
+    assert.equal(moved!.status, PlannedSessionStatus.Pending)
+    assert.notInclude([2, 4, 6], moved!.dayOfWeek)
   })
 })

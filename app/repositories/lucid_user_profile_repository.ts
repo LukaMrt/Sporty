@@ -4,6 +4,14 @@ import { TrainingState } from '#domain/value_objects/planning_types'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import UserProfileModel from '#models/user_profile'
 import db from '@adonisjs/lucid/services/db'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
+import { transactionStorage } from '#repositories/transaction_context'
+
+/** Réutilise la transaction d'une UnitOfWork englobante, sinon en ouvre une */
+function inTransaction<T>(fn: (trx: TransactionClientContract) => Promise<T>): Promise<T> {
+  const current = transactionStorage.getStore()
+  return current ? fn(current) : db.transaction(fn)
+}
 
 interface UserProfileSportRow {
   sport_id: number
@@ -11,7 +19,7 @@ interface UserProfileSportRow {
 
 export default class LucidUserProfileRepository extends UserProfileRepository {
   async create(profile: Omit<UserProfile, 'id'>): Promise<UserProfile> {
-    return db.transaction(async (trx) => {
+    return inTransaction(async (trx) => {
       const model = await UserProfileModel.create(
         {
           userId: profile.userId,
@@ -20,6 +28,9 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
           preferences: profile.preferences,
           sex: profile.sex,
           trainingState: profile.trainingState,
+          hrZonesConfig: profile.hrZonesConfig ?? null,
+          vdot: profile.vdot ?? null,
+          timezone: profile.timezone ?? null,
         },
         { client: trx }
       )
@@ -40,6 +51,9 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         vma: model.vma,
         sex: model.sex ?? null,
         trainingState: model.trainingState ?? TrainingState.Idle,
+        hrZonesConfig: model.hrZonesConfig ?? null,
+        vdot: model.vdot ?? null,
+        timezone: model.timezone ?? null,
       }
     })
   }
@@ -65,6 +79,9 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       vma: model.vma,
       sex: model.sex ?? null,
       trainingState: model.trainingState ?? TrainingState.Idle,
+      hrZonesConfig: model.hrZonesConfig ?? null,
+      vdot: model.vdot ?? null,
+      timezone: model.timezone ?? null,
     }
   }
 
@@ -72,7 +89,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
     userId: number,
     data: Partial<Omit<UserProfile, 'id' | 'userId'>>
   ): Promise<UserProfile> {
-    return db.transaction(async (trx) => {
+    return inTransaction(async (trx) => {
       const model = await UserProfileModel.query({ client: trx })
         .where('userId', userId)
         .firstOrFail()
@@ -85,6 +102,9 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       if (data.vma !== undefined) model.vma = data.vma
       if (data.sex !== undefined) model.sex = data.sex
       if (data.trainingState !== undefined) model.trainingState = data.trainingState
+      if (data.hrZonesConfig !== undefined) model.hrZonesConfig = data.hrZonesConfig
+      if (data.vdot !== undefined) model.vdot = data.vdot
+      if (data.timezone !== undefined) model.timezone = data.timezone
       await model.save()
 
       let sportId: number
@@ -114,6 +134,9 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         vma: model.vma,
         sex: model.sex ?? null,
         trainingState: model.trainingState ?? TrainingState.Idle,
+        hrZonesConfig: model.hrZonesConfig ?? null,
+        vdot: model.vdot ?? null,
+        timezone: model.timezone ?? null,
       }
     })
   }

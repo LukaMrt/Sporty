@@ -1,12 +1,9 @@
 import { inject } from '@adonisjs/core'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 
-export class NoActivePlanError extends Error {
-  constructor() {
-    super('Aucun plan actif trouvé')
-    this.name = 'NoActivePlanError'
-  }
-}
+import { NoActivePlanError } from '#domain/errors/no_active_plan_error'
+
+export { NoActivePlanError }
 
 @inject()
 export default class ToggleAutoRecalibrate {

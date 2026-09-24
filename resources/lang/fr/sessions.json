@@ -141,5 +141,15 @@
     "notFound": "Séance introuvable",
     "forbidden": "Séance introuvable ou accès refusé",
     "gpxEnriched": "Séance enrichie avec le fichier GPX"
+  },
+  "errors": {
+    "hr_order": "La FC min doit être ≤ FC moyenne ≤ FC max",
+    "elevation_negative": "Le dénivelé ne peut pas être négatif"
+  },
+  "gpx": {
+    "errors": {
+      "invalid_format": "Format GPX invalide",
+      "no_trackpoints": "Aucun point de trace trouvé dans le fichier"
+    }
   }
 }

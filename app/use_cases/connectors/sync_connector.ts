@@ -1,16 +1,16 @@
 import { inject } from '@adonisjs/core'
-import emitter from '@adonisjs/core/services/emitter'
 import { ConnectorRegistry } from '#domain/interfaces/connector_registry'
 import { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ImportSessionRepository } from '#domain/interfaces/import_session_repository'
 import { SportRepository } from '#domain/interfaces/sport_repository'
-import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import type { MappingContext } from '#domain/interfaces/connector'
+import { Logger } from '#domain/interfaces/logger'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import { RateLimitExceededError } from '#domain/errors/rate_limit_exceeded_error'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
 import { ImportSessionStatus } from '#domain/value_objects/import_session_status'
+import { syncWindowStart } from '#domain/services/sync_window'
+import ImportedSessionWriter from '#use_cases/import/imported_session_writer'
 
 export interface SyncConnectorInput {
   connectorId: number
@@ -21,6 +21,9 @@ export type SyncConnectorResult =
   | { outcome: 'permanent_error'; reason: string }
   | { outcome: 'temporary_error'; reason: string }
 
+/** Nombre d'échecs d'import d'une même séance avant abandon */
+export const MAX_IMPORT_ATTEMPTS = 3
+
 @inject()
 export default class SyncConnector {
   constructor(
@@ -28,8 +31,9 @@ export default class SyncConnector {
     private connectorRepository: ConnectorRepository,
     private importSessionRepository: ImportSessionRepository,
     private sportRepository: SportRepository,
-    private sessionRepository: SessionRepository,
-    private userProfileRepository: UserProfileRepository
+    private userProfileRepository: UserProfileRepository,
+    private writer: ImportedSessionWriter,
+    private logger: Logger
   ) {}
 
   async execute(input: SyncConnectorInput): Promise<SyncConnectorResult> {
@@ -61,9 +65,8 @@ export default class SyncConnector {
       }
 
       const sessions = await connector.listSessions({
-        after: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        after: syncWindowStart(record.lastSyncAt),
         before: new Date(),
-        perPage: 200,
       })
 
       await this.importSessionRepository.upsertMany(
@@ -88,47 +91,47 @@ export default class SyncConnector {
         return { outcome: 'success', imported: 0 }
       }
 
-      const profile = await this.userProfileRepository.findByUserId(userId)
-      const context: MappingContext = {
-        maxHeartRate: profile?.maxHeartRate ?? undefined,
-        restingHeartRate: profile?.restingHeartRate ?? undefined,
-      }
-
-      const sports = await this.sportRepository.findAll()
-      const sportBySlug = new Map(sports.map((s) => [s.slug, s.id]))
+      const [profile, sports] = await Promise.all([
+        this.userProfileRepository.findByUserId(userId),
+        this.sportRepository.findAll(),
+      ])
+      const context = ImportedSessionWriter.mappingContext(profile)
       let imported = 0
 
       for (const stagingRecord of newSessions) {
         try {
           const mapped = await connector.getSessionDetail(stagingRecord.externalId, context)
-          const sportId = sportBySlug.get(mapped.sportSlug)
-          if (!sportId) {
+          const result = await this.writer.write(userId, mapped, sports, profile)
+
+          if (result.kind === 'unsupported_sport') {
             await this.importSessionRepository.setFailed(
               stagingRecord.id,
-              `unsupported_sport:${mapped.sportSlug}`
+              `unsupported_sport:${result.sportSlug}`
             )
-            continue
+          } else if (result.kind === 'duplicate') {
+            await this.importSessionRepository.setFailed(
+              stagingRecord.id,
+              `duplicate_of:${result.existingSessionId}`
+            )
+          } else {
+            await this.importSessionRepository.setImported(stagingRecord.id, result.session.id)
+            imported++
           }
-
-          const session = await this.sessionRepository.create({
-            userId,
-            sportId,
-            date: mapped.date,
-            durationMinutes: mapped.durationMinutes,
-            distanceKm: mapped.distanceKm,
-            avgHeartRate: mapped.avgHeartRate,
-            perceivedEffort: null,
-            sportMetrics: mapped.sportMetrics,
-            notes: null,
-            importedFrom: mapped.importedFrom,
-            externalId: mapped.externalId,
-          })
-
-          await this.importSessionRepository.setImported(stagingRecord.id, session.id)
-          await emitter.emit('session:completed', { sessionId: session.id, userId })
-          imported++
-        } catch {
-          // Session-level error: skip and continue
+        } catch (error) {
+          // Une erreur d'authentification ou de quota concerne tout le connecteur
+          if (error instanceof ConnectorAuthError || error instanceof RateLimitExceededError) {
+            throw error
+          }
+          const reason = error instanceof Error ? error.message : String(error)
+          const abandoned = await this.importSessionRepository.recordFailure(
+            stagingRecord.id,
+            reason,
+            MAX_IMPORT_ATTEMPTS
+          )
+          this.logger.warn(
+            { connectorId, externalId: stagingRecord.externalId, err: error, abandoned },
+            'Session import failed during sync'
+          )
         }
       }
 
@@ -140,15 +143,12 @@ export default class SyncConnector {
           record.provider,
           ConnectorStatus.Error
         )
+        this.logger.warn({ connectorId, provider: record.provider }, 'Connector auth failed')
         return { outcome: 'permanent_error', reason: err.message }
       }
-      if (err instanceof RateLimitExceededError) {
-        return { outcome: 'temporary_error', reason: err.message }
-      }
-      return {
-        outcome: 'temporary_error',
-        reason: err instanceof Error ? err.message : String(err),
-      }
+      const reason = err instanceof Error ? err.message : String(err)
+      this.logger.warn({ connectorId, err }, 'Connector sync failed temporarily')
+      return { outcome: 'temporary_error', reason }
     }
   }
 }

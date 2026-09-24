@@ -1,6 +1,9 @@
 import { test } from '@japa/runner'
+import { ImmediateUnitOfWork } from '#tests/helpers/base_mocks'
+import PlanPersister from '#use_cases/planning/plan_persister'
+import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import GenerateTransitionPlan from '#use_cases/planning/generate_transition_plan'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
 import { TrainingPlanEngine } from '#domain/interfaces/training_plan_engine'
@@ -96,7 +99,7 @@ function makePlanRepo(
   const createdPlans: TrainingPlan[] = []
   const updatedWith: Record<number, Partial<TrainingPlan>> = {}
 
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(
       data: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>
     ): Promise<TrainingPlan> {
@@ -278,7 +281,9 @@ test.group('GenerateTransitionPlan', () => {
       planRepo,
       makeGoalRepo(null),
       makeUserProfileRepo(USER_PROFILE),
-      makeEngine()
+      makeEngine(),
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
     )
     await assert.rejects(() => useCase.execute(1), NoCompletedPlanError)
   })
@@ -292,7 +297,9 @@ test.group('GenerateTransitionPlan', () => {
       planRepo,
       makeGoalRepo(GOAL),
       profileRepo,
-      makeEngine(4)
+      makeEngine(4),
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
     )
     const result = await useCase.execute(1)
 
@@ -310,7 +317,9 @@ test.group('GenerateTransitionPlan', () => {
       planRepo,
       makeGoalRepo(GOAL),
       makeUserProfileRepo(USER_PROFILE),
-      engine
+      engine,
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
     )
     await useCase.execute(1)
 
@@ -339,7 +348,9 @@ test.group('GenerateTransitionPlan', () => {
       planRepo,
       makeGoalRepo(GOAL),
       makeUserProfileRepo(USER_PROFILE),
-      engine
+      engine,
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
     )
     await useCase.execute(1)
 
@@ -356,7 +367,9 @@ test.group('GenerateTransitionPlan', () => {
       planRepo,
       makeGoalRepo(GOAL),
       profileRepo,
-      makeEngine(4)
+      makeEngine(4),
+      new PlanPersister(planRepo),
+      new ImmediateUnitOfWork()
     )
     await useCase.execute(1)
 

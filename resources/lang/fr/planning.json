@@ -375,5 +375,18 @@
     "maintenancePlan": "Plan de maintenance",
     "readOnlyDetail": "Vue lecture seule — plan archivé",
     "detailBack": "Retour à l'historique"
+  },
+  "errors": {
+    "noActivePlan": "Aucun plan actif",
+    "activePlanExists": "Un plan actif existe déjà",
+    "noActiveGoal": "Aucun objectif actif",
+    "noCompletedPlan": "Aucun plan terminé",
+    "plannedSessionNotFound": "Séance planifiée introuvable",
+    "plannedSessionForbidden": "Cette séance planifiée n'appartient pas à ton plan actif",
+    "sessionNotFound": "Séance introuvable",
+    "activeGoalExists": "Un seul objectif actif à la fois"
+  },
+  "flash": {
+    "volumeAdjusted": "Ton volume d'entraînement actuel est insuffisant pour cette distance. Le plan a été ajusté au volume minimal recommandé : augmente progressivement ta base avant de commencer."
   }
 }

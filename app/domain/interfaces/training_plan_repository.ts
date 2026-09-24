@@ -7,6 +7,10 @@ export abstract class TrainingPlanRepository {
   abstract findById(id: number): Promise<TrainingPlan | null>
   abstract findByUserId(userId: number): Promise<TrainingPlan[]>
   abstract findActiveByUserId(userId: number): Promise<TrainingPlan | null>
+  /** Comme findActiveByUserId, avec verrou de ligne (à utiliser dans une UnitOfWork) */
+  abstract lockActiveByUserId(userId: number): Promise<TrainingPlan | null>
+  /** Tous les plans actifs (tâches de fond) */
+  abstract findAllActive(): Promise<TrainingPlan[]>
   abstract findActiveByGoalId(goalId: number): Promise<TrainingPlan | null>
   abstract update(
     id: number,
@@ -17,11 +21,19 @@ export abstract class TrainingPlanRepository {
   abstract createWeek(
     data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<PlannedWeek>
+  /** Insertion en lot (une requête) */
+  abstract createWeeks(
+    data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>[]
+  ): Promise<PlannedWeek[]>
   abstract findWeeksByPlanId(planId: number): Promise<PlannedWeek[]>
 
   abstract createSession(
     data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<PlannedSession>
+  /** Insertion en lot (une requête) */
+  abstract createSessions(
+    data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>[]
+  ): Promise<PlannedSession[]>
   abstract findSessionById(id: number): Promise<PlannedSession | null>
   abstract findSessionsByPlanId(planId: number): Promise<PlannedSession[]>
   abstract updateSession(

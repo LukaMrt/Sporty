@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
+import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import GetPlanHistory from '#use_cases/planning/get_plan_history'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import { TrainingGoalRepository } from '#domain/interfaces/training_goal_repository'
 import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedWeek } from '#domain/entities/planned_week'
@@ -64,7 +65,7 @@ function makeSession(overrides: Partial<PlannedSession>): PlannedSession {
 // ── Mock factories ─────────────────────────────────────────────────────────────
 
 function makePlanRepo(plans: TrainingPlan[], sessions: PlannedSession[]): TrainingPlanRepository {
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(): Promise<TrainingPlan> {
       throw new Error('not implemented')
     }

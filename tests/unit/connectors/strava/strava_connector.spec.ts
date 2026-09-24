@@ -491,27 +491,14 @@ test.group('StravaConnector.getSessionDetail — running avec streams', () => {
   })
 })
 
-test.group('StravaConnector.getSessionDetail — running avec contexte FC max', () => {
-  test('hrZones présentes quand maxHeartRate fourni + heartRateCurve', async ({ assert }) => {
+test.group('StravaConnector.getSessionDetail — données brutes uniquement', () => {
+  test('ne calcule pas les zones même avec FCmax : fait à l’écriture (ImportedSessionWriter)', async ({
+    assert,
+  }) => {
     const connector = makeConnector(makeStreamsFetcher({ streams: MINI_STREAMS }))
     const result = await connector.getSessionDetail('99', { maxHeartRate: 185 })
-    const zones = result.sportMetrics.hrZones as Record<string, number>
-    assert.isObject(zones)
-    assert.property(zones, 'z1')
-    assert.property(zones, 'z5')
-  })
-
-  test('cardiacDrift présent quand maxHeartRate fourni', async ({ assert }) => {
-    const connector = makeConnector(makeStreamsFetcher({ streams: MINI_STREAMS }))
-    const result = await connector.getSessionDetail('99', { maxHeartRate: 185 })
-    assert.isNumber(result.sportMetrics.cardiacDrift)
-  })
-
-  test('trimp présent quand maxHeartRate fourni', async ({ assert }) => {
-    const connector = makeConnector(makeStreamsFetcher({ streams: MINI_STREAMS }))
-    const result = await connector.getSessionDetail('99', { maxHeartRate: 185 })
-    assert.isNumber(result.sportMetrics.trimp)
-    assert.isAbove(result.sportMetrics.trimp as number, 0)
+    assert.isUndefined(result.sportMetrics.hrZones)
+    assert.isArray(result.sportMetrics.heartRateCurve)
   })
 })
 
@@ -608,9 +595,7 @@ test.group('StravaConnector.getSessionDetail — streams partiels (sans heartrat
 // ─── Test avec fixture réelle Strava ──────────────────────────────────────────
 
 test.group('StravaConnector.getSessionDetail — fixture réelle Strava (~6km)', () => {
-  test('import complet avec streams réels + contexte FC max → session enrichie', async ({
-    assert,
-  }) => {
+  test('import complet avec streams réels → courbes et splits', async ({ assert }) => {
     const sessionFixture = loadFixture('strava_session.json')
     const streamsFixture = loadFixture('strava_streams.json')
 
@@ -626,10 +611,6 @@ test.group('StravaConnector.getSessionDetail — fixture réelle Strava (~6km)',
     assert.isArray(result.sportMetrics.paceCurve)
     assert.isArray(result.sportMetrics.splits)
     assert.isAbove((result.sportMetrics.splits as unknown[]).length, 0)
-    assert.isObject(result.sportMetrics.hrZones)
-    assert.isNumber(result.sportMetrics.cardiacDrift)
-    assert.isNumber(result.sportMetrics.trimp)
-    assert.isAbove(result.sportMetrics.trimp as number, 0)
   })
 
   test('import complet sans FC max → courbes sans zones', async ({ assert }) => {

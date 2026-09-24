@@ -1,7 +1,9 @@
 import { test } from '@japa/runner'
+import { RecordingEventEmitter } from '#tests/helpers/base_mocks'
+import { BaseMockPlanRepo, BaseMockSessionRepo } from '#tests/helpers/base_mocks'
 import LinkCompletedSession from '#use_cases/planning/link_completed_session'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
-import { SessionRepository } from '#domain/interfaces/session_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type SessionRepository } from '#domain/interfaces/session_repository'
 import { PlannedSessionNotFoundError } from '#domain/errors/planned_session_not_found_error'
 import { PlannedSessionForbiddenError } from '#domain/errors/planned_session_forbidden_error'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
@@ -80,7 +82,7 @@ function makePlanRepo(opts: {
   session: PlannedSession | null
   activePlan: TrainingPlan | null
 }): TrainingPlanRepository {
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(): Promise<TrainingPlan> {
       throw new Error('not implemented')
     }
@@ -127,7 +129,7 @@ function makePlanRepo(opts: {
 }
 
 function makeSessionRepo(completedSession: TrainingSession | null): SessionRepository {
-  class MockSessionRepo extends SessionRepository {
+  class MockSessionRepo extends BaseMockSessionRepo {
     async create(): Promise<TrainingSession> {
       throw new Error('not implemented')
     }
@@ -165,7 +167,7 @@ test.group('LinkCompletedSession', () => {
   test('lie une séance réalisée et passe le statut à completed', async ({ assert }) => {
     const planRepo = makePlanRepo({ session: PLANNED_SESSION, activePlan: ACTIVE_PLAN })
     const sessionRepo = makeSessionRepo(COMPLETED_SESSION)
-    const useCase = new LinkCompletedSession(planRepo, sessionRepo)
+    const useCase = new LinkCompletedSession(planRepo, sessionRepo, new RecordingEventEmitter())
 
     const result = await useCase.execute({
       userId: 1,
@@ -182,7 +184,7 @@ test.group('LinkCompletedSession', () => {
   }) => {
     const planRepo = makePlanRepo({ session: null, activePlan: ACTIVE_PLAN })
     const sessionRepo = makeSessionRepo(COMPLETED_SESSION)
-    const useCase = new LinkCompletedSession(planRepo, sessionRepo)
+    const useCase = new LinkCompletedSession(planRepo, sessionRepo, new RecordingEventEmitter())
 
     await assert.rejects(
       () => useCase.execute({ userId: 1, plannedSessionId: 99, completedSessionId: 77 }),
@@ -196,7 +198,7 @@ test.group('LinkCompletedSession', () => {
     const otherPlan: TrainingPlan = { ...ACTIVE_PLAN, id: 999 }
     const planRepo = makePlanRepo({ session: PLANNED_SESSION, activePlan: otherPlan })
     const sessionRepo = makeSessionRepo(COMPLETED_SESSION)
-    const useCase = new LinkCompletedSession(planRepo, sessionRepo)
+    const useCase = new LinkCompletedSession(planRepo, sessionRepo, new RecordingEventEmitter())
 
     await assert.rejects(
       () => useCase.execute({ userId: 1, plannedSessionId: 42, completedSessionId: 77 }),
@@ -207,7 +209,7 @@ test.group('LinkCompletedSession', () => {
   test('lève SessionNotFoundError si la séance réalisée est introuvable', async ({ assert }) => {
     const planRepo = makePlanRepo({ session: PLANNED_SESSION, activePlan: ACTIVE_PLAN })
     const sessionRepo = makeSessionRepo(null)
-    const useCase = new LinkCompletedSession(planRepo, sessionRepo)
+    const useCase = new LinkCompletedSession(planRepo, sessionRepo, new RecordingEventEmitter())
 
     await assert.rejects(
       () => useCase.execute({ userId: 1, plannedSessionId: 42, completedSessionId: 999 }),
@@ -221,7 +223,7 @@ test.group('LinkCompletedSession', () => {
     const otherUserSession: TrainingSession = { ...COMPLETED_SESSION, userId: 2 }
     const planRepo = makePlanRepo({ session: PLANNED_SESSION, activePlan: ACTIVE_PLAN })
     const sessionRepo = makeSessionRepo(otherUserSession)
-    const useCase = new LinkCompletedSession(planRepo, sessionRepo)
+    const useCase = new LinkCompletedSession(planRepo, sessionRepo, new RecordingEventEmitter())
 
     await assert.rejects(
       () => useCase.execute({ userId: 1, plannedSessionId: 42, completedSessionId: 77 }),

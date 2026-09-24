@@ -7,6 +7,7 @@ import type {
   MappedSessionData,
 } from '#domain/interfaces/connector'
 import { ConnectorStatus } from '#domain/value_objects/connector_status'
+import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import { StravaHttpClient } from '#connectors/strava/strava_http_client'
 import type { ConnectorRepository } from '#domain/interfaces/connector_repository'
 import { ConnectorProvider } from '#domain/value_objects/connector_provider'
@@ -20,16 +21,16 @@ import {
 import type { RawStravaStream } from '#connectors/strava/strava_stream_converter'
 import type { RunMetrics } from '#domain/value_objects/run_metrics'
 import { analyze } from '#lib/track_analyzer'
-import {
-  calculateZones,
-  calculateDrift,
-  calculateTrimp,
-} from '#domain/services/heart_rate_zone_service'
+import logger from '@adonisjs/core/services/logger'
 
 const STRAVA_API_BASE = 'https://www.strava.com/api/v3'
 const CYCLING_SLUGS: SportySportSlug[] = ['cycling']
 const RUNNING_SLUGS: SportySportSlug[] = ['running']
 const STREAMS_KEYS = 'time,heartrate,latlng,altitude,velocity_smooth,distance,cadence'
+/** Taille de page maximale autorisée par Strava */
+const PAGE_SIZE = 200
+/** Garde-fou : 20 pages × 200 = 4 000 activités par fenêtre */
+const MAX_PAGES = 20
 
 type Fetcher = (input: string | URL | Request, init?: RequestInit) => Promise<Response>
 
@@ -56,17 +57,29 @@ export class StravaConnector extends Connector {
   async listSessions(filters: SessionFilters): Promise<MappedSessionSummary[]> {
     const client = this.#makeClient()
 
-    const url = new URL(`${STRAVA_API_BASE}/athlete/activities`)
-    url.searchParams.set('per_page', String(filters.perPage ?? 200))
-    if (filters.after) {
-      url.searchParams.set('after', String(Math.floor(filters.after.getTime() / 1000)))
-    }
-    if (filters.before) {
-      url.searchParams.set('before', String(Math.floor(filters.before.getTime() / 1000)))
+    const perPage = Math.min(filters.perPage ?? PAGE_SIZE, PAGE_SIZE)
+    const all: RawStravaSummarySession[] = []
+
+    // Pagination : au-delà d'une page, les activités étaient silencieusement ignorées
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const url = new URL(`${STRAVA_API_BASE}/athlete/activities`)
+      url.searchParams.set('per_page', String(perPage))
+      url.searchParams.set('page', String(page))
+      if (filters.after) {
+        url.searchParams.set('after', String(Math.floor(filters.after.getTime() / 1000)))
+      }
+      if (filters.before) {
+        url.searchParams.set('before', String(Math.floor(filters.before.getTime() / 1000)))
+      }
+      const batch = await client.get<RawStravaSummarySession[]>(url.toString())
+      all.push(...batch)
+      if (batch.length < perPage) break
+      if (page === MAX_PAGES) {
+        logger.warn({ userId: this.userId, pages: MAX_PAGES }, 'Strava activity list truncated')
+      }
     }
 
-    const raw = await client.get<RawStravaSummarySession[]>(url.toString())
-    return raw.map((r) => this.#toMappedSummary(r))
+    return all.map((r) => this.#toMappedSummary(r))
   }
 
   async authenticate(): Promise<ConnectorTokens> {
@@ -90,8 +103,12 @@ export class StravaConnector extends Connector {
       const streamsUrl = `${STRAVA_API_BASE}/activities/${externalId}/streams?keys=${STREAMS_KEYS}`
       const rawStreams = await client.get<RawStravaStream[]>(streamsUrl)
       trackpoints = stravaStreamsToTrackpoints(indexStravaStreams(rawStreams))
-    } catch {
-      // Graceful degradation : streams indisponibles → session basique
+    } catch (error) {
+      // Dégradation voulue : streams indisponibles → séance sans courbes
+      logger.warn(
+        { err: error, externalId },
+        'Strava streams unavailable, importing without curves'
+      )
     }
 
     if (trackpoints.length === 0) {
@@ -115,16 +132,9 @@ export class StravaConnector extends Connector {
       splits: analysis.splits,
     }
 
-    if (context?.maxHeartRate && analysis.heartRateCurve) {
-      const hrZones = calculateZones(
-        context.maxHeartRate,
-        analysis.heartRateCurve,
-        context.restingHeartRate
-      )
-      enriched.hrZones = hrZones
-      enriched.cardiacDrift = calculateDrift(analysis.heartRateCurve)
-      enriched.trimp = calculateTrimp(base.durationMinutes, hrZones)
-    }
+    // Zones, dérive et TRIMP sont calculés à l'écriture avec les zones de l'athlète
+    // (ImportedSessionWriter) : le connecteur ne livre que des données brutes.
+    void context
 
     return { ...base, sportMetrics: enriched }
   }
@@ -133,8 +143,12 @@ export class StravaConnector extends Connector {
     try {
       await this.#makeClient().get<unknown>(`${STRAVA_API_BASE}/athlete`)
       return ConnectorStatus.Connected
-    } catch {
-      return ConnectorStatus.Error
+    } catch (error) {
+      // Seule une révocation est un état d'erreur ; une panne réseau ou Strava
+      // indisponible ne doit pas afficher le connecteur comme cassé
+      if (error instanceof ConnectorAuthError) return ConnectorStatus.Error
+      logger.warn({ err: error, userId: this.userId }, 'Strava status check failed')
+      return ConnectorStatus.Connected
     }
   }
 

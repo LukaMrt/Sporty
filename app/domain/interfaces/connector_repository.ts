@@ -55,6 +55,8 @@ export interface ConnectorByIdRecord {
   provider: ConnectorProvider
   status: ConnectorStatus
   autoImportEnabled: boolean
+  /** Dernière synchronisation réussie (ISO) */
+  lastSyncAt?: string | null
 }
 
 export abstract class ConnectorRepository {

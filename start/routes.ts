@@ -123,7 +123,7 @@ router
 // la session est vérifiée manuellement dans le controller
 router
   .get('/connectors/strava/callback', [StravaOAuthController, 'callback'])
-  .use(middleware.silentAuth())
+  .use([middleware.silentAuth(), middleware.onboarding()])
 
 router
   .group(() => {

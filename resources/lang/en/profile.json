@@ -139,5 +139,14 @@
     "updated": "Profile updated",
     "passwordChanged": "Password changed",
     "passwordIncorrect": "Current password is incorrect"
+  },
+  "hrZones": {
+    "errors": {
+      "missing_max_hr": "Enter your max HR",
+      "missing_resting_hr": "Enter your resting HR",
+      "missing_lthr": "Enter your lactate threshold HR (LTHR)",
+      "invalid_bounds": "Bounds must be strictly increasing, between 30 and 250 bpm",
+      "invalid_physiology": "Resting and max HR are inconsistent"
+    }
   }
 }

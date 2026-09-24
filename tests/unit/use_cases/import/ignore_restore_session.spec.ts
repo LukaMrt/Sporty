@@ -26,6 +26,9 @@ function makeImportSessionRepository(
     async setIgnored(): Promise<void> {}
     async setNew(): Promise<void> {}
     async setFailed(): Promise<void> {}
+    async recordFailure(): Promise<boolean> {
+      return false
+    }
     async markImportedBulk(_connectorId: number, _refs: ImportedSessionRef[]): Promise<void> {}
     async resetForReimport(): Promise<null> {
       return null

@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
+import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import GetNextSession from '#use_cases/planning/get_next_session'
-import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
+import { type TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import {
   TrainingMethodology,
   PlanType,
@@ -70,7 +71,7 @@ function makePlanRepo(
   plan: TrainingPlan | null,
   sessions: PlannedSession[]
 ): TrainingPlanRepository {
-  class MockPlanRepo extends TrainingPlanRepository {
+  class MockPlanRepo extends BaseMockPlanRepo {
     async create(): Promise<TrainingPlan> {
       throw new Error('not implemented')
     }
