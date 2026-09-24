@@ -386,9 +386,18 @@
     "sessionNotFound": "Session not found",
     "activeGoalExists": "Only one active goal at a time",
     "goalCreation": "Could not create the goal",
-    "planGeneration": "Could not generate the plan"
+    "planGeneration": "Could not generate the plan",
+    "goalNotFound": "Goal not found"
   },
   "flash": {
     "volumeAdjusted": "Your current training volume is too low for this distance. The plan was adjusted to the minimum recommended volume: build your base progressively before starting."
+  },
+  "dnd": {
+    "picked": "Session picked up.",
+    "over": "Over {day}.",
+    "outside": "Outside a day.",
+    "dropped": "Session moved to {day}.",
+    "cancelled": "Move cancelled.",
+    "instructions": "To move a session, press Space, use the arrow keys to choose the day, then Space to drop or Escape to cancel."
   }
 }

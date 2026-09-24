@@ -386,9 +386,18 @@
     "sessionNotFound": "Séance introuvable",
     "activeGoalExists": "Un seul objectif actif à la fois",
     "goalCreation": "Erreur lors de la création de l'objectif",
-    "planGeneration": "Erreur lors de la génération du plan"
+    "planGeneration": "Erreur lors de la génération du plan",
+    "goalNotFound": "Objectif introuvable"
   },
   "flash": {
     "volumeAdjusted": "Ton volume d'entraînement actuel est insuffisant pour cette distance. Le plan a été ajusté au volume minimal recommandé : augmente progressivement ta base avant de commencer."
+  },
+  "dnd": {
+    "picked": "Séance saisie.",
+    "over": "Au-dessus de {day}.",
+    "outside": "Hors d'un jour.",
+    "dropped": "Séance déplacée à {day}.",
+    "cancelled": "Déplacement annulé.",
+    "instructions": "Pour déplacer une séance, appuie sur Espace, utilise les flèches pour choisir le jour, puis Espace pour déposer ou Échap pour annuler."
   }
 }

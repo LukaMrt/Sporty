@@ -47,7 +47,6 @@ export interface MappedSessionData {
 
 export abstract class Connector {
   abstract readonly id: number
-  abstract authenticate(): Promise<ConnectorTokens>
   abstract listSessions(filters: SessionFilters): Promise<MappedSessionSummary[]>
   abstract getSessionDetail(
     externalId: string,

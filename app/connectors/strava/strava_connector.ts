@@ -82,10 +82,6 @@ export class StravaConnector extends Connector {
     return all.map((r) => this.#toMappedSummary(r))
   }
 
-  async authenticate(): Promise<ConnectorTokens> {
-    return this.tokens
-  }
-
   async getSessionDetail(externalId: string, context?: MappingContext): Promise<MappedSessionData> {
     const client = this.#makeClient()
     const url = `${STRAVA_API_BASE}/activities/${externalId}`

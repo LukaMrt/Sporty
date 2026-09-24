@@ -6,8 +6,10 @@ import {
   useDroppable,
   type DragEndEvent,
   type DragStartEvent,
+  KeyboardSensor,
   PointerSensor,
   TouchSensor,
+  type Announcements,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
@@ -200,7 +202,7 @@ function DroppableDaySlot({
 // ── Composant principal ───────────────────────────────────────────────────────
 
 export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = false }: Props) {
-  const { t } = useTranslation()
+  const { t, locale } = useTranslation()
   const [openSessionId, setOpenSessionId] = useState<number | null>(null)
   const [draggingSession, setDraggingSession] = useState<PlannedSession | null>(null)
   const [dragWidth, setDragWidth] = useState<number | undefined>()
@@ -213,8 +215,26 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    // Clavier : Espace/Entrée pour saisir, flèches pour déplacer, Espace pour déposer
+    useSensor(KeyboardSensor)
   )
+
+  const dayName = (dow: unknown) =>
+    new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(
+      // 2024-01-07 est un dimanche (dow 0)
+      new Date(2024, 0, 7 + Number(dow))
+    )
+
+  /** Annonces lues par les lecteurs d'écran (région aria-live de dnd-kit) */
+  const announcements: Announcements = {
+    onDragStart: () => t('planning.dnd.picked'),
+    onDragOver: ({ over }) =>
+      over ? t('planning.dnd.over', { day: dayName(over.id) }) : t('planning.dnd.outside'),
+    onDragEnd: ({ over }) =>
+      over ? t('planning.dnd.dropped', { day: dayName(over.id) }) : t('planning.dnd.cancelled'),
+    onDragCancel: () => t('planning.dnd.cancelled'),
+  }
 
   function handleDragStart(event: DragStartEvent) {
     const session = days.find((d) => d.session?.id === event.active.id)?.session ?? null
@@ -244,12 +264,20 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
     )
   }
 
-  const dayFmt = new Intl.DateTimeFormat('fr', { weekday: 'short' })
-  const dateFmt = new Intl.DateTimeFormat('fr', { day: 'numeric', month: 'short' })
+  const dayFmt = new Intl.DateTimeFormat(locale, { weekday: 'short' })
+  const dateFmt = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
 
   return (
     <>
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        accessibility={{
+          announcements,
+          screenReaderInstructions: { draggable: t('planning.dnd.instructions') },
+        }}
+      >
         <div className="space-y-2">
           {DAY_ORDER.map((dow) => {
             const slot = days.find((d) => d.dow === dow)

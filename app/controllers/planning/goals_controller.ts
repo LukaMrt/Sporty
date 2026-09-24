@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { GoalNotFoundError } from '#domain/errors/goal_not_found_error'
 import { inject } from '@adonisjs/core'
 import type { HttpContext } from '@adonisjs/core/http'
 import CreateGoal from '#use_cases/planning/create_goal'
@@ -35,26 +36,32 @@ export default class GoalsController {
     }
   }
 
-  async update({ request, response, params }: HttpContext) {
+  async update({ request, response, params, auth }: HttpContext) {
     const data = await request.validateUsing(updateGoalValidator)
-    const goalId = Number(params.id)
-
-    const goal = await this.updateGoalUseCase.execute({
-      goalId,
-      targetDistanceKm: data.target_distance_km,
-      targetTimeMinutes: data.target_time_minutes,
-      eventDate: data.event_date
-        ? DateTime.fromJSDate(data.event_date).toISODate()
-        : data.event_date,
-    })
-    return response.json({ goal })
+    try {
+      const goal = await this.updateGoalUseCase.execute({
+        goalId: Number(params.id),
+        userId: auth.user!.id,
+        targetDistanceKm: data.target_distance_km,
+        targetTimeMinutes: data.target_time_minutes,
+        eventDate: data.event_date
+          ? DateTime.fromJSDate(data.event_date).toISODate()
+          : data.event_date,
+      })
+      return response.json({ goal })
+    } catch (error) {
+      if (error instanceof GoalNotFoundError) return response.notFound()
+      throw error
+    }
   }
 
   async abandon({ response, params, auth }: HttpContext) {
-    const goalId = Number(params.id)
-    const userId = auth.user!.id
-
-    await this.abandonGoalUseCase.execute(goalId, userId)
-    return response.json({ success: true })
+    try {
+      await this.abandonGoalUseCase.execute(Number(params.id), auth.user!.id)
+      return response.json({ success: true })
+    } catch (error) {
+      if (error instanceof GoalNotFoundError) return response.notFound()
+      throw error
+    }
   }
 }

@@ -1,6 +1,5 @@
 import { Connector } from '#domain/interfaces/connector'
 import type {
-  ConnectorTokens,
   SessionFilters,
   MappingContext,
   MappedSessionSummary,
@@ -82,11 +81,6 @@ export class OpenWearablesConnector extends Connector {
       rateLimitManager,
       options.fetcher
     )
-  }
-
-  async authenticate(): Promise<ConnectorTokens> {
-    // Cle API statique : ni refresh ni expiration.
-    return { accessToken: '', refreshToken: '', expiresAt: 0 }
   }
 
   async listSessions(filters: SessionFilters): Promise<MappedSessionSummary[]> {
