@@ -1,6 +1,8 @@
 import { afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
+import { createElement, type ComponentProps } from 'react'
 import type * as InertiaReactModule from '@inertiajs/react'
+import type * as RechartsModule from 'recharts'
 
 type InertiaReact = typeof InertiaReactModule
 
@@ -24,4 +26,16 @@ vi.mock('@inertiajs/react', async (importOriginal) => {
     // <Head> requiert le contexte de l'app Inertia, absent en test unitaire
     Head: () => null,
   }
+})
+
+// jsdom ne calcule aucune mise en page : sans taille initiale, ResponsiveContainer
+// mesure 0×0 et Recharts avertit à chaque rendu de graphique
+vi.mock('recharts', async (importOriginal) => {
+  const actual = await importOriginal<typeof RechartsModule>()
+  const ResponsiveContainer = (props: ComponentProps<typeof actual.ResponsiveContainer>) =>
+    createElement(actual.ResponsiveContainer, {
+      initialDimension: { width: 800, height: 400 },
+      ...props,
+    })
+  return { ...actual, ResponsiveContainer }
 })
