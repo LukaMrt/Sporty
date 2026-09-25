@@ -83,13 +83,16 @@ function mergeDataPoints(
       paceDisplay = speedUnit === 'km_h' ? paceToKmh(paceMinPerKm) : paceMinPerKm
     }
 
-    // Calcul du km courant approximatif
-    if (paceSeconds !== undefined && prevTime !== null) {
-      const dt = (time - prevTime) / 3600 // heures
-      const speed = 3600 / paceSeconds // km/h
-      cumKm += speed * dt
+    // Calcul du km courant approximatif (entre deux points d'allure uniquement :
+    // les instants sans allure, venus d'une autre courbe, ne doivent pas compter)
+    if (paceSeconds !== undefined) {
+      if (prevTime !== null) {
+        const dt = (time - prevTime) / 3600 // heures
+        const speed = 3600 / paceSeconds // km/h
+        cumKm += speed * dt
+      }
+      prevTime = time
     }
-    prevTime = time
 
     return {
       time,
@@ -294,6 +297,8 @@ export default function SessionCurvesChart({
               stroke="#f97316"
               strokeWidth={2}
               dot={false}
+              // Courbes d'origines différentes (montre / GPX) : instants non alignés
+              connectNulls
               isAnimationActive={false}
               name="heartRate"
             />
@@ -307,6 +312,7 @@ export default function SessionCurvesChart({
               stroke="#3b82f6"
               strokeWidth={2}
               dot={false}
+              connectNulls
               isAnimationActive={false}
               name="pace"
             />

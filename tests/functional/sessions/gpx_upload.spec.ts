@@ -164,7 +164,11 @@ test.group('GPX upload', (group) => {
     const metrics = updated.sportMetrics as Record<string, unknown>
     assert.isNotNull(updated.gpxFilePath)
     assert.isArray(metrics.gpsTrack)
-    assert.deepEqual(metrics.heartRateCurve, watchCurve)
+    // FC de la montre conservée, alignée sur la grille de 15 s des courbes GPX
+    const hr = metrics.heartRateCurve as { time: number; value: number }[]
+    assert.deepEqual(hr[0], { time: 0, value: 120 })
+    assert.deepEqual(hr.at(-1), { time: 600, value: 150 })
+    assert.isTrue(hr.every((p) => p.time % 15 === 0))
     assert.equal(updated.durationMinutes, 42)
     assert.equal(updated.distanceKm, 8.4)
     assert.equal(updated.avgHeartRate, 145)
