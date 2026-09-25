@@ -54,7 +54,8 @@
     "enrichGpx": "Enrich with a GPX",
     "distanceMeters": "Distance (m)",
     "subType": "Venue",
-    "poolLength": "Pool length (m)"
+    "poolLength": "Pool length (m)",
+    "replaceGpx": "Replace GPX"
   },
   "show": {
     "primaryMetrics": "Main metrics",
@@ -153,7 +154,8 @@
   "gpx": {
     "errors": {
       "invalid_format": "Invalid GPX format",
-      "no_trackpoints": "No track points found in the file"
+      "no_trackpoints": "No track points found in the file",
+      "date_mismatch": "The GPX is dated {gpxDate} but the session is on {sessionDate}: it is probably not the right file."
     }
   },
   "fab": {

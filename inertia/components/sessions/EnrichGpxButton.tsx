@@ -5,8 +5,17 @@ import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 import { postMultipart } from '~/lib/http'
 
-/** Ajoute un fichier GPX à une séance saisie à la main (courbes, carte, splits) */
-export default function EnrichGpxButton({ sessionId }: { sessionId: number }) {
+/**
+ * Ajoute (ou remplace) le GPX d'une séance : carte, altitude, splits. Sur une
+ * séance importée, la durée et la FC de la montre sont conservées.
+ */
+export default function EnrichGpxButton({
+  sessionId,
+  replace = false,
+}: {
+  sessionId: number
+  replace?: boolean
+}) {
   const { t } = useTranslation()
   const [enriching, setEnriching] = useState(false)
   const [enrichError, setEnrichError] = useState<string | null>(null)
@@ -73,7 +82,7 @@ export default function EnrichGpxButton({ sessionId }: { sessionId: number }) {
         ) : (
           <>
             <Upload size={14} />
-            {t('sessions.form.enrichGpx')}
+            {replace ? t('sessions.form.replaceGpx') : t('sessions.form.enrichGpx')}
           </>
         )}
       </Button>

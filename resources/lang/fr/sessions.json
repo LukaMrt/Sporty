@@ -54,7 +54,8 @@
     "enrichGpx": "Enrichir avec un GPX",
     "distanceMeters": "Distance (m)",
     "subType": "Lieu",
-    "poolLength": "Bassin (m)"
+    "poolLength": "Bassin (m)",
+    "replaceGpx": "Remplacer le GPX"
   },
   "show": {
     "primaryMetrics": "Métriques principales",
@@ -153,7 +154,8 @@
   "gpx": {
     "errors": {
       "invalid_format": "Format GPX invalide",
-      "no_trackpoints": "Aucun point de trace trouvé dans le fichier"
+      "no_trackpoints": "Aucun point de trace trouvé dans le fichier",
+      "date_mismatch": "Le GPX date du {gpxDate} alors que la séance est du {sessionDate} : ce n'est probablement pas le bon fichier."
     }
   },
   "fab": {

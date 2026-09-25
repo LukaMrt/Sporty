@@ -194,9 +194,10 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
-        {/* Bouton enrichissement GPX (visible uniquement si pas de données GPX) */}
-        {!session.gpxFilePath && !hasCurves && !hasGpsTrack && (
-          <EnrichGpxButton sessionId={session.id} />
+        {/* Ajout d'un GPX : toute séance sans trace (y compris importée avec courbe FC),
+            ou remplacement d'un GPX existant. Sans objet en piscine. */}
+        {subType !== 'pool' && (!hasGpsTrack || session.gpxFilePath) && (
+          <EnrichGpxButton sessionId={session.id} replace={!!session.gpxFilePath} />
         )}
 
         {/* Badge source d'import */}

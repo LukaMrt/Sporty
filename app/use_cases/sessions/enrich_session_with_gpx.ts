@@ -8,7 +8,12 @@ import type { TrainingSession } from '#domain/entities/training_session'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
 import { deriveSessionFields } from '#domain/services/session_derived_fields'
-import { gpxToSportMetrics } from '#domain/services/gpx_metrics'
+import { gpxToSportMetrics, mergeGpxIntoImportedMetrics } from '#domain/services/gpx_metrics'
+import { daysBetween, todayInTimezone } from '#domain/services/calendar'
+import { GpxDateMismatchError } from '#domain/errors/gpx_date_mismatch_error'
+
+/** Écart toléré entre le jour du GPX et celui de la séance (fuseaux horaires) */
+const MAX_GPX_DAY_GAP = 1
 
 @inject()
 export default class EnrichSessionWithGpx {
@@ -28,13 +33,33 @@ export default class EnrichSessionWithGpx {
     // Parse AVANT toute écriture : un GPX invalide ne laisse aucun fichier
     const gpx = this.gpxParser.parse(content.toString('utf-8'))
 
-    // Courbes, splits et scalaires du GPX écrasent les valeurs existantes
-    const sportMetrics = { ...(existing.sportMetrics ?? {}), ...gpxToSportMetrics(gpx) }
-    const durationMinutes = Math.round(gpx.durationSeconds / 60)
-    const distanceKm = Math.round((gpx.distanceMeters / 1000) * 100) / 100
-    const avgHeartRate = gpx.avgHeartRate ?? existing.avgHeartRate
-
     const profile = await this.userProfileRepository.findByUserId(userId)
+
+    // Un GPX d'un autre jour n'est pas celui de cette séance (±1 j pour les fuseaux)
+    if (gpx.startTime) {
+      const gpxDate = todayInTimezone(profile?.timezone, new Date(gpx.startTime))
+      if (Math.abs(daysBetween(existing.date, gpxDate)) > MAX_GPX_DAY_GAP) {
+        throw new GpxDateMismatchError(existing.date, gpxDate)
+      }
+    }
+
+    const gpxDistanceKm = Math.round((gpx.distanceMeters / 1000) * 100) / 100
+    const gpxDurationMinutes = Math.round(gpx.durationSeconds / 60)
+    const existingMetrics = (existing.sportMetrics ?? {}) as Record<string, unknown>
+    const imported = !!existing.importedFrom
+
+    // Séance importée : la montre fait foi (durée active, FC), le GPX complète.
+    // Séance manuelle : le GPX, mesuré, remplace la saisie.
+    const sportMetrics = imported
+      ? mergeGpxIntoImportedMetrics(existingMetrics, gpxToSportMetrics(gpx))
+      : { ...existingMetrics, ...gpxToSportMetrics(gpx) }
+    const durationMinutes =
+      imported && existing.durationMinutes > 0 ? existing.durationMinutes : gpxDurationMinutes
+    const distanceKm = imported && existing.distanceKm ? existing.distanceKm : gpxDistanceKm
+    const avgHeartRate = imported
+      ? (existing.avgHeartRate ?? gpx.avgHeartRate ?? null)
+      : (gpx.avgHeartRate ?? existing.avgHeartRate)
+
     const derived = deriveSessionFields(
       {
         durationMinutes,
