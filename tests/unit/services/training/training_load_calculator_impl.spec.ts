@@ -289,3 +289,68 @@ test.group('TRIMPexp mono-point et exclusion des autres sports', () => {
     assert.equal(result.method, 'rpe')
   })
 })
+
+// ── sTSS natation ─────────────────────────────────────────────────────────────
+
+test.group('sTSS — natation', () => {
+  // CSS 1'45/100 m → 57,14 m/min
+  const css = 1.75
+
+  test("1 h à l'allure CSS → 100 sTSS", ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgPaceMPerMin: 100 / css,
+      isSwimming: true,
+      cssPacePer100m: css,
+    })
+    assert.equal(result.method, 'stss')
+    assert.approximately(result.value, 100, 0.1)
+  })
+
+  test('intensité au cube : 10 % plus lent → ≈ 73 sTSS / h', ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgPaceMPerMin: (100 / css) * 0.9,
+      isSwimming: true,
+      cssPacePer100m: css,
+    })
+    assert.approximately(result.value, 72.9, 0.1)
+  })
+
+  test('prioritaire sur la FC en natation', ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgPaceMPerMin: 100 / css,
+      isSwimming: true,
+      cssPacePer100m: css,
+      heartRateCurve: flatCurve(160, 3600),
+      maxHR: 190,
+      restHR: 50,
+    })
+    assert.equal(result.method, 'stss')
+  })
+
+  test('sans CSS : repli sur la FC', ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgPaceMPerMin: 50,
+      isSwimming: true,
+      heartRateCurve: flatCurve(150, 3600),
+      maxHR: 190,
+      restHR: 50,
+    })
+    assert.equal(result.method, 'trimp_exp')
+  })
+
+  test('jamais de sTSS hors natation, même avec une CSS', ({ assert }) => {
+    const result = calc.calculate({
+      durationHours: 1,
+      avgPaceMPerMin: 200,
+      isSwimming: false,
+      isRunning: true,
+      cssPacePer100m: css,
+      perceivedEffort: 3,
+    })
+    assert.notEqual(result.method, 'stss')
+  })
+})

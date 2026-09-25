@@ -218,6 +218,38 @@ test.group('UpdateProfile — use case', () => {
     assert.equal(capturedProfileUpdate.vma, 14.5)
   })
 
+  test('changer la CSS persiste la valeur et relance le calcul des charges', async ({ assert }) => {
+    let capturedProfileUpdate: Partial<Omit<UserProfile, 'id' | 'userId'>> = {}
+    const profileRepo = makeMockProfileRepository({
+      update: async (userId, data) => {
+        capturedProfileUpdate = data
+        return { ...DEFAULT_PROFILE, ...data, userId }
+      },
+    })
+    const emitter = new RecordingEventEmitter()
+    const useCase = new UpdateProfile(makeMockUserRepository(), profileRepo, emitter)
+
+    await useCase.execute(42, { cssPacePer100m: 1.75 })
+
+    assert.equal(capturedProfileUpdate.cssPacePer100m, 1.75)
+    assert.deepEqual(
+      emitter.events.map((e) => e.event),
+      ['profile:hr_changed']
+    )
+  })
+
+  test('CSS inchangée : pas de recalcul', async ({ assert }) => {
+    const profileRepo = makeMockProfileRepository({
+      findByUserId: async () => ({ ...DEFAULT_PROFILE, cssPacePer100m: 1.75 }),
+    })
+    const emitter = new RecordingEventEmitter()
+    const useCase = new UpdateProfile(makeMockUserRepository(), profileRepo, emitter)
+
+    await useCase.execute(42, { cssPacePer100m: 1.75 })
+
+    assert.lengthOf(emitter.events, 0)
+  })
+
   test('accepte null pour réinitialiser la FC max', async ({ assert }) => {
     let capturedProfileUpdate: Partial<Omit<UserProfile, 'id' | 'userId'>> = {}
     const profileRepo = makeMockProfileRepository({

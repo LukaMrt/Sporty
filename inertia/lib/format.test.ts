@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import {
+  cssFromTest,
   formatBlockDuration,
   formatDuration,
   formatPace,
@@ -10,6 +11,7 @@ import {
   isSwimming,
   kmToMiles,
   paceToKmh,
+  parseMinSec,
   toMinSec,
   toSwimPace,
 } from '~/lib/format'
@@ -60,5 +62,23 @@ describe('natation', () => {
     expect(isSwimming('swimming')).toBe(true)
     expect(isSwimming('running')).toBe(false)
     expect(isSwimming(undefined)).toBe(false)
+  })
+})
+
+describe('CSS', () => {
+  it("parseMinSec lit m:ss et m'ss", () => {
+    expect(parseMinSec('1:45')).toBe(1.75)
+    expect(parseMinSec("7'30")).toBe(7.5)
+    expect(parseMinSec('1:75')).toBeNull()
+    expect(parseMinSec('abc')).toBeNull()
+  })
+
+  it('cssFromTest : (400 − 200) / (T400 − T200)', () => {
+    // 400 m en 7'00, 200 m en 3'20 → 200 m en 3'40 → 1'50/100 m
+    expect(cssFromTest(7, 3 + 20 / 60)).toBeCloseTo(1 + 50 / 60, 5)
+  })
+
+  it('cssFromTest refuse un 400 m plus rapide que le 200 m', () => {
+    expect(cssFromTest(3, 3.5)).toBeNull()
   })
 })

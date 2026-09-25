@@ -67,6 +67,25 @@ export function formatSwimDistance(km: number): string {
   return `${meters.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f')} m`
 }
 
+/** "1:45" ou "1'45" → 1.75 (minutes décimales) ; null si illisible */
+export function parseMinSec(value: string): number | null {
+  const match = /^\s*(\d{1,2})\s*[:'’]\s*(\d{1,2})\s*$/.exec(value)
+  if (!match) return null
+  const seconds = Number(match[2])
+  if (seconds >= 60) return null
+  return Number(match[1]) + seconds / 60
+}
+
+/**
+ * CSS (min/100 m) depuis un test 400 m + 200 m nagés à fond, temps en minutes :
+ * CSS = (400 − 200) / (T400 − T200) en m/min, convertie en allure /100 m.
+ */
+export function cssFromTest(t400Minutes: number, t200Minutes: number): number | null {
+  if (t400Minutes <= t200Minutes || t200Minutes <= 0) return null
+  const speedMPerMin = 200 / (t400Minutes - t200Minutes)
+  return 100 / speedMPerMin
+}
+
 export function formatTrend(
   trendSeconds: number,
   unitLabel: string = 's/km',

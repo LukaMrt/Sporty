@@ -21,6 +21,8 @@ export type UpdateProfileInput = {
   maxHeartRate?: number | null
   restingHeartRate?: number | null
   vma?: number | null
+  /** CSS natation (min/100 m) */
+  cssPacePer100m?: number | null
   sex?: UserProfile['sex']
   /** `null` = revenir à la méthode automatique */
   hrZonesConfig?: HrZonesConfig | null
@@ -63,6 +65,7 @@ export default class UpdateProfile {
     if (data.maxHeartRate !== undefined) profileUpdate.maxHeartRate = data.maxHeartRate
     if (data.restingHeartRate !== undefined) profileUpdate.restingHeartRate = data.restingHeartRate
     if (data.vma !== undefined) profileUpdate.vma = data.vma
+    if (data.cssPacePer100m !== undefined) profileUpdate.cssPacePer100m = data.cssPacePer100m
     if (data.sex !== undefined) profileUpdate.sex = data.sex
     if (data.hrZonesConfig !== undefined) profileUpdate.hrZonesConfig = data.hrZonesConfig
     if (data.privacyZones !== undefined) profileUpdate.privacyZones = data.privacyZones
@@ -93,13 +96,16 @@ export default class UpdateProfile {
       if (!isZoneBoundsResult(outcome)) throw new InvalidHeartRateZonesError(outcome.issue)
     }
 
-    const hrChanged =
+    const physiologyChanged =
       existing !== null &&
       (merged.maxHeartRate !== existing.maxHeartRate ||
         merged.restingHeartRate !== existing.restingHeartRate ||
         JSON.stringify(merged.hrZonesConfig ?? null) !==
           JSON.stringify(existing.hrZonesConfig ?? null) ||
-        (data.sex !== undefined && data.sex !== existing.sex))
+        (data.sex !== undefined && data.sex !== existing.sex) ||
+        // La CSS porte le sTSS des séances de natation
+        (data.cssPacePer100m !== undefined &&
+          data.cssPacePer100m !== (existing.cssPacePer100m ?? null)))
 
     let profile: UserProfile | null = null
     if (Object.keys(profileUpdate).length > 0) {
@@ -115,6 +121,7 @@ export default class UpdateProfile {
           maxHeartRate: profileUpdate.maxHeartRate ?? null,
           restingHeartRate: profileUpdate.restingHeartRate ?? null,
           vma: profileUpdate.vma ?? null,
+          cssPacePer100m: profileUpdate.cssPacePer100m ?? null,
           sex: profileUpdate.sex ?? null,
           trainingState: TrainingState.Idle,
           hrZonesConfig: profileUpdate.hrZonesConfig ?? null,
@@ -125,8 +132,8 @@ export default class UpdateProfile {
       profile = await this.userProfileRepository.findByUserId(userId)
     }
 
-    // Zones, TRIMP et charge des séances existantes dépendent de ces valeurs
-    if (hrChanged) await this.eventEmitter.emit('profile:hr_changed', { userId })
+    // Zones, TRIMP, sTSS et charge des séances existantes dépendent de ces valeurs
+    if (physiologyChanged) await this.eventEmitter.emit('profile:hr_changed', { userId })
 
     return { user: updatedUser, profile }
   }
