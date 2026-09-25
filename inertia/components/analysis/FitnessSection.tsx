@@ -24,6 +24,7 @@ export default function FitnessSection({ fitness }: { fitness: AnalysisData['fit
   return (
     <Section
       id="fitness"
+      terms={['ctl', 'atl', 'tsb', 'tss', 'acwr', 'monotony', 'strain']}
       title={t('analysis.fitness.title')}
       description={t('analysis.fitness.description')}
       empty={fitness.series.length === 0}

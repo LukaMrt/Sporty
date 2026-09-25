@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
+import Term from '~/components/shared/Term'
 // Module pur du domaine : même calcul et même validation que le serveur
 // eslint-disable-next-line @adonisjs/no-backend-import-in-frontend
 import {
@@ -94,6 +95,11 @@ export default function HeartRateZonesEditor({
     <fieldset className="space-y-3">
       <legend className="text-sm font-medium">{t('profile.hrZones.title')}</legend>
       <p className="text-xs text-muted-foreground">{t('profile.hrZones.description')}</p>
+      <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        {(['hrZones', 'maxHr', 'restingHr', 'karvonen', 'lthr'] as const).map((term) => (
+          <Term key={term} id={term} />
+        ))}
+      </p>
 
       <div role="radiogroup" aria-label={t('profile.hrZones.title')} className="space-y-2">
         {METHODS.map((method) => {

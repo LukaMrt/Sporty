@@ -10,7 +10,6 @@ import {
   YAxis,
 } from 'recharts'
 import { useTranslation } from '~/hooks/use_translation'
-import Term from '~/components/shared/Term'
 import { formatSwimPace, formatSwimDistance } from '~/lib/format'
 import { Section, SPORT_COLORS, Stat, type AnalysisData } from './shared'
 
@@ -30,6 +29,7 @@ export default function SwimmingSection({ swimming }: { swimming: AnalysisData['
   return (
     <Section
       id="swimming"
+      terms={['swimPace', 'css', 'stss']}
       title={t('analysis.swimming.title')}
       description={t('analysis.swimming.description')}
       empty={!swimming.hasSessions}
@@ -51,9 +51,6 @@ export default function SwimmingSection({ swimming }: { swimming: AnalysisData['
           hint={swimming.css ? undefined : t('analysis.swimming.cssMissing')}
         />
       </div>
-      <p className="mb-3 text-xs text-muted-foreground">
-        <Term id="swimPace" /> · <Term id="css" /> · <Term id="stss" />
-      </p>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="h-56">

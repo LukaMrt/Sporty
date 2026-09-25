@@ -26,6 +26,7 @@ import TrimpIndicator from '~/components/sessions/TrimpIndicator'
 import SplitsTable from '~/components/sessions/SplitsTable'
 import EnrichGpxButton from '~/components/sessions/EnrichGpxButton'
 import SwimDetails from '~/components/sessions/SwimDetails'
+import Term from '~/components/shared/Term'
 import SameRouteSessions, { type SameRouteSession } from '~/components/sessions/SameRouteSessions'
 import SessionInsights, { type RunningDynamicsSummary } from '~/components/sessions/SessionInsights'
 import type { SessionContext } from '../../../app/use_cases/sessions/get_session_context'
@@ -355,7 +356,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
             {hrZones && (
               <div>
                 <h3 className="text-xs font-medium text-muted-foreground mb-2">
-                  {t('sessions.show.hrZones')}
+                  <Term id="hrZones">{t('sessions.show.hrZones')}</Term>
                 </h3>
                 <HeartRateZonesChart
                   hrZones={hrZones}
@@ -370,7 +371,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
                 {cardiacDrift !== undefined && (
                   <div>
                     <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
-                      {t('sessions.show.cardiacDrift')}
+                      <Term id="cardiacDrift">{t('sessions.show.cardiacDrift')}</Term>
                       <MetricInsight metricKey="cardiacDrift" value={cardiacDrift} iconOnly />
                     </h3>
                     <CardiacDriftIndicator value={cardiacDrift} />
@@ -379,7 +380,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
                 {trimp !== undefined && (
                   <div>
                     <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
-                      {t('sessions.show.trimp')}
+                      <Term id="trimp">{t('sessions.show.trimp')}</Term>
                       <MetricInsight metricKey="trimp" value={trimp} iconOnly />
                     </h3>
                     <TrimpIndicator value={trimp} />

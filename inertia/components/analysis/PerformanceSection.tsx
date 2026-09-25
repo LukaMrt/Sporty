@@ -38,6 +38,7 @@ export default function PerformanceSection({
   return (
     <Section
       id="performance"
+      terms={['vdot', 'vo2max', 'maxHr', 'lthr']}
       title={t('analysis.performance.title')}
       description={t('analysis.performance.description')}
       empty={performance.records.length === 0}

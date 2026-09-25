@@ -35,6 +35,7 @@ export default function LoadCalendar({ calendar }: { calendar: AnalysisData['cal
   return (
     <Section
       id="calendar"
+      terms={['tss']}
       title={t('analysis.calendar.title')}
       empty={calendar.length === 0}
       emptyMessage={t('analysis.empty.noSessions')}

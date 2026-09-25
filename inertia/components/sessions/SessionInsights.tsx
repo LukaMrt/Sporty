@@ -1,4 +1,6 @@
 import { useTranslation } from '~/hooks/use_translation'
+import Term from '~/components/shared/Term'
+import type { GlossaryTermId } from '~/lib/glossary'
 import type { SessionContext } from '../../../app/use_cases/sessions/get_session_context'
 import type { SessionAnalysis } from '../../../app/domain/value_objects/session_analysis'
 
@@ -40,21 +42,27 @@ export default function SessionInsights({
   context: SessionContext | null
 }) {
   const { t } = useTranslation()
-  const items: { label: string; value: string; hint?: string }[] = []
+  const items: { label: string; value: string; hint?: string; term?: GlossaryTermId }[] = []
 
   if (isSet(analysis?.gradeAdjustedPace)) {
     items.push({
       label: t('sessions.insights.gap'),
+      term: 'gap',
       value: formatPace(analysis.gradeAdjustedPace),
       hint: t('sessions.insights.gapHint'),
     })
   }
   if (isSet(analysis?.efficiencyFactor)) {
-    items.push({ label: t('sessions.insights.ef'), value: analysis.efficiencyFactor.toFixed(2) })
+    items.push({
+      label: t('sessions.insights.ef'),
+      value: analysis.efficiencyFactor.toFixed(2),
+      term: 'ef',
+    })
   }
   if (isSet(analysis?.decoupling)) {
     items.push({
       label: t('sessions.insights.decoupling'),
+      term: 'decoupling',
       value: `${analysis.decoupling} %`,
       hint:
         analysis.decoupling < 5
@@ -82,7 +90,9 @@ export default function SessionInsights({
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {items.map((item) => (
             <div key={item.label}>
-              <dt className="text-xs text-muted-foreground">{item.label}</dt>
+              <dt className="text-xs text-muted-foreground">
+                {item.term ? <Term id={item.term}>{item.label}</Term> : item.label}
+              </dt>
               <dd className="font-semibold tabular-nums">{item.value}</dd>
               {item.hint && <dd className="text-xs text-muted-foreground">{item.hint}</dd>}
             </div>

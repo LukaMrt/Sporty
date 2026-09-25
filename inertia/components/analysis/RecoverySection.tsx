@@ -51,6 +51,7 @@ export default function RecoverySection({
   return (
     <Section
       id="recovery"
+      terms={['readiness', 'hrv', 'restingHr', 'spo2', 'tsb']}
       title={t('analysis.recovery.title')}
       description={t('analysis.recovery.description')}
       empty={!hasWellness}

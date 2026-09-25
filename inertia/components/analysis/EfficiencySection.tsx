@@ -41,6 +41,7 @@ export default function EfficiencySection({
   return (
     <Section
       id="efficiency"
+      terms={['ef', 'decoupling']}
       title={t('analysis.efficiency.title')}
       description={t('analysis.efficiency.description')}
       empty={trend.length === 0 && efficiency.decoupling.length === 0}
