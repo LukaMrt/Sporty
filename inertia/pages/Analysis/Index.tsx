@@ -8,6 +8,7 @@ import VolumeSection from '~/components/analysis/VolumeSection'
 import IntensitySection from '~/components/analysis/IntensitySection'
 import PerformanceSection from '~/components/analysis/PerformanceSection'
 import EfficiencySection from '~/components/analysis/EfficiencySection'
+import SwimmingSection from '~/components/analysis/SwimmingSection'
 import RecoverySection from '~/components/analysis/RecoverySection'
 import LoadCalendar from '~/components/analysis/LoadCalendar'
 import ReportSection from '~/components/analysis/ReportSection'
@@ -19,6 +20,7 @@ const SECTIONS = [
   'intensity',
   'performance',
   'efficiency',
+  'swimming',
   'recovery',
   'calendar',
   'report',
@@ -88,6 +90,7 @@ export default function AnalysisIndex({ analysis }: { analysis: AnalysisData }) 
         <IntensitySection intensity={analysis.intensity} hasHeartRate={analysis.hasHeartRate} />
         <PerformanceSection performance={analysis.performance} physiology={analysis.physiology} />
         <EfficiencySection efficiency={analysis.efficiency} range={analysis.range} />
+        <SwimmingSection swimming={analysis.swimming} />
         <RecoverySection
           recovery={analysis.recovery}
           correlations={analysis.correlations}

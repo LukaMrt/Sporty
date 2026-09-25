@@ -16,7 +16,8 @@
     "efficiency": "Efficacité",
     "recovery": "Récupération",
     "calendar": "Calendrier",
-    "report": "Rapport"
+    "report": "Rapport",
+    "swimming": "Natation"
   },
   "empty": {
     "noSessions": "Aucune séance sur la période.",
@@ -45,10 +46,12 @@
     "monthly": "Par mois",
     "lastYear": "Année précédente",
     "metrics": {
-      "distanceKm": "Distance (km)",
+      "distanceKm": "Distance",
       "durationMinutes": "Durée (min)",
       "sessions": "Séances"
-    }
+    },
+    "unitMeters": "Distance en mètres",
+    "unitKm": "Distance en km"
   },
   "sports": {
     "running": "Course",
@@ -200,9 +203,23 @@
     "load": "Charge",
     "highlights": "Faits saillants",
     "record": "Nouveau record sur {distance} : {time}",
-    "longest": "Plus longue sortie : {distance} km",
+    "longest": "Plus longue séance : {sport} {duration}",
     "busiestWeek": "Semaine la plus chargée : {week} ({load} TSS)",
     "intensity": "{percent} % du temps en Z1–Z2",
-    "efficiency": "Efficacité aérobie : {from} → {to}"
+    "efficiency": "Efficacité aérobie : {from} → {to}",
+    "swimRecord": "Record d'allure moyenne sur {distance} ou plus : {pace}"
+  },
+  "swimming": {
+    "title": "Natation",
+    "description": "Allure moyenne par semaine (pondérée par la distance), records d'allure et vitesse critique (CSS).",
+    "empty": "Aucune séance de natation sur la période.",
+    "lastPace": "Allure de la dernière semaine",
+    "delta": "{delta} % sur la période",
+    "css": "CSS (profil)",
+    "cssMissing": "À renseigner dans le profil",
+    "paceTrend": "Allure moyenne par semaine",
+    "pace": "Allure",
+    "records": "Records d'allure",
+    "recordsHint": "Meilleure allure moyenne parmi les séances d'au moins cette distance."
   }
 }

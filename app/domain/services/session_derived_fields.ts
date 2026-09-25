@@ -22,7 +22,7 @@ export type SessionForDerivation = Pick<
 
 export type ProfileForDerivation = Pick<
   UserProfile,
-  'maxHeartRate' | 'restingHeartRate' | 'sex' | 'vdot' | 'hrZonesConfig'
+  'maxHeartRate' | 'restingHeartRate' | 'sex' | 'vdot' | 'hrZonesConfig' | 'cssPacePer100m'
 > | null
 
 export type DerivedSessionFields = {

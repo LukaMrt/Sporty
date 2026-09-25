@@ -17,7 +17,9 @@ export default function FitnessSection({ fitness }: { fitness: AnalysisData['fit
   const { t, locale } = useTranslation()
   const current = fitness.current
   const lastMonotony = fitness.monotony.at(-1)
-  const estimated = fitness.methods.rpe > fitness.methods.trimp_exp + fitness.methods.rtss
+  const estimated =
+    fitness.methods.rpe >
+    fitness.methods.trimp_exp + fitness.methods.rtss + (fitness.methods.stss ?? 0)
 
   return (
     <Section

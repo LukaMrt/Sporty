@@ -17,6 +17,8 @@ import type {
 } from '../../app/domain/entities/dashboard_metrics'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import { useTranslation } from '~/hooks/use_translation'
+import { formatDuration } from '~/lib/format'
+import { sportIcon } from '~/lib/sports'
 import NextSessionWidget from '~/components/planning/NextSessionWidget'
 import type { NextSessionResult } from '~/components/planning/NextSessionWidget'
 
@@ -42,7 +44,7 @@ export default function Dashboard({
   const { techMode } = useTechMode()
   const isEmpty = quickStats === null
   const showAcwrWarning = !acwrDismissed && acwr !== null && acwr > 1.3
-  const { formatDistanceParts } = useUnitConversion()
+  const { formatDistance } = useUnitConversion()
   const { t } = useTranslation()
 
   return (
@@ -78,9 +80,16 @@ export default function Dashboard({
           <div className="grid grid-cols-3 gap-2">
             <QuickStatCard
               label={t('dashboard.stats.weeklyVolume')}
-              value={isEmpty ? '—' : formatDistanceParts(quickStats.weeklyVolumeKm).value}
-              unit={isEmpty ? 'km' : formatDistanceParts(quickStats.weeklyVolumeKm).unit}
-              trend={isEmpty ? null : quickStats.weeklyVolumeTrend}
+              value={isEmpty ? '—' : formatDuration(quickStats.weeklyDurationMinutes)}
+              unit=""
+              detail={
+                isEmpty
+                  ? undefined
+                  : Object.entries(quickStats.weeklyDistanceBySport)
+                      .map(([sport, km]) => `${sportIcon(sport)} ${formatDistance(km, sport)}`)
+                      .join(' · ') || undefined
+              }
+              trend={isEmpty ? null : quickStats.weeklyDurationTrend}
               isEmpty={isEmpty}
               trendSuffix={t('dashboard.stats.trendSuffix')}
             />

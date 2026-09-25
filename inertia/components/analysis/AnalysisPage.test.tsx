@@ -12,7 +12,7 @@ function emptyAnalysis(overrides: Partial<AnalysisData> = {}): AnalysisData {
     fitness: {
       current: null,
       series: [],
-      methods: { trimp_exp: 0, rtss: 0, rpe: 0 },
+      methods: { trimp_exp: 0, rtss: 0, stss: 0, rpe: 0 },
       monotony: [],
     },
     volume: { weekly: [], monthly: [], previousYearMonthly: [] },
@@ -26,6 +26,7 @@ function emptyAnalysis(overrides: Partial<AnalysisData> = {}): AnalysisData {
       profileVdot: null,
       watchVo2Max: null,
     },
+    swimming: { hasSessions: false, paceTrend: [], records: [], recentRecords: [], css: null },
     efficiency: { trend: [], decoupling: [], referencePace: null, heartRateAtPace: [] },
     physiology: {
       observedMaxHr: null,
@@ -74,7 +75,7 @@ describe('Page Analyse', () => {
               calculatedAt: new Date(),
             },
             series: [{ date: '2026-03-01', tss: 60, ctl: 42, atl: 50, tsb: -8 }],
-            methods: { trimp_exp: 10, rtss: 0, rpe: 2 },
+            methods: { trimp_exp: 10, rtss: 0, stss: 0, rpe: 2 },
             monotony: [],
           },
           performance: {

@@ -1,4 +1,4 @@
-export type TrainingLoadMethod = 'trimp_exp' | 'rtss' | 'rpe'
+export type TrainingLoadMethod = 'trimp_exp' | 'rtss' | 'stss' | 'rpe'
 
 export type TrainingLoad = {
   value: number

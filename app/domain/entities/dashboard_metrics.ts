@@ -1,7 +1,10 @@
 export type QuickStatData = {
-  weeklyVolumeKm: number
-  weeklyVolumeTrend: number | null
-  weeklyVolumePreviousAvg: number | null
+  /** Volume hebdo en minutes : comparable entre sports, contrairement aux km */
+  weeklyDurationMinutes: number
+  weeklyDurationTrend: number | null
+  weeklyDurationPreviousAvg: number | null
+  /** Distance de la semaine par sport (km) */
+  weeklyDistanceBySport: Record<string, number>
   avgHeartRate: number | null
   avgHeartRateTrend: number | null
   avgHeartRatePreviousAvg: number | null
@@ -10,6 +13,7 @@ export type QuickStatData = {
   weeklySessionPreviousAvg: number | null
 }
 
+/** Allure moyenne de COURSE : l'allure d'un autre sport n'a pas la même unité */
 export type HeroMetricData = {
   currentPace: number // min/km
   previousPace: number | null // min/km (null si pas assez de données période précédente)
@@ -19,7 +23,7 @@ export type HeroMetricData = {
 
 export type ChartDataPoint = {
   date: string // ISO date
-  pace: number | null // min/km (null si pas de distance)
+  pace: number | null // min/km, course uniquement (null sinon ou sans distance)
   heartRate: number | null
   distance: number | null // km
 }

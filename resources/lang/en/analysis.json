@@ -16,7 +16,8 @@
     "efficiency": "Efficiency",
     "recovery": "Recovery",
     "calendar": "Calendar",
-    "report": "Report"
+    "report": "Report",
+    "swimming": "Swimming"
   },
   "empty": {
     "noSessions": "No sessions in this period.",
@@ -45,10 +46,12 @@
     "monthly": "Monthly",
     "lastYear": "Previous year",
     "metrics": {
-      "distanceKm": "Distance (km)",
+      "distanceKm": "Distance",
       "durationMinutes": "Duration (min)",
       "sessions": "Sessions"
-    }
+    },
+    "unitMeters": "Distance in metres",
+    "unitKm": "Distance in km"
   },
   "sports": {
     "running": "Running",
@@ -200,9 +203,23 @@
     "load": "Load",
     "highlights": "Highlights",
     "record": "New record over {distance}: {time}",
-    "longest": "Longest run: {distance} km",
+    "longest": "Longest session: {sport} {duration}",
     "busiestWeek": "Busiest week: {week} ({load} TSS)",
     "intensity": "{percent} % of time in Z1–Z2",
-    "efficiency": "Aerobic efficiency: {from} → {to}"
+    "efficiency": "Aerobic efficiency: {from} → {to}",
+    "swimRecord": "Best average pace over {distance} or more: {pace}"
+  },
+  "swimming": {
+    "title": "Swimming",
+    "description": "Weekly average pace (distance-weighted), pace records and critical swim speed (CSS).",
+    "empty": "No swimming session in this period.",
+    "lastPace": "Last week's pace",
+    "delta": "{delta}% over the period",
+    "css": "CSS (profile)",
+    "cssMissing": "Set it in your profile",
+    "paceTrend": "Weekly average pace",
+    "pace": "Pace",
+    "records": "Pace records",
+    "recordsHint": "Best average pace among sessions of at least this distance."
   }
 }

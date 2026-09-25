@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { useTranslation } from '~/hooks/use_translation'
 import { formatSeconds, Stat } from '~/components/analysis/shared'
+import { useUnitConversion } from '~/hooks/use_unit_conversion'
+import { formatDuration, formatSwimPace } from '~/lib/format'
+import { sportIcon } from '~/lib/sports'
 import type GetPeriodReport from '../../../app/use_cases/analysis/get_period_report'
 
 type Report = Awaited<ReturnType<GetPeriodReport['execute']>>
@@ -27,6 +30,12 @@ function delta(current: number, previous: number): string | undefined {
 /** H2 · Bilan hebdomadaire ou mensuel avec faits saillants */
 export default function AnalysisReport({ report }: { report: Report }) {
   const { t, locale } = useTranslation()
+  const { formatDistance } = useUnitConversion()
+  // Une ligne par sport : on n'additionne pas des km de nage et de course
+  const distanceBySport = (distances: Record<string, number>) =>
+    Object.entries(distances)
+      .map(([sport, km]) => `${sportIcon(sport)} ${formatDistance(km, sport)}`)
+      .join(' · ') || '—'
   const go = (params: Record<string, string>) =>
     router.get('/analysis/report', { period: report.period, ...params }, { preserveScroll: true })
   const fmt = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString(locale)
@@ -90,8 +99,7 @@ export default function AnalysisReport({ report }: { report: Report }) {
           />
           <Stat
             label={t('analysis.periodReport.distance')}
-            value={`${totals.distanceKm} km`}
-            hint={delta(totals.distanceKm, previousTotals.distanceKm)}
+            value={distanceBySport(totals.distanceBySport)}
           />
           <Stat
             label={t('analysis.periodReport.duration')}
@@ -120,9 +128,27 @@ export default function AnalysisReport({ report }: { report: Report }) {
                 </Link>
               </li>
             ))}
+            {report.swimRecords.map((r) => (
+              <li key={`swim-${r.distance}`}>
+                🏊{' '}
+                {t('analysis.periodReport.swimRecord', {
+                  distance: `${r.distance} m`,
+                  pace: formatSwimPace(r.pacePer100m),
+                })}{' '}
+                <Link href={`/sessions/${r.sessionId}`} className="text-primary hover:underline">
+                  {fmt(r.date)}
+                </Link>
+              </li>
+            ))}
             {report.longest && (
               <li>
-                {t('analysis.periodReport.longest', { distance: report.longest.distanceKm })}{' '}
+                {t('analysis.periodReport.longest', {
+                  sport: sportIcon(report.longest.sportSlug),
+                  duration: formatDuration(report.longest.durationMinutes),
+                })}
+                {report.longest.distanceKm
+                  ? ` (${formatDistance(report.longest.distanceKm, report.longest.sportSlug)})`
+                  : ''}{' '}
                 <Link
                   href={`/sessions/${report.longest.id}`}
                   className="text-primary hover:underline"

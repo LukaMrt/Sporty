@@ -50,7 +50,12 @@ export default class GetFitnessProfile {
     const profile = await this.userProfileRepository.findByUserId(userId)
     const asOf = options.asOf ?? todayInTimezone(profile?.timezone)
     const since = addDaysIso(asOf, -(options.historyDays ?? 365))
-    const methods: Record<TrainingLoadMethod, number> = { trimp_exp: 0, rtss: 0, rpe: 0 }
+    const methods: Record<TrainingLoadMethod, number> = {
+      trimp_exp: 0,
+      rtss: 0,
+      stss: 0,
+      rpe: 0,
+    }
 
     const entries = await this.sessionRepository.findLoadEntries(userId, since, asOf)
     if (entries.length === 0) return { asOf, profile: null, series: [], methods }

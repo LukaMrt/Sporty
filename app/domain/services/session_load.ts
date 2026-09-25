@@ -4,10 +4,11 @@ import type { SessionLoadInput } from '#domain/value_objects/session_load_input'
 import { isRunMetrics } from '#domain/value_objects/sport_metrics'
 
 export const RUNNING_SLUG = 'running'
+export const SWIMMING_SLUG = 'swimming'
 
 /**
  * Données de la séance et du profil utilisées pour la charge, par ordre de fiabilité :
- * courbe FC → FC moyenne → allure (course uniquement) + VDOT persisté → effort perçu.
+ * allure natation + CSS → courbe FC → FC moyenne → allure course + VDOT → effort perçu.
  */
 export function buildSessionLoadInput(
   session: Pick<
@@ -16,7 +17,7 @@ export function buildSessionLoadInput(
   > & { sportSlug?: string },
   profile: Pick<
     UserProfile,
-    'maxHeartRate' | 'restingHeartRate' | 'sex' | 'vdot' | 'hrZonesConfig'
+    'maxHeartRate' | 'restingHeartRate' | 'sex' | 'vdot' | 'hrZonesConfig' | 'cssPacePer100m'
   > | null
 ): SessionLoadInput {
   const metrics = session.sportMetrics
@@ -37,6 +38,8 @@ export function buildSessionLoadInput(
         : undefined,
     vdot: profile?.vdot ?? undefined,
     isRunning,
+    isSwimming: session.sportSlug === SWIMMING_SLUG,
+    cssPacePer100m: profile?.cssPacePer100m ?? undefined,
     perceivedEffort: session.perceivedEffort ?? undefined,
   }
 }

@@ -242,4 +242,56 @@ test.group('GetDashboardMetrics — use case', () => {
     assert.isNull(point.pace)
     assert.isNull(point.distance)
   })
+
+  test("natation : exclue de l'allure moyenne et de la courbe d'allure", async ({ assert }) => {
+    const sessions = [
+      makeSession({ id: 1, durationMinutes: 60, distanceKm: 10, sportSlug: 'running' }),
+      makeSession({ id: 2, durationMinutes: 50, distanceKm: 10, sportSlug: 'running' }),
+      // 1,5 km en 30 min : 20 min/km, fausserait l'allure de course
+      makeSession({ id: 3, durationMinutes: 30, distanceKm: 1.5, sportSlug: 'swimming' }),
+    ]
+    const repo = makeMockSessionRepository({
+      async findByUserIdAndDateRange(_userId, start) {
+        if (start < '2026-01-01') return []
+        return sessions
+      },
+      async findAllByUserId() {
+        return makePaginatedResult(sessions)
+      },
+    })
+
+    const result = await new GetDashboardMetrics(repo).execute(1)
+
+    assert.approximately(result.heroMetric!.currentPace, 110 / 20, 0.001)
+    const swimPoint = result.chartData!.points.find((p) => p.distance === 1.5)
+    assert.isNull(swimPoint!.pace)
+  })
+
+  test('volume hebdo : durée totale et distance par sport', async ({ assert }) => {
+    const now = new Date('2026-09-24T12:00:00Z') // jeudi
+    const sessions = [
+      makeSession({ id: 1, date: '2026-09-22', durationMinutes: 60, distanceKm: 10 }),
+      makeSession({ id: 2, date: '2026-09-23', durationMinutes: 45, distanceKm: 8 }),
+      makeSession({
+        id: 3,
+        date: '2026-09-23',
+        durationMinutes: 30,
+        distanceKm: 1.5,
+        sportSlug: 'swimming',
+      }),
+    ]
+    const repo = makeMockSessionRepository({
+      async findByUserIdAndDateRange(_userId, start, end) {
+        return sessions.filter((s) => s.date >= start && s.date <= end)
+      },
+      async findAllByUserId() {
+        return makePaginatedResult(sessions)
+      },
+    })
+
+    const result = await new GetDashboardMetrics(repo).execute(1, now)
+
+    assert.equal(result.quickStats!.weeklyDurationMinutes, 135)
+    assert.deepEqual(result.quickStats!.weeklyDistanceBySport, { running: 18, swimming: 1.5 })
+  })
 })

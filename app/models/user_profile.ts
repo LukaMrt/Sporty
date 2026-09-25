@@ -46,6 +46,9 @@ export default class UserProfile extends BaseModel {
   @column()
   declare vdot: number | null
 
+  @column({ columnName: 'css_pace_per_100m' })
+  declare cssPacePer100m: number | null
+
   @column()
   declare timezone: string | null
 

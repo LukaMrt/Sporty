@@ -6,6 +6,8 @@ type QuickStatCardProps = {
   isEmpty: boolean
   lowerIsBetter?: boolean
   trendSuffix?: string
+  /** Ligne de détail sous la valeur (ex. distance par sport) */
+  detail?: string
 }
 
 export default function QuickStatCard({
@@ -16,6 +18,7 @@ export default function QuickStatCard({
   isEmpty,
   lowerIsBetter = false,
   trendSuffix = '',
+  detail,
 }: QuickStatCardProps) {
   const isFavorable = trend !== null && (lowerIsBetter ? trend < 0 : trend > 0)
   const trendSign = trend !== null && trend >= 0 ? '+' : ''
@@ -31,6 +34,7 @@ export default function QuickStatCard({
             <span className="text-lg font-semibold">{value}</span>
             <span className="text-xs text-muted-foreground">{unit}</span>
           </div>
+          {detail && <span className="text-xs text-muted-foreground">{detail}</span>}
           {trend !== null && (
             <div className="flex items-center gap-1">
               <span

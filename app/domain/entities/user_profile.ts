@@ -33,6 +33,8 @@ export type UserProfile = {
   hrZonesConfig?: HrZonesConfig | null
   /** VDOT confirmé par l'athlète */
   vdot?: number | null
+  /** CSS natation (vitesse critique, min/100 m) : référence du sTSS */
+  cssPacePer100m?: number | null
   /** Fuseau horaire IANA (ex. Europe/Paris) ; null = UTC */
   timezone?: string | null
   /** Zones masquées sur les cartes (domicile, travail…) */

@@ -29,6 +29,12 @@ export type SessionLoadInput = {
    */
   isRunning?: boolean
 
+  // ── Branche sTSS (natation) ───────────────────────────────────────────────
+  /** La séance est-elle de la natation ? */
+  isSwimming?: boolean
+  /** CSS de l'athlète en min/100 m */
+  cssPacePer100m?: number
+
   // ── Branche RPE ──────────────────────────────────────────────────────────
   /** Effort perçu, échelle du formulaire : 1 à 5 */
   perceivedEffort?: number

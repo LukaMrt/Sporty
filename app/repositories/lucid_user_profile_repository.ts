@@ -30,6 +30,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
           trainingState: profile.trainingState,
           hrZonesConfig: profile.hrZonesConfig ?? null,
           vdot: profile.vdot ?? null,
+          cssPacePer100m: profile.cssPacePer100m ?? null,
           timezone: profile.timezone ?? null,
         },
         { client: trx }
@@ -53,6 +54,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         trainingState: model.trainingState ?? TrainingState.Idle,
         hrZonesConfig: model.hrZonesConfig ?? null,
         vdot: model.vdot ?? null,
+        cssPacePer100m: model.cssPacePer100m ?? null,
         timezone: model.timezone ?? null,
         privacyZones: model.privacyZones ?? null,
       }
@@ -82,6 +84,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       trainingState: model.trainingState ?? TrainingState.Idle,
       hrZonesConfig: model.hrZonesConfig ?? null,
       vdot: model.vdot ?? null,
+      cssPacePer100m: model.cssPacePer100m ?? null,
       timezone: model.timezone ?? null,
       privacyZones: model.privacyZones ?? null,
     }
@@ -106,6 +109,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
       if (data.trainingState !== undefined) model.trainingState = data.trainingState
       if (data.hrZonesConfig !== undefined) model.hrZonesConfig = data.hrZonesConfig
       if (data.vdot !== undefined) model.vdot = data.vdot
+      if (data.cssPacePer100m !== undefined) model.cssPacePer100m = data.cssPacePer100m
       if (data.timezone !== undefined) model.timezone = data.timezone
       if (data.privacyZones !== undefined) model.privacyZones = data.privacyZones
       await model.save()
@@ -139,6 +143,7 @@ export default class LucidUserProfileRepository extends UserProfileRepository {
         trainingState: model.trainingState ?? TrainingState.Idle,
         hrZonesConfig: model.hrZonesConfig ?? null,
         vdot: model.vdot ?? null,
+        cssPacePer100m: model.cssPacePer100m ?? null,
         timezone: model.timezone ?? null,
         privacyZones: model.privacyZones ?? null,
       }
