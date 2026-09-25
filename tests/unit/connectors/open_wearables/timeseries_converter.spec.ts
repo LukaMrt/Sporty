@@ -2,7 +2,10 @@ import { test } from '@japa/runner'
 import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { toHeartRateCurve } from '#connectors/open_wearables/timeseries_converter'
+import {
+  heartRateCoverage,
+  toHeartRateCurve,
+} from '#connectors/open_wearables/timeseries_converter'
 import type { RawOwTimeSeriesSample } from '#connectors/open_wearables/types'
 
 const fixturesDir = join(
@@ -153,5 +156,22 @@ test.group('toHeartRateCurve', () => {
     )
 
     assert.deepEqual(curve, [])
+  })
+})
+
+test.group('heartRateCoverage', () => {
+  test('courbe complète → 1', ({ assert }) => {
+    const curve = Array.from({ length: 120 }, (_, i) => ({ time: i * 15, value: 130 }))
+    assert.equal(heartRateCoverage(curve, 1800), 1)
+  })
+
+  test('courbe trouée → part des fenêtres de 15 s couvertes', ({ assert }) => {
+    // 30 min = 120 fenêtres ; échantillons seulement sur les 6 premières minutes
+    const curve = Array.from({ length: 24 }, (_, i) => ({ time: i * 15, value: 130 }))
+    assert.closeTo(heartRateCoverage(curve, 1800), 0.2, 0.001)
+  })
+
+  test('durée nulle → 0', ({ assert }) => {
+    assert.equal(heartRateCoverage([{ time: 0, value: 130 }], 0), 0)
   })
 })

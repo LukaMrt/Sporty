@@ -1,0 +1,155 @@
+{
+  "title": "Understanding my metrics",
+  "intro": "Every concept and abbreviation used in Sporty, with guidelines to read them.",
+  "learnMore": "Learn more",
+  "howToRead": "How to read it:",
+  "groups": {
+    "load": "Load and form",
+    "heart": "Heart and zones",
+    "performance": "Performance and efficiency",
+    "recovery": "Recovery",
+    "swimming": "Swimming"
+  },
+  "terms": {
+    "ctl": {
+      "name": "CTL — Fitness (Chronic Training Load)",
+      "short": "Your daily training load averaged over ~42 days, weighted towards recent days. It reflects your long-term training level.",
+      "read": "The higher it goes, the more volume you can absorb. A steady rise of 3–5 points per week is sustainable."
+    },
+    "atl": {
+      "name": "ATL — Fatigue (Acute Training Load)",
+      "short": "Same calculation as CTL but over ~7 days: your recent fatigue.",
+      "read": "It reacts quickly: after a hard block it rises above CTL, then drops within a few rest days."
+    },
+    "tsb": {
+      "name": "TSB — Form (Training Stress Balance)",
+      "short": "CTL − ATL: long-term fitness minus recent fatigue.",
+      "read": "Negative (−10 to −30): loading phase, normal in training. Around 0 to +15: fresh, ideal for racing. Below −30: overreaching risk."
+    },
+    "tss": {
+      "name": "TSS — Training Stress Score",
+      "short": "Session load combining duration and intensity. 100 TSS ≈ one hour at threshold.",
+      "read": "Sporty computes it, from most to least reliable, from pace (running: rTSS; swimming: sTSS), heart-rate curve (TRIMP) or perceived effort (RPE)."
+    },
+    "rtss": {
+      "name": "rTSS — Running TSS",
+      "short": "TSS computed from your pace relative to your threshold pace (derived from VDOT).",
+      "read": "Used for running when your VDOT is known."
+    },
+    "stss": {
+      "name": "sTSS — Swimming TSS",
+      "short": "TSS computed from your swim pace relative to your CSS: intensity³ × duration × 100.",
+      "read": "More reliable than heart rate in the water, where wrist HR is often inaccurate. Requires your CSS in your profile."
+    },
+    "trimp": {
+      "name": "TRIMP — Training Impulse",
+      "short": "Load computed from time spent at each heart-rate level, weighting high heart rates heavily.",
+      "read": "An easy one-hour run gives ~50–80, a hard session much more. Comparable across your sessions, not between people."
+    },
+    "vdot": {
+      "name": "VDOT — Running performance index",
+      "short": "Jack Daniels' index derived from your performances: it sums up your level and drives your training paces and race predictions.",
+      "read": "Each VDOT point ≈ 1–2% faster. 40 = regular recreational runner, 50 = good club level, 60+ = very strong."
+    },
+    "vo2max": {
+      "name": "VO2max",
+      "short": "Maximal oxygen uptake (ml/kg/min) estimated by your watch.",
+      "read": "Similar in spirit to VDOT but computed differently by each brand: compare it mostly to itself over time."
+    },
+    "maxHr": {
+      "name": "Max HR",
+      "short": "The highest heart rate you can reach. It anchors your heart-rate zones.",
+      "read": "Formulas (220 − age) are rough: a value measured at the end of a maximal effort is far more accurate."
+    },
+    "restingHr": {
+      "name": "Resting HR",
+      "short": "Heart rate on waking, at rest.",
+      "read": "It drops as fitness improves. A rise of more than 5 bpm above your normal often signals fatigue, stress or illness."
+    },
+    "lthr": {
+      "name": "LTHR — Lactate threshold heart rate",
+      "short": "Heart rate you can sustain for about an hour of hard effort (≈ average HR over the last 20 minutes of a 30-minute test).",
+      "read": "The most reliable anchor for personalised heart-rate zones."
+    },
+    "karvonen": {
+      "name": "Karvonen method",
+      "short": "Zones computed from heart-rate reserve (max HR − resting HR) rather than max HR alone.",
+      "read": "More personal than plain % of max HR, since it accounts for your resting HR."
+    },
+    "hrZones": {
+      "name": "Heart-rate zones Z1–Z5",
+      "short": "Five intensity ranges based on your HR: Z1 recovery, Z2 endurance, Z3 tempo, Z4 threshold, Z5 VO2max.",
+      "read": "Classic guideline: about 80% of time in Z1–Z2, the rest in Z4–Z5, little Z3 (\"polarised\" distribution)."
+    },
+    "hrv": {
+      "name": "HRV — Heart-rate variability",
+      "short": "Variation in time between heartbeats, measured overnight (ms). It reflects the balance of your nervous system.",
+      "read": "Only compare it to your own baseline: several days below it means incomplete recovery."
+    },
+    "spo2": {
+      "name": "SpO2",
+      "short": "Blood oxygen saturation measured overnight.",
+      "read": "Normally 95–100%. An unusual drop can signal altitude, illness or night-time breathing issues."
+    },
+    "acwr": {
+      "name": "ACWR — Acute:chronic workload ratio",
+      "short": "Load over the last 7 days divided by average load over the last 4 weeks.",
+      "read": "0.8–1.3: safe zone. Above 1.5: too sharp an increase, higher injury risk."
+    },
+    "monotony": {
+      "name": "Monotony",
+      "short": "Average daily load of the week divided by its day-to-day variability.",
+      "read": "Above 2: the week is too uniform (not enough easy days), a driver of overtraining."
+    },
+    "strain": {
+      "name": "Strain",
+      "short": "Weekly load × monotony.",
+      "read": "High strain combines big volume with little variety: most illnesses and injuries happen in such weeks."
+    },
+    "decoupling": {
+      "name": "Aerobic decoupling",
+      "short": "Drift of the pace-to-HR ratio between the first and second half of a long run.",
+      "read": "Under 5%: solid aerobic base. Above, HR rises at constant pace: endurance needs work."
+    },
+    "cardiacDrift": {
+      "name": "Cardiac drift",
+      "short": "Rise in HR during a session while effort stays the same.",
+      "read": "Low (< 5%) on an easy run = good adaptation. Heat and dehydration increase it."
+    },
+    "ef": {
+      "name": "EF — Efficiency Factor",
+      "short": "Speed divided by HR on easy runs.",
+      "read": "If it rises, you go faster for the same cardiac effort: the best sign of aerobic progress."
+    },
+    "gap": {
+      "name": "GAP — Grade-adjusted pace",
+      "short": "Equivalent flat-ground pace, correcting for uphills and downhills.",
+      "read": "Lets you compare a hilly run with a flat one."
+    },
+    "rpe": {
+      "name": "RPE — Rate of perceived exertion",
+      "short": "How hard a session felt (1–5 scale in Sporty).",
+      "read": "Used to estimate load when there is no usable heart rate."
+    },
+    "readiness": {
+      "name": "Readiness",
+      "short": "Summary of your HRV, resting HR, sleep and form (TSB) compared to your baseline.",
+      "read": "Low: prefer an easy session or rest. Good: green light for a hard session."
+    },
+    "css": {
+      "name": "CSS — Critical swim speed",
+      "short": "The pace you can hold for about 30 minutes: your swimming \"threshold\". Computed from an all-out 400 m and 200 m: (400 − 200) / (T400 − T200).",
+      "read": "Reference for swim training paces and for sTSS. Expressed in min/100 m."
+    },
+    "swolf": {
+      "name": "SWOLF",
+      "short": "Time (seconds) + number of strokes for one pool length.",
+      "read": "Lower is more efficient. Only compare values from pools of the same length."
+    },
+    "swimPace": {
+      "name": "Swim pace (/100 m)",
+      "short": "Average time to swim 100 m.",
+      "read": "The standard swimming unit: 2'00/100m = 1,500 m in 30 minutes."
+    }
+  }
+}

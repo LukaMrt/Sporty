@@ -1,3 +1,4 @@
+import { newSwimRecords, swimRecords } from '#domain/services/analysis/swimming'
 import { inject } from '@adonisjs/core'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
@@ -49,7 +50,8 @@ export default class GetPeriodReport {
       weeks.set(key, (weeks.get(key) ?? 0) + (s.trainingLoad ?? 0))
     }
     const busiest = [...weeks.entries()].sort((a, b) => b[1] - a[1])[0] ?? null
-    const longest = [...current].sort((a, b) => (b.distanceKm ?? 0) - (a.distanceKm ?? 0))[0]
+    // Plus longue sortie : en durée, comparable entre sports (1 km de nage ≠ 1 km de course)
+    const longest = [...current].sort((a, b) => b.durationMinutes - a.durationMinutes)[0]
     const intensity = intensityByWeek(current)
     const zoneTotals = intensity.reduce(
       (acc, w) => acc.map((v, i) => v + w.zoneMinutes[i]),
@@ -67,9 +69,16 @@ export default class GetPeriodReport {
       previousTotals: periodTotals(previous),
       records: newRecords(bestEfforts(current), bestEfforts(history)),
       busiestWeek: busiest ? { week: busiest[0], load: Math.round(busiest[1]) } : null,
-      longest: longest?.distanceKm
-        ? { id: longest.id, date: longest.date, distanceKm: longest.distanceKm }
+      longest: longest
+        ? {
+            id: longest.id,
+            date: longest.date,
+            sportSlug: longest.sportSlug,
+            durationMinutes: longest.durationMinutes,
+            distanceKm: longest.distanceKm,
+          }
         : null,
+      swimRecords: newSwimRecords(swimRecords(current), swimRecords(history)),
       lowIntensityShare:
         zoneSum > 0 ? Math.round(((zoneTotals[0] + zoneTotals[1]) / zoneSum) * 100) : null,
       efficiency: efficiencyTrend([...previous, ...current]),

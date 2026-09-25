@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import Term from '~/components/shared/Term'
+import type { GlossaryTermId } from '~/lib/glossary'
 import type { AnalysisData } from '../../../app/use_cases/analysis/get_analysis'
 
 export type { AnalysisData }
@@ -46,11 +48,14 @@ export function Section({
   description,
   empty,
   emptyMessage,
+  terms,
   children,
 }: {
   id: string
   title: string
   description?: string
+  /** Notions de la section, expliquées au survol / toucher */
+  terms?: GlossaryTermId[]
   empty?: boolean
   emptyMessage?: string
   children: ReactNode
@@ -59,6 +64,13 @@ export function Section({
     <section id={id} className="scroll-mt-20 rounded-xl border bg-card p-4 shadow-sm sm:p-6">
       <h2 className="text-base font-semibold">{title}</h2>
       {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      {terms && terms.length > 0 && (
+        <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          {terms.map((term) => (
+            <Term key={term} id={term} />
+          ))}
+        </p>
+      )}
       <div className="mt-4">
         {empty ? (
           // État vide explicite plutôt qu'un graphique vide ou faux (§22.6)

@@ -10,6 +10,7 @@ import FormField from '~/components/forms/FormField'
 import GpxImportZone, { type GpxParsedData } from '~/components/sessions/GpxImportZone'
 import { EFFORT_EMOJIS } from '~/lib/effort'
 import { useTranslation } from '~/hooks/use_translation'
+import { formatSwimPace, isSwimming, toSwimPace } from '~/lib/format'
 
 type Sport = {
   id: number
@@ -23,6 +24,8 @@ type RunMetrics = {
   cadenceAvg?: number | null
   elevationGain?: number | null
   elevationLoss?: number | null
+  subType?: string | null
+  poolLengthM?: number | null
 }
 
 type TrainingSession = {
@@ -53,11 +56,13 @@ function todayIso() {
 function computeSpeed(
   durationMinutes: number | string,
   distanceKm: number | string,
-  speedUnit: 'min_km' | 'km_h'
+  speedUnit: 'min_km' | 'km_h',
+  swimming = false
 ): string | null {
   const dur = Number(durationMinutes)
   const dist = Number(distanceKm)
   if (!dur || !dist || dist <= 0) return null
+  if (swimming) return formatSwimPace(toSwimPace(dur / dist))
   if (speedUnit === 'km_h') {
     const kmh = (dist / dur) * 60
     return `${kmh.toFixed(1)} km/h`
@@ -94,6 +99,8 @@ export default function SessionForm({
     cadence_avg: string
     elevation_gain: string
     elevation_loss: string
+    sub_type: string
+    pool_length_m: string
     gpx_temp_id: string
   }>({
     sport_id: session?.sportId ?? defaultSportId ?? sports[0]?.id ?? 0,
@@ -136,12 +143,28 @@ export default function SessionForm({
       session?.sportMetrics?.elevationLoss !== undefined
         ? String(session.sportMetrics.elevationLoss)
         : '',
+    sub_type: session?.sportMetrics?.subType ?? '',
+    pool_length_m:
+      session?.sportMetrics?.poolLengthM !== null &&
+      session?.sportMetrics?.poolLengthM !== undefined
+        ? String(session.sportMetrics.poolLengthM)
+        : '',
     gpx_temp_id: '',
   })
 
-  const pace = computeSpeed(form.data.duration_minutes, form.data.distance_km, speedUnit)
   const selectedSport = sports.find((s) => s.id === form.data.sport_id)
   const isRunning = selectedSport?.slug === 'running'
+  const swimming = isSwimming(selectedSport?.slug)
+  const pace = computeSpeed(form.data.duration_minutes, form.data.distance_km, speedUnit, swimming)
+  // En natation la distance se saisit en mètres ; elle reste stockée en km
+  const distanceInput =
+    swimming && form.data.distance_km !== ''
+      ? String(Math.round(Number(form.data.distance_km) * 1000))
+      : form.data.distance_km
+
+  function setDistance(value: string) {
+    form.setData('distance_km', swimming && value !== '' ? String(Number(value) / 1000) : value)
+  }
 
   /** Pré-remplit le formulaire avec les valeurs lues dans le GPX */
   function applyGpx(data: GpxParsedData) {
@@ -185,6 +208,14 @@ export default function SessionForm({
       cadence_avg: form.data.cadence_avg !== '' ? Number(form.data.cadence_avg) : null,
       elevation_gain: form.data.elevation_gain !== '' ? Number(form.data.elevation_gain) : null,
       elevation_loss: form.data.elevation_loss !== '' ? Number(form.data.elevation_loss) : null,
+      // Champs natation envoyés uniquement pour ce sport : une séance de trail
+      // éditée ne doit pas perdre son sous-type importé
+      sub_type: swimming ? form.data.sub_type || null : undefined,
+      pool_length_m: swimming
+        ? form.data.sub_type === 'pool' && form.data.pool_length_m !== ''
+          ? Number(form.data.pool_length_m)
+          : null
+        : undefined,
       gpx_temp_id: form.data.gpx_temp_id !== '' ? form.data.gpx_temp_id : undefined,
     }
     if (mode === 'create') {
@@ -217,6 +248,45 @@ export default function SessionForm({
         </select>
       </FormField>
 
+      {/* Natation : piscine / eau libre et longueur du bassin */}
+      {swimming && (
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            label={t('sessions.form.subType')}
+            htmlFor="sub_type"
+            error={form.errors.sub_type}
+          >
+            <select
+              id="sub_type"
+              value={form.data.sub_type}
+              onChange={(e) => form.setData('sub_type', e.target.value)}
+              className="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <option value="">—</option>
+              <option value="pool">{t('sessions.subTypes.pool')}</option>
+              <option value="open_water">{t('sessions.subTypes.open_water')}</option>
+            </select>
+          </FormField>
+          {form.data.sub_type === 'pool' && (
+            <FormField
+              label={t('sessions.form.poolLength')}
+              htmlFor="pool_length_m"
+              error={form.errors.pool_length_m}
+            >
+              <Input
+                id="pool_length_m"
+                type="number"
+                min={10}
+                max={100}
+                placeholder="25"
+                value={form.data.pool_length_m}
+                onChange={(e) => form.setData('pool_length_m', e.target.value)}
+              />
+            </FormField>
+          )}
+        </div>
+      )}
+
       {/* Date */}
       <FormField label={t('sessions.form.date')} htmlFor="date" error={form.errors.date}>
         <Input
@@ -246,7 +316,7 @@ export default function SessionForm({
 
       {/* Distance */}
       <FormField
-        label={t('sessions.form.distance')}
+        label={swimming ? t('sessions.form.distanceMeters') : t('sessions.form.distance')}
         htmlFor="distance_km"
         error={form.errors.distance_km}
       >
@@ -254,17 +324,17 @@ export default function SessionForm({
           id="distance_km"
           type="number"
           min={0}
-          step={0.01}
-          placeholder="ex: 10.5"
-          value={form.data.distance_km}
-          onChange={(e) => form.setData('distance_km', e.target.value)}
+          step={swimming ? 25 : 0.01}
+          placeholder={swimming ? 'ex: 1500' : 'ex: 10.5'}
+          value={distanceInput}
+          onChange={(e) => setDistance(e.target.value)}
         />
       </FormField>
 
       {/* Vitesse / allure auto-calculée */}
       {pace && (
         <p className="text-sm text-muted-foreground">
-          {speedUnit === 'km_h' ? t('sessions.form.speed') : t('sessions.form.pace')} :{' '}
+          {speedUnit === 'km_h' && !swimming ? t('sessions.form.speed') : t('sessions.form.pace')} :{' '}
           <span className="font-medium text-foreground">{pace}</span>
         </p>
       )}

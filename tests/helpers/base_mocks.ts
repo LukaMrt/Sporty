@@ -278,7 +278,7 @@ export function stubGetFitnessProfile(profile: FitnessProfile | null = SAMPLE_FI
     asOf: new Date().toISOString().slice(0, 10),
     profile,
     series: [],
-    methods: { trimp_exp: 0, rtss: 0, rpe: 0 },
+    methods: { trimp_exp: 0, rtss: 0, stss: 0, rpe: 0 },
   }
   return { execute: async () => result } as unknown as GetFitnessProfile
 }

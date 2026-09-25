@@ -10,6 +10,7 @@ import FormField from '~/components/forms/FormField'
 import { Input } from '~/components/ui/input'
 import { Button } from '~/components/ui/button'
 import PrivacyZonesEditor from '~/components/Profile/PrivacyZonesEditor'
+import SwimCssEditor from '~/components/Profile/SwimCssEditor'
 import HeartRateZonesEditor, { type HrZonesValue } from '~/components/Profile/HeartRateZonesEditor'
 import { useTranslation } from '~/hooks/use_translation'
 
@@ -40,6 +41,7 @@ type ProfileData = {
   maxHeartRate: number | null
   restingHeartRate: number | null
   vma: number | null
+  cssPacePer100m: number | null
   sex: 'male' | 'female' | null
   timezone: string | null
   privacyZones: { lat: number; lon: number; radiusM: number }[]
@@ -83,6 +85,7 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
     max_heart_rate: profile?.maxHeartRate ?? (null as number | null),
     resting_heart_rate: profile?.restingHeartRate ?? (null as number | null),
     vma: profile?.vma ?? (null as number | null),
+    css_pace_per_100m: profile?.cssPacePer100m ?? (null as number | null),
     timezone: profile?.timezone ?? browserTimezone(),
     privacy_zones: (profile?.privacyZones ?? []).map((z) => ({
       lat: z.lat,
@@ -378,6 +381,12 @@ export default function ProfileEdit({ user, profile, sports }: EditProps) {
                 onChange={(v) => form.setData('vma', v)}
                 placeholder={t('profile.physiological.vmaPlaceholder')}
                 error={form.errors.vma}
+              />
+
+              <SwimCssEditor
+                value={form.data.css_pace_per_100m}
+                onChange={(v) => form.setData('css_pace_per_100m', v)}
+                error={form.errors.css_pace_per_100m}
               />
 
               <PrivacyZonesEditor

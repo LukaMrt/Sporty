@@ -7,7 +7,8 @@
     "admin": "Administration",
     "connectors": "Connectors",
     "logout": "Log out",
-    "analysis": "Analysis"
+    "analysis": "Analysis",
+    "help": "Help"
   },
   "actions": {
     "save": "Save",

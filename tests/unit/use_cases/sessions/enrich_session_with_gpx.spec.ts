@@ -161,7 +161,8 @@ test.group('EnrichSessionWithGpx — use case', () => {
     const useCase = new EnrichSessionWithGpx(
       repo,
       makeMockUserProfileRepository(),
-      makeMockGpxParser(makeGpxResult({ startTime: '2026-03-01T08:00:00Z' })),
+      // Lendemain : dans la tolérance de fuseau, mais date différente de la séance
+      makeMockGpxParser(makeGpxResult({ startTime: '2026-01-16T08:00:00Z' })),
       makeMockGpxFileStorage(),
       new FixedLoadCalculator()
     )

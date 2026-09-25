@@ -195,5 +195,14 @@
     "radius": "Rayon (m)",
     "remove": "Retirer",
     "add": "+ Ajouter une zone (ma position actuelle)"
+  },
+  "swim": {
+    "css": "CSS natation",
+    "usedFor": "sert à calculer la charge de tes séances de natation",
+    "fromTest": "Calculer depuis un test 400 m / 200 m",
+    "testHint": "Après échauffement, nage un 400 m à fond, récupère 5 à 10 min, puis un 200 m à fond. Saisis les deux temps (m:ss).",
+    "time400": "Temps 400 m",
+    "time200": "Temps 200 m",
+    "useResult": "Utiliser {css}"
   }
 }

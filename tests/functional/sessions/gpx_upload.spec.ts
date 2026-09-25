@@ -95,11 +95,11 @@ test.group('GPX upload', (group) => {
     const user = await getUser()
     const sport = await Sport.firstOrFail()
 
-    // Créer une séance sans GPX
+    // Créer une séance sans GPX, le jour du GPX (un GPX d'un autre jour est refusé)
     const session = await Session.create({
       userId: user.id,
       sportId: sport.id,
-      date: DateTime.fromISO('2026-01-15'),
+      date: DateTime.fromISO('2026-03-01'),
       durationMinutes: 30,
     })
 
@@ -130,5 +130,68 @@ test.group('GPX upload', (group) => {
 
     response.assertStatus(302)
     response.assertHeader('location', '/sessions')
+  })
+
+  test('POST /sessions/:id/enrich-gpx séance importée → trace ajoutée, données montre conservées', async ({
+    client,
+    assert,
+  }) => {
+    const user = await getUser()
+    const sport = await Sport.firstOrFail()
+    const watchCurve = [
+      { time: 0, value: 120 },
+      { time: 600, value: 150 },
+    ]
+    const session = await Session.create({
+      userId: user.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-03-01'),
+      durationMinutes: 42,
+      distanceKm: 8.4,
+      avgHeartRate: 145,
+      importedFrom: 'open-wearables',
+      externalId: 'ow-gpx-test',
+      sportMetrics: { heartRateCurve: watchCurve },
+    })
+
+    await client
+      .post(`/sessions/${session.id}/enrich-gpx`)
+      .file('gpx_file', Buffer.from(VALID_GPX), { filename: 'run.gpx', contentType: 'text/xml' })
+      .loginAs(user)
+      .redirects(0)
+
+    const updated = await Session.findOrFail(session.id)
+    const metrics = updated.sportMetrics as Record<string, unknown>
+    assert.isNotNull(updated.gpxFilePath)
+    assert.isArray(metrics.gpsTrack)
+    assert.deepEqual(metrics.heartRateCurve, watchCurve)
+    assert.equal(updated.durationMinutes, 42)
+    assert.equal(updated.distanceKm, 8.4)
+    assert.equal(updated.avgHeartRate, 145)
+  })
+
+  test("POST /sessions/:id/enrich-gpx GPX d'un autre jour → refusé, séance intacte", async ({
+    client,
+    assert,
+  }) => {
+    const user = await getUser()
+    const sport = await Sport.firstOrFail()
+    const session = await Session.create({
+      userId: user.id,
+      sportId: sport.id,
+      date: DateTime.fromISO('2026-01-15'),
+      durationMinutes: 30,
+    })
+
+    const response = await client
+      .post(`/sessions/${session.id}/enrich-gpx`)
+      .file('gpx_file', Buffer.from(VALID_GPX), { filename: 'run.gpx', contentType: 'text/xml' })
+      .loginAs(user)
+      .redirects(0)
+
+    response.assertStatus(302)
+    response.assertHeader('location', `/sessions/${session.id}`)
+    const updated = await Session.findOrFail(session.id)
+    assert.isNull(updated.gpxFilePath)
   })
 })

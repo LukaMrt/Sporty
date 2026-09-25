@@ -11,7 +11,6 @@ import type { RunMetrics } from '#domain/value_objects/run_metrics'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import logger from '@adonisjs/core/services/logger'
 import { computeAllureFromDistance } from '#connectors/pace'
-import type { SportySportSlug } from '#connectors/sport_slug'
 import {
   OpenWearablesHttpClient,
   type Fetcher,
@@ -19,6 +18,9 @@ import {
 import { OpenWearablesSportMapper } from '#connectors/open_wearables/open_wearables_sport_mapper'
 import { dedupeWorkouts, isSameWorkout } from '#connectors/open_wearables/workout_deduplicator'
 import {
+  heartRateCoverage,
+  SWIM_STROKE_TYPE,
+  totalSwimStrokes,
   toHeartRateCurve,
   toRunningDynamics,
   RUNNING_DYNAMICS_TYPES,
@@ -42,6 +44,8 @@ import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 const MIN_SAMPLE_PERIOD_SECONDS = 1
 /** Pages de marge au-delà de l'estimation (pauses, doublons de sources) */
 const TIMESERIES_PAGE_MARGIN = 5
+/** En dessous, la courbe FC de natation est jugée inexploitable */
+const MIN_SWIM_HR_COVERAGE = 0.6
 
 export const IMPORTED_FROM = 'open-wearables'
 
@@ -207,7 +211,7 @@ export class OpenWearablesConnector extends Connector {
     const sportSlug = this.#sportMapper.map(workout.type)
     return {
       externalId: encodeExternalId(workout.start_time, workout.type),
-      name: workout.name ?? this.#defaultName(sportSlug, workout),
+      name: workout.name ?? this.#defaultName(workout),
       sportSlug,
       // Date locale de la seance : `list_pre_import_sessions` filtre dessus.
       date: workout.start_time,
@@ -241,12 +245,20 @@ export class OpenWearablesConnector extends Connector {
 
     // Degradation gracieuse : sans FC la seance reste importable.
     try {
-      const { curve, truncated, dynamics } = await this.#fetchHeartRateCurve(
+      const { curve, truncated, dynamics, strokes } = await this.#fetchHeartRateCurve(
         workout,
-        sportSlug === 'running'
+        sportSlug
       )
+      if (strokes !== null) metrics.strokes = strokes
       if (dynamics) metrics.runningDynamics = dynamics
-      if (curve.length > 0) {
+      const unreliableSwimCurve =
+        sportSlug === 'swimming' &&
+        curve.length > 0 &&
+        heartRateCoverage(curve, workout.duration_seconds) < MIN_SWIM_HR_COVERAGE
+      if (unreliableSwimCurve) {
+        // FC moyenne conservée ; zones et TRIMP ne s'appuient pas sur une courbe trouée
+        metrics.heartRateCurveDiscarded = true
+      } else if (curve.length > 0) {
         metrics.heartRateCurve = curve
         metrics.minHeartRate = Math.min(...curve.map((p) => p.value))
         metrics.maxHeartRate = workout.max_heart_rate_bpm ?? Math.max(...curve.map((p) => p.value))
@@ -287,16 +299,21 @@ export class OpenWearablesConnector extends Connector {
     }
   }
 
-  async #fetchHeartRateCurve(workout: RawOwWorkout, withDynamics: boolean) {
+  async #fetchHeartRateCurve(workout: RawOwWorkout, sportSlug: string) {
+    const withDynamics = sportSlug === 'running'
+    const withStrokes = sportSlug === 'swimming'
     // Plafond calculé selon la durée : une séance de 2 h à 1 Hz dépasse largement
     // les 50 pages par défaut, ce qui tronquait la courbe sans prévenir.
     const expectedSamples = Math.ceil(
       Math.max(workout.duration_seconds, 0) / MIN_SAMPLE_PERIOD_SECONDS
     )
-    // Une seule requête (types=a,b,c) : FC + dynamique de course pour la course
-    const types = withDynamics
-      ? ['heart_rate', ...Object.keys(RUNNING_DYNAMICS_TYPES)]
-      : ['heart_rate']
+    // Une seule requête (types=a,b,c) : FC + dynamique de course pour la course,
+    // FC + mouvements de bras pour la natation
+    const types = [
+      'heart_rate',
+      ...(withDynamics ? Object.keys(RUNNING_DYNAMICS_TYPES) : []),
+      ...(withStrokes ? [SWIM_STROKE_TYPE] : []),
+    ]
     const maxPages =
       Math.ceil((expectedSamples * types.length) / MAX_PAGE_SIZE) + TIMESERIES_PAGE_MARGIN
     const { data: samples, truncated } =
@@ -313,6 +330,9 @@ export class OpenWearablesConnector extends Connector {
       curve: toHeartRateCurve(samples, workout.start_time, workout.duration_seconds),
       truncated,
       dynamics: withDynamics ? toRunningDynamics(samples, workout.start_time) : null,
+      strokes: withStrokes
+        ? totalSwimStrokes(samples, workout.start_time, workout.duration_seconds)
+        : null,
     }
   }
 
@@ -321,7 +341,7 @@ export class OpenWearablesConnector extends Connector {
     return distanceMeters / 1000
   }
 
-  #defaultName(sportSlug: SportySportSlug, workout: RawOwWorkout): string {
-    return `${sportSlug} ${workout.start_time.slice(11, 16)}`
+  #defaultName(workout: RawOwWorkout): string {
+    return `${this.#sportMapper.label(workout.type)} ${workout.start_time.slice(11, 16)}`
   }
 }

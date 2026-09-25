@@ -3,6 +3,7 @@ import { Head, useForm, usePage } from '@inertiajs/react'
 import logo from '~/assets/logo.png'
 import OptionCards from '~/components/forms/OptionCards'
 import { useTranslation } from '~/hooks/use_translation'
+import { sportIcon } from '~/lib/sports'
 
 type SharedProps = {
   auth?: { user: { fullName: string } | null }
@@ -16,13 +17,6 @@ type Sport = {
 
 type WizardProps = {
   sports: Sport[]
-}
-
-const SPORT_ICONS: Record<string, string> = {
-  running: '🏃',
-  cycling: '🚴',
-  swimming: '🏊',
-  hiking: '🥾',
 }
 
 export default function Wizard({ sports }: WizardProps) {
@@ -208,9 +202,7 @@ export default function Wizard({ sports }: WizardProps) {
                                   : 'border-sand-5 bg-white text-sand-11 hover:border-sand-9 hover:bg-sand-2'
                               }`}
                           >
-                            <span className="text-2xl mb-1 block">
-                              {SPORT_ICONS[sport.slug] ?? '⚡'}
-                            </span>
+                            <span className="text-2xl mb-1 block">{sportIcon(sport.slug)}</span>
                             <span className="text-sm">{sport.name}</span>
                           </button>
                         ))}

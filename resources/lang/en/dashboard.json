@@ -6,7 +6,7 @@
     "cta": "Log my first session"
   },
   "hero": {
-    "avgPaceLabel": "Avg. pace (4 weeks)",
+    "avgPaceLabel": "Avg. running pace (4 weeks)",
     "noData": "Not enough data",
     "trendPrev": "prev. period"
   },

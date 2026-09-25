@@ -5,10 +5,12 @@ import MainLayout from '~/layouts/MainLayout'
 import EmptyState from '~/components/shared/EmptyState'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
+import { useUnitConversion } from '~/hooks/use_unit_conversion'
 
 type TrashedSession = {
   id: number
   sportName: string
+  sportSlug: string | null
   date: string
   durationMinutes: number
   distanceKm: number | null
@@ -36,6 +38,7 @@ function restoreSession(id: number) {
 
 export default function SessionsTrash({ sessions }: TrashProps) {
   const { t } = useTranslation()
+  const { formatDistance } = useUnitConversion()
 
   return (
     <>
@@ -65,7 +68,7 @@ export default function SessionsTrash({ sessions }: TrashProps) {
                   <p className="font-semibold text-foreground">{s.sportName}</p>
                   <p className="text-sm text-muted-foreground">
                     {formatDate(s.date)} · {formatDuration(s.durationMinutes)}
-                    {s.distanceKm !== null && ` · ${s.distanceKm} km`}
+                    {s.distanceKm !== null && ` · ${formatDistance(s.distanceKm, s.sportSlug)}`}
                   </p>
                   {s.deletedAt && (
                     <p className="text-xs text-muted-foreground">

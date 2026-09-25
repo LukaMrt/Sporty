@@ -88,6 +88,17 @@ function thresholdPaceMPerMin(vdot: number): number {
 
 export class TrainingLoadCalculatorImpl extends TrainingLoadCalculator {
   calculate(input: SessionLoadInput): TrainingLoad {
+    // Branche 0 : sTSS (natation, allure + CSS). Prioritaire sur la FC : dans
+    // l'eau, le cardio au poignet est trop souvent faux pour porter la charge.
+    if (
+      input.isSwimming &&
+      input.avgPaceMPerMin !== undefined &&
+      input.cssPacePer100m !== undefined &&
+      input.cssPacePer100m > 0
+    ) {
+      return this.#calcStss(input)
+    }
+
     // Branche 1 : TRIMPexp (FC disponible)
     if (
       input.heartRateCurve &&
@@ -158,6 +169,18 @@ export class TrainingLoadCalculatorImpl extends TrainingLoadCalculator {
     const intensityFactor = avgPaceMPerMin / thresholdPace
     const value = intensityFactor ** 2 * durationHours * 100
     return { value: Math.round(value * 10) / 10, method: 'rtss' }
+  }
+
+  #calcStss(input: SessionLoadInput): TrainingLoad {
+    const { avgPaceMPerMin, cssPacePer100m, durationHours } = input as Required<
+      Pick<SessionLoadInput, 'avgPaceMPerMin' | 'cssPacePer100m' | 'durationHours'>
+    >
+    // Vitesse critique en m/min ; sTSS = IF³ × heures × 100 (la résistance de
+    // l'eau croît avec le cube de la vitesse, d'où l'exposant 3 et non 2)
+    const cssSpeed = 100 / cssPacePer100m
+    const intensityFactor = avgPaceMPerMin / cssSpeed
+    const value = intensityFactor ** 3 * durationHours * 100
+    return { value: Math.round(value * 10) / 10, method: 'stss' }
   }
 
   #calcRpe(input: SessionLoadInput): TrainingLoad {

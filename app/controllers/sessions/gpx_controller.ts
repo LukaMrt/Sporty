@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { DateTime } from 'luxon'
 import ParseGpxFile from '#use_cases/sessions/parse_gpx_file'
 import EnrichSessionWithGpx from '#use_cases/sessions/enrich_session_with_gpx'
+import { GpxDateMismatchError } from '#domain/errors/gpx_date_mismatch_error'
 import { GpxParseError } from '#domain/errors/gpx_parse_error'
 import { SessionNotFoundError } from '#domain/errors/session_not_found_error'
 import { SessionForbiddenError } from '#domain/errors/session_forbidden_error'
@@ -81,6 +82,13 @@ export default class GpxController {
       }
       if (error instanceof GpxParseError) {
         session.flash('error', i18n.t(error.i18nKey))
+        return response.redirect(`/sessions/${params.id}`)
+      }
+      if (error instanceof GpxDateMismatchError) {
+        session.flash(
+          'error',
+          i18n.t(error.i18nKey, { gpxDate: error.gpxDate, sessionDate: error.sessionDate })
+        )
         return response.redirect(`/sessions/${params.id}`)
       }
       throw error

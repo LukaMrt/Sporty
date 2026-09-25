@@ -25,6 +25,7 @@ import {
   smoothedWeight,
   weakSignals,
 } from '#domain/services/analysis/wellness'
+import { swimPaceTrend, swimRecords } from '#domain/services/analysis/swimming'
 import { buildClaudeSummary, pearson, sleepVsEfficiency } from '#domain/services/analysis/report'
 import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
 
@@ -109,6 +110,13 @@ export default class GetAnalysis {
         predictions: racePredictions(vdot, reference),
         profileVdot: profile?.vdot ?? null,
         watchVo2Max: wellness.findLast((d) => d.vo2Max !== null)?.vo2Max ?? null,
+      },
+      swimming: {
+        hasSessions: sessions.some((s) => s.sportSlug === 'swimming'),
+        paceTrend: swimPaceTrend(sessions),
+        records: swimRecords(sessions),
+        recentRecords: swimRecords(sessions, addDaysIso(today, -90)),
+        css: profile?.cssPacePer100m ?? null,
       },
       efficiency: {
         trend: efficiency,

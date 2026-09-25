@@ -51,7 +51,11 @@
     "gpxTooLarge": "File too large (max 10 MB)",
     "gpxError": "Error importing GPX",
     "gpxMapPreview": "GPS track preview",
-    "enrichGpx": "Enrich with a GPX"
+    "enrichGpx": "Enrich with a GPX",
+    "distanceMeters": "Distance (m)",
+    "subType": "Venue",
+    "poolLength": "Pool length (m)",
+    "replaceGpx": "Replace GPX"
   },
   "show": {
     "primaryMetrics": "Main metrics",
@@ -150,7 +154,8 @@
   "gpx": {
     "errors": {
       "invalid_format": "Invalid GPX format",
-      "no_trackpoints": "No track points found in the file"
+      "no_trackpoints": "No track points found in the file",
+      "date_mismatch": "The GPX is dated {gpxDate} but the session is on {sessionDate}: it is probably not the right file."
     }
   },
   "fab": {
@@ -179,5 +184,25 @@
   "sameRoute": {
     "title": "Same route ({count})",
     "compare": "Compare"
+  },
+  "subTypes": {
+    "pool": "Pool",
+    "open_water": "Open water",
+    "trail": "Trail",
+    "treadmill": "Treadmill",
+    "track": "Track",
+    "indoor": "Indoor",
+    "mountain": "Mountain bike"
+  },
+  "swim": {
+    "title": "Swimming",
+    "pace": "Pace",
+    "poolLength": "Pool",
+    "laps": "Lengths",
+    "strokesPerLap": "Strokes per length",
+    "hrDiscarded": "The watch's heart-rate curve was too incomplete in the water: only average HR is kept, zones are not computed.",
+    "swolfEstimated": "Estimated SWOLF",
+    "strokes": "Strokes",
+    "poolHint": "Set the pool length (edit the session) to get lengths and SWOLF."
   }
 }

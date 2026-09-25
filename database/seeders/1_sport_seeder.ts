@@ -14,5 +14,15 @@ export default class SportSeeder extends BaseSeeder {
         },
       }
     )
+    await Sport.updateOrCreate(
+      { slug: 'swimming' },
+      {
+        name: 'Natation',
+        slug: 'swimming',
+        defaultMetrics: {
+          pace_per_100m: { type: 'duration', unit: 'min/100m', label: 'Allure' },
+        },
+      }
+    )
   }
 }

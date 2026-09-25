@@ -14,6 +14,7 @@ type SessionSummary = {
   id: number
   sportType: number
   sportName: string
+  sportSlug: string | null
   date: string
   durationMinutes: number
   distanceKm: number | null
@@ -107,6 +108,7 @@ export default function SessionsIndex({ sessions, sports, filters }: SessionsInd
                 <SessionCard
                   id={s.id}
                   sportName={s.sportName}
+                  sportSlug={s.sportSlug}
                   date={s.date}
                   durationMinutes={s.durationMinutes}
                   distanceKm={s.distanceKm}

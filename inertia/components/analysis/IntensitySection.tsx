@@ -39,6 +39,7 @@ export default function IntensitySection({
   return (
     <Section
       id="intensity"
+      terms={['hrZones']}
       title={t('analysis.intensity.title')}
       description={t('analysis.intensity.description')}
       empty={!hasHeartRate || intensity.length === 0}

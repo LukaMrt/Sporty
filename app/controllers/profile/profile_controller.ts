@@ -34,6 +34,7 @@ export default class ProfileController {
             maxHeartRate: profile.maxHeartRate,
             restingHeartRate: profile.restingHeartRate,
             vma: profile.vma,
+            cssPacePer100m: profile.cssPacePer100m ?? null,
             sex: profile.sex,
             timezone: profile.timezone ?? null,
             hrZonesConfig: profile.hrZonesConfig ?? null,
@@ -91,6 +92,7 @@ export default class ProfileController {
         maxHeartRate: data.max_heart_rate,
         restingHeartRate: data.resting_heart_rate,
         vma: data.vma,
+        cssPacePer100m: data.css_pace_per_100m,
         hrZonesConfig,
         timezone: data.timezone,
         privacyZones: data.privacy_zones?.map((z) => ({

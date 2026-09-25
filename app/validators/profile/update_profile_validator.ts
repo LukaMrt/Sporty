@@ -32,6 +32,8 @@ export const updateProfileValidator = vine.create(
     max_heart_rate: vine.number().withoutDecimals().min(100).max(250).optional().nullable(),
     resting_heart_rate: vine.number().withoutDecimals().min(20).max(120).optional().nullable(),
     vma: vine.number().min(5).max(30).optional().nullable(),
+    // CSS natation en min/100 m (0'50 à 5'00)
+    css_pace_per_100m: vine.number().min(0.8).max(5).optional().nullable(),
     preferred_unit: vine.enum(['km_h', 'min_km'] as const).optional(),
     distance_unit: vine.enum(['km', 'mi'] as const).optional(),
     weight_unit: vine.enum(['kg', 'lbs'] as const).optional(),

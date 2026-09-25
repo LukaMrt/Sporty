@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/react'
 import { ChevronLeft, Download, Pencil, Trash2 } from 'lucide-react'
 import MainLayout from '~/layouts/MainLayout'
 import { EFFORT_EMOJIS } from '~/lib/effort'
-import { formatDate, formatDuration } from '~/lib/format'
+import { formatDate, formatDuration, isSwimming } from '~/lib/format'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
 import {
   Dialog,
@@ -25,6 +25,8 @@ import CardiacDriftIndicator from '~/components/sessions/CardiacDriftIndicator'
 import TrimpIndicator from '~/components/sessions/TrimpIndicator'
 import SplitsTable from '~/components/sessions/SplitsTable'
 import EnrichGpxButton from '~/components/sessions/EnrichGpxButton'
+import SwimDetails from '~/components/sessions/SwimDetails'
+import Term from '~/components/shared/Term'
 import SameRouteSessions, { type SameRouteSession } from '~/components/sessions/SameRouteSessions'
 import SessionInsights, { type RunningDynamicsSummary } from '~/components/sessions/SessionInsights'
 import type { SessionContext } from '../../../app/use_cases/sessions/get_session_context'
@@ -41,6 +43,16 @@ const METRIC_LABELS: Record<string, string> = {
   trimp: 'TRIMP',
   avgPacePerKm: 'Allure moy.',
 }
+
+/** Métriques affichées ailleurs (métriques principales, badge sous le titre) */
+const OWN_DISPLAY_METRIC_KEYS = new Set([
+  'allure',
+  'subType',
+  'poolLengthM',
+  'laps',
+  'strokes',
+  'swolf',
+])
 
 const METRIC_UNITS: Record<string, string> = {
   minHeartRate: ' bpm',
@@ -61,6 +73,7 @@ type TrainingSessionProps = {
   userId: number
   sportId: number
   sportName: string
+  sportSlug?: string
   date: string
   durationMinutes: number
   distanceKm: number | null
@@ -96,7 +109,9 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
     session.distanceKm && session.distanceKm > 0
       ? session.durationMinutes / session.distanceKm
       : null
-  const pace = rawPaceMinPerKm !== null ? formatSpeed(rawPaceMinPerKm) : null
+  const sportSlug = session.sportSlug ?? null
+  const swimming = isSwimming(sportSlug)
+  const pace = rawPaceMinPerKm !== null ? formatSpeed(rawPaceMinPerKm, sportSlug) : null
 
   const {
     heartRateCurve,
@@ -109,12 +124,15 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
     gpsTrack,
     ...scalarMetrics
   } = session.sportMetrics
+  const subType = (session.sportMetrics as { subType?: string | null }).subType ?? null
   const primitiveMetrics = Object.entries(scalarMetrics).filter(
-    ([, v]) => typeof v === 'number' || typeof v === 'string'
+    ([key, v]) =>
+      !OWN_DISPLAY_METRIC_KEYS.has(key) && (typeof v === 'number' || typeof v === 'string')
   )
   const hasGpsTrack = Array.isArray(gpsTrack) && gpsTrack.length > 1
   const hasSportMetrics = primitiveMetrics.length > 0
-  const hasSplits = splits && splits.length > 0
+  // Splits au km : sans objet en natation
+  const hasSplits = !swimming && splits && splits.length > 0
   const hasAnalysis = !!hrZones || hasSplits
   const showHrZoneInvite = !hrZones && session.avgHeartRate !== null
   const hasCurves =
@@ -140,7 +158,14 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
           <ChevronLeft size={20} />
           <span className="text-sm font-medium">{t('sessions.show.back')}</span>
         </Link>
-        <h1 className="text-lg font-bold text-foreground">{session.sportName}</h1>
+        <div className="flex flex-col items-center">
+          <h1 className="text-lg font-bold text-foreground">{session.sportName}</h1>
+          {subType && (
+            <span className="text-xs text-muted-foreground">
+              {t(`sessions.subTypes.${subType}`)}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setOpen(true)}
@@ -170,9 +195,10 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
       </div>
 
       <div className="px-4 pb-8 md:px-6 space-y-6">
-        {/* Bouton enrichissement GPX (visible uniquement si pas de données GPX) */}
-        {!session.gpxFilePath && !hasCurves && !hasGpsTrack && (
-          <EnrichGpxButton sessionId={session.id} />
+        {/* Ajout d'un GPX : toute séance sans trace (y compris importée avec courbe FC),
+            ou remplacement d'un GPX existant. Sans objet en piscine. */}
+        {subType !== 'pool' && (!hasGpsTrack || session.gpxFilePath) && (
+          <EnrichGpxButton sessionId={session.id} replace={!!session.gpxFilePath} />
         )}
 
         {/* Badge source d'import */}
@@ -217,10 +243,10 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
             {session.distanceKm !== null && session.distanceKm !== undefined && (
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-foreground">
-                  {formatDistanceParts(Number(session.distanceKm)).value}
+                  {formatDistanceParts(Number(session.distanceKm), sportSlug).value}
                 </span>
                 <span className="text-xs text-muted-foreground mt-1">
-                  {formatDistanceParts(Number(session.distanceKm)).unit}
+                  {formatDistanceParts(Number(session.distanceKm), sportSlug).unit}
                 </span>
               </div>
             )}
@@ -234,6 +260,14 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
             )}
           </div>
         </div>
+
+        {swimming && (
+          <SwimDetails
+            metrics={session.sportMetrics as React.ComponentProps<typeof SwimDetails>['metrics']}
+            durationMinutes={session.durationMinutes}
+            distanceKm={session.distanceKm}
+          />
+        )}
 
         {/* Métriques secondaires */}
         {(session.avgHeartRate !== null || session.perceivedEffort !== null) && (
@@ -322,7 +356,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
             {hrZones && (
               <div>
                 <h3 className="text-xs font-medium text-muted-foreground mb-2">
-                  {t('sessions.show.hrZones')}
+                  <Term id="hrZones">{t('sessions.show.hrZones')}</Term>
                 </h3>
                 <HeartRateZonesChart
                   hrZones={hrZones}
@@ -337,7 +371,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
                 {cardiacDrift !== undefined && (
                   <div>
                     <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
-                      {t('sessions.show.cardiacDrift')}
+                      <Term id="cardiacDrift">{t('sessions.show.cardiacDrift')}</Term>
                       <MetricInsight metricKey="cardiacDrift" value={cardiacDrift} iconOnly />
                     </h3>
                     <CardiacDriftIndicator value={cardiacDrift} />
@@ -346,7 +380,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
                 {trimp !== undefined && (
                   <div>
                     <h3 className="flex items-center gap-1 text-xs font-medium text-muted-foreground mb-1">
-                      {t('sessions.show.trimp')}
+                      <Term id="trimp">{t('sessions.show.trimp')}</Term>
                       <MetricInsight metricKey="trimp" value={trimp} iconOnly />
                     </h3>
                     <TrimpIndicator value={trimp} />
@@ -394,7 +428,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
               <SessionMap
                 gpsTrack={gpsTrack ?? []}
                 heartRateCurve={heartRateCurve}
-                paceCurve={paceCurve}
+                paceCurve={swimming ? undefined : paceCurve}
                 altitudeCurve={altitudeCurve}
               />
             </Suspense>
@@ -409,7 +443,7 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
             </h2>
             <SessionCurvesChart
               heartRateCurve={heartRateCurve}
-              paceCurve={paceCurve}
+              paceCurve={swimming ? undefined : paceCurve}
               altitudeCurve={altitudeCurve}
               speedUnit={speedUnit}
               hrZoneThresholds={hrZoneThresholds ?? undefined}

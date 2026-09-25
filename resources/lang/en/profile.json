@@ -195,5 +195,14 @@
     "radius": "Radius (m)",
     "remove": "Remove",
     "add": "+ Add a zone (my current location)"
+  },
+  "swim": {
+    "css": "Swimming CSS",
+    "usedFor": "used to compute the load of your swim sessions",
+    "fromTest": "Compute from a 400 m / 200 m test",
+    "testHint": "After warming up, swim an all-out 400 m, recover 5–10 min, then an all-out 200 m. Enter both times (m:ss).",
+    "time400": "400 m time",
+    "time200": "200 m time",
+    "useResult": "Use {css}"
   }
 }

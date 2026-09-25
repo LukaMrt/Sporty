@@ -7,6 +7,7 @@ import type { Readiness, RecoveryPoint, WeakSignal } from '#domain/services/anal
 import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 import { addDaysIso } from '#domain/services/calendar'
+import { distanceBySport, SWIMMING_SLUG } from '#domain/services/analysis/swimming'
 
 export function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600)
@@ -49,7 +50,13 @@ export type ClaudeSummaryInput = {
 export function buildClaudeSummary(input: ClaudeSummaryInput): string {
   const weekAgo = addDaysIso(input.asOf, -7)
   const week = input.sessions.filter((s) => s.date > weekAgo && s.date <= input.asOf)
-  const km = week.reduce((a, s) => a + (s.distanceKm ?? 0), 0)
+  const distances = Object.entries(distanceBySport(week))
+    .map(([sport, km]) =>
+      sport === SWIMMING_SLUG
+        ? `${Math.round(km * 1000)} m de natation`
+        : `${km.toFixed(1)} km (${sport})`
+    )
+    .join(', ')
   const minutes = week.reduce((a, s) => a + s.durationMinutes, 0)
   const tss = week.reduce((a, s) => a + (s.trainingLoad ?? 0), 0)
   const lastIntensity = input.intensity[input.intensity.length - 1]
@@ -58,7 +65,7 @@ export function buildClaudeSummary(input: ClaudeSummaryInput): string {
     `## Bilan d'entraînement Sporty — ${input.asOf}`,
     '',
     '### 7 derniers jours',
-    `- ${week.length} séance(s), ${km.toFixed(1)} km, ${Math.floor(minutes / 60)} h ${minutes % 60} min, charge ${Math.round(tss)} TSS`,
+    `- ${week.length} séance(s)${distances ? `, ${distances}` : ''}, ${Math.floor(minutes / 60)} h ${minutes % 60} min, charge ${Math.round(tss)} TSS`,
   ]
   if (lastIntensity?.lowShare !== null && lastIntensity?.lowShare !== undefined) {
     lines.push(
@@ -180,7 +187,8 @@ export function toCsv(headers: string[], rows: unknown[][]): string {
 
 export type PeriodTotals = {
   sessions: number
-  distanceKm: number
+  /** Distance par sport (km) : jamais additionnée entre sports */
+  distanceBySport: Record<string, number>
   durationMinutes: number
   load: number
 }
@@ -188,7 +196,7 @@ export type PeriodTotals = {
 export function periodTotals(sessions: AnalysisSession[]): PeriodTotals {
   return {
     sessions: sessions.length,
-    distanceKm: Math.round(sessions.reduce((a, s) => a + (s.distanceKm ?? 0), 0) * 10) / 10,
+    distanceBySport: distanceBySport(sessions),
     durationMinutes: sessions.reduce((a, s) => a + s.durationMinutes, 0),
     load: Math.round(sessions.reduce((a, s) => a + (s.trainingLoad ?? 0), 0)),
   }

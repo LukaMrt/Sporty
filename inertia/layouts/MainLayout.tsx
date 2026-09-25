@@ -1,6 +1,16 @@
 import React from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
-import { Home, Activity, Calendar, User, LogOut, ShieldCheck, Plug, LineChart } from 'lucide-react'
+import {
+  Home,
+  Activity,
+  Calendar,
+  User,
+  LogOut,
+  ShieldCheck,
+  Plug,
+  LineChart,
+  CircleHelp,
+} from 'lucide-react'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import FlashMessages from '~/components/shared/FlashMessages'
 import LocaleSwitcher from '~/components/shared/LocaleSwitcher'
@@ -99,6 +109,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           {navItems.map((item) => (
             <SidebarLink key={item.href} {...item} />
           ))}
+          <SidebarLink href="/help/metrics" labelKey="common.nav.help" icon={CircleHelp} />
           {auth?.user?.role === 'admin' && (
             <SidebarLink href="/admin/users" labelKey="common.nav.admin" icon={ShieldCheck} />
           )}

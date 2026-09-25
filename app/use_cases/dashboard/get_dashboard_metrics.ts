@@ -8,6 +8,12 @@ import type {
   QuickStatData,
 } from '#domain/entities/dashboard_metrics'
 import type { TrainingSession } from '#domain/entities/training_session'
+import { RUNNING_SLUG } from '#domain/services/session_load'
+
+/** Séance de course (slug absent = course, comme dans le calcul de charge) */
+function isRunning(s: TrainingSession): boolean {
+  return s.sportSlug === undefined || s.sportSlug === RUNNING_SLUG
+}
 
 @inject()
 export default class GetDashboardMetrics {
@@ -54,7 +60,10 @@ export default class GetDashboardMetrics {
     const sessionCount = allSessionsPage.meta.total
     const allSessions = allSessionsPage.data
 
-    const currentWithDistance = currentSessions.filter((s) => s.distanceKm && s.distanceKm > 0)
+    // Allure moyenne : course uniquement (min/km n'a pas de sens pour vélo ou natation)
+    const currentWithDistance = currentSessions.filter(
+      (s) => isRunning(s) && s.distanceKm && s.distanceKm > 0
+    )
 
     // QuickStats: null si < 2 séances totales
     const quickStats: QuickStatData | null =
@@ -69,7 +78,9 @@ export default class GetDashboardMetrics {
     }
 
     const currentPace = this.#computePace(currentWithDistance)
-    const previousWithDistance = previousSessions.filter((s) => s.distanceKm && s.distanceKm > 0)
+    const previousWithDistance = previousSessions.filter(
+      (s) => isRunning(s) && s.distanceKm && s.distanceKm > 0
+    )
     const previousPace =
       previousWithDistance.length >= 2 ? this.#computePace(previousWithDistance) : null
     const trendSeconds =
@@ -98,8 +109,18 @@ export default class GetDashboardMetrics {
   ): QuickStatData {
     const todayDow = this.#isoDayOfWeek(now) // lundi=1, dimanche=7
 
-    // Volume hebdo
-    const weeklyVolumeKm = weeklySessions.reduce((sum, s) => sum + Number(s.distanceKm ?? 0), 0)
+    // Volume hebdo : durée (comparable entre sports) + distance par sport
+    const weeklyDurationMinutes = weeklySessions.reduce(
+      (sum, s) => sum + Number(s.durationMinutes),
+      0
+    )
+    const weeklyDistanceBySport: Record<string, number> = {}
+    for (const s of weeklySessions) {
+      if (!s.distanceKm) continue
+      const slug = s.sportSlug ?? RUNNING_SLUG
+      weeklyDistanceBySport[slug] =
+        Math.round(((weeklyDistanceBySport[slug] ?? 0) + Number(s.distanceKm)) * 100) / 100
+    }
 
     // FC pondérée rolling 4 sem
     const sessionsWithHR = heartRateSessions.filter(
@@ -117,7 +138,7 @@ export default class GetDashboardMetrics {
     const weeklySessionCount = weeklySessions.length
 
     // Projection: moyenne des 4 semaines précédentes filtrée au même jour de semaine
-    const prev4WeeklyVolumes: number[] = []
+    const prev4WeeklyDurations: number[] = []
     const prev4SessionCounts: number[] = []
     const prev4HRWeighted: { weightedHR: number; totalDuration: number }[] = []
 
@@ -134,7 +155,7 @@ export default class GetDashboardMetrics {
         (s) => s.date >= weekStartISO && s.date <= limitISO
       )
 
-      prev4WeeklyVolumes.push(weekSessions.reduce((sum, s) => sum + Number(s.distanceKm ?? 0), 0))
+      prev4WeeklyDurations.push(weekSessions.reduce((sum, s) => sum + Number(s.durationMinutes), 0))
       prev4SessionCounts.push(weekSessions.length)
 
       const weekWithHR = weekSessions.filter(
@@ -149,7 +170,7 @@ export default class GetDashboardMetrics {
       })
     }
 
-    const weeklyVolumePreviousAvg = prev4WeeklyVolumes.reduce((a, b) => a + b, 0) / 4
+    const weeklyDurationPreviousAvg = prev4WeeklyDurations.reduce((a, b) => a + b, 0) / 4
     const weeklySessionPreviousAvg = prev4SessionCounts.reduce((a, b) => a + b, 0) / 4
 
     const totalPrevHRWeightedSum = prev4HRWeighted.reduce((sum, w) => sum + w.weightedHR, 0)
@@ -158,9 +179,10 @@ export default class GetDashboardMetrics {
       totalPrevHRDuration === 0 ? null : totalPrevHRWeightedSum / totalPrevHRDuration
 
     return {
-      weeklyVolumeKm,
-      weeklyVolumeTrend: weeklyVolumeKm - weeklyVolumePreviousAvg,
-      weeklyVolumePreviousAvg,
+      weeklyDurationMinutes,
+      weeklyDurationTrend: Math.round(weeklyDurationMinutes - weeklyDurationPreviousAvg),
+      weeklyDurationPreviousAvg,
+      weeklyDistanceBySport,
       avgHeartRate,
       avgHeartRateTrend:
         avgHeartRate !== null && avgHeartRatePreviousAvg !== null
@@ -176,7 +198,8 @@ export default class GetDashboardMetrics {
   #computeChartPoints(sessions: TrainingSession[]): ChartDataPoint[] {
     return sessions.map((s) => {
       const distance = s.distanceKm !== null && s.distanceKm > 0 ? Number(s.distanceKm) : null
-      const pace = distance !== null ? Number(s.durationMinutes) / distance : null
+      // Courbe d'allure en min/km : course uniquement
+      const pace = distance !== null && isRunning(s) ? Number(s.durationMinutes) / distance : null
       return {
         date: s.date,
         pace,

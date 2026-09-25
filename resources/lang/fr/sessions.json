@@ -51,7 +51,11 @@
     "gpxTooLarge": "Fichier trop volumineux (max 10 Mo)",
     "gpxError": "Erreur lors de l'import GPX",
     "gpxMapPreview": "Aperçu du tracé GPS",
-    "enrichGpx": "Enrichir avec un GPX"
+    "enrichGpx": "Enrichir avec un GPX",
+    "distanceMeters": "Distance (m)",
+    "subType": "Lieu",
+    "poolLength": "Bassin (m)",
+    "replaceGpx": "Remplacer le GPX"
   },
   "show": {
     "primaryMetrics": "Métriques principales",
@@ -150,7 +154,8 @@
   "gpx": {
     "errors": {
       "invalid_format": "Format GPX invalide",
-      "no_trackpoints": "Aucun point de trace trouvé dans le fichier"
+      "no_trackpoints": "Aucun point de trace trouvé dans le fichier",
+      "date_mismatch": "Le GPX date du {gpxDate} alors que la séance est du {sessionDate} : ce n'est probablement pas le bon fichier."
     }
   },
   "fab": {
@@ -179,5 +184,25 @@
   "sameRoute": {
     "title": "Même parcours ({count})",
     "compare": "Comparer"
+  },
+  "subTypes": {
+    "pool": "Piscine",
+    "open_water": "Eau libre",
+    "trail": "Trail",
+    "treadmill": "Tapis",
+    "track": "Piste",
+    "indoor": "Home-trainer",
+    "mountain": "VTT"
+  },
+  "swim": {
+    "title": "Natation",
+    "pace": "Allure",
+    "poolLength": "Bassin",
+    "laps": "Longueurs",
+    "strokesPerLap": "Mouvements par longueur",
+    "hrDiscarded": "La courbe cardiaque de la montre était trop incomplète dans l'eau : seule la FC moyenne est conservée, les zones ne sont pas calculées.",
+    "swolfEstimated": "SWOLF estimé",
+    "strokes": "Mouvements de bras",
+    "poolHint": "Indique la longueur du bassin (modifier la séance) pour obtenir longueurs et SWOLF."
   }
 }
