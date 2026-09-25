@@ -2,7 +2,7 @@ import { test } from '@japa/runner'
 import { OpenWearablesConnector } from '#connectors/open_wearables/open_wearables_connector'
 import { encodeExternalId } from '#connectors/open_wearables/open_wearables_external_id'
 import type { Fetcher } from '#connectors/open_wearables/open_wearables_http_client'
-import type { RawOwWorkout } from '#connectors/open_wearables/types'
+import type { RawOwTimeSeriesSample, RawOwWorkout } from '#connectors/open_wearables/types'
 import type { RateLimitManager } from '#domain/interfaces/rate_limit_manager'
 
 const noRateLimit = {
@@ -36,8 +36,8 @@ function makeWorkout(overrides: Partial<RawOwWorkout> = {}): RawOwWorkout {
   }
 }
 
-/** Serveur OW minimal : la liste de workouts donnée, aucune timeseries */
-function makeConnector(workouts: RawOwWorkout[]) {
+/** Serveur OW minimal : la liste de workouts et les échantillons FC donnés */
+function makeConnector(workouts: RawOwWorkout[], heartRateSamples: RawOwTimeSeriesSample[] = []) {
   const page = (data: unknown[]) =>
     new Response(
       JSON.stringify({
@@ -46,12 +46,10 @@ function makeConnector(workouts: RawOwWorkout[]) {
       }),
       { status: 200, headers: { 'content-type': 'application/json' } }
     )
-  const fetcher: Fetcher = async (input) =>
-    page(
-      (input instanceof Request ? input.url : input.toString()).includes('/events/workouts')
-        ? workouts
-        : []
-    )
+  const fetcher: Fetcher = async (input) => {
+    const url = input instanceof Request ? input.url : input.toString()
+    return page(url.includes('/events/workouts') ? workouts : heartRateSamples)
+  }
 
   return new OpenWearablesConnector(
     1,
@@ -89,5 +87,27 @@ test.group('OpenWearablesConnector — natation', () => {
     assert.equal(metrics.subType, 'pool')
     // 1 500 m en 30 min → 2'00/100 m
     assert.closeTo(metrics.allure as number, 2, 0.001)
+  })
+
+  test('détail : courbe FC trop trouée ignorée, FC moyenne conservée', async ({ assert }) => {
+    const workout = makeWorkout()
+    // 3 minutes de cardio sur 30 : la montre a décroché dans l'eau
+    const samples: RawOwTimeSeriesSample[] = Array.from({ length: 12 }, (_, i) => ({
+      timestamp: new Date(Date.parse(workout.start_time) + i * 15_000).toISOString(),
+      zone_offset: '+02:00',
+      type: 'heart_rate',
+      value: 130,
+      unit: 'bpm',
+      source: workout.source,
+      is_daily_total: null,
+    }))
+    const detail = await makeConnector([workout], samples).getSessionDetail(
+      encodeExternalId(workout.start_time, workout.type)
+    )
+
+    const metrics = detail.sportMetrics as Record<string, unknown>
+    assert.notProperty(metrics, 'heartRateCurve')
+    assert.isTrue(metrics.heartRateCurveDiscarded)
+    assert.equal(detail.avgHeartRate, 130)
   })
 })

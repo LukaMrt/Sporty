@@ -25,6 +25,7 @@ import CardiacDriftIndicator from '~/components/sessions/CardiacDriftIndicator'
 import TrimpIndicator from '~/components/sessions/TrimpIndicator'
 import SplitsTable from '~/components/sessions/SplitsTable'
 import EnrichGpxButton from '~/components/sessions/EnrichGpxButton'
+import SwimDetails from '~/components/sessions/SwimDetails'
 import SameRouteSessions, { type SameRouteSession } from '~/components/sessions/SameRouteSessions'
 import SessionInsights, { type RunningDynamicsSummary } from '~/components/sessions/SessionInsights'
 import type { SessionContext } from '../../../app/use_cases/sessions/get_session_context'
@@ -43,7 +44,14 @@ const METRIC_LABELS: Record<string, string> = {
 }
 
 /** Métriques affichées ailleurs (métriques principales, badge sous le titre) */
-const OWN_DISPLAY_METRIC_KEYS = new Set(['allure', 'subType'])
+const OWN_DISPLAY_METRIC_KEYS = new Set([
+  'allure',
+  'subType',
+  'poolLengthM',
+  'laps',
+  'strokes',
+  'swolf',
+])
 
 const METRIC_UNITS: Record<string, string> = {
   minHeartRate: ' bpm',
@@ -250,6 +258,14 @@ export default function SessionShow({ session, hrZoneThresholds, context, sameRo
             )}
           </div>
         </div>
+
+        {swimming && (
+          <SwimDetails
+            metrics={session.sportMetrics as React.ComponentProps<typeof SwimDetails>['metrics']}
+            durationMinutes={session.durationMinutes}
+            distanceKm={session.distanceKm}
+          />
+        )}
 
         {/* Métriques secondaires */}
         {(session.avgHeartRate !== null || session.perceivedEffort !== null) && (

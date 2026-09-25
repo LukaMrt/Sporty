@@ -191,5 +191,13 @@
     "track": "Track",
     "indoor": "Indoor",
     "mountain": "Mountain bike"
+  },
+  "swim": {
+    "title": "Swimming",
+    "pace": "Pace",
+    "poolLength": "Pool",
+    "laps": "Lengths",
+    "strokesPerLap": "Strokes per length",
+    "hrDiscarded": "The watch's heart-rate curve was too incomplete in the water: only average HR is kept, zones are not computed."
   }
 }

@@ -18,6 +18,7 @@ import {
 import { OpenWearablesSportMapper } from '#connectors/open_wearables/open_wearables_sport_mapper'
 import { dedupeWorkouts, isSameWorkout } from '#connectors/open_wearables/workout_deduplicator'
 import {
+  heartRateCoverage,
   toHeartRateCurve,
   toRunningDynamics,
   RUNNING_DYNAMICS_TYPES,
@@ -41,6 +42,8 @@ import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 const MIN_SAMPLE_PERIOD_SECONDS = 1
 /** Pages de marge au-delà de l'estimation (pauses, doublons de sources) */
 const TIMESERIES_PAGE_MARGIN = 5
+/** En dessous, la courbe FC de natation est jugée inexploitable */
+const MIN_SWIM_HR_COVERAGE = 0.6
 
 export const IMPORTED_FROM = 'open-wearables'
 
@@ -245,7 +248,14 @@ export class OpenWearablesConnector extends Connector {
         sportSlug === 'running'
       )
       if (dynamics) metrics.runningDynamics = dynamics
-      if (curve.length > 0) {
+      const unreliableSwimCurve =
+        sportSlug === 'swimming' &&
+        curve.length > 0 &&
+        heartRateCoverage(curve, workout.duration_seconds) < MIN_SWIM_HR_COVERAGE
+      if (unreliableSwimCurve) {
+        // FC moyenne conservée ; zones et TRIMP ne s'appuient pas sur une courbe trouée
+        metrics.heartRateCurveDiscarded = true
+      } else if (curve.length > 0) {
         metrics.heartRateCurve = curve
         metrics.minHeartRate = Math.min(...curve.map((p) => p.value))
         metrics.maxHeartRate = workout.max_heart_rate_bpm ?? Math.max(...curve.map((p) => p.value))

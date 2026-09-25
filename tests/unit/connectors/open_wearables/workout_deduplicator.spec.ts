@@ -132,6 +132,27 @@ test.group('dedupeWorkouts', () => {
     assert.lengthOf(result, 2)
   })
 
+  test('meme instant, variantes du meme sport (swimming / pool_swimming) : fusionnes', ({
+    assert,
+  }) => {
+    const result = dedupeWorkouts([
+      makeWorkout({ id: 'a', type: 'swimming' }),
+      makeWorkout({ id: 'b', type: 'pool_swimming', distance_meters: 1500 }),
+    ])
+
+    assert.lengthOf(result, 1)
+    assert.equal(result[0].id, 'b')
+  })
+
+  test('meme instant, deux types non supportes differents : non fusionnes', ({ assert }) => {
+    const result = dedupeWorkouts([
+      makeWorkout({ id: 'a', type: 'yoga' }),
+      makeWorkout({ id: 'b', type: 'strength_training' }),
+    ])
+
+    assert.lengthOf(result, 2)
+  })
+
   test('fusion enrichissante : recupere les champs absents chez le gagnant', ({ assert }) => {
     const result = dedupeWorkouts([
       makeWorkout({

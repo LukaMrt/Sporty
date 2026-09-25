@@ -49,6 +49,24 @@ export function toHeartRateCurve(
   return points
 }
 
+const COVERAGE_WINDOW_SECONDS = 15
+
+/**
+ * Part de la séance (0–1) couverte par la courbe : fenêtres de 15 s contenant
+ * au moins un échantillon. Dans l'eau, le cardio au poignet décroche souvent :
+ * une courbe trouée fausserait zones, dérive et TRIMP.
+ */
+export function heartRateCoverage(curve: DataPoint[], durationSeconds: number): number {
+  const windows = Math.ceil(durationSeconds / COVERAGE_WINDOW_SECONDS)
+  if (windows <= 0) return 0
+  const covered = new Set(
+    curve
+      .filter((p) => p.time <= durationSeconds)
+      .map((p) => Math.floor(p.time / COVERAGE_WINDOW_SECONDS))
+  )
+  return Math.min(1, covered.size / windows)
+}
+
 /** Types de séries de dynamique de course exposés par Open Wearables */
 export const RUNNING_DYNAMICS_TYPES = {
   running_power: 'power',

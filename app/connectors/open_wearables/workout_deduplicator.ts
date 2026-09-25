@@ -1,4 +1,17 @@
 import type { RawOwWorkout } from '#connectors/open_wearables/types'
+import { OpenWearablesSportMapper } from '#connectors/open_wearables/open_wearables_sport_mapper'
+
+const sportMapper = new OpenWearablesSportMapper()
+
+/**
+ * Famille d'activité servant au rapprochement : deux sources peuvent typer la
+ * même séance `swimming` et `pool_swimming`. Les types non supportés gardent
+ * leur type brut, sinon yoga et musculation (tous deux « other ») fusionneraient.
+ */
+function activityFamily(type: string): string {
+  const slug = sportMapper.map(type)
+  return slug === 'other' ? type : slug
+}
 
 /**
  * Champs completes depuis un perdant du groupe quand le gagnant ne les porte pas.
@@ -32,13 +45,13 @@ function fillIfMissing<K extends MergeableField>(
  */
 export const START_TOLERANCE_MS = 30_000
 
-/** Deux enregistrements décrivent-ils la même séance (même type, départ à ±30 s) ? */
+/** Deux enregistrements décrivent-ils la même séance (même sport, départ à ±30 s) ? */
 export function isSameWorkout(
   a: Pick<RawOwWorkout, 'start_time' | 'type'>,
   b: Pick<RawOwWorkout, 'start_time' | 'type'>
 ): boolean {
   return (
-    a.type === b.type &&
+    activityFamily(a.type) === activityFamily(b.type) &&
     Math.abs(new Date(a.start_time).getTime() - new Date(b.start_time).getTime()) <=
       START_TOLERANCE_MS
   )
@@ -77,7 +90,7 @@ function elect(a: RawOwWorkout, b: RawOwWorkout): RawOwWorkout {
  * d'entrainement est doublee, ce qui fausse TRIMP, plans et recalibration.
  */
 export function dedupeWorkouts(workouts: RawOwWorkout[]): RawOwWorkout[] {
-  // Regroupement par type + départ à ±30 s. Tri chronologique (puis par id pour
+  // Regroupement par sport + départ à ±30 s. Tri chronologique (puis par id pour
   // rester déterministe) : chaque séance rejoint le groupe dont le premier départ
   // est assez proche, sinon ouvre un nouveau groupe.
   const sorted = [...workouts].sort(
