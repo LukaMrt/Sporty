@@ -164,7 +164,8 @@
   "links": {
     "report": "Bilan de la semaine / du mois",
     "map": "Carte de mes traces",
-    "plan": "Plan importé de Claude"
+    "plan": "Plan importé de Claude",
+    "help": "Comprendre mes métriques"
   },
   "map": {
     "title": "Carte de mes traces",

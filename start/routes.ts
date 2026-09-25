@@ -42,6 +42,7 @@ const GpxController = () => import('#controllers/sessions/gpx_controller')
 const HealthController = () => import('#controllers/health_controller')
 const AnalysisController = () => import('#controllers/analysis/analysis_controller')
 const ImportedPlanController = () => import('#controllers/analysis/imported_plan_controller')
+const HelpController = () => import('#controllers/help/help_controller')
 const OpenWearablesWebhookController = () =>
   import('#controllers/webhooks/open_wearables_webhook_controller')
 
@@ -82,6 +83,7 @@ router
     router.put('/sessions/:id', [SessionsController, 'update'])
     router.delete('/sessions/:id', [SessionsController, 'destroy'])
     router.post('/sessions/:id/restore', [SessionsController, 'restore'])
+    router.get('/help/metrics', [HelpController, 'metrics'])
     router.get('/analysis', [AnalysisController, 'index'])
     router.get('/analysis/compare', [AnalysisController, 'compare'])
     router.get('/analysis/map', [AnalysisController, 'map'])

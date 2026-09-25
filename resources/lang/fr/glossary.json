@@ -1,0 +1,155 @@
+{
+  "title": "Comprendre mes métriques",
+  "intro": "Toutes les notions et abréviations utilisées dans Sporty, avec des repères pour les lire.",
+  "learnMore": "En savoir plus",
+  "howToRead": "Comment lire :",
+  "groups": {
+    "load": "Charge et forme",
+    "heart": "Cœur et zones",
+    "performance": "Performance et efficacité",
+    "recovery": "Récupération",
+    "swimming": "Natation"
+  },
+  "terms": {
+    "ctl": {
+      "name": "CTL — Forme (Chronic Training Load)",
+      "short": "Moyenne de ta charge quotidienne sur ~42 jours, pondérée pour donner plus de poids aux jours récents. Elle représente ton niveau d'entraînement de fond.",
+      "read": "Plus elle monte, plus tu encaisses de volume. Une hausse régulière de 3 à 5 points par semaine est une progression soutenable."
+    },
+    "atl": {
+      "name": "ATL — Fatigue (Acute Training Load)",
+      "short": "Même calcul que la CTL mais sur ~7 jours : c'est la fatigue récente.",
+      "read": "Elle réagit vite : après un gros bloc elle dépasse la CTL, puis redescend en quelques jours de repos."
+    },
+    "tsb": {
+      "name": "TSB — Fraîcheur (Training Stress Balance)",
+      "short": "Différence CTL − ATL : ta forme de fond moins ta fatigue récente.",
+      "read": "Négatif (−10 à −30) : phase de charge, normal à l'entraînement. Proche de 0 à +15 : frais, idéal pour une course. Sous −30 : risque de surmenage."
+    },
+    "tss": {
+      "name": "TSS — Score de charge (Training Stress Score)",
+      "short": "Charge d'une séance qui combine durée et intensité. 100 TSS ≈ une heure à ton allure seuil.",
+      "read": "Sporty le calcule, par ordre de fiabilité, avec l'allure (course : rTSS ; natation : sTSS), la courbe de FC (TRIMP) ou ton ressenti (RPE)."
+    },
+    "rtss": {
+      "name": "rTSS — TSS course",
+      "short": "TSS calculé à partir de ton allure comparée à ton allure seuil (déduite du VDOT).",
+      "read": "Utilisé pour la course quand ton VDOT est connu."
+    },
+    "stss": {
+      "name": "sTSS — TSS natation",
+      "short": "TSS calculé à partir de ton allure de nage comparée à ta CSS : intensité³ × durée × 100.",
+      "read": "Plus fiable que la FC en natation, où le cardio au poignet est souvent imprécis. Nécessite ta CSS dans le profil."
+    },
+    "trimp": {
+      "name": "TRIMP — Impulsion d'entraînement",
+      "short": "Charge calculée à partir du temps passé à chaque niveau de fréquence cardiaque, en pondérant fortement les FC élevées.",
+      "read": "Une sortie facile d'une heure donne ~50–80, une séance intense bien plus. Comparable d'une séance à l'autre, pas entre deux personnes."
+    },
+    "vdot": {
+      "name": "VDOT — Indice de performance course",
+      "short": "Indice de Jack Daniels déduit de tes performances : il résume ton niveau et sert à calculer tes allures d'entraînement et tes prédictions.",
+      "read": "Chaque point de VDOT gagné ≈ 1 à 2 % plus rapide. 40 = coureur loisir régulier, 50 = bon niveau club, 60+ = très bon niveau."
+    },
+    "vo2max": {
+      "name": "VO2max",
+      "short": "Consommation maximale d'oxygène (ml/kg/min) estimée par ta montre.",
+      "read": "Proche du VDOT dans l'idée, mais calculé différemment par chaque fabricant : compare-le surtout à lui-même dans le temps."
+    },
+    "maxHr": {
+      "name": "FCmax — Fréquence cardiaque maximale",
+      "short": "Pulsations maximales que ton cœur peut atteindre. Elle sert de référence pour les zones cardiaques.",
+      "read": "Les formules (220 − âge) sont très approximatives : une valeur mesurée en fin d'effort maximal est bien plus juste."
+    },
+    "restingHr": {
+      "name": "FC repos",
+      "short": "Fréquence cardiaque au réveil, au calme.",
+      "read": "Elle baisse avec la forme. Une hausse de plus de 5 bpm par rapport à ta normale signale souvent fatigue, stress ou maladie."
+    },
+    "lthr": {
+      "name": "LTHR — FC au seuil lactique",
+      "short": "Fréquence cardiaque que tu peux tenir environ une heure en effort soutenu (≈ FC moyenne des 20 dernières minutes d'un test de 30 min).",
+      "read": "C'est la référence la plus fiable pour des zones cardiaques personnalisées."
+    },
+    "karvonen": {
+      "name": "Méthode de Karvonen",
+      "short": "Calcul des zones à partir de la réserve cardiaque (FCmax − FC repos) plutôt que de la FCmax seule.",
+      "read": "Plus personnalisée que le simple % de FCmax, car elle tient compte de ta FC repos."
+    },
+    "hrZones": {
+      "name": "Zones cardiaques Z1–Z5",
+      "short": "Cinq plages d'intensité définies à partir de ta FC : Z1 récupération, Z2 endurance, Z3 tempo, Z4 seuil, Z5 VO2max.",
+      "read": "Repère classique : environ 80 % du temps en Z1–Z2, le reste en Z4–Z5, peu de Z3 (répartition « polarisée »)."
+    },
+    "hrv": {
+      "name": "HRV / VFC — Variabilité de la fréquence cardiaque",
+      "short": "Variation du temps entre deux battements, mesurée la nuit (en ms). Elle reflète l'équilibre de ton système nerveux.",
+      "read": "Compare-la uniquement à ta propre normale : plusieurs jours sous ta ligne de base = récupération incomplète."
+    },
+    "spo2": {
+      "name": "SpO2",
+      "short": "Saturation du sang en oxygène mesurée la nuit.",
+      "read": "Normalement 95–100 %. Une baisse inhabituelle peut signaler altitude, maladie ou problème respiratoire nocturne."
+    },
+    "acwr": {
+      "name": "ACWR — Ratio charge aiguë / chronique",
+      "short": "Charge des 7 derniers jours divisée par la charge moyenne des 4 dernières semaines.",
+      "read": "0,8–1,3 : zone sûre. Au-delà de 1,5 : hausse trop brutale, risque de blessure accru."
+    },
+    "monotony": {
+      "name": "Monotonie",
+      "short": "Charge moyenne de la semaine divisée par sa variabilité d'un jour à l'autre.",
+      "read": "Au-dessus de 2 : semaine trop uniforme (pas assez de jours faciles), facteur de surmenage."
+    },
+    "strain": {
+      "name": "Contrainte",
+      "short": "Charge de la semaine × monotonie.",
+      "read": "Une contrainte élevée combine gros volume et manque de variété : c'est dans ces semaines que surviennent le plus de maladies et de blessures."
+    },
+    "decoupling": {
+      "name": "Découplage aérobie",
+      "short": "Dérive du rapport allure / FC entre la première et la seconde moitié d'une sortie longue.",
+      "read": "Moins de 5 % : bonne endurance de base. Au-delà, la FC monte à allure constante : l'endurance est à développer."
+    },
+    "cardiacDrift": {
+      "name": "Dérive cardiaque",
+      "short": "Hausse de la FC au cours d'une séance alors que l'effort reste le même.",
+      "read": "Faible (< 5 %) sur une sortie facile = bonne adaptation. Chaleur et déshydratation l'augmentent."
+    },
+    "ef": {
+      "name": "EF — Efficiency Factor",
+      "short": "Vitesse divisée par la FC sur les sorties faciles.",
+      "read": "S'il augmente, tu vas plus vite pour le même effort cardiaque : c'est le meilleur signe de progrès aérobie."
+    },
+    "gap": {
+      "name": "GAP — Allure ajustée à la pente",
+      "short": "Allure équivalente sur terrain plat, en corrigeant l'effet des montées et des descentes.",
+      "read": "Permet de comparer une sortie vallonnée à une sortie sur plat."
+    },
+    "rpe": {
+      "name": "RPE — Effort perçu",
+      "short": "Ton ressenti de la difficulté d'une séance (échelle 1 à 5 dans Sporty).",
+      "read": "Utilisé pour estimer la charge quand il n'y a pas de FC exploitable."
+    },
+    "readiness": {
+      "name": "Forme du jour",
+      "short": "Synthèse de ta HRV, de ta FC repos, de ton sommeil et de ta fraîcheur (TSB) comparés à ta normale.",
+      "read": "Basse : privilégie une séance facile ou du repos. Bonne : feu vert pour une séance intense."
+    },
+    "css": {
+      "name": "CSS — Vitesse critique de nage",
+      "short": "Allure que tu peux tenir environ 30 min sans t'épuiser : c'est ton « seuil » en natation. Calculée avec un 400 m et un 200 m nagés à fond : (400 − 200) / (T400 − T200).",
+      "read": "Sert de référence pour les allures d'entraînement et pour le sTSS. Exprimée en min/100 m."
+    },
+    "swolf": {
+      "name": "SWOLF",
+      "short": "Temps (en secondes) + nombre de mouvements de bras pour une longueur de bassin.",
+      "read": "Plus il est bas, plus ta nage est efficace. Ne compare que des valeurs mesurées dans des bassins de même longueur."
+    },
+    "swimPace": {
+      "name": "Allure natation (/100 m)",
+      "short": "Temps moyen pour nager 100 m.",
+      "read": "Unité standard en natation : 2'00/100m = 1 500 m en 30 minutes."
+    }
+  }
+}

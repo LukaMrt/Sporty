@@ -44,6 +44,9 @@ export default function AnalysisIndex({ analysis }: { analysis: AnalysisData }) 
               <Link href="/plan" className="text-primary hover:underline">
                 {t('analysis.links.plan')}
               </Link>
+              <Link href="/help/metrics" className="text-primary hover:underline">
+                {t('analysis.links.help')}
+              </Link>
             </nav>
           </div>
           <div

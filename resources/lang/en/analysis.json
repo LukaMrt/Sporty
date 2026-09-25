@@ -164,7 +164,8 @@
   "links": {
     "report": "Weekly / monthly report",
     "map": "Map of my tracks",
-    "plan": "Plan imported from Claude"
+    "plan": "Plan imported from Claude",
+    "help": "Understanding my metrics"
   },
   "map": {
     "title": "Map of my tracks",
