@@ -45,6 +45,28 @@ export function formatPaceMinSec(paceMinPerKm: number): string {
   return `${minutes}'${seconds.toString().padStart(2, '0')}`
 }
 
+export const SWIMMING_SLUG = 'swimming'
+
+export function isSwimming(sportSlug: string | null | undefined): boolean {
+  return sportSlug === SWIMMING_SLUG
+}
+
+/** Allure natation : min/km → min/100 m (100 m = 1/10 de km) */
+export function toSwimPace(paceMinPerKm: number): number {
+  return paceMinPerKm / 10
+}
+
+/** 2.0833 → "2'05/100m" */
+export function formatSwimPace(minPer100m: number): string {
+  return `${formatPaceMinSec(minPer100m)}/100m`
+}
+
+/** 1.5 → "1 500 m" (espace fine insécable comme séparateur de milliers) */
+export function formatSwimDistance(km: number): string {
+  const meters = Math.round(km * 1000)
+  return `${meters.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f')} m`
+}
+
 export function formatTrend(
   trendSeconds: number,
   unitLabel: string = 's/km',

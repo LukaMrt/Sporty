@@ -51,7 +51,10 @@
     "gpxTooLarge": "File too large (max 10 MB)",
     "gpxError": "Error importing GPX",
     "gpxMapPreview": "GPS track preview",
-    "enrichGpx": "Enrich with a GPX"
+    "enrichGpx": "Enrich with a GPX",
+    "distanceMeters": "Distance (m)",
+    "subType": "Venue",
+    "poolLength": "Pool length (m)"
   },
   "show": {
     "primaryMetrics": "Main metrics",
@@ -179,5 +182,14 @@
   "sameRoute": {
     "title": "Same route ({count})",
     "compare": "Compare"
+  },
+  "subTypes": {
+    "pool": "Pool",
+    "open_water": "Open water",
+    "trail": "Trail",
+    "treadmill": "Treadmill",
+    "track": "Track",
+    "indoor": "Indoor",
+    "mountain": "Mountain bike"
   }
 }

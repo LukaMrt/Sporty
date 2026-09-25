@@ -51,7 +51,10 @@
     "gpxTooLarge": "Fichier trop volumineux (max 10 Mo)",
     "gpxError": "Erreur lors de l'import GPX",
     "gpxMapPreview": "Aperçu du tracé GPS",
-    "enrichGpx": "Enrichir avec un GPX"
+    "enrichGpx": "Enrichir avec un GPX",
+    "distanceMeters": "Distance (m)",
+    "subType": "Lieu",
+    "poolLength": "Bassin (m)"
   },
   "show": {
     "primaryMetrics": "Métriques principales",
@@ -179,5 +182,14 @@
   "sameRoute": {
     "title": "Même parcours ({count})",
     "compare": "Comparer"
+  },
+  "subTypes": {
+    "pool": "Piscine",
+    "open_water": "Eau libre",
+    "trail": "Trail",
+    "treadmill": "Tapis",
+    "track": "Piste",
+    "indoor": "Home-trainer",
+    "mountain": "VTT"
   }
 }

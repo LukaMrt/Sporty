@@ -5,9 +5,13 @@ import {
   formatDuration,
   formatPace,
   formatPaceMinSec,
+  formatSwimDistance,
+  formatSwimPace,
+  isSwimming,
   kmToMiles,
   paceToKmh,
   toMinSec,
+  toSwimPace,
 } from '~/lib/format'
 
 describe('format', () => {
@@ -35,5 +39,26 @@ describe('format', () => {
     expect(formatPaceMinSec(4.5)).toBe("4'30")
     expect(paceToKmh(5)).toBe(12)
     expect(kmToMiles(10)).toBeCloseTo(6.21371)
+  })
+})
+
+describe('natation', () => {
+  it('toSwimPace convertit min/km en min/100 m', () => {
+    expect(toSwimPace(20)).toBe(2)
+  })
+
+  it('formatSwimPace affiche /100m', () => {
+    expect(formatSwimPace(2 + 5 / 60)).toBe("2'05/100m")
+  })
+
+  it('formatSwimDistance affiche des mètres avec séparateur de milliers', () => {
+    expect(formatSwimDistance(1.5)).toBe('1 500 m')
+    expect(formatSwimDistance(0.4)).toBe('400 m')
+  })
+
+  it('isSwimming', () => {
+    expect(isSwimming('swimming')).toBe(true)
+    expect(isSwimming('running')).toBe(false)
+    expect(isSwimming(undefined)).toBe(false)
   })
 })

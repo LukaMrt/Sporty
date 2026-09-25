@@ -56,6 +56,7 @@ export default class SessionsController {
       sessions: sessions.map((s) => ({
         id: s.id,
         sportName: s.sportName,
+        sportSlug: s.sportSlug ?? null,
         date: s.date,
         durationMinutes: s.durationMinutes,
         distanceKm: s.distanceKm,
@@ -80,6 +81,7 @@ export default class SessionsController {
           id: s.id,
           sportType: s.sportId,
           sportName: s.sportName,
+          sportSlug: s.sportSlug ?? null,
           date: s.date,
           durationMinutes: s.durationMinutes,
           distanceKm: s.distanceKm,
@@ -191,6 +193,8 @@ export default class SessionsController {
         cadenceAvg: data.cadence_avg,
         elevationGain: data.elevation_gain,
         elevationLoss: data.elevation_loss,
+        subType: data.sub_type,
+        poolLengthM: data.pool_length_m,
       })
       session.flash('success', i18n.t('sessions.flash.updated'))
       return response.redirect(`/sessions/${params.id}`)
@@ -253,6 +257,8 @@ export default class SessionsController {
         cadenceAvg: data.cadence_avg,
         elevationGain: data.elevation_gain,
         elevationLoss: data.elevation_loss,
+        subType: data.sub_type,
+        poolLengthM: data.pool_length_m,
         gpxTempId: data.gpx_temp_id,
       })
     } catch (error) {

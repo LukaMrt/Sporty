@@ -47,7 +47,11 @@ function makeConnector(workouts: RawOwWorkout[]) {
       { status: 200, headers: { 'content-type': 'application/json' } }
     )
   const fetcher: Fetcher = async (input) =>
-    page(String(input).includes('/events/workouts') ? workouts : [])
+    page(
+      (input instanceof Request ? input.url : input.toString()).includes('/events/workouts')
+        ? workouts
+        : []
+    )
 
   return new OpenWearablesConnector(
     1,

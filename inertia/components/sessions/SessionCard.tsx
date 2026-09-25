@@ -7,6 +7,7 @@ import { useUnitConversion } from '~/hooks/use_unit_conversion'
 type SessionCardProps = {
   id: number
   sportName: string
+  sportSlug?: string | null
   date: string
   durationMinutes: number
   distanceKm: number | null
@@ -17,6 +18,7 @@ type SessionCardProps = {
 export default function SessionCard({
   id,
   sportName,
+  sportSlug,
   date,
   durationMinutes,
   distanceKm,
@@ -52,7 +54,7 @@ export default function SessionCard({
         <div className="flex items-center gap-3 shrink-0 text-sm text-muted-foreground">
           <span>{formatDuration(durationMinutes)}</span>
           {distanceKm !== null && distanceKm !== undefined && Number(distanceKm) > 0 && (
-            <span>{formatDistance(Number(distanceKm))}</span>
+            <span>{formatDistance(Number(distanceKm), sportSlug)}</span>
           )}
           {perceivedEffort !== null && perceivedEffort !== undefined && (
             <span className="text-base" aria-label={`Ressenti ${perceivedEffort}`}>

@@ -22,6 +22,8 @@ export type UpdateSessionInput = {
   cadenceAvg?: number | null
   elevationGain?: number | null
   elevationLoss?: number | null
+  subType?: string | null
+  poolLengthM?: number | null
 }
 
 /** Métriques scalaires éditables dans le formulaire (null = effacée) */
@@ -31,6 +33,8 @@ const EDITABLE_SCALARS = [
   'cadenceAvg',
   'elevationGain',
   'elevationLoss',
+  'subType',
+  'poolLengthM',
 ] as const
 
 @inject()

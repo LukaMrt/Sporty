@@ -16,7 +16,8 @@ test.group('Import / Natation', (group) => {
 
   test("une séance de natation importée n'est plus rejetée", async ({ assert }) => {
     const user = await getUser()
-    const sports = await (await app.container.make(SportRepository)).findAll()
+    const sportRepository = await app.container.make(SportRepository)
+    const sports = await sportRepository.findAll()
     const writer = await app.container.make(ImportedSessionWriter)
 
     const result = await writer.write(

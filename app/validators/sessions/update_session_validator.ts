@@ -14,5 +14,7 @@ export const updateSessionValidator = vine.create(
     cadence_avg: vine.number().min(50).max(250).nullable().optional(),
     elevation_gain: vine.number().min(0).max(10000).nullable().optional(),
     elevation_loss: vine.number().min(0).max(10000).nullable().optional(),
+    sub_type: vine.enum(['pool', 'open_water']).nullable().optional(),
+    pool_length_m: vine.number().min(10).max(100).nullable().optional(),
   })
 )

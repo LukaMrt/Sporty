@@ -9,6 +9,7 @@ import { EventEmitter } from '#domain/interfaces/event_emitter'
 import { Logger } from '#domain/interfaces/logger'
 import type { TrainingSession } from '#domain/entities/training_session'
 import { buildScalarRunMetrics } from '#domain/services/heart_rate_zone_service'
+import { buildSwimInputMetrics } from '#domain/services/swim_metrics'
 import { deriveSessionFields } from '#domain/services/session_derived_fields'
 import { gpxToSportMetrics } from '#domain/services/gpx_metrics'
 import { assertHeartRateConsistency } from '#domain/services/session_validation'
@@ -26,6 +27,9 @@ export type CreateSessionInput = {
   cadenceAvg?: number | null
   elevationGain?: number | null
   elevationLoss?: number | null
+  /** Natation : piscine ou eau libre */
+  subType?: string | null
+  poolLengthM?: number | null
   /**
    * Fichier GPX déjà parsé et stocké temporairement. Les courbes sont RELUES
    * depuis ce fichier : on ne fait jamais confiance à celles envoyées par le client.
@@ -68,7 +72,11 @@ export default class CreateSession {
         avgHeartRate: input.avgHeartRate ?? null,
         perceivedEffort: input.perceivedEffort ?? null,
         // Les valeurs saisies priment sur celles du GPX
-        sportMetrics: { ...gpxMetrics, ...buildScalarRunMetrics(input) },
+        sportMetrics: {
+          ...gpxMetrics,
+          ...buildScalarRunMetrics(input),
+          ...buildSwimInputMetrics(input),
+        },
         sportSlug,
       },
       profile,
