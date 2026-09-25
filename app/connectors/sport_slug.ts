@@ -8,3 +8,4 @@ export type SportySportSlug = 'running' | 'cycling' | 'swimming' | 'walking' | '
 
 export const CYCLING_SLUGS: SportySportSlug[] = ['cycling']
 export const RUNNING_SLUGS: SportySportSlug[] = ['running']
+export const SWIMMING_SLUGS: SportySportSlug[] = ['swimming']

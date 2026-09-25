@@ -11,7 +11,6 @@ import type { RunMetrics } from '#domain/value_objects/run_metrics'
 import { ConnectorAuthError } from '#domain/errors/connector_auth_error'
 import logger from '@adonisjs/core/services/logger'
 import { computeAllureFromDistance } from '#connectors/pace'
-import type { SportySportSlug } from '#connectors/sport_slug'
 import {
   OpenWearablesHttpClient,
   type Fetcher,
@@ -207,7 +206,7 @@ export class OpenWearablesConnector extends Connector {
     const sportSlug = this.#sportMapper.map(workout.type)
     return {
       externalId: encodeExternalId(workout.start_time, workout.type),
-      name: workout.name ?? this.#defaultName(sportSlug, workout),
+      name: workout.name ?? this.#defaultName(workout),
       sportSlug,
       // Date locale de la seance : `list_pre_import_sessions` filtre dessus.
       date: workout.start_time,
@@ -321,7 +320,7 @@ export class OpenWearablesConnector extends Connector {
     return distanceMeters / 1000
   }
 
-  #defaultName(sportSlug: SportySportSlug, workout: RawOwWorkout): string {
-    return `${sportSlug} ${workout.start_time.slice(11, 16)}`
+  #defaultName(workout: RawOwWorkout): string {
+    return `${this.#sportMapper.label(workout.type)} ${workout.start_time.slice(11, 16)}`
   }
 }
