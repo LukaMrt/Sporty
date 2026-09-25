@@ -3,7 +3,6 @@ import { router } from '@inertiajs/react'
 import { Loader2, Upload } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
-import { postMultipart } from '~/lib/http'
 
 /**
  * Ajoute (ou remplace) le GPX d'une séance : carte, altitude, splits. Sur une
@@ -21,7 +20,7 @@ export default function EnrichGpxButton({
   const [enrichError, setEnrichError] = useState<string | null>(null)
   const enrichFileRef = useRef<HTMLInputElement>(null)
 
-  async function handleEnrichGpxChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleEnrichGpxChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setEnrichError(null)
@@ -31,27 +30,22 @@ export default function EnrichGpxButton({
       return
     }
 
-    setEnriching(true)
-    try {
-      const formData = new FormData()
-      formData.append('gpx_file', file)
-      const res = await postMultipart(`/sessions/${sessionId}/enrich-gpx`, formData)
-
-      if (res.redirected) {
-        router.reload()
-        return
+    // Envoi via Inertia (et non fetch) : la redirection est suivie par Inertia,
+    // qui affiche le message flash de succès ou d'erreur (GPX d'un autre jour…)
+    router.post(
+      `/sessions/${sessionId}/enrich-gpx`,
+      { gpx_file: file },
+      {
+        forceFormData: true,
+        preserveScroll: true,
+        onStart: () => setEnriching(true),
+        onError: (errors) => setEnrichError(errors.gpx_file ?? t('sessions.form.gpxError')),
+        onFinish: () => {
+          setEnriching(false)
+          if (enrichFileRef.current) enrichFileRef.current.value = ''
+        },
       }
-
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string }
-        setEnrichError(body.error ?? t('sessions.form.gpxError'))
-      }
-    } catch {
-      setEnrichError(t('sessions.form.gpxError'))
-    } finally {
-      setEnriching(false)
-      if (enrichFileRef.current) enrichFileRef.current.value = ''
-    }
+    )
   }
 
   return (
@@ -61,9 +55,7 @@ export default function EnrichGpxButton({
         type="file"
         accept=".gpx"
         className="hidden"
-        onChange={(e) => {
-          void handleEnrichGpxChange(e)
-        }}
+        onChange={handleEnrichGpxChange}
         aria-label={t('sessions.form.enrichGpx')}
       />
       <Button
