@@ -67,6 +67,33 @@ export function heartRateCoverage(curve: DataPoint[], durationSeconds: number): 
   return Math.min(1, covered.size / windows)
 }
 
+/** Série natation (doc publique open-wearables : count par échantillon) */
+export const SWIM_STROKE_TYPE = 'swimming_stroke_count'
+
+/**
+ * Nombre total de mouvements de bras sur la séance. Les échantillons sont des
+ * comptes par intervalle : on les additionne, en écartant les totaux journaliers.
+ * Renvoie null si la montre n'en fournit aucun.
+ */
+export function totalSwimStrokes(
+  samples: RawOwTimeSeriesSample[],
+  workoutStartTime: string,
+  durationSeconds: number
+): number | null {
+  const startMs = new Date(workoutStartTime).getTime()
+  const endMs = startMs + (durationSeconds + TRAILING_TOLERANCE_SECONDS) * 1000
+  let total = 0
+  let found = false
+  for (const s of samples) {
+    if (s.type !== SWIM_STROKE_TYPE || s.is_daily_total || s.value < 0) continue
+    const ms = new Date(s.timestamp).getTime()
+    if (Number.isNaN(ms) || ms < startMs || ms > endMs) continue
+    total += s.value
+    found = true
+  }
+  return found ? Math.round(total) : null
+}
+
 /** Types de séries de dynamique de course exposés par Open Wearables */
 export const RUNNING_DYNAMICS_TYPES = {
   running_power: 'power',

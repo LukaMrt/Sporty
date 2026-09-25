@@ -19,6 +19,8 @@ import { OpenWearablesSportMapper } from '#connectors/open_wearables/open_wearab
 import { dedupeWorkouts, isSameWorkout } from '#connectors/open_wearables/workout_deduplicator'
 import {
   heartRateCoverage,
+  SWIM_STROKE_TYPE,
+  totalSwimStrokes,
   toHeartRateCurve,
   toRunningDynamics,
   RUNNING_DYNAMICS_TYPES,
@@ -243,10 +245,11 @@ export class OpenWearablesConnector extends Connector {
 
     // Degradation gracieuse : sans FC la seance reste importable.
     try {
-      const { curve, truncated, dynamics } = await this.#fetchHeartRateCurve(
+      const { curve, truncated, dynamics, strokes } = await this.#fetchHeartRateCurve(
         workout,
-        sportSlug === 'running'
+        sportSlug
       )
+      if (strokes !== null) metrics.strokes = strokes
       if (dynamics) metrics.runningDynamics = dynamics
       const unreliableSwimCurve =
         sportSlug === 'swimming' &&
@@ -296,16 +299,21 @@ export class OpenWearablesConnector extends Connector {
     }
   }
 
-  async #fetchHeartRateCurve(workout: RawOwWorkout, withDynamics: boolean) {
+  async #fetchHeartRateCurve(workout: RawOwWorkout, sportSlug: string) {
+    const withDynamics = sportSlug === 'running'
+    const withStrokes = sportSlug === 'swimming'
     // Plafond calculé selon la durée : une séance de 2 h à 1 Hz dépasse largement
     // les 50 pages par défaut, ce qui tronquait la courbe sans prévenir.
     const expectedSamples = Math.ceil(
       Math.max(workout.duration_seconds, 0) / MIN_SAMPLE_PERIOD_SECONDS
     )
-    // Une seule requête (types=a,b,c) : FC + dynamique de course pour la course
-    const types = withDynamics
-      ? ['heart_rate', ...Object.keys(RUNNING_DYNAMICS_TYPES)]
-      : ['heart_rate']
+    // Une seule requête (types=a,b,c) : FC + dynamique de course pour la course,
+    // FC + mouvements de bras pour la natation
+    const types = [
+      'heart_rate',
+      ...(withDynamics ? Object.keys(RUNNING_DYNAMICS_TYPES) : []),
+      ...(withStrokes ? [SWIM_STROKE_TYPE] : []),
+    ]
     const maxPages =
       Math.ceil((expectedSamples * types.length) / MAX_PAGE_SIZE) + TIMESERIES_PAGE_MARGIN
     const { data: samples, truncated } =
@@ -322,6 +330,9 @@ export class OpenWearablesConnector extends Connector {
       curve: toHeartRateCurve(samples, workout.start_time, workout.duration_seconds),
       truncated,
       dynamics: withDynamics ? toRunningDynamics(samples, workout.start_time) : null,
+      strokes: withStrokes
+        ? totalSwimStrokes(samples, workout.start_time, workout.duration_seconds)
+        : null,
     }
   }
 

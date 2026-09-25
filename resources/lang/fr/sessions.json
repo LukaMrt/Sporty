@@ -200,6 +200,9 @@
     "poolLength": "Bassin",
     "laps": "Longueurs",
     "strokesPerLap": "Mouvements par longueur",
-    "hrDiscarded": "La courbe cardiaque de la montre était trop incomplète dans l'eau : seule la FC moyenne est conservée, les zones ne sont pas calculées."
+    "hrDiscarded": "La courbe cardiaque de la montre était trop incomplète dans l'eau : seule la FC moyenne est conservée, les zones ne sont pas calculées.",
+    "swolfEstimated": "SWOLF estimé",
+    "strokes": "Mouvements de bras",
+    "poolHint": "Indique la longueur du bassin (modifier la séance) pour obtenir longueurs et SWOLF."
   }
 }

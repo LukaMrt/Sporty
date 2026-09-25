@@ -1,7 +1,7 @@
 import { useTranslation } from '~/hooks/use_translation'
 import Term from '~/components/shared/Term'
 import { formatSwimPace, toSwimPace } from '~/lib/format'
-import { swimLaps, type SwimMetrics } from '~/lib/swim'
+import { estimatedSwolf, swimLaps, type SwimMetrics } from '~/lib/swim'
 
 type SwimDetailsProps = {
   metrics: SwimMetrics
@@ -26,8 +26,16 @@ export default function SwimDetails({ metrics, durationMinutes, distanceKm }: Sw
   if (metrics.poolLengthM)
     rows.push({ label: t('sessions.swim.poolLength'), value: `${metrics.poolLengthM} m` })
   if (laps) rows.push({ label: t('sessions.swim.laps'), value: String(laps) })
+  const swolfEstimate = metrics.swolf ? null : estimatedSwolf(metrics, durationMinutes, laps)
   if (metrics.swolf)
     rows.push({ label: <Term id="swolf">SWOLF</Term>, value: String(Math.round(metrics.swolf)) })
+  else if (swolfEstimate)
+    rows.push({
+      label: <Term id="swolf">{t('sessions.swim.swolfEstimated')}</Term>,
+      value: String(swolfEstimate),
+    })
+  if (metrics.strokes && !laps)
+    rows.push({ label: t('sessions.swim.strokes'), value: String(metrics.strokes) })
   if (strokesPerLap)
     rows.push({ label: t('sessions.swim.strokesPerLap'), value: String(strokesPerLap) })
 
@@ -46,6 +54,9 @@ export default function SwimDetails({ metrics, durationMinutes, distanceKm }: Sw
           </div>
         ))}
       </div>
+      {metrics.strokes && !laps && metrics.subType !== 'open_water' && (
+        <p className="mt-3 text-xs text-muted-foreground">{t('sessions.swim.poolHint')}</p>
+      )}
       {metrics.heartRateCurveDiscarded && (
         <p className="mt-3 text-xs text-muted-foreground">{t('sessions.swim.hrDiscarded')}</p>
       )}

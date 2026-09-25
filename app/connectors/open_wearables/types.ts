@@ -13,6 +13,12 @@ export type RawOwSource = {
   device_name: string | null
 }
 
+/**
+ * Natation (doc publique + séances réelles) : le workout ne porte que durée,
+ * distance, calories, FC et `avg_pace_sec_per_km` (en s/KM). Le détail vient des
+ * timeseries `swimming_stroke_count` et `distance_swimming` ; ni longueurs, ni
+ * SWOLF, ni taille de bassin ne sont exposés.
+ */
 export type RawOwWorkout = {
   id: string
   type: string

@@ -110,4 +110,33 @@ test.group('OpenWearablesConnector — natation', () => {
     assert.isTrue(metrics.heartRateCurveDiscarded)
     assert.equal(detail.avgHeartRate, 130)
   })
+
+  test('détail : mouvements de bras additionnés depuis swimming_stroke_count', async ({
+    assert,
+  }) => {
+    const workout = makeWorkout()
+    const at = (seconds: number) =>
+      new Date(Date.parse(workout.start_time) + seconds * 1000).toISOString()
+    const stroke = (seconds: number, value: number, daily = false): RawOwTimeSeriesSample => ({
+      timestamp: at(seconds),
+      zone_offset: '+02:00',
+      type: 'swimming_stroke_count',
+      value,
+      unit: 'count',
+      source: workout.source,
+      is_daily_total: daily,
+    })
+    const samples = [
+      stroke(60, 18),
+      stroke(120, 20),
+      stroke(180, 5000, true), // total journalier : ignoré
+      stroke(7200, 30), // hors séance : ignoré
+    ]
+
+    const detail = await makeConnector([workout], samples).getSessionDetail(
+      encodeExternalId(workout.start_time, workout.type)
+    )
+
+    assert.equal((detail.sportMetrics as Record<string, unknown>).strokes, 38)
+  })
 })

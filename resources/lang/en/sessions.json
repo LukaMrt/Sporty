@@ -200,6 +200,9 @@
     "poolLength": "Pool",
     "laps": "Lengths",
     "strokesPerLap": "Strokes per length",
-    "hrDiscarded": "The watch's heart-rate curve was too incomplete in the water: only average HR is kept, zones are not computed."
+    "hrDiscarded": "The watch's heart-rate curve was too incomplete in the water: only average HR is kept, zones are not computed.",
+    "swolfEstimated": "Estimated SWOLF",
+    "strokes": "Strokes",
+    "poolHint": "Set the pool length (edit the session) to get lengths and SWOLF."
   }
 }
