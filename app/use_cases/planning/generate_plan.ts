@@ -14,6 +14,7 @@ import type { PlannedSession } from '#domain/entities/planned_session'
 import type { PlannedWeek } from '#domain/entities/planned_week'
 import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 import { addDaysIso, dayOfWeekIso, todayInTimezone } from '#domain/services/calendar'
+import { loadContribution } from '#domain/services/sport_load_contribution'
 import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
 import PlanPersister from '#use_cases/planning/plan_persister'
 
@@ -109,7 +110,11 @@ export default class GeneratePlan {
       const weekOf = (date: string) =>
         Math.floor(new Date(date).getTime() / (7 * 24 * 60 * 60 * 1000))
       const activeWeeks = new Set(historySessions.map((s) => weekOf(s.date))).size
-      const totalMinutes = historySessions.reduce((sum, s) => sum + s.durationMinutes, 0)
+      // Les marches ne comptent que pour une part : 3 h de balade ne sont pas 3 h de course
+      const totalMinutes = historySessions.reduce(
+        (sum, s) => sum + s.durationMinutes * loadContribution(s.sportSlug),
+        0
+      )
       return Math.round(totalMinutes / activeWeeks)
     })()
 

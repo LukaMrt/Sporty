@@ -24,5 +24,20 @@ export default class SportSeeder extends BaseSeeder {
         },
       }
     )
+    for (const { name, slug } of [
+      { name: 'Marche', slug: 'walking' },
+      { name: 'Randonnée', slug: 'hiking' },
+    ]) {
+      await Sport.updateOrCreate(
+        { slug },
+        {
+          name,
+          slug,
+          defaultMetrics: {
+            pace_per_km: { type: 'duration', unit: 'min/km', label: 'Allure' },
+          },
+        }
+      )
+    }
   }
 }
