@@ -51,8 +51,16 @@ export default class AnalysisController {
   }
 
   async index({ inertia, auth, request }: HttpContext) {
-    const { range, pace } = await request.validateUsing(analysisValidator)
-    const analysis = await this.getAnalysis.execute(auth.user!.id, range ?? '6m', pace)
+    const { range, from, to, sport, compare, pace } = await request.validateUsing(analysisValidator)
+    // Période personnalisée seulement si complète et dans le bon ordre
+    const custom = from && to && from <= to ? { from, to } : {}
+    const analysis = await this.getAnalysis.execute(auth.user!.id, {
+      range,
+      ...custom,
+      sport,
+      compare,
+      pace,
+    })
     return inertia.render('Analysis/Index', { analysis })
   }
 

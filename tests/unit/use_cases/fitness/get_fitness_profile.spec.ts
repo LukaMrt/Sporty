@@ -147,3 +147,50 @@ test.group('GetFitnessProfile — contribution par sport', () => {
     )
   })
 })
+
+test.group('GetFitnessProfile — charge effective par séance', () => {
+  test('une séance sans charge stockée reçoit la charge recalculée', async ({ assert }) => {
+    const repo = new InMemorySessionRepo()
+    repo.add({ id: 7, date: AS_OF, durationMinutes: 45, perceivedEffort: 6 })
+    const result = await makeUseCase(repo).execute(1, { asOf: AS_OF })
+    assert.isAbove(result.loads.get(7)!, 0)
+    assert.equal(result.methods.rpe, 1)
+  })
+
+  test('la charge exposée est pondérée par sport, comme dans le modèle', async ({ assert }) => {
+    const repo = new InMemorySessionRepo()
+    repo.add({ id: 1, date: AS_OF, sportSlug: 'walking', trainingLoad: 50, loadMethod: 'rpe' })
+    const result = await makeUseCase(repo).execute(1, { asOf: AS_OF })
+    assert.equal(result.loads.get(1), 15)
+  })
+
+  test('projection avec les charges planifiées', async ({ assert }) => {
+    const repo = new InMemorySessionRepo()
+    seedImportedRuns(repo, 0, true)
+    const profile = { maxHeartRate: 190, restingHeartRate: 50 }
+    const until = addDaysIso(AS_OF, 14)
+    const plannedLoads = [1, 3, 5, 8, 10, 12].map((d) => ({ date: addDaysIso(AS_OF, d), tss: 60 }))
+
+    const result = await makeUseCase(repo, profile).execute(1, {
+      asOf: AS_OF,
+      projection: { until, plannedLoads },
+    })
+    const rest = await makeUseCase(repo, profile).execute(1, {
+      asOf: AS_OF,
+      projection: { until, plannedLoads: [] },
+    })
+
+    assert.lengthOf(result.projection, 14)
+    assert.equal(result.projection[0].date, addDaysIso(AS_OF, 1))
+    assert.equal(result.projection.at(-1)!.date, until)
+    // Suivre le plan entretient la forme ; ne rien faire la laisse décroître
+    assert.isAbove(result.projection.at(-1)!.ctl, rest.projection.at(-1)!.ctl)
+  })
+
+  test('pas de projection demandée → liste vide', async ({ assert }) => {
+    const repo = new InMemorySessionRepo()
+    repo.add({ id: 1, date: AS_OF, trainingLoad: 50, loadMethod: 'rpe' })
+    const result = await makeUseCase(repo).execute(1, { asOf: AS_OF })
+    assert.deepEqual(result.projection, [])
+  })
+})

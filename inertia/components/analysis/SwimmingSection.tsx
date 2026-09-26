@@ -11,10 +11,27 @@ import {
 } from 'recharts'
 import { useTranslation } from '~/hooks/use_translation'
 import { formatSwimPace, formatSwimDistance } from '~/lib/format'
-import { Section, SPORT_COLORS, Stat, type AnalysisData } from './shared'
+import Term from '~/components/shared/Term'
+import ChartTooltip from './ChartTooltip'
+import {
+  ChartBlock,
+  Section,
+  SPORT_COLORS,
+  Stat,
+  formatSigned,
+  shortDate,
+  type AnalysisData,
+  type Insight,
+} from './shared'
 
 /** Natation : progression d'allure /100 m, records d'allure et CSS */
-export default function SwimmingSection({ swimming }: { swimming: AnalysisData['swimming'] }) {
+export default function SwimmingSection({
+  swimming,
+  verdict,
+}: {
+  swimming: AnalysisData['swimming']
+  verdict?: Insight
+}) {
   const { t, locale } = useTranslation()
   const trend = swimming.paceTrend
   // Allure : plus bas = plus rapide, d'où un delta négatif = progrès
@@ -29,9 +46,9 @@ export default function SwimmingSection({ swimming }: { swimming: AnalysisData['
   return (
     <Section
       id="swimming"
-      terms={['swimPace', 'css', 'stss']}
       title={t('analysis.swimming.title')}
       description={t('analysis.swimming.description')}
+      verdict={verdict}
       empty={!swimming.hasSessions}
       emptyMessage={t('analysis.swimming.empty')}
     >
@@ -41,52 +58,62 @@ export default function SwimmingSection({ swimming }: { swimming: AnalysisData['
           value={trend.length > 0 ? formatSwimPace(trend.at(-1)!.pacePer100m) : '—'}
           hint={
             delta !== null
-              ? t('analysis.swimming.delta', { delta: `${delta >= 0 ? '+' : ''}${delta}` })
+              ? t('analysis.swimming.delta', { delta: formatSigned(delta, locale) })
               : undefined
           }
         />
         <Stat
-          label={t('analysis.swimming.css')}
+          label={<Term id="css">{t('analysis.swimming.css')}</Term>}
           value={swimming.css ? formatSwimPace(swimming.css) : '—'}
           hint={swimming.css ? undefined : t('analysis.swimming.cssMissing')}
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-56">
-          <h3 className="mb-1 text-sm font-medium">{t('analysis.swimming.paceTrend')}</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trend}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="week" fontSize={11} minTickGap={24} />
-              {/* Axe inversé : plus haut = plus rapide */}
-              <YAxis
-                reversed
-                domain={['auto', 'auto']}
-                fontSize={11}
-                tickFormatter={(v: number) => formatSwimPace(v).replace('/100m', '')}
-              />
-              <Tooltip
-                formatter={(v) => formatSwimPace(Number(v))}
-                labelFormatter={(l) => (typeof l === 'string' ? fmtDate(l) : '')}
-              />
-              {swimming.css && (
-                <ReferenceLine
-                  y={swimming.css}
-                  stroke="#94a3b8"
-                  strokeDasharray="4 4"
-                  label={{ value: 'CSS', fontSize: 10, position: 'insideTopRight' }}
+        <ChartBlock title={t('analysis.swimming.paceTrend')} help="swimPace">
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trend}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="week"
+                  tickFormatter={(d: string) => shortDate(d, locale)}
+                  fontSize={11}
+                  minTickGap={24}
                 />
-              )}
-              <Line
-                dataKey="pacePer100m"
-                name={t('analysis.swimming.pace')}
-                stroke={SPORT_COLORS.swimming}
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+                {/* Axe inversé : plus haut = plus rapide */}
+                <YAxis
+                  reversed
+                  domain={['auto', 'auto']}
+                  fontSize={11}
+                  tickFormatter={(v: number) => formatSwimPace(v).replace('/100m', '')}
+                />
+                <Tooltip
+                  content={
+                    <ChartTooltip
+                      labelFormat={(w) => t('analysis.weekOf', { date: shortDate(w, locale) })}
+                      valueFormat={(v) => formatSwimPace(v)}
+                    />
+                  }
+                />
+                {swimming.css && (
+                  <ReferenceLine
+                    y={swimming.css}
+                    stroke="#94a3b8"
+                    strokeDasharray="4 4"
+                    label={{ value: 'CSS', fontSize: 10, position: 'insideTopRight' }}
+                  />
+                )}
+                <Line
+                  dataKey="pacePer100m"
+                  name={t('analysis.swimming.pace')}
+                  stroke={SPORT_COLORS.swimming}
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartBlock>
 
         <div>
           <h3 className="mb-1 text-sm font-medium">{t('analysis.swimming.records')}</h3>

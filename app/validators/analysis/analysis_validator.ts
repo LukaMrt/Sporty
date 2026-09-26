@@ -3,6 +3,20 @@ import vine from '@vinejs/vine'
 export const analysisValidator = vine.create(
   vine.object({
     range: vine.enum(['3m', '6m', '12m', 'all'] as const).optional(),
+    /** Période personnalisée : les deux bornes, `from` ≤ `to` (contrôlé dans le contrôleur) */
+    from: vine
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    to: vine
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    sport: vine
+      .string()
+      .regex(/^[a-z_]{1,40}$/)
+      .optional(),
+    compare: vine.enum(['previous', 'year', 'none'] as const).optional(),
     /** Allure de référence (s/km) pour « FC à allure de référence » */
     pace: vine.number().withoutDecimals().min(150).max(900).optional(),
   })

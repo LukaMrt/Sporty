@@ -5,18 +5,6 @@
     "description": "Track your workouts and see your progress over time.",
     "cta": "Log my first session"
   },
-  "hero": {
-    "avgPaceLabel": "Avg. running pace (4 weeks)",
-    "noData": "Not enough data",
-    "trendPrev": "prev. period"
-  },
-  "stats": {
-    "weeklyVolume": "Weekly volume",
-    "avgHeartRate": "Avg. HR",
-    "sessions": "Sessions",
-    "thisWeek": "this week",
-    "trendSuffix": "vs 4wk avg."
-  },
   "nextSession": {
     "today": "Today",
     "restToday": "Rest day. Next session:",
@@ -32,17 +20,61 @@
       "6": "Sat."
     }
   },
-  "chart": {
-    "evolution": "Progress",
-    "periods": {
-      "all": "All",
-      "week": "Week",
-      "month": "Month"
-    },
-    "metrics": {
-      "pace": "Pace",
-      "heartRate": "HR",
-      "distance": "Distance"
+  "today": {
+    "title": "Today",
+    "noData": "Not enough data to advise you yet: log a few sessions.",
+    "freshness": "Freshness",
+    "readiness": "Readiness",
+    "fitness": "Fitness",
+    "delta28": "{delta} over 4 wk",
+    "advice": {
+      "recover": {
+        "title": "Recovery comes first",
+        "detail": "Your body shows signs of fatigue: very easy session or rest today."
+      },
+      "quality": {
+        "title": "Good day for a quality session",
+        "detail": "You are rested: the right time for a key session or a race."
+      },
+      "absorb": {
+        "title": "You are absorbing the load well",
+        "detail": "You are building: stick to your plan without adding more."
+      },
+      "steady": {
+        "title": "Normal day",
+        "detail": "Load and recovery are balanced: stick to your plan."
+      }
     }
+  },
+  "week": {
+    "title": "My week",
+    "all": "My sessions",
+    "planned": "of {minutes} planned",
+    "typical": "usually {minutes}",
+    "progress": "Weekly volume progress",
+    "load": "Week's load: {load} TSS"
+  },
+  "trend": {
+    "title": "Fitness trend",
+    "more": "Details",
+    "chartLabel": "Fitness and freshness over 6 weeks",
+    "rising": "Your fitness is rising ({delta} over 4 weeks).",
+    "falling": "Your fitness is dropping ({delta} over 4 weeks).",
+    "stable": "Your fitness is stable ({delta} over 4 weeks)."
+  },
+  "last": {
+    "title": "Last session",
+    "open": "Open",
+    "duration": "Duration",
+    "distance": "Distance",
+    "pace": "Pace",
+    "heartRate": "Avg HR",
+    "load": "Load",
+    "efBetter": "Efficiency {percent} % above your average: good session!",
+    "efWorse": "Efficiency {percent} % below your average: fatigue, heat or hills?"
+  },
+  "insights": {
+    "title": "Key takeaways",
+    "more": "All analyses"
   }
 }
