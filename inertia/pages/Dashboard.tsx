@@ -1,135 +1,59 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Head, router } from '@inertiajs/react'
 import MainLayout from '~/layouts/MainLayout'
-import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
-import { useTechMode } from '~/hooks/use_tech_mode'
 import EmptyState from '~/components/shared/EmptyState'
-import HeroMetric, { HeroMetricEmpty } from '~/components/shared/HeroMetric'
-import QuickStatCard from '~/components/shared/QuickStatCard'
-import EvolutionChart from '~/components/shared/EvolutionChart'
-import PeriodSelector from '~/components/shared/PeriodSelector'
-import type { Period } from '~/components/shared/PeriodSelector'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import type {
-  ChartData,
-  HeroMetricData,
-  QuickStatData,
-} from '../../app/domain/entities/dashboard_metrics'
-import { useUnitConversion } from '~/hooks/use_unit_conversion'
-import { useTranslation } from '~/hooks/use_translation'
-import { formatDuration } from '~/lib/format'
-import { sportIcon } from '~/lib/sports'
 import NextSessionWidget from '~/components/planning/NextSessionWidget'
 import type { NextSessionResult } from '~/components/planning/NextSessionWidget'
+import GoalOutlookCard from '~/components/analysis/GoalOutlookCard'
+import {
+  FormTrendCard,
+  InsightsCard,
+  LastSessionCard,
+  TodayFormCard,
+  WeekCard,
+} from '~/components/dashboard/TodayCards'
+import { useTranslation } from '~/hooks/use_translation'
+import type { TodayOverview } from '../../app/use_cases/dashboard/get_today_overview'
 
 type DashboardProps = {
-  sessionCount: number
-  heroMetric: HeroMetricData | null
-  quickStats: QuickStatData | null
-  chartData: ChartData | null
+  overview: TodayOverview
   nextSession: NextSessionResult
-  acwr: number | null
 }
 
-export default function Dashboard({
-  sessionCount,
-  heroMetric,
-  quickStats,
-  chartData,
-  nextSession,
-  acwr,
-}: DashboardProps) {
-  const [period, setPeriod] = useState<Period>('all')
-  const [acwrDismissed, setAcwrDismissed] = useState(false)
-  const { techMode } = useTechMode()
-  const isEmpty = quickStats === null
-  const showAcwrWarning = !acwrDismissed && acwr !== null && acwr > 1.3
-  const { formatDistance } = useUnitConversion()
+/**
+ * Accueil « Aujourd'hui » : comment je vais, que faire aujourd'hui, suis-je
+ * sur la bonne voie. Le détail et les explications vivent dans Analyse.
+ */
+export default function Dashboard({ overview, nextSession }: DashboardProps) {
   const { t } = useTranslation()
 
-  return (
-    <>
-      <Head title={t('dashboard.title')} />
-      {sessionCount === 0 ? (
+  if (overview.sessionCount === 0) {
+    return (
+      <>
+        <Head title={t('dashboard.title')} />
         <EmptyState
           title={t('dashboard.empty.title')}
           description={t('dashboard.empty.description')}
           ctaLabel={t('dashboard.empty.cta')}
           onCtaClick={() => router.visit('/sessions/create')}
         />
-      ) : (
-        <div className="mx-auto max-w-2xl space-y-4 p-4">
-          {showAcwrWarning && acwr !== null && (
-            <AcwrWarningBanner
-              acwr={acwr}
-              techMode={techMode}
-              onDismiss={() => setAcwrDismissed(true)}
-            />
-          )}
-          {heroMetric === null ? (
-            <HeroMetricEmpty />
-          ) : (
-            <HeroMetric
-              pace={heroMetric.currentPace}
-              trendSeconds={heroMetric.trendSeconds}
-              previousPace={heroMetric.previousPace}
-              sparklineData={heroMetric.sparklineData}
-            />
-          )}
-          <NextSessionWidget result={nextSession} />
-          <div className="grid grid-cols-3 gap-2">
-            <QuickStatCard
-              label={t('dashboard.stats.weeklyVolume')}
-              value={isEmpty ? '—' : formatDuration(quickStats.weeklyDurationMinutes)}
-              unit=""
-              detail={
-                isEmpty
-                  ? undefined
-                  : Object.entries(quickStats.weeklyDistanceBySport)
-                      .map(([sport, km]) => `${sportIcon(sport)} ${formatDistance(km, sport)}`)
-                      .join(' · ') || undefined
-              }
-              trend={isEmpty ? null : quickStats.weeklyDurationTrend}
-              isEmpty={isEmpty}
-              trendSuffix={t('dashboard.stats.trendSuffix')}
-            />
-            <QuickStatCard
-              label={t('dashboard.stats.avgHeartRate')}
-              value={
-                isEmpty || quickStats.avgHeartRate === null
-                  ? '—'
-                  : Math.round(quickStats.avgHeartRate).toString()
-              }
-              unit="bpm"
-              trend={isEmpty ? null : quickStats.avgHeartRateTrend}
-              isEmpty={isEmpty || quickStats.avgHeartRate === null}
-              lowerIsBetter
-              trendSuffix={t('dashboard.stats.trendSuffix')}
-            />
-            <QuickStatCard
-              label={t('dashboard.stats.sessions')}
-              value={isEmpty ? '—' : quickStats.weeklySessionCount.toString()}
-              unit={t('dashboard.stats.thisWeek')}
-              trend={isEmpty ? null : quickStats.weeklySessionTrend}
-              isEmpty={isEmpty}
-              trendSuffix={t('dashboard.stats.trendSuffix')}
-            />
-          </div>
-          {chartData !== null && chartData.points.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{t('dashboard.chart.evolution')}</CardTitle>
-                  <PeriodSelector value={period} onChange={setPeriod} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <EvolutionChart data={chartData.points} period={period} />
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Head title={t('dashboard.title')} />
+      <div className="mx-auto grid max-w-5xl gap-4 p-4 sm:p-6 lg:grid-cols-2">
+        <TodayFormCard form={overview.form}>
+          {nextSession && <NextSessionWidget result={nextSession} />}
+        </TodayFormCard>
+        <WeekCard week={overview.week} today={overview.today} />
+        <InsightsCard insights={overview.insights} records={overview.recentRecords} />
+        {overview.goal && <GoalOutlookCard goal={overview.goal} />}
+        <FormTrendCard form={overview.form} />
+        {overview.lastSession && <LastSessionCard session={overview.lastSession} />}
+      </div>
     </>
   )
 }

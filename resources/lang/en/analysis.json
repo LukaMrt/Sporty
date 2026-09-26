@@ -6,52 +6,68 @@
     "3m": "3 months",
     "6m": "6 months",
     "12m": "12 months",
-    "all": "All"
+    "all": "All",
+    "custom": "Dates…"
   },
   "nav": {
-    "fitness": "Fitness",
-    "volume": "Volume",
+    "overview": "Overview",
+    "load": "Load & fitness",
+    "volume": "Volume & consistency",
     "intensity": "Intensity",
     "performance": "Performance",
     "efficiency": "Efficiency",
     "recovery": "Recovery",
-    "calendar": "Calendar",
-    "report": "Report",
     "swimming": "Swimming"
   },
   "empty": {
     "noSessions": "No sessions in this period.",
-    "noHeartRate": "No heart rate data: set your max HR in your profile and import sessions with heart rate.",
+    "noHeartRate": "No heart rate data: set your max HR and import sessions recorded with a heart rate monitor.",
     "noGps": "No running GPS track in this period: best efforts are computed from tracks (Strava or GPX).",
-    "noWellness": "No recovery data: connect Open Wearables (sleep, HRV, resting HR). If your watch doesn't provide a metric, its chart stays hidden."
+    "noWellness": "No recovery data: connect a watch through Open Wearables (sleep, HRV, resting HR). If your watch does not provide a metric, the matching chart stays hidden.",
+    "connect": "Connect a source",
+    "setMaxHr": "Set my max HR"
   },
   "fitness": {
-    "title": "Fitness over time",
-    "description": "Fitness (CTL, 42 d), fatigue (ATL, 7 d) and form (TSB = CTL − ATL), with each day’s load.",
-    "ctl": "Fitness (CTL)",
-    "atl": "Fatigue (ATL)",
-    "tsb": "Form (TSB)",
-    "fresh": "Fresh",
-    "tired": "Tired",
-    "balanced": "Balanced",
-    "acwrRisk": "Risky load increase (> 1.5)",
-    "chartLabel": "CTL, ATL, TSB and daily load chart",
-    "methods": "Load computed from: HR {hr} sessions, pace {pace}, perceived effort {rpe}",
-    "estimated": "Load mostly estimated from perceived effort: set your max HR for better accuracy",
-    "monotony": "Last week monotony {monotony} (strain {strain})"
+    "title": "Fitness, fatigue and freshness",
+    "description": "Fitness builds over 6 weeks, fatigue fades within a week. Freshness is the difference between the two.",
+    "chartFitness": "Fitness and fatigue",
+    "chartTsb": "Freshness",
+    "chartAcwr": "Load balance",
+    "chartLabel": "Fitness, fatigue and daily load chart",
+    "dailyLoad": "Daily load",
+    "delta28": "{delta} over 4 weeks",
+    "tsbZone": {
+      "fresh": "Fresh, rested",
+      "balanced": "Balanced",
+      "productive": "Productive zone",
+      "risk": "Overload"
+    },
+    "acwrZone": {
+      "low": "Below your usual",
+      "optimal": "Safe zone (0.8–1.3)",
+      "high": "Marked increase",
+      "risk": "Risky increase (> 1.5)"
+    },
+    "rampHint": "Fitness gain over 7 days (guideline: ≤ 8)",
+    "methods": "Load computed from: {hr} sessions by heart rate, {pace} by pace, {rpe} by perceived effort",
+    "estimated": "Load mostly estimated from perceived effort: set your max HR for better accuracy"
   },
   "volume": {
     "title": "Volume",
     "weekly": "Weekly",
     "monthly": "Monthly",
     "lastYear": "Previous year",
+    "lastYearHint": "The comparison with last year shows in the monthly view.",
     "metrics": {
       "distanceKm": "Distance",
-      "durationMinutes": "Duration (min)",
+      "durationMinutes": "Duration",
       "sessions": "Sessions"
     },
-    "unitMeters": "Distance in metres",
-    "unitKm": "Distance in km"
+    "chartTitle": {
+      "durationMinutes": "Training time",
+      "distanceKm": "Distance ({unit})",
+      "sessions": "Number of sessions"
+    }
   },
   "sports": {
     "running": "Running",
@@ -63,25 +79,25 @@
   },
   "intensity": {
     "title": "Intensity distribution",
-    "description": "Time spent in each zone per week. Benchmark: about 80 % in Z1–Z2.",
-    "recentLowShare": "{percent} % of time in Z1–Z2 over 4 weeks:",
-    "polarized": "polarized distribution",
-    "tooGrey": "too much time in the middle zone",
+    "description": "Time spent in each heart rate zone, week by week.",
+    "chart": "Time per zone",
     "lowShare": "% in Z1–Z2"
   },
   "performance": {
     "title": "Performance",
-    "description": "Best efforts measured within your sessions, derived VDOT and race predictions.",
+    "description": "Your best efforts measured inside your sessions, your estimated level and race predictions.",
     "vdot": "Estimated VDOT",
-    "vdotHint": "Best efforts of the last 90 days",
+    "vdotHint": "From your best efforts over the last 90 days",
     "profileVdot": "Profile VDOT",
+    "profileVdotHint": "Used by your training plan",
     "watchVo2Max": "VO2max (watch)",
     "records": "Records",
     "distance": "Distance",
-    "allTime": "All time",
-    "last90": "Last 90 days",
-    "predictions": "Predictions",
-    "vdotHistory": "VDOT history"
+    "allTime": "All-time best",
+    "inPeriod": "In period",
+    "paceCurve": "Pace of your records by distance",
+    "predictions": "Race predictions",
+    "vdotHistory": "VDOT over time"
   },
   "distances": {
     "400m": "400 m",
@@ -100,17 +116,21 @@
   },
   "efficiency": {
     "title": "Aerobic efficiency",
-    "description": "Speed / HR on easy runs: an increase is the best sign of aerobic progress. Decoupling: pace/HR drift on long runs (< 5 % = solid base).",
-    "delta": "Efficiency {delta} % over the period",
-    "ef": "Efficiency Factor (easy runs)",
-    "decoupling": "Long run decoupling",
+    "description": "Running faster for the same heart rate: the best sign your endurance is improving.",
+    "ef": "Easy-run efficiency",
+    "decoupling": "Cardiac drift on long runs",
     "hrAtPace": "HR at reference pace ({pace})",
+    "changePace": "Change pace:",
+    "heartRate": "Average HR",
+    "noRunsAtPace": "No run at this pace (± 10 s) in the period.",
     "faster": "Faster pace",
-    "slower": "Slower pace"
+    "slower": "Slower pace",
+    "decouplingGood": "Under 5 %",
+    "decouplingHigh": "5 % or more"
   },
   "recovery": {
     "title": "Recovery",
-    "description": "HRV, resting HR and sleep compared with your baselines.",
+    "description": "HRV, resting HR and sleep compared with your own habits.",
     "readiness": "Readiness",
     "levels": {
       "good": "good",
@@ -125,7 +145,6 @@
       "tsb": "Form"
     },
     "usual": "usually",
-    "hrvLow": "HRV below your normal range for {days} days: consider easing off.",
     "signals": {
       "respiratory_rate_high": "Unusual overnight respiratory rate: possible onset of illness, take it easy today.",
       "spo2_low": "Low overnight SpO2.",
@@ -147,12 +166,19 @@
     "weight": "Weight",
     "activity": "Intensity minutes outside sessions",
     "activeMinutes": "Active minutes",
-    "correlation": "Previous night's sleep vs efficiency (r = {r})"
+    "correlation": "Previous night's sleep vs efficiency (r = {r})",
+    "daily": "Day by day",
+    "loadVsHrv": "Previous day's load and morning HRV",
+    "previousLoad": "Previous day's load",
+    "morningHrv": "Morning HRV",
+    "weighIn": "Weigh-in",
+    "weightTrend": "Trend"
   },
   "calendar": {
     "title": "Load calendar",
-    "less": "Less",
-    "more": "More"
+    "description": "{days} training days over the last 12 months.",
+    "chart": "One square per day",
+    "rest": "Rest"
   },
   "report": {
     "title": "Summary for Claude and export",
@@ -221,5 +247,319 @@
     "pace": "Pace",
     "records": "Pace records",
     "recordsHint": "Best average pace among sessions of at least this distance."
+  },
+  "weekOf": "Week of {date}",
+  "filters": {
+    "sport": "Sport",
+    "allSports": "All sports",
+    "compare": "Compare with",
+    "compareModes": {
+      "previous": "previous period",
+      "year": "last year",
+      "none": "nothing"
+    },
+    "compareShort": {
+      "previous": "vs prev. period",
+      "year": "vs last year",
+      "none": ""
+    },
+    "expert": "Expert mode",
+    "from": "From",
+    "to": "To",
+    "apply": "Apply",
+    "summary": "From {from} to {to}",
+    "comparedTo": "compared with {from} → {to}",
+    "fitnessAllSports": "fitness always combines all your sports"
+  },
+  "metric": {
+    "ctl": {
+      "simple": "Fitness",
+      "expert": "CTL"
+    },
+    "atl": {
+      "simple": "Fatigue",
+      "expert": "ATL"
+    },
+    "tsb": {
+      "simple": "Freshness",
+      "expert": "TSB"
+    },
+    "acwr": {
+      "simple": "Load balance",
+      "expert": "ACWR"
+    },
+    "tss": {
+      "simple": "Load",
+      "expert": "TSS"
+    },
+    "ef": {
+      "simple": "Efficiency",
+      "expert": "EF"
+    },
+    "decoupling": {
+      "simple": "Cardiac drift",
+      "expert": "Decoupling"
+    },
+    "vdot": {
+      "simple": "Level (VDOT)",
+      "expert": "VDOT"
+    },
+    "monotony": {
+      "simple": "Monotony",
+      "expert": "Monotony (Foster)"
+    },
+    "strain": {
+      "simple": "Strain",
+      "expert": "Strain (Foster)"
+    },
+    "ramp": {
+      "simple": "7-day progression",
+      "expert": "Ramp rate (7-day ΔCTL)"
+    }
+  },
+  "overview": {
+    "essentials": "Key takeaways",
+    "essentialsHint": "What your data says, from most to least important.",
+    "noInsights": "Not enough data yet to draw conclusions: keep logging your sessions.",
+    "showMore": "Show {count} more",
+    "showLess": "Show less",
+    "figures": "Key figures",
+    "sessions": "Sessions",
+    "duration": "Duration",
+    "load": "Load",
+    "distance": "Distance",
+    "perWeek": "{count} per week"
+  },
+  "highlights": {
+    "title": "Highlights",
+    "record": "Record over {distance}: {time}",
+    "longest": "Longest session: {duration} ({date})",
+    "biggestWeek": "Biggest week: week of {week}, {load} TSS in {duration}",
+    "month": "Most active month: {month}, {duration} over {sessions} sessions",
+    "streak": "Longest streak: {weeks} active weeks in a row (current: {current})",
+    "period": "Period from {from} to {to}"
+  },
+  "goal": {
+    "title": "{distance} km goal",
+    "daysLeft": "{days} days to go",
+    "target": "Target time",
+    "predicted": "Current prediction",
+    "ahead": "You are {gap} under your target: it is within reach.",
+    "behind": "{gap} still to gain to reach your target.",
+    "noPrediction": "No prediction yet: it needs recent running GPS tracks (best efforts).",
+    "raceDay": "Projected on race day with your plan: fitness {ctl}, freshness {tsb}.",
+    "seePlan": "See my plan"
+  },
+  "unlock": {
+    "title": "Unlock more analyses",
+    "description": "Some analyses are waiting for data. Here is what is missing and what it brings.",
+    "items": {
+      "maxHr": {
+        "label": "Set your max HR",
+        "unlocks": "Heart rate zones, intensity distribution, heart-rate based load (more accurate than perceived effort).",
+        "cta": "Profile"
+      },
+      "heartRate": {
+        "label": "Import sessions with heart rate",
+        "unlocks": "Aerobic efficiency, cardiac drift, heart rate at a given pace.",
+        "cta": "Connectors"
+      },
+      "gps": {
+        "label": "Import running GPS tracks",
+        "unlocks": "Records, pace/distance curve, VDOT and race predictions.",
+        "cta": "Connectors"
+      },
+      "wellness": {
+        "label": "Connect a watch (sleep, HRV)",
+        "unlocks": "Daily readiness, recovery, overreaching or illness alerts.",
+        "cta": "Connectors"
+      },
+      "goal": {
+        "label": "Set yourself a goal",
+        "unlocks": "Countdown, predicted vs target time, projected race-day fitness.",
+        "cta": "Create"
+      }
+    }
+  },
+  "loadBySport": {
+    "title": "Load by sport",
+    "description": "Where your fatigue comes from: each week's load, sport by sport.",
+    "chart": "Weekly load (TSS)"
+  },
+  "plan": {
+    "title": "Goal and plan",
+    "description": "Where your plan takes you and how well you follow it.",
+    "projection": "Projected fitness with your plan",
+    "raceDay": "Race day",
+    "projectedCtl": "{label} (projected)",
+    "projectedTsb": "{label} (projected)",
+    "adherence": "Done vs planned (duration)",
+    "adherenceSummary": "{percent} % of planned volume completed since the plan started",
+    "planned": "Planned",
+    "done": "Done"
+  },
+  "regularity": {
+    "title": "Consistency",
+    "description": "Consistency does more for progress than a few isolated big weeks.",
+    "activeWeeks": "Active weeks",
+    "currentStreak": "Current streak",
+    "longestStreak": "Longest streak",
+    "perWeek": "Sessions per week",
+    "weeks": "{count} wk",
+    "byWeekday": "Your training days",
+    "sessions": "Sessions"
+  },
+  "help": {
+    "howToRead": "How to read this?",
+    "labels": {
+      "read": "Reading:",
+      "good": "Good sign:",
+      "watch": "Watch out:"
+    },
+    "fitness": {
+      "read": "The blue line (fitness) rises when you train consistently and slowly falls when you rest. The pink one (fatigue) reacts quickly to each session. Grey bars are each day's load.",
+      "good": "Fitness rising gently week after week.",
+      "watch": "Fatigue staying well above fitness: you are piling on more than you absorb."
+    },
+    "tsb": {
+      "read": "Freshness = fitness − fatigue. Below 0 you are loading up; above 0 you are recovering.",
+      "good": "Between −10 and −30 during training blocks (green zone), above +5 before a race.",
+      "watch": "Below −30 (red zone) for several days: risk of overreaching."
+    },
+    "acwr": {
+      "read": "Compares this week's load with the last 6 weeks. 1 = same load as usual.",
+      "good": "Staying within the green band (0.8 to 1.3): steady progress.",
+      "watch": "Above 1.5: a sudden jump, injury risk rises sharply."
+    },
+    "loadBySport": {
+      "read": "Each bar stacks the week's load by sport. Walking and hiking only partly count, as in the fitness model.",
+      "watch": "A big week in an unusual sport is more tiring than it looks."
+    },
+    "projection": {
+      "read": "Dashed: what your fitness and freshness will become if you follow your plan to the letter.",
+      "good": "Positive freshness on race day: you arrive rested with fitness at its peak.",
+      "watch": "Very negative freshness on race day: the taper may be too short."
+    },
+    "adherence": {
+      "read": "Grey bars: duration planned by your plan. Green bars: duration actually done.",
+      "good": "Completing most of the volume, especially key sessions.",
+      "watch": "Doing much more than planned: the plan is calibrated so you progress without injury."
+    },
+    "calendar": {
+      "read": "One square per day, darker with more load. Click a square to open the session.",
+      "good": "Squares spread evenly, with light recovery days.",
+      "watch": "Long grey stretches (breaks) or all-dark weeks without rest."
+    },
+    "volume": {
+      "read": "Volume per week or month, stacked by sport. Distance shows sport by sport: a swum kilometre is not a run kilometre.",
+      "good": "At most 10 % more from one week to the next, with a lighter week every 3 to 4 weeks.",
+      "watch": "A sudden jump in volume after a quiet period."
+    },
+    "regularity": {
+      "read": "How many sessions you do on each day of the week over the period.",
+      "good": "Stable training days: habit is your best ally."
+    },
+    "intensity": {
+      "read": "Bars show time in each heart rate zone. The black line shows the share of easy endurance (Z1–Z2).",
+      "good": "About 80 % of time in Z1–Z2 (above the dashed line) and the rest at genuine intensity (Z4–Z5).",
+      "watch": "Lots of Z3: this grey zone is tiring without really building endurance or speed."
+    },
+    "records": {
+      "read": "Your best time over each distance, measured inside any session (not only races).",
+      "good": "Period records close to your all-time bests: you are in shape."
+    },
+    "paceCurve": {
+      "read": "The average pace of your records, from shortest to longest distance. Higher = faster.",
+      "good": "A gently sloping curve: your endurance keeps up with your speed.",
+      "watch": "A sharp drop on long distances: endurance is the thing to work on."
+    },
+    "predictions": {
+      "read": "Two methods: VDOT (Jack Daniels' tables, from your best efforts) and Riegel (extrapolation of a single effort).",
+      "watch": "For half marathon and marathon, predictions assume specific endurance training: they are often optimistic."
+    },
+    "vdotHistory": {
+      "read": "Your VDOT computed month by month from your best efforts.",
+      "good": "One point up ≈ 1 to 2 % faster over every distance."
+    },
+    "ef": {
+      "read": "Speed divided by heart rate, on easy runs only. Higher means faster for the same effort.",
+      "good": "A line rising over several weeks.",
+      "watch": "A lasting drop: fatigue, heat or lack of base endurance."
+    },
+    "decoupling": {
+      "read": "On runs over one hour: how much your heart rate climbs in the second half at the same pace.",
+      "good": "Under 5 % (green bars): your endurance base holds up.",
+      "watch": "Above 5 % (yellow bars): base endurance still needs work."
+    },
+    "hrAtPace": {
+      "read": "Your average heart rate, month by month, on runs at the reference pace.",
+      "good": "Heart rate dropping at the same pace: your heart works less for the same effort."
+    },
+    "hrv": {
+      "read": "Heart rate variability measured overnight. The blue band is your personal normal (average of the last 60 days).",
+      "good": "A 7-day average within or above your normal band.",
+      "watch": "Several days below your band: incomplete recovery, stress or oncoming illness."
+    },
+    "restingHr": {
+      "read": "Your resting heart rate, day by day and as a 7-day average.",
+      "good": "Stable or slowly decreasing over the months.",
+      "watch": "More than 5 bpm above usual: fatigue or illness."
+    },
+    "sleep": {
+      "read": "Length of each night, split by stage when your watch provides it.",
+      "good": "7 to 9 h a night, more during big weeks."
+    },
+    "loadVsHrv": {
+      "read": "Bars: previous day's load. Line: morning HRV. A big day normally lowers HRV the next morning.",
+      "good": "HRV bouncing back within 1 to 2 days after a hard session.",
+      "watch": "HRV staying low despite easy days."
+    },
+    "correlation": {
+      "read": "Each dot is a session: sleep the night before and the session's efficiency. r measures the link (from −1 to 1).",
+      "good": "r > 0.3: for you, better sleep shows in your sessions.",
+      "watch": "Correlation is not causation: many points are needed to conclude."
+    },
+    "swimPace": {
+      "read": "Your average pace per 100 m, week by week. Higher = faster. The CSS line is your threshold pace.",
+      "good": "A pace getting closer to your CSS on long sessions."
+    }
+  },
+  "insights": {
+    "fitnessRising": "Your fitness is improving: {delta} over 4 weeks. Your training is paying off.",
+    "fitnessFalling": "Your fitness is dropping: {delta} over 4 weeks. Normal after a break or a taper; otherwise build back up gradually.",
+    "fitnessStable": "Your fitness is stable around {ctl}: you are maintaining your level.",
+    "rampTooFast": "Your fitness is rising very fast (+{ramp} in 7 days): above +8, injury risk increases. Ease off a little.",
+    "overreached": "Freshness at {tsb}: you are piling up fatigue. Plan a few easy days.",
+    "productive": "Freshness at {tsb}: productive zone, you are loading up without overdoing it.",
+    "fresh": "Freshness at +{tsb}: you are rested, a good time for a key session or a race.",
+    "balanced": "Freshness at {tsb}: load and recovery are balanced.",
+    "acwrDanger": "This week's load is {acwr} times your usual: a sudden jump, high injury risk.",
+    "acwrHigh": "This week's load is {acwr} times your usual: a marked increase, listen to your body.",
+    "acwrLow": "Your recent load is below your usual ({acwr}): recovery or slowing down?",
+    "monotonyHigh": "Very monotonous week (monotony {monotony}): alternate hard and easy days.",
+    "volumeUp": "Volume up {percent} % compared with the comparison period.",
+    "volumeDown": "Volume down {percent} % compared with the comparison period.",
+    "volumeSteady": "Volume stable compared with the comparison period ({percent} %).",
+    "streak": "{weeks} active weeks in a row: consistency is your best ally.",
+    "irregular": "{active} active weeks out of {weeks}: more consistency would help you progress.",
+    "polarized": "{percent} % of time in easy endurance (Z1–Z2) over 4 weeks: good distribution.",
+    "tooGrey": "Only {percent} % of time in easy endurance (Z1–Z2) over 4 weeks: slow down your easy runs (guideline: 80 %).",
+    "efficiencyUp": "Your aerobic efficiency is up {percent} %: you go faster for the same heart rate.",
+    "efficiencyDown": "Your aerobic efficiency is down {percent} %: fatigue, heat or lack of endurance?",
+    "efficiencyStable": "Aerobic efficiency stable ({percent} %).",
+    "decouplingGood": "{percent} % cardiac drift on your long runs: your endurance base is solid.",
+    "decouplingHigh": "{percent} % cardiac drift on your long runs: base endurance still needs work (guideline: < 5 %).",
+    "newRecord": "New record over {distance}: {time} ({count} record(s) broken in the period).",
+    "vdotUp": "Your VDOT went from {from} to {to}: you are faster over every distance.",
+    "vdotDown": "Your VDOT went from {from} to {to} over the period.",
+    "goalOnTrack": "Goal within reach: your prediction is {gap} under your target time.",
+    "goalGap": "{gap} still to gain to reach your goal.",
+    "raceDayTired": "With your plan you would arrive tired on race day (freshness {tsb}): consider a lighter final week.",
+    "weakSignal": "{signal}",
+    "hrvLow": "HRV below your normal for {days} days: consider easing off.",
+    "readinessLow": "Low readiness today: favour an easy session or rest.",
+    "readinessGood": "Good readiness today: your body has recovered well.",
+    "swimFaster": "Your swim pace improved by {percent} % over the period.",
+    "swimSlower": "Your swim pace slowed by {percent} % over the period."
   }
 }

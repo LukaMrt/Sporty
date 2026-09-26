@@ -28,6 +28,33 @@ test.group('Analyse', (group) => {
     }
   })
 
+  test('GET /analysis avec filtres sport, comparaison et dates', async ({ client, assert }) => {
+    const user = await getUser()
+    for (const query of [
+      'sport=running&compare=year',
+      'compare=none',
+      'from=2026-01-01&to=2026-03-31',
+      // Bornes inversées : ignorées, retour à la période par défaut
+      'from=2026-03-31&to=2026-01-01',
+    ]) {
+      const response = await client
+        .get(`/analysis?${query}`)
+        .loginAs(user)
+        .header('X-Inertia', 'true')
+        .header('X-Inertia-Version', '1')
+      response.assertStatus(200)
+      const { props } = response.body() as { props: { analysis: { range: string } } }
+      const range = props.analysis.range
+      assert.equal(range, query.startsWith('from=2026-01') ? 'custom' : '6m')
+    }
+  })
+
+  test('GET /analysis rejette un comparatif inconnu', async ({ client }) => {
+    const user = await getUser()
+    const response = await client.get('/analysis?compare=forever').loginAs(user).redirects(0)
+    response.assertStatus(302)
+  })
+
   test('export CSV des séances : uniquement les séances de l’utilisateur', async ({
     client,
     assert,

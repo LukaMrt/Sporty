@@ -17,6 +17,14 @@ export type FitnessProfileResult = {
   series: FitnessDay[]
   /** Nombre de séances par méthode de calcul (transparence de l'estimation) */
   methods: Record<TrainingLoadMethod, number>
+  /**
+   * Charge effective de chaque séance (id → TSS), telle qu'elle alimente le
+   * modèle : charge stockée ou recalculée, pondérée par la contribution du sport.
+   * Toute agrégation de charge (bilan, résumé, calendrier…) doit partir d'ici.
+   */
+  loads: Map<number, number>
+  /** Série projetée après `asOf` (charges planifiées), si demandée */
+  projection: FitnessDay[]
 }
 
 export type GetFitnessProfileOptions = {
@@ -25,6 +33,8 @@ export type GetFitnessProfileOptions = {
   /** Profondeur d'historique en jours (défaut : 365) */
   historyDays?: number
   withSeries?: boolean
+  /** Projette la forme jusqu'à `until` avec les charges planifiées (TSS par jour) */
+  projection?: { until: string; plannedLoads: { date: string; tss: number }[] }
 }
 
 /**
@@ -59,7 +69,9 @@ export default class GetFitnessProfile {
     }
 
     const entries = await this.sessionRepository.findLoadEntries(userId, since, asOf)
-    if (entries.length === 0) return { asOf, profile: null, series: [], methods }
+    const loads = new Map<number, number>()
+    if (entries.length === 0)
+      return { asOf, profile: null, series: [], methods, loads, projection: [] }
 
     const missing = entries.filter((e) => e.trainingLoad === null).map((e) => e.id)
     const computed = new Map<number, TrainingLoad>()
@@ -81,8 +93,9 @@ export default class GetFitnessProfile {
           ? { value: entry.trainingLoad, method: entry.loadMethod ?? 'rpe' }
           : (computed.get(entry.id) ?? { value: 0, method: 'rpe' })
       methods[load.method]++
-      const contribution = loadContribution(entry.sportSlug)
-      return { date: entry.date, load: { ...load, value: load.value * contribution } }
+      const value = load.value * loadContribution(entry.sportSlug)
+      loads.set(entry.id, value)
+      return { date: entry.date, load: { ...load, value } }
     })
 
     return {
@@ -90,6 +103,23 @@ export default class GetFitnessProfile {
       profile: this.fitnessCalculator.calculate(loadHistory, asOf),
       series: options.withSeries ? this.fitnessCalculator.series(loadHistory, asOf) : [],
       methods,
+      loads,
+      projection: options.projection ? this.#project(loadHistory, asOf, options.projection) : [],
     }
+  }
+
+  /** Prolonge le modèle au-delà d'aujourd'hui avec les charges planifiées */
+  #project(
+    history: { date: string; load: TrainingLoad }[],
+    asOf: string,
+    projection: NonNullable<GetFitnessProfileOptions['projection']>
+  ): FitnessDay[] {
+    if (projection.until <= asOf) return []
+    const planned = projection.plannedLoads
+      .filter((p) => p.date > asOf && p.date <= projection.until)
+      .map((p) => ({ date: p.date, load: { value: p.tss, method: 'rpe' as const } }))
+    return this.fitnessCalculator
+      .series([...history, ...planned], projection.until)
+      .filter((d) => d.date > asOf)
   }
 }

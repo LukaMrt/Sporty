@@ -43,9 +43,10 @@ const navItems: NavItem[] = [
 ]
 
 function useIsActive(href: string) {
-  const { url } = usePage()
-  if (href === '/') return url === '/'
-  return url === href || url.startsWith(href + '/')
+  // Sans la query string : /analysis?tab=load reste « Analyse »
+  const path = usePage().url.split('?')[0]
+  if (href === '/') return path === '/'
+  return path === href || path.startsWith(href + '/')
 }
 
 function SidebarLink({ href, labelKey, icon: Icon }: NavItem) {

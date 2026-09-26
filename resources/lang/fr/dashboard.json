@@ -5,18 +5,6 @@
     "description": "Suis tes entraînements et vois ta progression au fil du temps.",
     "cta": "Saisir ma première séance"
   },
-  "hero": {
-    "avgPaceLabel": "Allure course moyenne (4 semaines)",
-    "noData": "Pas assez de données",
-    "trendPrev": "période précédente"
-  },
-  "stats": {
-    "weeklyVolume": "Volume semaine",
-    "avgHeartRate": "FC moyenne",
-    "sessions": "Séances",
-    "thisWeek": "cette sem.",
-    "trendSuffix": "vs moy. 4 sem."
-  },
   "nextSession": {
     "today": "Aujourd'hui",
     "restToday": "Repos aujourd'hui. Prochaine séance :",
@@ -32,17 +20,61 @@
       "6": "sam."
     }
   },
-  "chart": {
-    "evolution": "Évolution",
-    "periods": {
-      "all": "Tout",
-      "week": "Semaine",
-      "month": "Mois"
-    },
-    "metrics": {
-      "pace": "Allure",
-      "heartRate": "FC",
-      "distance": "Distance"
+  "today": {
+    "title": "Aujourd’hui",
+    "noData": "Pas encore assez de données pour te conseiller : enregistre quelques séances.",
+    "freshness": "Fraîcheur",
+    "readiness": "Forme du jour",
+    "fitness": "Forme",
+    "delta28": "{delta} en 4 sem.",
+    "advice": {
+      "recover": {
+        "title": "Priorité à la récupération",
+        "detail": "Ton corps montre des signes de fatigue : séance très facile ou repos aujourd’hui."
+      },
+      "quality": {
+        "title": "Bon jour pour une séance de qualité",
+        "detail": "Tu es reposé : c’est le moment de placer une séance clé ou une course."
+      },
+      "absorb": {
+        "title": "Tu encaisses bien la charge",
+        "detail": "Tu es en pleine construction : suis ton programme sans en rajouter."
+      },
+      "steady": {
+        "title": "Journée normale",
+        "detail": "Charge et récupération sont équilibrées : suis ton programme."
+      }
     }
+  },
+  "week": {
+    "title": "Ma semaine",
+    "all": "Mes séances",
+    "planned": "sur {minutes} prévues",
+    "typical": "habituellement {minutes}",
+    "progress": "Avancement du volume de la semaine",
+    "load": "Charge de la semaine : {load} TSS"
+  },
+  "trend": {
+    "title": "Tendance de forme",
+    "more": "Détails",
+    "chartLabel": "Forme et fraîcheur sur 6 semaines",
+    "rising": "Ta forme monte ({delta} en 4 semaines).",
+    "falling": "Ta forme baisse ({delta} en 4 semaines).",
+    "stable": "Ta forme est stable ({delta} en 4 semaines)."
+  },
+  "last": {
+    "title": "Dernière séance",
+    "open": "Ouvrir",
+    "duration": "Durée",
+    "distance": "Distance",
+    "pace": "Allure",
+    "heartRate": "FC moy.",
+    "load": "Charge",
+    "efBetter": "Efficacité {percent} % au-dessus de ta moyenne : bonne séance !",
+    "efWorse": "Efficacité {percent} % sous ta moyenne : fatigue, chaleur ou dénivelé ?"
+  },
+  "insights": {
+    "title": "À retenir",
+    "more": "Toutes les analyses"
   }
 }

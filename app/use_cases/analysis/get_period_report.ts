@@ -2,7 +2,7 @@ import { newSwimRecords, swimRecords } from '#domain/services/analysis/swimming'
 import { inject } from '@adonisjs/core'
 import { SessionRepository } from '#domain/interfaces/session_repository'
 import { UserProfileRepository } from '#domain/interfaces/user_profile_repository'
-import { addDaysIso, todayInTimezone } from '#domain/services/calendar'
+import { addDaysIso, daysBetween, todayInTimezone } from '#domain/services/calendar'
 import {
   bestEfforts,
   efficiencyTrend,
@@ -10,6 +10,8 @@ import {
   weekStart,
 } from '#domain/services/analysis/aggregations'
 import { newRecords, periodTotals } from '#domain/services/analysis/report'
+import { withEffectiveLoads } from '#domain/services/analysis/overview'
+import GetFitnessProfile from '#use_cases/fitness/get_fitness_profile'
 
 export type ReportPeriod = 'week' | 'month'
 
@@ -25,7 +27,8 @@ function monthBounds(date: string): [string, string] {
 export default class GetPeriodReport {
   constructor(
     private sessionRepository: SessionRepository,
-    private userProfileRepository: UserProfileRepository
+    private userProfileRepository: UserProfileRepository,
+    private getFitnessProfile: GetFitnessProfile
   ) {}
 
   async execute(userId: number, period: ReportPeriod, date?: string) {
@@ -38,11 +41,18 @@ export default class GetPeriodReport {
         ? [addDaysIso(from, -7), addDaysIso(from, -1)]
         : monthBounds(addDaysIso(from, -1))
 
-    const [current, previous, history] = await Promise.all([
+    const [currentRaw, previousRaw, history, fitness] = await Promise.all([
       this.sessionRepository.findAnalysisEntries(userId, from, to),
       this.sessionRepository.findAnalysisEntries(userId, prevFrom, prevTo),
       this.sessionRepository.findAnalysisEntries(userId, '1970-01-01', addDaysIso(from, -1)),
+      // Charge effective des séances (même calcul que le modèle de forme)
+      this.getFitnessProfile.execute(userId, {
+        asOf: to,
+        historyDays: daysBetween(prevFrom, to) + 1,
+      }),
     ])
+    const current = withEffectiveLoads(currentRaw, fitness.loads)
+    const previous = withEffectiveLoads(previousRaw, fitness.loads)
 
     const weeks = new Map<string, number>()
     for (const s of current) {

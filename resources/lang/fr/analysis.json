@@ -6,52 +6,68 @@
     "3m": "3 mois",
     "6m": "6 mois",
     "12m": "12 mois",
-    "all": "Tout"
+    "all": "Tout",
+    "custom": "Dates…"
   },
   "nav": {
-    "fitness": "Forme",
-    "volume": "Volume",
+    "overview": "En bref",
+    "load": "Charge et forme",
+    "volume": "Volume et régularité",
     "intensity": "Intensité",
     "performance": "Performance",
     "efficiency": "Efficacité",
     "recovery": "Récupération",
-    "calendar": "Calendrier",
-    "report": "Rapport",
     "swimming": "Natation"
   },
   "empty": {
     "noSessions": "Aucune séance sur la période.",
-    "noHeartRate": "Pas de données de fréquence cardiaque : renseigne ta FC max dans ton profil et importe des séances avec cardio.",
+    "noHeartRate": "Pas de données de fréquence cardiaque : renseigne ta FC max et importe des séances avec cardio.",
     "noGps": "Aucune trace GPS de course sur la période : les meilleurs efforts se calculent à partir des traces (Strava ou GPX).",
-    "noWellness": "Aucune donnée de récupération : connecte Open Wearables (sommeil, HRV, FC repos). Si ta montre ne fournit pas une donnée, le graphique correspondant reste masqué."
+    "noWellness": "Aucune donnée de récupération : connecte une montre via Open Wearables (sommeil, HRV, FC repos). Si ta montre ne fournit pas une donnée, le graphique correspondant reste masqué.",
+    "connect": "Connecter une source",
+    "setMaxHr": "Renseigner ma FC max"
   },
   "fitness": {
-    "title": "Forme dans le temps",
-    "description": "Forme (CTL, 42 j), fatigue (ATL, 7 j) et fraîcheur (TSB = CTL − ATL), avec la charge de chaque jour.",
-    "ctl": "Forme (CTL)",
-    "atl": "Fatigue (ATL)",
-    "tsb": "Fraîcheur (TSB)",
-    "fresh": "Frais",
-    "tired": "Fatigué",
-    "balanced": "Équilibré",
-    "acwrRisk": "Hausse de charge risquée (> 1,5)",
-    "chartLabel": "Graphique CTL, ATL, TSB et charge quotidienne",
-    "methods": "Charge calculée par : FC {hr} séances, allure {pace}, ressenti {rpe}",
-    "estimated": "Charge surtout estimée depuis le ressenti : renseigne ta FC max pour plus de précision",
-    "monotony": "Monotonie de la dernière semaine {monotony} (contrainte {strain})"
+    "title": "Forme, fatigue et fraîcheur",
+    "description": "Ta forme se construit sur 6 semaines, ta fatigue se dissipe en 1 semaine. La fraîcheur est la différence entre les deux.",
+    "chartFitness": "Forme et fatigue",
+    "chartTsb": "Fraîcheur",
+    "chartAcwr": "Équilibre de charge",
+    "chartLabel": "Graphique de forme, fatigue et charge quotidienne",
+    "dailyLoad": "Charge du jour",
+    "delta28": "{delta} en 4 semaines",
+    "tsbZone": {
+      "fresh": "Frais, reposé",
+      "balanced": "Équilibré",
+      "productive": "Zone productive",
+      "risk": "Surcharge"
+    },
+    "acwrZone": {
+      "low": "Sous ton habitude",
+      "optimal": "Zone sûre (0,8–1,3)",
+      "high": "Hausse marquée",
+      "risk": "Hausse risquée (> 1,5)"
+    },
+    "rampHint": "Hausse de forme sur 7 jours (repère : ≤ 8)",
+    "methods": "Charge calculée : {hr} séances au cardio, {pace} à l’allure, {rpe} au ressenti",
+    "estimated": "Charge surtout estimée au ressenti : renseigne ta FC max pour plus de précision"
   },
   "volume": {
     "title": "Volume",
     "weekly": "Par semaine",
     "monthly": "Par mois",
     "lastYear": "Année précédente",
+    "lastYearHint": "La comparaison avec l’an dernier s’affiche dans la vue par mois.",
     "metrics": {
       "distanceKm": "Distance",
-      "durationMinutes": "Durée (min)",
+      "durationMinutes": "Durée",
       "sessions": "Séances"
     },
-    "unitMeters": "Distance en mètres",
-    "unitKm": "Distance en km"
+    "chartTitle": {
+      "durationMinutes": "Durée d’entraînement",
+      "distanceKm": "Distance ({unit})",
+      "sessions": "Nombre de séances"
+    }
   },
   "sports": {
     "running": "Course",
@@ -62,25 +78,25 @@
     "other": "Autre"
   },
   "intensity": {
-    "title": "Répartition d'intensité",
-    "description": "Temps passé dans chaque zone par semaine. Repère : environ 80 % en Z1–Z2.",
-    "recentLowShare": "{percent} % du temps en Z1–Z2 sur 4 semaines :",
-    "polarized": "répartition polarisée",
-    "tooGrey": "trop de temps en zone intermédiaire",
+    "title": "Répartition d’intensité",
+    "description": "Le temps passé dans chaque zone cardiaque, semaine par semaine.",
+    "chart": "Temps par zone",
     "lowShare": "% en Z1–Z2"
   },
   "performance": {
     "title": "Performance",
-    "description": "Meilleurs efforts mesurés à l’intérieur de tes séances, VDOT dérivé et prédictions de course.",
+    "description": "Tes meilleurs efforts mesurés à l’intérieur de tes séances, ton niveau estimé et tes prédictions de course.",
     "vdot": "VDOT estimé",
-    "vdotHint": "Meilleurs efforts des 90 derniers jours",
+    "vdotHint": "D’après tes meilleurs efforts des 90 derniers jours",
     "profileVdot": "VDOT du profil",
+    "profileVdotHint": "Utilisé par ton plan d’entraînement",
     "watchVo2Max": "VO2max (montre)",
     "records": "Records",
     "distance": "Distance",
-    "allTime": "Tout temps",
-    "last90": "90 derniers jours",
-    "predictions": "Prédictions",
+    "allTime": "Record absolu",
+    "inPeriod": "Sur la période",
+    "paceCurve": "Allure de tes records par distance",
+    "predictions": "Prédictions de course",
     "vdotHistory": "Évolution du VDOT"
   },
   "distances": {
@@ -100,17 +116,21 @@
   },
   "efficiency": {
     "title": "Efficacité aérobie",
-    "description": "Vitesse / FC sur les sorties faciles : sa hausse est le meilleur signe de progression aérobie. Découplage : dérive du rapport allure/FC sur les sorties longues (< 5 % = bonne base).",
-    "delta": "Efficacité {delta} % sur la période",
-    "ef": "Efficiency Factor (sorties faciles)",
-    "decoupling": "Découplage des sorties longues",
+    "description": "Courir plus vite pour le même effort cardiaque : c’est le meilleur signe de progrès de ton endurance.",
+    "ef": "Efficacité des sorties faciles",
+    "decoupling": "Dérive cardiaque des sorties longues",
     "hrAtPace": "FC à allure de référence ({pace})",
+    "changePace": "Changer l’allure :",
+    "heartRate": "FC moyenne",
+    "noRunsAtPace": "Aucune sortie à cette allure (± 10 s) sur la période.",
     "faster": "Allure plus rapide",
-    "slower": "Allure plus lente"
+    "slower": "Allure plus lente",
+    "decouplingGood": "Sous 5 %",
+    "decouplingHigh": "5 % ou plus"
   },
   "recovery": {
     "title": "Récupération",
-    "description": "HRV, FC repos et sommeil comparés à tes lignes de base.",
+    "description": "HRV, FC repos et sommeil comparés à tes propres habitudes.",
     "readiness": "Forme du jour",
     "levels": {
       "good": "bonne",
@@ -125,7 +145,6 @@
       "tsb": "Fraîcheur"
     },
     "usual": "habituellement",
-    "hrvLow": "HRV sous ta normale depuis {days} jours : pense à alléger.",
     "signals": {
       "respiratory_rate_high": "Fréquence respiratoire nocturne inhabituelle : possible début de maladie, allège aujourd’hui.",
       "spo2_low": "SpO2 nocturne basse.",
@@ -147,12 +166,19 @@
     "weight": "Poids",
     "activity": "Minutes d'intensité hors séances",
     "activeMinutes": "Minutes actives",
-    "correlation": "Sommeil de la veille vs efficacité (r = {r})"
+    "correlation": "Sommeil de la veille et efficacité (r = {r})",
+    "daily": "Au jour le jour",
+    "loadVsHrv": "Charge de la veille et HRV du matin",
+    "previousLoad": "Charge de la veille",
+    "morningHrv": "HRV du matin",
+    "weighIn": "Pesée",
+    "weightTrend": "Tendance"
   },
   "calendar": {
     "title": "Calendrier de charge",
-    "less": "Moins",
-    "more": "Plus"
+    "description": "{days} jours d’entraînement sur les 12 derniers mois.",
+    "chart": "Une case par jour",
+    "rest": "Repos"
   },
   "report": {
     "title": "Résumé pour Claude et export",
@@ -221,5 +247,319 @@
     "pace": "Allure",
     "records": "Records d'allure",
     "recordsHint": "Meilleure allure moyenne parmi les séances d'au moins cette distance."
+  },
+  "weekOf": "Semaine du {date}",
+  "filters": {
+    "sport": "Sport",
+    "allSports": "Tous les sports",
+    "compare": "Comparer à",
+    "compareModes": {
+      "previous": "la période précédente",
+      "year": "l’an dernier",
+      "none": "rien"
+    },
+    "compareShort": {
+      "previous": "vs période préc.",
+      "year": "vs an dernier",
+      "none": ""
+    },
+    "expert": "Mode expert",
+    "from": "Du",
+    "to": "Au",
+    "apply": "Appliquer",
+    "summary": "Du {from} au {to}",
+    "comparedTo": "comparé au {from} → {to}",
+    "fitnessAllSports": "la forme combine toujours tous tes sports"
+  },
+  "metric": {
+    "ctl": {
+      "simple": "Forme",
+      "expert": "CTL"
+    },
+    "atl": {
+      "simple": "Fatigue",
+      "expert": "ATL"
+    },
+    "tsb": {
+      "simple": "Fraîcheur",
+      "expert": "TSB"
+    },
+    "acwr": {
+      "simple": "Équilibre de charge",
+      "expert": "ACWR"
+    },
+    "tss": {
+      "simple": "Charge",
+      "expert": "TSS"
+    },
+    "ef": {
+      "simple": "Efficacité",
+      "expert": "EF"
+    },
+    "decoupling": {
+      "simple": "Dérive cardiaque",
+      "expert": "Découplage"
+    },
+    "vdot": {
+      "simple": "Niveau (VDOT)",
+      "expert": "VDOT"
+    },
+    "monotony": {
+      "simple": "Monotonie",
+      "expert": "Monotonie (Foster)"
+    },
+    "strain": {
+      "simple": "Contrainte",
+      "expert": "Contrainte (Foster)"
+    },
+    "ramp": {
+      "simple": "Progression / 7 j",
+      "expert": "Ramp rate (ΔCTL 7 j)"
+    }
+  },
+  "overview": {
+    "essentials": "L’essentiel",
+    "essentialsHint": "Ce que disent tes données, du plus important au plus anecdotique.",
+    "noInsights": "Pas encore assez de données pour tirer des enseignements : continue à enregistrer tes séances.",
+    "showMore": "Voir {count} autres constats",
+    "showLess": "Voir moins",
+    "figures": "Chiffres clés",
+    "sessions": "Séances",
+    "duration": "Durée",
+    "load": "Charge",
+    "distance": "Distance",
+    "perWeek": "{count} par semaine"
+  },
+  "highlights": {
+    "title": "Temps forts",
+    "record": "Record sur {distance} : {time}",
+    "longest": "Plus longue séance : {duration} ({date})",
+    "biggestWeek": "Semaine la plus chargée : semaine du {week}, {load} TSS en {duration}",
+    "month": "Mois le plus actif : {month}, {duration} en {sessions} séances",
+    "streak": "Plus longue série : {weeks} semaines actives d’affilée (en cours : {current})",
+    "period": "Période du {from} au {to}"
+  },
+  "goal": {
+    "title": "Objectif {distance} km",
+    "daysLeft": "J−{days}",
+    "target": "Temps visé",
+    "predicted": "Prédiction actuelle",
+    "ahead": "Tu es {gap} sous ton objectif : il est à ta portée.",
+    "behind": "Encore {gap} à gagner pour atteindre ton objectif.",
+    "noPrediction": "Prédiction indisponible : il faut des traces GPS de course récentes (meilleurs efforts).",
+    "raceDay": "Forme projetée le jour J avec ton plan : {ctl}, fraîcheur {tsb}.",
+    "seePlan": "Voir mon plan"
+  },
+  "unlock": {
+    "title": "Débloque plus d’analyses",
+    "description": "Certaines analyses attendent une donnée. Voici ce qui manque et ce que ça t’apportera.",
+    "items": {
+      "maxHr": {
+        "label": "Renseigner ta FC max",
+        "unlocks": "Zones cardiaques, répartition d’intensité, charge calculée au cardio (plus précise que le ressenti).",
+        "cta": "Profil"
+      },
+      "heartRate": {
+        "label": "Importer des séances avec cardio",
+        "unlocks": "Efficacité aérobie, dérive cardiaque, FC à allure donnée.",
+        "cta": "Connecteurs"
+      },
+      "gps": {
+        "label": "Importer des traces GPS de course",
+        "unlocks": "Records, courbe allure/distance, VDOT et prédictions de course.",
+        "cta": "Connecteurs"
+      },
+      "wellness": {
+        "label": "Connecter une montre (sommeil, HRV)",
+        "unlocks": "Forme du jour, récupération, alertes de surmenage ou de maladie.",
+        "cta": "Connecteurs"
+      },
+      "goal": {
+        "label": "Te fixer un objectif",
+        "unlocks": "Compte à rebours, temps prédit vs visé, forme projetée le jour J.",
+        "cta": "Créer"
+      }
+    }
+  },
+  "loadBySport": {
+    "title": "Charge par sport",
+    "description": "D’où vient ta fatigue : la charge de chaque semaine, sport par sport.",
+    "chart": "Charge hebdomadaire (TSS)"
+  },
+  "plan": {
+    "title": "Objectif et plan",
+    "description": "Où ton plan t’emmène et comment tu le suis.",
+    "projection": "Forme projetée avec ton plan",
+    "raceDay": "Jour J",
+    "projectedCtl": "{label} (projection)",
+    "projectedTsb": "{label} (projection)",
+    "adherence": "Réalisé vs prévu (durée)",
+    "adherenceSummary": "{percent} % du volume prévu réalisé depuis le début du plan",
+    "planned": "Prévu",
+    "done": "Réalisé"
+  },
+  "regularity": {
+    "title": "Régularité",
+    "description": "La régularité fait plus pour la progression que les grosses semaines isolées.",
+    "activeWeeks": "Semaines actives",
+    "currentStreak": "Série en cours",
+    "longestStreak": "Plus longue série",
+    "perWeek": "Séances par semaine",
+    "weeks": "{count} sem.",
+    "byWeekday": "Tes jours d’entraînement",
+    "sessions": "Séances"
+  },
+  "help": {
+    "howToRead": "Comment lire ?",
+    "labels": {
+      "read": "Lecture :",
+      "good": "Bon signe :",
+      "watch": "À surveiller :"
+    },
+    "fitness": {
+      "read": "La ligne bleue (forme) monte quand tu t’entraînes régulièrement et redescend lentement au repos. La rose (fatigue) réagit vite à chaque séance. Les barres grises sont la charge de chaque jour.",
+      "good": "Une forme qui monte doucement semaine après semaine.",
+      "watch": "Une fatigue durablement très au-dessus de la forme : tu accumules plus que tu n’assimiles."
+    },
+    "tsb": {
+      "read": "Fraîcheur = forme − fatigue. En dessous de 0, tu es en train de te charger ; au-dessus, tu récupères.",
+      "good": "Entre −10 et −30 en période d’entraînement (zone verte), au-dessus de +5 avant une course.",
+      "watch": "Sous −30 (zone rouge) plusieurs jours de suite : risque de surmenage."
+    },
+    "acwr": {
+      "read": "Compare ta charge de la semaine à celle des 6 dernières semaines. 1 = même charge que d’habitude.",
+      "good": "Rester dans la bande verte (0,8 à 1,3) : tu progresses sans à-coups.",
+      "watch": "Au-delà de 1,5 : hausse brutale, le risque de blessure augmente nettement."
+    },
+    "loadBySport": {
+      "read": "Chaque barre empile la charge de la semaine par sport. La marche et la randonnée ne comptent qu’en partie, comme dans le modèle de forme.",
+      "watch": "Une semaine très chargée dans un sport inhabituel fatigue plus qu’elle n’en a l’air."
+    },
+    "projection": {
+      "read": "En pointillés : ce que deviendront ta forme et ta fraîcheur si tu suis ton plan à la lettre.",
+      "good": "Une fraîcheur positive le jour J : tu arrives reposé, avec ta forme au plus haut.",
+      "watch": "Une fraîcheur très négative le jour J : l’affûtage est peut-être trop court."
+    },
+    "adherence": {
+      "read": "Barres grises : durée prévue par ton plan. Barres vertes : durée réellement faite.",
+      "good": "Réaliser l’essentiel du volume, surtout les séances clés.",
+      "watch": "Faire beaucoup plus que prévu : le plan est calibré pour que tu progresses sans te blesser."
+    },
+    "calendar": {
+      "read": "Une case par jour, de plus en plus foncée avec la charge. Clique sur une case pour ouvrir la séance.",
+      "good": "Des cases réparties régulièrement, avec des jours clairs de récupération.",
+      "watch": "De longues bandes grises (arrêts) ou des semaines toutes foncées sans repos."
+    },
+    "volume": {
+      "read": "Le volume par semaine ou par mois, empilé par sport. La distance s’affiche sport par sport : un kilomètre nagé ne vaut pas un kilomètre couru.",
+      "good": "Une progression de 10 % maximum d’une semaine à l’autre, avec une semaine plus légère toutes les 3 à 4 semaines.",
+      "watch": "Un bond soudain du volume après une période calme."
+    },
+    "regularity": {
+      "read": "Combien de séances tu fais chaque jour de la semaine sur la période.",
+      "good": "Des jours d’entraînement stables : l’habitude est ton meilleur allié."
+    },
+    "intensity": {
+      "read": "Les barres montrent le temps passé dans chaque zone cardiaque. La ligne noire indique la part du temps en endurance facile (Z1–Z2).",
+      "good": "Environ 80 % du temps en Z1–Z2 (au-dessus de la ligne pointillée) et le reste en intensité franche (Z4–Z5).",
+      "watch": "Beaucoup de Z3 : cette zone « grise » fatigue sans développer vraiment ni l’endurance ni la vitesse."
+    },
+    "records": {
+      "read": "Ton meilleur temps sur chaque distance, mesuré à l’intérieur de n’importe quelle séance (pas seulement en course).",
+      "good": "Des records sur la période proches de tes records absolus : tu es en forme."
+    },
+    "paceCurve": {
+      "read": "L’allure moyenne de tes records, de la plus courte à la plus longue distance. Plus haut = plus rapide.",
+      "good": "Une courbe qui descend doucement : ton endurance suit ta vitesse.",
+      "watch": "Une chute brutale sur les longues distances : l’endurance est ton point à travailler."
+    },
+    "predictions": {
+      "read": "Deux méthodes : VDOT (tables de Jack Daniels, d’après tes meilleurs efforts) et Riegel (extrapolation d’un seul effort).",
+      "watch": "Sur semi et marathon, les prédictions supposent un entraînement spécifique d’endurance : elles sont souvent optimistes."
+    },
+    "vdotHistory": {
+      "read": "Ton VDOT calculé mois par mois à partir de tes meilleurs efforts.",
+      "good": "Une hausse d’un point ≈ 1 à 2 % plus rapide sur toutes les distances."
+    },
+    "ef": {
+      "read": "Vitesse divisée par la fréquence cardiaque, sur tes sorties faciles uniquement. Plus c’est haut, plus tu vas vite pour le même effort.",
+      "good": "Une courbe qui monte sur plusieurs semaines.",
+      "watch": "Une baisse durable : fatigue, chaleur ou manque d’endurance fondamentale."
+    },
+    "decoupling": {
+      "read": "Sur les sorties de plus d’une heure : à quel point ton cœur accélère en deuxième moitié, à allure égale.",
+      "good": "Sous 5 % (barres vertes) : ta base d’endurance tient la durée.",
+      "watch": "Au-dessus de 5 % (barres jaunes) : l’endurance fondamentale reste à consolider."
+    },
+    "hrAtPace": {
+      "read": "Ta fréquence cardiaque moyenne, mois par mois, sur les sorties courues à l’allure de référence.",
+      "good": "Une FC qui baisse à allure égale : ton cœur travaille moins pour le même effort."
+    },
+    "hrv": {
+      "read": "La variabilité cardiaque mesurée la nuit. La zone bleue est ta normale personnelle (moyenne des 60 derniers jours).",
+      "good": "Une moyenne sur 7 jours dans ou au-dessus de ta zone normale.",
+      "watch": "Plusieurs jours sous ta zone : récupération incomplète, stress ou début de maladie."
+    },
+    "restingHr": {
+      "read": "Ta fréquence cardiaque au repos, au jour le jour et en moyenne sur 7 jours.",
+      "good": "Stable ou en légère baisse au fil des mois.",
+      "watch": "Une hausse de plus de 5 bpm par rapport à d’habitude : fatigue ou maladie."
+    },
+    "sleep": {
+      "read": "Durée de chaque nuit, découpée par phase quand ta montre la fournit.",
+      "good": "7 à 9 h par nuit, plus pendant les grosses semaines."
+    },
+    "loadVsHrv": {
+      "read": "Barres : charge de la veille. Ligne : HRV du matin. Une grosse journée fait normalement baisser l’HRV le lendemain.",
+      "good": "Une HRV qui remonte en 1 à 2 jours après une grosse séance.",
+      "watch": "Une HRV qui reste basse malgré des jours calmes."
+    },
+    "correlation": {
+      "read": "Chaque point est une séance : durée de sommeil de la nuit précédente et efficacité de la séance. r mesure le lien (de −1 à 1).",
+      "good": "r > 0,3 : chez toi, mieux dormir se voit dans tes séances.",
+      "watch": "Une corrélation n’est pas une cause : il faut beaucoup de points pour conclure."
+    },
+    "swimPace": {
+      "read": "Ton allure moyenne aux 100 m, semaine par semaine. Plus haut = plus rapide. La ligne CSS est ton allure seuil.",
+      "good": "Une allure qui se rapproche de ta CSS sur les séances longues."
+    }
+  },
+  "insights": {
+    "fitnessRising": "Ta forme progresse : {delta} en 4 semaines. Tes entraînements portent leurs fruits.",
+    "fitnessFalling": "Ta forme baisse : {delta} en 4 semaines. Normal après une coupure ou un affûtage, sinon reprends progressivement.",
+    "fitnessStable": "Ta forme est stable autour de {ctl} : tu entretiens ton niveau.",
+    "rampTooFast": "Ta forme monte très vite (+{ramp} en 7 jours) : au-delà de +8, le risque de blessure augmente. Lève un peu le pied.",
+    "overreached": "Fraîcheur à {tsb} : tu accumules beaucoup de fatigue. Prévois quelques jours faciles.",
+    "productive": "Fraîcheur à {tsb} : zone productive, tu te charges sans excès.",
+    "fresh": "Fraîcheur à +{tsb} : tu es reposé, c’est le bon moment pour une séance clé ou une course.",
+    "balanced": "Fraîcheur à {tsb} : charge et récupération sont équilibrées.",
+    "acwrDanger": "Ta charge de la semaine est {acwr} fois ton habitude : hausse brutale, risque de blessure élevé.",
+    "acwrHigh": "Ta charge de la semaine est {acwr} fois ton habitude : hausse marquée, surveille tes sensations.",
+    "acwrLow": "Ta charge récente est sous ton habitude ({acwr}) : récupération ou baisse de régime ?",
+    "monotonyHigh": "Semaine très monotone (monotonie {monotony}) : alterne jours durs et jours faciles.",
+    "volumeUp": "Volume en hausse de {percent} % par rapport à la période de comparaison.",
+    "volumeDown": "Volume en baisse de {percent} % par rapport à la période de comparaison.",
+    "volumeSteady": "Volume stable par rapport à la période de comparaison ({percent} %).",
+    "streak": "{weeks} semaines actives d’affilée : la régularité est ta meilleure alliée.",
+    "irregular": "{active} semaines actives sur {weeks} : plus de régularité t’aiderait à progresser.",
+    "polarized": "{percent} % du temps en endurance facile (Z1–Z2) sur 4 semaines : bonne répartition.",
+    "tooGrey": "Seulement {percent} % du temps en endurance facile (Z1–Z2) sur 4 semaines : ralentis tes sorties faciles (repère : 80 %).",
+    "efficiencyUp": "Ton efficacité aérobie progresse de {percent} % : tu vas plus vite pour le même effort cardiaque.",
+    "efficiencyDown": "Ton efficacité aérobie baisse de {percent} % : fatigue, chaleur ou manque d’endurance ?",
+    "efficiencyStable": "Efficacité aérobie stable ({percent} %).",
+    "decouplingGood": "Dérive cardiaque de {percent} % sur tes sorties longues : ta base d’endurance est solide.",
+    "decouplingHigh": "Dérive cardiaque de {percent} % sur tes sorties longues : l’endurance fondamentale reste à consolider (repère : < 5 %).",
+    "newRecord": "Nouveau record sur {distance} : {time} ({count} record(s) battu(s) sur la période).",
+    "vdotUp": "Ton VDOT passe de {from} à {to} : tu progresses sur toutes les distances.",
+    "vdotDown": "Ton VDOT passe de {from} à {to} sur la période.",
+    "goalOnTrack": "Objectif à ta portée : ta prédiction est {gap} sous le temps visé.",
+    "goalGap": "Encore {gap} à gagner pour atteindre ton objectif.",
+    "raceDayTired": "Avec ton plan, tu arriverais fatigué le jour J (fraîcheur {tsb}) : pense à alléger la dernière semaine.",
+    "weakSignal": "{signal}",
+    "hrvLow": "HRV sous ta normale depuis {days} jours : pense à alléger.",
+    "readinessLow": "Forme du jour basse : privilégie une séance facile ou le repos.",
+    "readinessGood": "Forme du jour bonne : ton corps a bien récupéré.",
+    "swimFaster": "Ton allure de nage s’améliore de {percent} % sur la période.",
+    "swimSlower": "Ton allure de nage ralentit de {percent} % sur la période."
   }
 }

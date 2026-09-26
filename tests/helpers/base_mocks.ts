@@ -279,6 +279,8 @@ export function stubGetFitnessProfile(profile: FitnessProfile | null = SAMPLE_FI
     profile,
     series: [],
     methods: { trimp_exp: 0, rtss: 0, stss: 0, rpe: 0 },
+    loads: new Map(),
+    projection: [],
   }
   return { execute: async () => result } as unknown as GetFitnessProfile
 }
