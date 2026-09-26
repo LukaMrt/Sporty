@@ -150,6 +150,16 @@
       "name": "Swim pace (/100 m)",
       "short": "Average time to swim 100 m.",
       "read": "The standard swimming unit: 2'00/100m = 1,500 m in 30 minutes."
+    },
+    "hrr": {
+      "name": "Heart rate recovery (HRR)",
+      "short": "Drop in heart rate in the minute after stopping an effort.",
+      "read": "Above 20 bpm: good cardio fitness. A falling value often signals fatigue."
+    },
+    "bodyBattery": {
+      "name": "Body Battery (Garmin)",
+      "short": "Energy reserve estimated by Garmin out of 100, from HRV, stress, sleep and activity.",
+      "read": "High on waking after a good night, it drains through the day. Waking below 50 calls for caution."
     }
   }
 }

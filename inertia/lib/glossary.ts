@@ -4,9 +4,9 @@
  */
 export const GLOSSARY_GROUPS = {
   load: ['tss', 'rtss', 'stss', 'trimp', 'rpe', 'ctl', 'atl', 'tsb', 'acwr', 'monotony', 'strain'],
-  heart: ['maxHr', 'restingHr', 'lthr', 'karvonen', 'hrZones', 'cardiacDrift'],
+  heart: ['maxHr', 'restingHr', 'lthr', 'karvonen', 'hrZones', 'cardiacDrift', 'hrr'],
   performance: ['vdot', 'vo2max', 'ef', 'decoupling', 'gap'],
-  recovery: ['readiness', 'hrv', 'spo2'],
+  recovery: ['readiness', 'hrv', 'spo2', 'bodyBattery'],
   swimming: ['swimPace', 'css', 'swolf'],
 } as const
 

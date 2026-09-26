@@ -66,6 +66,11 @@ export default class GetTodayOverview {
         trend: analysis.fitness.series.filter((d) => d.date > addDaysIso(today, -42)),
         delta28: analysis.fitness.delta28,
         readiness: analysis.recovery.readiness,
+        /** Score principal de la montre : readiness, sinon récupération, sinon Body Battery */
+        watchScore:
+          analysis.recovery.latestScores.find((s) =>
+            ['readinessScore', 'recoveryScore', 'bodyBattery'].includes(s.field)
+          ) ?? null,
         advice: dailyAdvice(
           analysis.fitness.current
             ? Math.round(analysis.fitness.current.trainingStressBalance)

@@ -3,7 +3,22 @@ import type {
   EffortRecord,
   IntensityWeek,
 } from '#domain/services/analysis/aggregations'
-import type { Readiness, RecoveryPoint, WeakSignal } from '#domain/services/analysis/wellness'
+import {
+  WATCH_SCORE_FIELDS,
+  type Readiness,
+  type RecoveryPoint,
+  type WatchScoreField,
+  type WeakSignal,
+} from '#domain/services/analysis/wellness'
+
+const WATCH_SCORE_LABELS: Record<WatchScoreField, string> = {
+  readinessScore: 'readiness',
+  recoveryScore: 'récupération',
+  bodyBattery: 'Body Battery',
+  sleepScore: 'sommeil',
+  stressScore: 'stress',
+  strainScore: 'strain',
+}
 import type { FitnessProfile } from '#domain/value_objects/fitness_profile'
 import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 import { addDaysIso } from '#domain/services/calendar'
@@ -123,6 +138,11 @@ export function buildClaudeSummary(input: ClaudeSummaryInput): string {
         `- Dernière nuit : ${Math.floor(lastNight.sleepMinutes / 60)} h ${lastNight.sleepMinutes % 60} min`
       )
     }
+    const scores = WATCH_SCORE_FIELDS.flatMap((field) => {
+      const day = input.wellness.findLast((d) => d[field] !== null)
+      return day ? [`${WATCH_SCORE_LABELS[field]} ${day[field]}`] : []
+    })
+    if (scores.length > 0) lines.push(`- Scores de la montre : ${scores.join(', ')}`)
     if (input.readiness.level !== 'unknown') {
       lines.push(`- Forme du jour : ${input.readiness.level} (score ${input.readiness.score})`)
     }

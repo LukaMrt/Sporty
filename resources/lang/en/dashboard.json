@@ -44,7 +44,8 @@
         "title": "Normal day",
         "detail": "Load and recovery are balanced: stick to your plan."
       }
-    }
+    },
+    "watchScore": "{score} score (watch)"
   },
   "week": {
     "title": "My week",

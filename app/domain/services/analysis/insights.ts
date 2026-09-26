@@ -4,7 +4,7 @@ import type {
   IntensityWeek,
   MonotonyWeek,
 } from '#domain/services/analysis/aggregations'
-import type { Readiness, WeakSignal } from '#domain/services/analysis/wellness'
+import type { Readiness, SleepRegularity, WeakSignal } from '#domain/services/analysis/wellness'
 import type { PeriodTotals } from '#domain/services/analysis/report'
 import type { GoalOutlook, Regularity } from '#domain/services/analysis/overview'
 import { ctlDelta } from '#domain/services/analysis/overview'
@@ -48,6 +48,10 @@ export type InsightsInput = {
   regularity: Regularity
   swimPace: { pacePer100m: number }[]
   goal: GoalOutlook | null
+  /** Sommeil des 14 dernières nuits (absent sans montre) */
+  sleep?: SleepRegularity
+  /** FC récupérée en 1 min, dans l'ordre chronologique */
+  heartRateRecovery?: number[]
 }
 
 const BASE_PRIORITY: Record<InsightTone, number> = {
@@ -70,6 +74,10 @@ export const THRESHOLDS = {
   monotony: 2,
   lowIntensityShare: 0.75,
   decoupling: 5,
+  /** 7 h : en dessous, la récupération d'un sportif est souvent incomplète */
+  shortSleepMinutes: 420,
+  /** Heure de coucher qui varie de plus d'une heure : rythme irrégulier */
+  bedtimeSdMinutes: 60,
 } as const
 
 function pct(from: number, to: number): number {
@@ -193,6 +201,23 @@ export function buildInsights(input: InsightsInput): Insight[] {
   // ── Récupération
   for (const signal of input.signals) add('recovery', 'weakSignal', 'alert', { signal }, 5)
   if (input.hrvLowStreak >= 3) add('recovery', 'hrvLow', 'warning', { days: input.hrvLowStreak }, 5)
+  const sleep = input.sleep
+  if (sleep && sleep.nights >= 5 && sleep.avgMinutes !== null) {
+    if (sleep.avgMinutes < THRESHOLDS.shortSleepMinutes) {
+      add('recovery', 'sleepShort', 'warning', { minutes: sleep.avgMinutes })
+    }
+    if (sleep.bedtimeSd !== null && sleep.bedtimeSd > THRESHOLDS.bedtimeSdMinutes) {
+      add('recovery', 'bedtimeIrregular', 'neutral', { minutes: sleep.bedtimeSd })
+    }
+  }
+  const hrr = input.heartRateRecovery ?? []
+  if (hrr.length >= 4) {
+    const half = Math.floor(hrr.length / 2)
+    const change = Math.round(mean(hrr.slice(half)) - mean(hrr.slice(0, half)))
+    // Une FC qui redescend plus vite après l'effort = meilleure condition cardio
+    if (change >= 3) add('recovery', 'hrrUp', 'positive', { delta: change })
+    else if (change <= -3) add('recovery', 'hrrDown', 'neutral', { delta: change })
+  }
   if (input.readiness.level === 'low') add('recovery', 'readinessLow', 'alert')
   else if (input.readiness.level === 'good') add('recovery', 'readinessGood', 'positive')
 

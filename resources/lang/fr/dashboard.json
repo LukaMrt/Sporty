@@ -44,7 +44,8 @@
         "title": "Journée normale",
         "detail": "Charge et récupération sont équilibrées : suis ton programme."
       }
-    }
+    },
+    "watchScore": "Score {score} (montre)"
   },
   "week": {
     "title": "Ma semaine",

@@ -108,6 +108,18 @@ export function TodayFormCard({
             </dd>
           </div>
         )}
+        {form.watchScore && (
+          <div>
+            <dt className="text-xs text-muted-foreground">
+              {t('dashboard.today.watchScore', {
+                score: t(`analysis.recovery.scores.${form.watchScore.field}`),
+              })}
+            </dt>
+            <dd className="font-semibold tabular-nums">
+              {formatNumber(form.watchScore.value, locale, 0)}
+            </dd>
+          </div>
+        )}
         {form.current && (
           <div>
             <dt className="text-xs text-muted-foreground">

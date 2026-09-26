@@ -37,6 +37,7 @@ import {
   type RawOwActivitySummary,
   type RawOwHealthScore,
   type RawOwSleep,
+  type RawOwSleepSummary,
 } from '#connectors/open_wearables/wellness_converter'
 import type { DailyWellness } from '#domain/value_objects/daily_wellness'
 
@@ -167,12 +168,19 @@ export class OpenWearablesConnector extends Connector {
       }
     }
 
-    const [samples, sleeps, activities, scores] = await Promise.all([
+    const [samples, sleepSummaries, sleeps, activities, scores] = await Promise.all([
       optional('timeseries', () =>
         this.#client.getAllPages<RawOwTimeSeriesSample>(`${base}/timeseries`, {
           start_time: from.toISOString(),
           end_time: to.toISOString(),
           types: WELLNESS_TIMESERIES_TYPES,
+        })
+      ),
+      // Résumé par nuit (horaires, mesures nocturnes) ; les événements servent de secours
+      optional('sleep-summary', () =>
+        this.#client.getAllPages<RawOwSleepSummary>(`${base}/summaries/sleep`, {
+          start_date: toDateParam(from),
+          end_date: toDateParam(addDays(to, 1)),
         })
       ),
       optional('sleep', () =>
@@ -196,7 +204,7 @@ export class OpenWearablesConnector extends Connector {
       ),
     ])
 
-    return toDailyWellness({ samples, sleeps, activities, scores })
+    return toDailyWellness({ samples, sleeps, sleepSummaries, activities, scores })
   }
 
   async #fetchWorkouts(after: Date, before: Date): Promise<RawOwWorkout[]> {
