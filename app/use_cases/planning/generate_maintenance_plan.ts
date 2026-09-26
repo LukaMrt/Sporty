@@ -10,6 +10,7 @@ import type { TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedWeek } from '#domain/entities/planned_week'
 import { NoCompletedPlanError } from '#domain/errors/no_completed_plan_error'
 import PlanPersister from '#use_cases/planning/plan_persister'
+import CloseFinishedGoal from '#use_cases/planning/close_finished_goal'
 
 // Ratio volume maintenance / pic (Daniels) — utilisé pour reconstruire le volume pic
 // depuis un plan maintenance existant lors de la boucle de maintien.
@@ -26,7 +27,8 @@ export default class GenerateMaintenancePlan {
     private userProfileRepo: UserProfileRepository,
     private planEngine: TrainingPlanEngine,
     private planPersister: PlanPersister,
-    private unitOfWork: UnitOfWork
+    private unitOfWork: UnitOfWork,
+    private closeFinishedGoal: CloseFinishedGoal
   ) {}
 
   async execute(userId: number): Promise<GenerateMaintenancePlanResult> {
@@ -34,7 +36,11 @@ export default class GenerateMaintenancePlan {
     const completedPlan = allPlans.find((p) => p.status === PlanStatus.Completed)
     if (!completedPlan) throw new NoCompletedPlanError()
 
-    return this.unitOfWork.run(() => this.fromPlan(userId, completedPlan))
+    return this.unitOfWork.run(async () => {
+      // Sortie de l'après-plan : l'objectif préparé est atteint, la maintenance n'en a pas
+      await this.closeFinishedGoal.execute(userId)
+      return this.fromPlan(userId, completedPlan)
+    })
   }
 
   /**

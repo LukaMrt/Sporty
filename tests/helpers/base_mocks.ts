@@ -325,6 +325,14 @@ export class InMemoryPlanRepo extends BaseMockPlanRepo {
   async findAllActive() {
     return this.plans.filter((p) => p.status === PlanStatus.Active)
   }
+  async findActiveByGoalId(goalId: number) {
+    return (
+      this.plans.find(
+        (p) =>
+          p.goalId === goalId && (p.status === PlanStatus.Active || p.status === PlanStatus.Draft)
+      ) ?? null
+    )
+  }
   async update(id: number, data: Partial<TrainingPlan>) {
     const plan = this.plans.find((p) => p.id === id)!
     Object.assign(plan, data)
@@ -493,6 +501,34 @@ export class StaticGoalRepo extends TrainingGoalRepository {
     throw new Error('not implemented')
   }
   async delete(): Promise<void> {}
+}
+
+/** Dépôt d'objectifs en mémoire (création, mise à jour, statut) */
+export class InMemoryGoalRepo extends TrainingGoalRepository {
+  goals: TrainingGoal[] = []
+  #id = 1
+  async create(data: Omit<TrainingGoal, 'id' | 'createdAt' | 'updatedAt'>) {
+    const goal = { ...data, id: this.#id++, createdAt: NOW(), updatedAt: NOW() }
+    this.goals.push(goal)
+    return goal
+  }
+  async findById(id: number) {
+    return this.goals.find((g) => g.id === id) ?? null
+  }
+  async findByUserId(userId: number) {
+    return this.goals.filter((g) => g.userId === userId)
+  }
+  async findActiveByUserId(userId: number) {
+    return this.goals.find((g) => g.userId === userId && g.status === 'active') ?? null
+  }
+  async update(id: number, data: Partial<TrainingGoal>) {
+    const goal = this.goals.find((g) => g.id === id)!
+    Object.assign(goal, data)
+    return goal
+  }
+  async delete(id: number) {
+    this.goals = this.goals.filter((g) => g.id !== id)
+  }
 }
 
 /** Dépôt de séances réalisées en mémoire */

@@ -1,3 +1,5 @@
+import { StaticGoalRepo } from '#tests/helpers/base_mocks'
+import CloseFinishedGoal from '#use_cases/planning/close_finished_goal'
 import { test } from '@japa/runner'
 import { ImmediateUnitOfWork } from '#tests/helpers/base_mocks'
 import PlanPersister from '#use_cases/planning/plan_persister'
@@ -288,7 +290,8 @@ test.group('GenerateMaintenancePlan', () => {
       makeUserProfileRepo(USER_PROFILE),
       makeEngine(),
       new PlanPersister(planRepo),
-      new ImmediateUnitOfWork()
+      new ImmediateUnitOfWork(),
+      new CloseFinishedGoal(new StaticGoalRepo(), planRepo)
     )
     await assert.rejects(() => useCase.execute(1), NoCompletedPlanError)
   })
@@ -302,7 +305,8 @@ test.group('GenerateMaintenancePlan', () => {
       makeUserProfileRepo(USER_PROFILE),
       makeEngine(),
       new PlanPersister(planRepo),
-      new ImmediateUnitOfWork()
+      new ImmediateUnitOfWork(),
+      new CloseFinishedGoal(new StaticGoalRepo(), planRepo)
     )
     const result = await useCase.execute(1)
 
@@ -323,7 +327,8 @@ test.group('GenerateMaintenancePlan', () => {
       makeUserProfileRepo(USER_PROFILE),
       engine,
       new PlanPersister(planRepo),
-      new ImmediateUnitOfWork()
+      new ImmediateUnitOfWork(),
+      new CloseFinishedGoal(new StaticGoalRepo(), planRepo)
     )
     await useCase.execute(1)
 
@@ -342,7 +347,8 @@ test.group('GenerateMaintenancePlan', () => {
       makeUserProfileRepo(USER_PROFILE),
       engine,
       new PlanPersister(planRepo),
-      new ImmediateUnitOfWork()
+      new ImmediateUnitOfWork(),
+      new CloseFinishedGoal(new StaticGoalRepo(), planRepo)
     )
     await useCase.execute(1)
 
@@ -360,7 +366,8 @@ test.group('GenerateMaintenancePlan', () => {
       profileRepo,
       makeEngine(),
       new PlanPersister(planRepo),
-      new ImmediateUnitOfWork()
+      new ImmediateUnitOfWork(),
+      new CloseFinishedGoal(new StaticGoalRepo(), planRepo)
     )
     await useCase.execute(1)
 
