@@ -8,6 +8,7 @@ import type { FitnessDay, FitnessProfile } from '#domain/value_objects/fitness_p
 import type { TrainingLoad, TrainingLoadMethod } from '#domain/value_objects/training_load'
 import { addDaysIso, todayInTimezone } from '#domain/services/calendar'
 import { buildSessionLoadInput } from '#domain/services/session_load'
+import { loadContribution } from '#domain/services/sport_load_contribution'
 
 export type FitnessProfileResult = {
   asOf: string
@@ -80,7 +81,8 @@ export default class GetFitnessProfile {
           ? { value: entry.trainingLoad, method: entry.loadMethod ?? 'rpe' }
           : (computed.get(entry.id) ?? { value: 0, method: 'rpe' })
       methods[load.method]++
-      return { date: entry.date, load }
+      const contribution = loadContribution(entry.sportSlug)
+      return { date: entry.date, load: { ...load, value: load.value * contribution } }
     })
 
     return {

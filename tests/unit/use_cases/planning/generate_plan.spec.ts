@@ -437,6 +437,17 @@ test.group('GeneratePlan — calcul du volume hebdomadaire', () => {
     assert.equal(capturedWeeklyVolume, 50)
   })
 
+  test('une marche ne compte que pour 30 % de sa durée', async ({ assert }) => {
+    capturedWeeklyVolume = undefined
+    const today = new Date().toISOString().slice(0, 10)
+    const sessions = [makeSession(today, 60), { ...makeSession(today, 200), sportSlug: 'walking' }]
+
+    await makeUseCaseCapturing(sessions).execute(INPUT)
+
+    // 60 + 200 × 0,3 = 120 min
+    assert.equal(capturedWeeklyVolume, 120)
+  })
+
   test("retourne 0 si aucune séance dans l'historique", async ({ assert }) => {
     capturedWeeklyVolume = undefined
     await makeUseCaseCapturing([]).execute(INPUT)

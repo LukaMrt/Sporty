@@ -86,3 +86,64 @@ test.group('GetFitnessProfile (audit §18)', () => {
     assert.isNull(result.profile)
   })
 })
+
+test.group('GetFitnessProfile — contribution par sport', () => {
+  test('une marche ne compte que pour 30 % de sa charge', async ({ assert }) => {
+    const repo = new InMemorySessionRepo()
+    repo.add({
+      id: 1,
+      date: AS_OF,
+      sportSlug: 'walking',
+      trainingLoad: 50,
+      loadMethod: 'trimp_exp',
+    })
+    const result = await makeUseCase(repo).execute(1, { asOf: AS_OF, withSeries: true })
+    assert.equal(result.series[result.series.length - 1].tss, 15)
+  })
+
+  test('une randonnée compte pour 60 %, la course pleinement', async ({ assert }) => {
+    const repo = new InMemorySessionRepo()
+    repo.add({ id: 1, date: AS_OF, sportSlug: 'hiking', trainingLoad: 50, loadMethod: 'trimp_exp' })
+    repo.add({
+      id: 2,
+      date: AS_OF,
+      sportSlug: 'running',
+      trainingLoad: 40,
+      loadMethod: 'trimp_exp',
+    })
+    const result = await makeUseCase(repo).execute(1, { asOf: AS_OF, withSeries: true })
+    assert.equal(result.series[result.series.length - 1].tss, 70)
+  })
+
+  test('une grosse marche fait moins chuter la forme qu’un footing de même charge', async ({
+    assert,
+  }) => {
+    const profile = { maxHeartRate: 190, restingHeartRate: 50 }
+    const walk = new InMemorySessionRepo()
+    seedImportedRuns(walk, 1, true)
+    walk.add({
+      id: 999,
+      date: AS_OF,
+      sportSlug: 'walking',
+      trainingLoad: 47,
+      loadMethod: 'trimp_exp',
+    })
+    const run = new InMemorySessionRepo()
+    seedImportedRuns(run, 1, true)
+    run.add({
+      id: 999,
+      date: AS_OF,
+      sportSlug: 'running',
+      trainingLoad: 47,
+      loadMethod: 'trimp_exp',
+    })
+
+    const afterWalk = await makeUseCase(walk, profile).execute(1, { asOf: AS_OF })
+    const afterRun = await makeUseCase(run, profile).execute(1, { asOf: AS_OF })
+
+    assert.isAbove(
+      afterWalk.profile!.trainingStressBalance,
+      afterRun.profile!.trainingStressBalance
+    )
+  })
+})
