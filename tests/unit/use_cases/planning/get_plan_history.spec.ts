@@ -1,3 +1,5 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 import { test } from '@japa/runner'
 import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import GetPlanHistory from '#use_cases/planning/get_plan_history'
@@ -35,6 +37,9 @@ function makePlan(overrides: Partial<TrainingPlan>): TrainingPlan {
     endDate: '2025-04-01',
     lastRecalibratedAt: null,
     pendingVdotDown: null,
+    source: PlanSource.Generated,
+    name: null,
+    notes: null,
     createdAt: '2025-01-01T00:00:00.000Z',
     updatedAt: '2025-04-01T00:00:00.000Z',
     ...overrides,
@@ -48,6 +53,7 @@ function makeSession(overrides: Partial<PlannedSession>): PlannedSession {
     weekNumber: 1,
     dayOfWeek: 1,
     sessionType: SessionType.Easy,
+    ...SESSION_EXTRAS_DEFAULTS,
     targetDurationMinutes: 40,
     targetDistanceKm: null,
     targetPacePerKm: null,

@@ -43,6 +43,7 @@ export default function IntervalBreakdown({ intervals }: IntervalBreakdownProps)
               {block.durationMinutes && <span>{formatBlockDuration(block.durationMinutes)}</span>}
               {block.distanceMeters && <span>{block.distanceMeters} m</span>}
               {block.targetPace && <span>@ {formatSpeed(parsePaceString(block.targetPace))}</span>}
+              {block.targetPowerWatts && <span>@ {block.targetPowerWatts} W</span>}
               {block.recoveryDurationMinutes && (
                 <span className="text-muted-foreground/60">
                   · {t('planning.overview.rest').toLowerCase()}{' '}
@@ -53,6 +54,9 @@ export default function IntervalBreakdown({ intervals }: IntervalBreakdownProps)
                 </span>
               )}
             </div>
+            {block.notes && (
+              <p className="mt-0.5 text-xs text-muted-foreground/80">{block.notes}</p>
+            )}
           </div>
         </div>
       ))}

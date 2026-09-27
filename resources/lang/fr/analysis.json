@@ -172,7 +172,22 @@
     "previousLoad": "Charge de la veille",
     "morningHrv": "HRV du matin",
     "weighIn": "Pesée",
-    "weightTrend": "Tendance"
+    "weightTrend": "Tendance",
+    "watchScores": "Scores de ta montre",
+    "watchScoresHint": "Calculés par ta montre avec sa propre méthode : à comparer à eux-mêmes dans le temps, pas d’une marque à l’autre.",
+    "watchScoresTrend": "Évolution des scores de ta montre",
+    "sleepSchedule": "Horaires de sommeil",
+    "sleepScheduleSummary": "Coucher moyen {bedtime}, variation de ± {sd} sur 14 nuits",
+    "hrr": "FC récupérée en 1 minute",
+    "activeCalories": "Calories actives",
+    "scores": {
+      "readinessScore": "Readiness",
+      "recoveryScore": "Récupération",
+      "bodyBattery": "Body Battery",
+      "sleepScore": "Score de sommeil",
+      "stressScore": "Stress",
+      "strainScore": "Strain"
+    }
   },
   "calendar": {
     "title": "Calendrier de charge",
@@ -193,7 +208,7 @@
   "links": {
     "report": "Bilan de la semaine / du mois",
     "map": "Carte de mes traces",
-    "plan": "Plan importé de Claude",
+    "plan": "Créer / réviser mon plan avec Claude",
     "help": "Comprendre mes métriques"
   },
   "map": {
@@ -522,6 +537,21 @@
     "swimPace": {
       "read": "Ton allure moyenne aux 100 m, semaine par semaine. Plus haut = plus rapide. La ligne CSS est ton allure seuil.",
       "good": "Une allure qui se rapproche de ta CSS sur les séances longues."
+    },
+    "watchScores": {
+      "read": "Les scores que ta montre calcule chaque jour (sur 100). Chaque marque a sa recette : suis leur évolution plutôt que la valeur absolue.",
+      "good": "Des scores stables ou en hausse pendant les semaines chargées.",
+      "watch": "Plusieurs jours bas d’affilée, surtout s’ils concordent avec une HRV basse."
+    },
+    "sleepSchedule": {
+      "read": "Chaque barre va de l’heure de coucher (en haut) à l’heure de lever (en bas).",
+      "good": "Des barres alignées : des horaires réguliers aident ton corps à récupérer.",
+      "watch": "Des horaires qui varient de plus d’une heure d’un soir à l’autre."
+    },
+    "hrr": {
+      "read": "De combien de battements ta FC redescend dans la minute qui suit un effort. Plus c’est élevé, plus ton cœur récupère vite.",
+      "good": "Plus de 20 bpm, et une valeur qui augmente au fil des mois.",
+      "watch": "Une baisse nette par rapport à d’habitude : fatigue accumulée."
     }
   },
   "insights": {
@@ -560,6 +590,10 @@
     "readinessLow": "Forme du jour basse : privilégie une séance facile ou le repos.",
     "readinessGood": "Forme du jour bonne : ton corps a bien récupéré.",
     "swimFaster": "Ton allure de nage s’améliore de {percent} % sur la période.",
-    "swimSlower": "Ton allure de nage ralentit de {percent} % sur la période."
+    "swimSlower": "Ton allure de nage ralentit de {percent} % sur la période.",
+    "sleepShort": "Tu dors en moyenne {minutes} sur les 2 dernières semaines : moins de 7 h, ta récupération en pâtit.",
+    "bedtimeIrregular": "Ton heure de coucher varie de ± {minutes} : des horaires plus réguliers améliorent la récupération.",
+    "hrrUp": "Ta FC redescend plus vite après l’effort ({delta} bpm en 1 min) : ta condition cardio progresse.",
+    "hrrDown": "Ta FC redescend moins vite après l’effort ({delta} bpm en 1 min) : fatigue possible."
   }
 }

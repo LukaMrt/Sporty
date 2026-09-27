@@ -57,6 +57,6 @@ test.group('StravaSportMapper', () => {
   })
 
   test('type non reconnu → other', ({ assert }) => {
-    assert.equal(mapper.map('Crossfit'), 'other')
+    assert.equal(mapper.map('Kitesurf'), 'other')
   })
 })

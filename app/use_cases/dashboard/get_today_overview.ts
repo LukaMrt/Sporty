@@ -38,6 +38,8 @@ export default class GetTodayOverview {
         .map((p) => ({
           date: plannedSessionDate(plan.startDate, p.weekNumber, p.dayOfWeek),
           sessionType: p.sessionType,
+          sportSlug: p.sportSlug,
+          title: p.title,
           minutes: p.targetDurationMinutes,
           tss: p.targetLoadTss ?? estimatePlannedTss(p),
           intensityZone: p.intensityZone,
@@ -66,6 +68,11 @@ export default class GetTodayOverview {
         trend: analysis.fitness.series.filter((d) => d.date > addDaysIso(today, -42)),
         delta28: analysis.fitness.delta28,
         readiness: analysis.recovery.readiness,
+        /** Score principal de la montre : readiness, sinon récupération, sinon Body Battery */
+        watchScore:
+          analysis.recovery.latestScores.find((s) =>
+            ['readinessScore', 'recoveryScore', 'bodyBattery'].includes(s.field)
+          ) ?? null,
         advice: dailyAdvice(
           analysis.fitness.current
             ? Math.round(analysis.fitness.current.trainingStressBalance)

@@ -28,6 +28,36 @@ import {
   type Insight,
 } from './shared'
 
+/** Minutes par rapport à minuit → « 23:30 » (négatif = la veille) */
+function clockTime(minutes: number): string {
+  const m = ((Math.round(minutes) % 1440) + 1440) % 1440
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+}
+
+/** Infobulle des horaires de sommeil : la barre porte [coucher, lever] */
+function SleepScheduleTooltip({
+  active,
+  payload,
+  label,
+  labelFormat,
+}: {
+  active?: boolean
+  payload?: readonly { payload?: { night?: [number, number] } }[]
+  label?: string | number
+  labelFormat: (d: string) => string
+}) {
+  const night = payload?.[0]?.payload?.night
+  if (!active || !night) return null
+  return (
+    <div className="rounded-lg border bg-card px-3 py-2 text-xs shadow-md">
+      <div className="mb-1 font-medium">{labelFormat(String(label))}</div>
+      <span className="tabular-nums">
+        {clockTime(night[0])} → {clockTime(night[1])} ({formatMinutes(night[1] - night[0])})
+      </span>
+    </div>
+  )
+}
+
 const READINESS_STYLES = {
   good: 'border-emerald-300 bg-emerald-50 text-emerald-900',
   moderate: 'border-amber-300 bg-amber-50 text-amber-900',
@@ -93,6 +123,31 @@ export default function RecoverySection({
           ))}
         </ul>
       </div>
+
+      {recovery.latestScores.length > 0 && (
+        <div className="mb-4">
+          <h3 className="mb-2 text-sm font-medium">{t('analysis.recovery.watchScores')}</h3>
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            {recovery.latestScores.map((score) => (
+              <li key={score.field} className="rounded-lg border p-2">
+                <div className="text-xs text-muted-foreground">
+                  {score.field === 'bodyBattery' ? (
+                    <Term id="bodyBattery">{t(`analysis.recovery.scores.${score.field}`)}</Term>
+                  ) : (
+                    t(`analysis.recovery.scores.${score.field}`)
+                  )}
+                </div>
+                <div className="text-lg font-semibold tabular-nums">
+                  {formatNumber(score.value, locale, 0)}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t('analysis.recovery.watchScoresHint')}
+          </p>
+        </div>
+      )}
 
       {insights.length > 0 && (
         <ul className="mb-4 space-y-2" role="status">
@@ -315,25 +370,155 @@ export default function RecoverySection({
           </ChartBlock>
         )}
 
+        {recovery.watchScores.length >= 2 && (
+          <ChartBlock title={t('analysis.recovery.watchScoresTrend')} help="watchScores">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={recovery.watchScores}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={dateLabel} fontSize={11} minTickGap={32} />
+                  <YAxis domain={[0, 100]} fontSize={11} width={36} />
+                  <Tooltip
+                    content={
+                      <ChartTooltip
+                        labelFormat={dateLabel}
+                        valueFormat={(v) => formatNumber(v, locale, 0)}
+                      />
+                    }
+                  />
+                  <Legend />
+                  {(
+                    [
+                      ['readiness', 'readinessScore', '#2563eb'],
+                      ['recovery', 'recoveryScore', '#16a34a'],
+                      ['bodyBattery', 'bodyBattery', '#f59e0b'],
+                      ['sleep', 'sleepScore', '#7c3aed'],
+                      ['stress', 'stressScore', '#e11d48'],
+                    ] as const
+                  )
+                    .filter(([key]) => recovery.watchScores.some((d) => d[key] !== null))
+                    .map(([key, field, color]) => (
+                      <Line
+                        key={key}
+                        dataKey={key}
+                        name={t(`analysis.recovery.scores.${field}`)}
+                        stroke={color}
+                        dot={false}
+                        strokeWidth={2}
+                        connectNulls
+                      />
+                    ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartBlock>
+        )}
+
+        {recovery.sleepSchedule.length >= 3 && (
+          <ChartBlock title={t('analysis.recovery.sleepSchedule')} help="sleepSchedule">
+            {recovery.sleepRegularity.avgBedtime !== null && (
+              <p className="mb-2 text-xs text-muted-foreground">
+                {t('analysis.recovery.sleepScheduleSummary', {
+                  bedtime: clockTime(recovery.sleepRegularity.avgBedtime),
+                  sd:
+                    recovery.sleepRegularity.bedtimeSd !== null
+                      ? formatMinutes(recovery.sleepRegularity.bedtimeSd)
+                      : '—',
+                })}
+              </p>
+            )}
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={recovery.sleepSchedule.map((d) => ({
+                    date: d.date,
+                    night: [d.bedtime, d.wake],
+                  }))}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={dateLabel} fontSize={11} minTickGap={32} />
+                  <YAxis
+                    reversed
+                    domain={['dataMin - 30', 'dataMax + 30']}
+                    tickFormatter={(v: number) => clockTime(v)}
+                    fontSize={11}
+                    width={44}
+                  />
+                  <Tooltip content={<SleepScheduleTooltip labelFormat={dateLabel} />} />
+                  <Bar
+                    dataKey="night"
+                    name={t('analysis.recovery.sleep')}
+                    fill="#6366f1"
+                    radius={3}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartBlock>
+        )}
+
+        {recovery.heartRateRecovery.length >= 2 && (
+          <ChartBlock title={<Term id="hrr">{t('analysis.recovery.hrr')}</Term>} help="hrr">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={recovery.heartRateRecovery}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={dateLabel} fontSize={11} minTickGap={32} />
+                  <YAxis domain={['auto', 'auto']} fontSize={11} width={36} />
+                  <Tooltip
+                    content={
+                      <ChartTooltip labelFormat={dateLabel} valueFormat={(v) => `−${num(v)} bpm`} />
+                    }
+                  />
+                  <Line
+                    dataKey="hrr"
+                    name={t('analysis.recovery.hrr')}
+                    stroke="#db2777"
+                    strokeWidth={2}
+                    dot={{ r: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartBlock>
+        )}
+
         {recovery.activity.length > 0 && (
           <ChartBlock title={t('analysis.recovery.activity')}>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={recovery.activity}>
+                <ComposedChart data={recovery.activity}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="date" tickFormatter={dateLabel} fontSize={11} minTickGap={32} />
-                  <YAxis fontSize={11} width={36} />
+                  <YAxis yAxisId="min" fontSize={11} width={36} />
+                  <YAxis yAxisId="kcal" orientation="right" fontSize={11} width={44} />
                   <Tooltip
                     content={
-                      <ChartTooltip labelFormat={dateLabel} valueFormat={(v) => `${num(v)} min`} />
+                      <ChartTooltip
+                        labelFormat={dateLabel}
+                        valueFormat={(v, e) =>
+                          e.dataKey === 'activeCalories' ? `${num(v)} kcal` : `${num(v)} min`
+                        }
+                      />
                     }
                   />
+                  <Legend />
                   <Bar
+                    yAxisId="min"
                     dataKey="activeMinutes"
                     name={t('analysis.recovery.activeMinutes')}
                     fill="#65a30d"
                   />
-                </BarChart>
+                  {recovery.activity.some((d) => d.activeCalories !== null) && (
+                    <Line
+                      yAxisId="kcal"
+                      dataKey="activeCalories"
+                      name={t('analysis.recovery.activeCalories')}
+                      stroke="#ea580c"
+                      dot={false}
+                    />
+                  )}
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </ChartBlock>

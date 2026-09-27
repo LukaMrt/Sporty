@@ -3,6 +3,14 @@ export enum TrainingMethodology {
   Pyramidal = 'pyramidal',
   Threshold = 'threshold',
   Daniels = 'daniels',
+  /** Plan rédigé hors moteur (Claude, édition manuelle) */
+  Custom = 'custom',
+}
+
+/** Origine d'un plan : généré par Sporty ou importé (Claude) */
+export enum PlanSource {
+  Generated = 'generated',
+  Imported = 'imported',
 }
 
 export enum BiologicalSex {
@@ -49,6 +57,12 @@ export enum SessionType {
   Recovery = 'recovery',
   Race = 'race',
   CrossTraining = 'cross_training',
+  /** Renforcement musculaire (exercices, séries, répétitions) */
+  Strength = 'strength',
+  /** Mobilité, souplesse, gainage léger */
+  Mobility = 'mobility',
+  /** Éducatifs, technique de nage, vélocité… */
+  Technique = 'technique',
   Rest = 'rest',
 }
 

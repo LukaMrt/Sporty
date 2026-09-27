@@ -4,7 +4,8 @@
  * Vit ici plutot que dans un dossier de provider pour qu'aucun connecteur
  * n'ait a dependre d'un autre.
  */
-export type SportySportSlug = 'running' | 'cycling' | 'swimming' | 'walking' | 'hiking' | 'other'
+export type SportySportSlug =
+  'running' | 'cycling' | 'swimming' | 'walking' | 'hiking' | 'strength' | 'other'
 
 export const CYCLING_SLUGS: SportySportSlug[] = ['cycling']
 export const RUNNING_SLUGS: SportySportSlug[] = ['running']

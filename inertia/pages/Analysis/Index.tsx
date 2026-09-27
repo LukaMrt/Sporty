@@ -79,7 +79,7 @@ export default function AnalysisIndex({ analysis }: { analysis: AnalysisData }) 
               <Link href="/analysis/map" className="text-primary hover:underline">
                 {t('analysis.links.map')}
               </Link>
-              <Link href="/plan" className="text-primary hover:underline">
+              <Link href="/planning/import" className="text-primary hover:underline">
                 {t('analysis.links.plan')}
               </Link>
               <Link

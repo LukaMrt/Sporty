@@ -1,3 +1,5 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 import { test } from '@japa/runner'
 import { ImmediateUnitOfWork } from '#tests/helpers/base_mocks'
 import PlanPersister from '#use_cases/planning/plan_persister'
@@ -43,6 +45,9 @@ const ACTIVE_PLAN: TrainingPlan = {
   endDate: new Date(Date.now() + 77 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
   lastRecalibratedAt: null,
   pendingVdotDown: null,
+  source: PlanSource.Generated,
+  name: null,
+  notes: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -67,6 +72,7 @@ function makeWeeks(count: number): PlannedWeek[] {
     phaseLabel: 'Fondation',
     isRecoveryWeek: false,
     targetVolumeMinutes: 200,
+    notes: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }))
@@ -79,6 +85,7 @@ function makeSession(weekNumber: number, dayOfWeek: number): PlannedSession {
     weekNumber,
     dayOfWeek,
     sessionType: SessionType.Easy,
+    ...SESSION_EXTRAS_DEFAULTS,
     targetDurationMinutes: 45,
     targetDistanceKm: 8,
     targetPacePerKm: '5:30',

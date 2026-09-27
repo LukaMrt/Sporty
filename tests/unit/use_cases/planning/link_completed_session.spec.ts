@@ -1,3 +1,5 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 import { test } from '@japa/runner'
 import { RecordingEventEmitter } from '#tests/helpers/base_mocks'
 import { BaseMockPlanRepo, BaseMockSessionRepo } from '#tests/helpers/base_mocks'
@@ -39,6 +41,9 @@ const ACTIVE_PLAN: TrainingPlan = {
   endDate: '2026-06-01',
   lastRecalibratedAt: null,
   pendingVdotDown: null,
+  source: PlanSource.Generated,
+  name: null,
+  notes: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -49,6 +54,7 @@ const PLANNED_SESSION: PlannedSession = {
   weekNumber: 1,
   dayOfWeek: 1,
   sessionType: SessionType.Easy,
+  ...SESSION_EXTRAS_DEFAULTS,
   targetDurationMinutes: 50,
   targetDistanceKm: 9,
   targetPacePerKm: '6:00',

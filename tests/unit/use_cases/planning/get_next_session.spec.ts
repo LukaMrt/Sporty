@@ -1,3 +1,5 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 import { test } from '@japa/runner'
 import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import GetNextSession from '#use_cases/planning/get_next_session'
@@ -42,6 +44,9 @@ const BASE_PLAN: TrainingPlan = {
   endDate: dateOffset(84),
   lastRecalibratedAt: null,
   pendingVdotDown: null,
+  source: PlanSource.Generated,
+  name: null,
+  notes: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -53,6 +58,7 @@ function makeSession(overrides: Partial<PlannedSession>): PlannedSession {
     weekNumber: 1,
     dayOfWeek: new Date().getDay(), // today by default
     sessionType: SessionType.Easy,
+    ...SESSION_EXTRAS_DEFAULTS,
     targetDurationMinutes: 45,
     targetDistanceKm: null,
     targetPacePerKm: '5:30',
@@ -177,6 +183,7 @@ test.group('GetNextSession', () => {
       id: 2,
       dayOfWeek: tomorrow.getDay(),
       sessionType: SessionType.Easy,
+      ...SESSION_EXTRAS_DEFAULTS,
     })
     const uc = new GetNextSession(makePlanRepo(BASE_PLAN, [restSession, realSession]))
     const result = await uc.execute(1)

@@ -172,7 +172,22 @@
     "previousLoad": "Previous day's load",
     "morningHrv": "Morning HRV",
     "weighIn": "Weigh-in",
-    "weightTrend": "Trend"
+    "weightTrend": "Trend",
+    "watchScores": "Your watch's scores",
+    "watchScoresHint": "Computed by your watch with its own method: compare them with themselves over time, not across brands.",
+    "watchScoresTrend": "Your watch's scores over time",
+    "sleepSchedule": "Sleep schedule",
+    "sleepScheduleSummary": "Average bedtime {bedtime}, varying by ± {sd} over 14 nights",
+    "hrr": "1-minute heart rate recovery",
+    "activeCalories": "Active calories",
+    "scores": {
+      "readinessScore": "Readiness",
+      "recoveryScore": "Recovery",
+      "bodyBattery": "Body Battery",
+      "sleepScore": "Sleep score",
+      "stressScore": "Stress",
+      "strainScore": "Strain"
+    }
   },
   "calendar": {
     "title": "Load calendar",
@@ -193,7 +208,7 @@
   "links": {
     "report": "Weekly / monthly report",
     "map": "Map of my tracks",
-    "plan": "Plan imported from Claude",
+    "plan": "Create / revise my plan with Claude",
     "help": "Understanding my metrics"
   },
   "map": {
@@ -522,6 +537,21 @@
     "swimPace": {
       "read": "Your average pace per 100 m, week by week. Higher = faster. The CSS line is your threshold pace.",
       "good": "A pace getting closer to your CSS on long sessions."
+    },
+    "watchScores": {
+      "read": "The scores your watch computes every day (out of 100). Each brand has its own recipe: follow the trend rather than the absolute value.",
+      "good": "Scores that stay stable or rise during heavy weeks.",
+      "watch": "Several low days in a row, especially alongside a low HRV."
+    },
+    "sleepSchedule": {
+      "read": "Each bar runs from bedtime (top) to wake-up time (bottom).",
+      "good": "Aligned bars: regular hours help your body recover.",
+      "watch": "Hours varying by more than an hour from one night to the next."
+    },
+    "hrr": {
+      "read": "How many beats your heart rate drops in the minute after an effort. Higher means your heart recovers faster.",
+      "good": "More than 20 bpm, and a value rising over the months.",
+      "watch": "A clear drop compared with usual: accumulated fatigue."
     }
   },
   "insights": {
@@ -560,6 +590,10 @@
     "readinessLow": "Low readiness today: favour an easy session or rest.",
     "readinessGood": "Good readiness today: your body has recovered well.",
     "swimFaster": "Your swim pace improved by {percent} % over the period.",
-    "swimSlower": "Your swim pace slowed by {percent} % over the period."
+    "swimSlower": "Your swim pace slowed by {percent} % over the period.",
+    "sleepShort": "You sleep {minutes} on average over the last 2 weeks: under 7 h, your recovery suffers.",
+    "bedtimeIrregular": "Your bedtime varies by ± {minutes}: more regular hours improve recovery.",
+    "hrrUp": "Your heart rate drops faster after effort ({delta} bpm in 1 min): your cardio fitness is improving.",
+    "hrrDown": "Your heart rate drops more slowly after effort ({delta} bpm in 1 min): possible fatigue."
   }
 }

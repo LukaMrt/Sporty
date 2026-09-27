@@ -4,6 +4,7 @@ import { UserProfileRepository } from '#domain/interfaces/user_profile_repositor
 import { ActiveGoalExistsError } from '#domain/errors/active_goal_exists_error'
 import { TrainingState } from '#domain/value_objects/planning_types'
 import type { TrainingGoal } from '#domain/entities/training_goal'
+import CloseFinishedGoal from '#use_cases/planning/close_finished_goal'
 
 export type CreateGoalInput = {
   userId: number
@@ -16,10 +17,13 @@ export type CreateGoalInput = {
 export default class CreateGoal {
   constructor(
     private goalRepository: TrainingGoalRepository,
-    private userProfileRepository: UserProfileRepository
+    private userProfileRepository: UserProfileRepository,
+    private closeFinishedGoal: CloseFinishedGoal
   ) {}
 
   async execute(input: CreateGoalInput): Promise<TrainingGoal> {
+    // Filet de sécurité : un objectif dont le plan est terminé ne bloque plus
+    await this.closeFinishedGoal.execute(input.userId)
     const existing = await this.goalRepository.findActiveByUserId(input.userId)
     if (existing) {
       throw new ActiveGoalExistsError()

@@ -72,6 +72,88 @@ test.group('toDailyWellness (Open Wearables)', () => {
   })
 })
 
+test.group('toDailyWellness — résumés, scores et nouvelles séries', () => {
+  test('résumé de sommeil : horaires, réveils, mesures nocturnes prioritaires', ({ assert }) => {
+    const days = toDailyWellness({
+      samples: [
+        // Moyenne de la journée : remplacée par la valeur mesurée la nuit
+        sample('heart_rate_variability_rmssd', '2026-03-01T15:00:00+01:00', 30),
+        sample('respiratory_rate', '2026-03-01T15:00:00+01:00', 18),
+      ],
+      sleepSummaries: [
+        {
+          date: '2026-03-01',
+          start_time: '2026-02-28T23:30:00+01:00',
+          end_time: '2026-03-01T07:15:00+01:00',
+          duration_minutes: 440,
+          efficiency_percent: 91,
+          stages: { deep_minutes: 80, rem_minutes: 95, light_minutes: 245, awake_minutes: 20 },
+          interruptions_count: 3,
+          nap_duration_minutes: 20,
+          avg_heart_rate_bpm: 48,
+          avg_hrv_rmssd_ms: 62.34,
+          avg_respiratory_rate: 13.8,
+          avg_spo2_percent: 96.2,
+        },
+      ],
+      // Événement de la même nuit : ignoré, le résumé fait foi
+      sleeps: [{ start_time: '2026-02-28T22:00:00+01:00', end_time: '2026-03-01T06:00:00+01:00' }],
+      activities: [],
+    })
+    const day = days[0]
+    assert.equal(day.sleepMinutes, 440)
+    assert.equal(day.sleepBedtimeMinutes, -30)
+    assert.equal(day.sleepWakeMinutes, 435)
+    assert.equal(day.sleepInterruptions, 3)
+    assert.equal(day.napMinutes, 20)
+    assert.equal(day.sleepHeartRate, 48)
+    assert.equal(day.sleepDeepMinutes, 80)
+    assert.equal(day.hrvRmssd, 62.3)
+    assert.equal(day.respiratoryRate, 13.8)
+    assert.equal(day.spo2, 96.2)
+  })
+
+  test('scores de la montre lus par catégorie (bug : le score de sommeil était ignoré)', ({
+    assert,
+  }) => {
+    const days = toDailyWellness({
+      samples: [
+        // Secours Garmin : remplacé par le score officiel
+        sample('garmin_body_battery', '2026-03-01T07:00:00+01:00', 60),
+      ],
+      sleeps: [],
+      activities: [],
+      scores: [
+        { category: 'sleep', value: 82, recorded_at: '2026-03-01T07:00:00+01:00' },
+        { category: 'readiness', value: 71, recorded_at: '2026-03-01T07:00:00+01:00' },
+        { category: 'body_battery', value: 88, recorded_at: '2026-03-01T07:00:00+01:00' },
+        { category: 'resilience', value: 50, recorded_at: '2026-03-01T07:00:00+01:00' },
+        { category: 'stress', value: null, recorded_at: '2026-03-01T07:00:00+01:00' },
+      ],
+    })
+    assert.equal(days[0].sleepScore, 82)
+    assert.equal(days[0].readinessScore, 71)
+    assert.equal(days[0].bodyBattery, 88)
+    assert.isNull(days[0].stressScore)
+  })
+
+  test('Body Battery au plus haut de la journée, FC de récupération, activité', ({ assert }) => {
+    const days = toDailyWellness({
+      samples: [
+        sample('garmin_body_battery', '2026-03-01T06:00:00+01:00', 85),
+        sample('garmin_body_battery', '2026-03-01T20:00:00+01:00', 30),
+        sample('heart_rate_recovery_one_minute', '2026-03-01T10:00:00+01:00', 28),
+      ],
+      sleeps: [],
+      activities: [{ date: '2026-03-01', active_calories_kcal: 640, sedentary_minutes: 510 }],
+    })
+    assert.equal(days[0].bodyBattery, 85)
+    assert.equal(days[0].heartRateRecovery, 28)
+    assert.equal(days[0].activeCaloriesKcal, 640)
+    assert.equal(days[0].sedentaryMinutes, 510)
+  })
+})
+
 test.group('toRunningDynamics (Open Wearables)', () => {
   test('moyennes et courbes rééchantillonnées à 15 s', async ({ assert }) => {
     const { toRunningDynamics } = await import('#connectors/open_wearables/timeseries_converter')

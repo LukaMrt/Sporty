@@ -5,7 +5,10 @@ import type { RawOwTimeSeriesSample } from '#connectors/open_wearables/types'
  * Types de séries temporelles Open Wearables → champ quotidien Sporty.
  * `mode` : moyenne des échantillons du jour, ou dernière valeur (poids…).
  */
-const TIMESERIES_FIELDS: Record<string, { field: keyof DailyWellness; mode: 'mean' | 'last' }> = {
+const TIMESERIES_FIELDS: Record<
+  string,
+  { field: keyof DailyWellness; mode: 'mean' | 'last' | 'max' }
+> = {
   resting_heart_rate: { field: 'restingHeartRate', mode: 'mean' },
   heart_rate_variability_rmssd: { field: 'hrvRmssd', mode: 'mean' },
   weight: { field: 'weightKg', mode: 'last' },
@@ -14,6 +17,11 @@ const TIMESERIES_FIELDS: Record<string, { field: keyof DailyWellness; mode: 'mea
   oxygen_saturation: { field: 'spo2', mode: 'mean' },
   skin_temperature: { field: 'skinTemperatureDeviation', mode: 'mean' },
   vo2_max: { field: 'vo2Max', mode: 'last' },
+  heart_rate_recovery_one_minute: { field: 'heartRateRecovery', mode: 'mean' },
+  // Secours Garmin quand les scores ne sont pas exposés : Body Battery au plus haut
+  // (réserve du matin), stress moyen de la journée
+  garmin_body_battery: { field: 'bodyBattery', mode: 'max' },
+  garmin_stress_level: { field: 'stressScore', mode: 'mean' },
 }
 
 export const WELLNESS_TIMESERIES_TYPES = Object.keys(TIMESERIES_FIELDS)
@@ -33,20 +41,52 @@ export type RawOwSleep = {
   is_nap?: boolean | null
 }
 
+/** Résumé de sommeil par nuit (`/summaries/sleep`) : session principale + mesures nocturnes */
+export type RawOwSleepSummary = {
+  date: string
+  start_time?: string | null
+  end_time?: string | null
+  duration_minutes?: number | null
+  efficiency_percent?: number | null
+  stages?: {
+    awake_minutes?: number | null
+    light_minutes?: number | null
+    deep_minutes?: number | null
+    rem_minutes?: number | null
+  } | null
+  interruptions_count?: number | null
+  nap_duration_minutes?: number | null
+  avg_heart_rate_bpm?: number | null
+  avg_hrv_rmssd_ms?: number | null
+  avg_respiratory_rate?: number | null
+  avg_spo2_percent?: number | null
+}
+
 export type RawOwActivitySummary = {
   date: string
   steps?: number | null
   intensity_minutes?: { moderate?: number | null; vigorous?: number | null } | null
   moderate_minutes?: number | null
   vigorous_minutes?: number | null
+  active_calories_kcal?: number | null
+  sedentary_minutes?: number | null
 }
 
+/** Score calculé par la montre (`/health-scores`) */
 export type RawOwHealthScore = {
-  date?: string
-  timestamp?: string
-  type?: string
-  name?: string
-  value: number
+  category: string
+  value: number | null
+  recorded_at: string
+}
+
+/** Catégorie de score Open Wearables → champ quotidien Sporty */
+const SCORE_FIELDS: Record<string, keyof DailyWellness> = {
+  sleep: 'sleepScore',
+  readiness: 'readinessScore',
+  recovery: 'recoveryScore',
+  body_battery: 'bodyBattery',
+  stress: 'stressScore',
+  strain: 'strainScore',
 }
 
 /** Jour local d'un horodatage : la chaîne OW porte déjà son offset */
@@ -69,10 +109,19 @@ function stageMinutes(sleep: RawOwSleep, names: string[]): number | null {
   return Math.round(ms / 60_000)
 }
 
+/** Heure locale d'un horodatage OW en minutes après minuit (l'offset est déjà appliqué) */
+function localMinutes(timestamp: string): number {
+  return Number(timestamp.slice(11, 13)) * 60 + Number(timestamp.slice(14, 16))
+}
+
+const round1 = (v: number) => Math.round(v * 10) / 10
+
 /** Agrège les séries brutes, le sommeil et l'activité en une ligne par jour */
 export function toDailyWellness(input: {
   samples: RawOwTimeSeriesSample[]
   sleeps: RawOwSleep[]
+  /** Résumés par nuit : prioritaires sur les événements de sommeil */
+  sleepSummaries?: RawOwSleepSummary[]
   activities: RawOwActivitySummary[]
   scores?: RawOwHealthScore[]
 }): DailyWellness[] {
@@ -86,6 +135,10 @@ export function toDailyWellness(input: {
     const day = getOrCreate(days, date)
     if (mapping.mode === 'last') {
       ;(day[mapping.field] as number | null) = sample.value
+    } else if (mapping.mode === 'max') {
+      const current = day[mapping.field] as number | null
+      ;(day[mapping.field] as number | null) =
+        current === null ? sample.value : Math.max(current, sample.value)
     } else {
       const key = `${date}|${mapping.field}`
       const acc = sums.get(key) ?? { sum: 0, n: 0 }
@@ -99,8 +152,32 @@ export function toDailyWellness(input: {
     ;(getOrCreate(days, date)[field] as number | null) = Math.round((sum / n) * 10) / 10
   }
 
+  const summaries = input.sleepSummaries ?? []
+  const summarized = new Set(summaries.map((s) => s.date.slice(0, 10)))
+  for (const summary of summaries) {
+    const day = getOrCreate(days, summary.date.slice(0, 10))
+    day.sleepMinutes = summary.duration_minutes ?? day.sleepMinutes
+    day.sleepEfficiency = summary.efficiency_percent ?? day.sleepEfficiency
+    day.sleepDeepMinutes = summary.stages?.deep_minutes ?? null
+    day.sleepRemMinutes = summary.stages?.rem_minutes ?? null
+    day.sleepLightMinutes = summary.stages?.light_minutes ?? null
+    day.sleepAwakeMinutes = summary.stages?.awake_minutes ?? null
+    day.sleepInterruptions = summary.interruptions_count ?? null
+    day.napMinutes = summary.nap_duration_minutes ?? null
+    day.sleepHeartRate = summary.avg_heart_rate_bpm ?? null
+    if (summary.start_time && summary.end_time) {
+      const crossesMidnight = summary.start_time.slice(0, 10) < summary.end_time.slice(0, 10)
+      day.sleepBedtimeMinutes = localMinutes(summary.start_time) - (crossesMidnight ? 1440 : 0)
+      day.sleepWakeMinutes = localMinutes(summary.end_time)
+    }
+    // Mesures de la nuit : plus comparables d'un jour à l'autre que la moyenne de la journée
+    if (summary.avg_hrv_rmssd_ms) day.hrvRmssd = round1(summary.avg_hrv_rmssd_ms)
+    if (summary.avg_respiratory_rate) day.respiratoryRate = round1(summary.avg_respiratory_rate)
+    if (summary.avg_spo2_percent) day.spo2 = round1(summary.avg_spo2_percent)
+  }
+
   for (const sleep of input.sleeps) {
-    if (sleep.is_nap) continue
+    if (sleep.is_nap || summarized.has(localDate(sleep.end_time))) continue
     // Nuit rattachée au jour du réveil
     const day = getOrCreate(days, localDate(sleep.end_time))
     const duration =
@@ -120,12 +197,15 @@ export function toDailyWellness(input: {
     const moderate = activity.intensity_minutes?.moderate ?? activity.moderate_minutes ?? 0
     const vigorous = activity.intensity_minutes?.vigorous ?? activity.vigorous_minutes ?? 0
     if (moderate || vigorous) day.activeMinutes = moderate + vigorous
+    day.activeCaloriesKcal = activity.active_calories_kcal ?? day.activeCaloriesKcal
+    day.sedentaryMinutes = activity.sedentary_minutes ?? day.sedentaryMinutes
   }
 
+  // Scores de la montre : prioritaires sur les séries de secours (Garmin)
   for (const score of input.scores ?? []) {
-    const kind = (score.type ?? score.name ?? '').toLowerCase()
-    const date = (score.date ?? score.timestamp ?? '').slice(0, 10)
-    if (kind === 'sleep' && date) getOrCreate(days, date).sleepScore = score.value
+    const field = SCORE_FIELDS[score.category?.toLowerCase()]
+    if (!field || score.value === null || !score.recorded_at) continue
+    ;(getOrCreate(days, localDate(score.recorded_at))[field] as number | null) = score.value
   }
 
   return [...days.values()].sort((a, b) => a.date.localeCompare(b.date))

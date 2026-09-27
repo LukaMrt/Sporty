@@ -1,3 +1,4 @@
+import CloseFinishedGoal from '#use_cases/planning/close_finished_goal'
 import { test } from '@japa/runner'
 import AutoLinkCompletedSession from '#use_cases/planning/auto_link_completed_session'
 import DetectWeekCompletion from '#use_cases/planning/detect_week_completion'
@@ -147,7 +148,8 @@ test.group('AdvancePlanLifecycle', () => {
       profiles,
       new EchoPlanEngine(),
       new PlanPersister(plans),
-      new ImmediateUnitOfWork()
+      new ImmediateUnitOfWork(),
+      new CloseFinishedGoal(new StaticGoalRepo(), plans)
     )
     const advance = new AdvancePlanLifecycle(
       plans,

@@ -39,5 +39,12 @@ export default class SportSeeder extends BaseSeeder {
         }
       )
     }
+    // Sans métrique d'allure : vitesse (vélo) et renfo n'ont pas de min/km
+    for (const { name, slug } of [
+      { name: 'Vélo', slug: 'cycling' },
+      { name: 'Renforcement', slug: 'strength' },
+    ]) {
+      await Sport.updateOrCreate({ slug }, { name, slug, defaultMetrics: {} })
+    }
   }
 }

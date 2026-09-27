@@ -65,6 +65,45 @@ export default class DailyMetric extends BaseModel {
   declare vo2Max: number | null
 
   @column()
+  declare sleepBedtimeMinutes: number | null
+
+  @column()
+  declare sleepWakeMinutes: number | null
+
+  @column()
+  declare sleepInterruptions: number | null
+
+  @column()
+  declare napMinutes: number | null
+
+  @column()
+  declare sleepHeartRate: number | null
+
+  @column()
+  declare readinessScore: number | null
+
+  @column()
+  declare recoveryScore: number | null
+
+  @column()
+  declare bodyBattery: number | null
+
+  @column()
+  declare stressScore: number | null
+
+  @column()
+  declare strainScore: number | null
+
+  @column()
+  declare heartRateRecovery: number | null
+
+  @column()
+  declare activeCaloriesKcal: number | null
+
+  @column()
+  declare sedentaryMinutes: number | null
+
+  @column()
   declare source: string | null
 
   @column.dateTime({ autoCreate: true })

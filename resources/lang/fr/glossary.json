@@ -150,6 +150,16 @@
       "name": "Allure natation (/100 m)",
       "short": "Temps moyen pour nager 100 m.",
       "read": "Unité standard en natation : 2'00/100m = 1 500 m en 30 minutes."
+    },
+    "hrr": {
+      "name": "FC de récupération (HRR)",
+      "short": "Baisse de la fréquence cardiaque dans la minute qui suit l’arrêt d’un effort.",
+      "read": "Au-delà de 20 bpm : bonne condition cardio. Une valeur qui baisse signale souvent de la fatigue."
+    },
+    "bodyBattery": {
+      "name": "Body Battery (Garmin)",
+      "short": "Réserve d’énergie estimée par Garmin sur 100, à partir de l’HRV, du stress, du sommeil et de l’activité.",
+      "read": "Haute au réveil après une bonne nuit, elle se vide au fil de la journée. Un réveil sous 50 invite à la prudence."
     }
   }
 }

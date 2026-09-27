@@ -24,7 +24,9 @@ import {
 } from '#domain/services/analysis/aggregations'
 import {
   hrvBelowBandStreak,
+  latestWatchScores,
   readinessOf,
+  sleepRegularity,
   recoveryTrend,
   smoothedWeight,
   weakSignals,
@@ -183,6 +185,8 @@ export default class GetAnalysis {
     const readiness = readinessOf(wellness, today, fitness.profile?.trainingStressBalance ?? null)
     const signals = weakSignals(wellness, today)
     const hrvLowStreak = hrvBelowBandStreak(recovery)
+    const sleep = sleepRegularity(wellness, today)
+    const inPeriod = wellness.filter((d) => d.date >= from)
     const correlations = sleepVsEfficiency(sessions, wellness)
     const physiology = physiologySuggestion(all.filter(within(addDaysIso(today, -182), today)))
     const monotony = monotonyByWeek(series)
@@ -245,6 +249,10 @@ export default class GetAnalysis {
         regularity: reg,
         swimPace: swimTrend,
         goal: outlook,
+        sleep,
+        heartRateRecovery: inPeriod.flatMap((d) =>
+          d.heartRateRecovery !== null ? [d.heartRateRecovery] : []
+        ),
       }),
       totals: { current: totals, comparison: comparisonTotals },
       highlights: { ...periodHighlights(sessions), newRecords: brokenRecords },
@@ -304,9 +312,47 @@ export default class GetAnalysis {
         signals,
         weight: smoothedWeight(wellness.filter((d) => d.date >= from)),
         activity: wellness
-          .filter((d) => d.date >= from && (d.steps !== null || d.activeMinutes !== null))
-          .map((d) => ({ date: d.date, steps: d.steps, activeMinutes: d.activeMinutes })),
+          .filter(
+            (d) =>
+              d.date >= from &&
+              (d.steps !== null || d.activeMinutes !== null || d.activeCaloriesKcal !== null)
+          )
+          .map((d) => ({
+            date: d.date,
+            steps: d.steps,
+            activeMinutes: d.activeMinutes,
+            activeCalories: d.activeCaloriesKcal,
+            sedentaryMinutes: d.sedentaryMinutes,
+          })),
         loadVsHrv: loadVsHrv(fitness.series, recovery),
+        sleepRegularity: sleep,
+        sleepSchedule: inPeriod.flatMap((d) =>
+          d.sleepBedtimeMinutes !== null && d.sleepWakeMinutes !== null
+            ? [{ date: d.date, bedtime: d.sleepBedtimeMinutes, wake: d.sleepWakeMinutes }]
+            : []
+        ),
+        watchScores: inPeriod
+          .filter(
+            (d) =>
+              d.readinessScore !== null ||
+              d.recoveryScore !== null ||
+              d.bodyBattery !== null ||
+              d.stressScore !== null ||
+              d.sleepScore !== null
+          )
+          .map((d) => ({
+            date: d.date,
+            readiness: d.readinessScore,
+            recovery: d.recoveryScore,
+            bodyBattery: d.bodyBattery,
+            stress: d.stressScore,
+            sleep: d.sleepScore,
+            strain: d.strainScore,
+          })),
+        latestScores: latestWatchScores(wellness, today),
+        heartRateRecovery: inPeriod.flatMap((d) =>
+          d.heartRateRecovery !== null ? [{ date: d.date, hrr: d.heartRateRecovery }] : []
+        ),
       },
       correlations: {
         sleepVsEfficiency: correlations,

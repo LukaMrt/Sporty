@@ -1,6 +1,7 @@
 import { useTranslation } from '~/hooks/use_translation'
 import type { PlannedSession, PlannedWeek } from '~/types/planning'
 import { sessionDate } from '~/lib/planning_dates'
+import { sportIcon } from '~/lib/sports'
 
 export default function WeekCard({
   week,
@@ -25,8 +26,11 @@ export default function WeekCard({
   const end = sessionDate(planStartDate, week.weekNumber, 0)
   const fmt = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' })
 
-  const runningSessions = sessions.filter((s) => s.sessionType !== 'rest')
-  const phaseLabel = t(`planning.phases.${week.phaseName}`) ?? week.phaseLabel
+  const realSessions = sessions.filter((s) => s.sessionType !== 'rest')
+  const phaseLabel =
+    week.phaseName === 'custom' ? week.phaseLabel : t(`planning.phases.${week.phaseName}`)
+  // Répartition par sport (icônes) : utile pour les plans multisports
+  const bySport = [...new Set(realSessions.map((s) => s.sportSlug))]
 
   return (
     <button
@@ -57,11 +61,16 @@ export default function WeekCard({
         </span>
       </div>
       <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-        <span>{phaseLabel}</span>
-        <span>·</span>
+        {phaseLabel && (
+          <>
+            <span>{phaseLabel}</span>
+            <span>·</span>
+          </>
+        )}
         <span>{week.targetVolumeMinutes} min</span>
         <span>·</span>
-        <span>{t('planning.overview.sessionCount', { n: runningSessions.length })}</span>
+        <span>{t('planning.overview.sessionCount', { n: realSessions.length })}</span>
+        {bySport.length > 1 && <span aria-hidden="true">{bySport.map(sportIcon).join(' ')}</span>}
       </div>
     </button>
   )

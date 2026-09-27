@@ -108,6 +108,18 @@ export function TodayFormCard({
             </dd>
           </div>
         )}
+        {form.watchScore && (
+          <div>
+            <dt className="text-xs text-muted-foreground">
+              {t('dashboard.today.watchScore', {
+                score: t(`analysis.recovery.scores.${form.watchScore.field}`),
+              })}
+            </dt>
+            <dd className="font-semibold tabular-nums">
+              {formatNumber(form.watchScore.value, locale, 0)}
+            </dd>
+          </div>
+        )}
         {form.current && (
           <div>
             <dt className="text-xs text-muted-foreground">
@@ -174,10 +186,10 @@ export function WeekCard({ week, today }: { week: TodayOverview['week']; today: 
                 pending.map((p, i) => (
                   <span
                     key={i}
-                    title={`${t(`planning.sessions.types.${p.sessionType}`)} · ${p.minutes} min`}
-                    className="flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-primary/60 text-[9px] text-primary"
+                    title={`${p.title ?? t(`planning.sessions.types.${p.sessionType}`)} · ${p.minutes} min`}
+                    className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-primary/60 text-xs opacity-70"
                   >
-                    {p.minutes}
+                    {sportIcon(p.sportSlug)}
                   </span>
                 ))}
             </li>

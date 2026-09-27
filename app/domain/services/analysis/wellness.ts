@@ -191,3 +191,62 @@ export function smoothedWeight(
   }
   return out
 }
+
+// ── Régularité du sommeil ─────────────────────────────────────────────────────
+
+export type SleepRegularity = {
+  /** Nuits mesurées sur la fenêtre */
+  nights: number
+  /** Durée moyenne des nuits (min) */
+  avgMinutes: number | null
+  /** Écart-type de l'heure de coucher (min) : plus il est grand, plus les horaires varient */
+  bedtimeSd: number | null
+  /** Coucher moyen (minutes par rapport à minuit, négatif = la veille) */
+  avgBedtime: number | null
+}
+
+/** Sommeil des `days` dernières nuits (horaires et durée) */
+export function sleepRegularity(series: DailyWellness[], date: string, days = 14): SleepRegularity {
+  const window = series.filter((d) => d.date > addDaysIso(date, -days) && d.date <= date)
+  const durations = window.flatMap((d) => (d.sleepMinutes !== null ? [d.sleepMinutes] : []))
+  const bedtimes = window.flatMap((d) =>
+    d.sleepBedtimeMinutes !== null ? [d.sleepBedtimeMinutes] : []
+  )
+  const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length
+  const avgBedtime = bedtimes.length > 0 ? mean(bedtimes) : null
+  return {
+    nights: durations.length,
+    avgMinutes: durations.length > 0 ? Math.round(mean(durations)) : null,
+    bedtimeSd:
+      bedtimes.length >= 5 && avgBedtime !== null
+        ? Math.round(Math.sqrt(mean(bedtimes.map((b) => (b - avgBedtime) ** 2))))
+        : null,
+    avgBedtime: avgBedtime !== null ? Math.round(avgBedtime) : null,
+  }
+}
+
+// ── Scores de la montre ───────────────────────────────────────────────────────
+
+export const WATCH_SCORE_FIELDS = [
+  'readinessScore',
+  'recoveryScore',
+  'bodyBattery',
+  'sleepScore',
+  'stressScore',
+  'strainScore',
+] as const
+
+export type WatchScoreField = (typeof WATCH_SCORE_FIELDS)[number]
+
+/** Dernière valeur connue de chaque score (sur les `days` derniers jours) */
+export function latestWatchScores(
+  series: DailyWellness[],
+  date: string,
+  days = 2
+): { field: WatchScoreField; value: number; date: string }[] {
+  const recent = series.filter((d) => d.date > addDaysIso(date, -days) && d.date <= date)
+  return WATCH_SCORE_FIELDS.flatMap((field) => {
+    const day = recent.findLast((d) => d[field] !== null)
+    return day ? [{ field, value: day[field]!, date: day.date }] : []
+  })
+}

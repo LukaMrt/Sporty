@@ -79,6 +79,11 @@ function emptyAnalysis(overrides: Partial<AnalysisData> = {}): AnalysisData {
       weight: [],
       activity: [],
       loadVsHrv: [],
+      sleepRegularity: { nights: 0, avgMinutes: null, bedtimeSd: null, avgBedtime: null },
+      sleepSchedule: [],
+      watchScores: [],
+      latestScores: [],
+      heartRateRecovery: [],
     },
     correlations: { sleepVsEfficiency: [], coefficient: null },
     recentSessions: [],
@@ -177,6 +182,19 @@ describe('Page Analyse', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'analysis.nav.recovery' }))
     expect(screen.getByText(/analysis\.recovery\.levels\.good/)).toBeTruthy()
+  })
+
+  it('affiche les scores de la montre quand ils existent', () => {
+    const data = withData()
+    data.recovery.latestScores = [
+      { field: 'bodyBattery', value: 78, date: '2026-03-01' },
+      { field: 'readinessScore', value: 64, date: '2026-03-01' },
+    ]
+    render(<AnalysisIndex analysis={data} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'analysis.nav.recovery' }))
+    expect(screen.getByText('analysis.recovery.watchScores')).toBeTruthy()
+    expect(screen.getByText('78')).toBeTruthy()
+    expect(screen.getByText('64')).toBeTruthy()
   })
 
   it('états vides explicites dans les onglets sans données', () => {

@@ -27,6 +27,9 @@ export type HelpId =
   | 'loadVsHrv'
   | 'correlation'
   | 'swimPace'
+  | 'watchScores'
+  | 'sleepSchedule'
+  | 'hrr'
 
 /**
  * Aide de niveau 1 : discrète (petit lien gris), elle explique comment lire le

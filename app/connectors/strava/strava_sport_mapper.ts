@@ -14,6 +14,8 @@ const SPORT_TYPE_MAP: Record<string, SportySportSlug> = {
   Swim: 'swimming',
   Walk: 'walking',
   Hike: 'hiking',
+  WeightTraining: 'strength',
+  Crossfit: 'strength',
 }
 
 export class StravaSportMapper {
