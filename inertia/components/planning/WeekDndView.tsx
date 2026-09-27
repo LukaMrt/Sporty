@@ -16,15 +16,15 @@ import {
 import { router } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 import { useUnitConversion } from '~/hooks/use_unit_conversion'
-import type { PlannedSession } from '~/types/planning'
+import { Plus } from 'lucide-react'
+import type { PlannedSession, SportOption } from '~/types/planning'
 import { ZONE_COLORS } from '~/lib/planning_colors'
+import { sportIcon } from '~/lib/sports'
 import PlannedSessionDetail from './PlannedSessionDetail'
-import EditSessionSheet from './EditSessionSheet'
+import SessionEditor, { DAY_ORDER } from './SessionEditor'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 
 // ── Constantes ────────────────────────────────────────────────────────────────
-
-const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
 function parsePaceString(pace: string): number {
   const [min, sec] = pace.split(':').map(Number)
@@ -35,7 +35,8 @@ function parsePaceString(pace: string): number {
 
 type DaySlot = {
   dow: number
-  session: PlannedSession | null
+  /** Séances du jour, dans l'ordre de la journée (hors repos) */
+  sessions: PlannedSession[]
   date: Date
   isToday: boolean
 }
@@ -45,6 +46,7 @@ type Props = {
   planStartDate: string
   selectedWeek: number
   locale: string
+  sports: SportOption[]
   /** Callback optimiste : met à jour la session dans le state parent */
   onSessionUpdated: (updated: PlannedSession) => void
   /** Affiche le badge ⚡ sur les séances (ACWR > 1.3 sur la semaine courante) */
@@ -105,7 +107,8 @@ function DraggableSessionCard({
         />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-foreground leading-tight flex items-center gap-1.5">
-            {t(`planning.sessions.types.${session.sessionType}`)}
+            <span aria-hidden="true">{sportIcon(session.sportSlug)}</span>
+            {session.title ?? t(`planning.sessions.types.${session.sessionType}`)}
             {isCompleted && <span className="text-emerald-500">✓</span>}
             {showAcwrBadge && !isCompleted && (
               <span className="text-xs text-orange-500" title="Charge élevée">
@@ -118,6 +121,13 @@ function DraggableSessionCard({
             {session.targetDistanceKm && <span>· {session.targetDistanceKm} km</span>}
             {session.targetPacePerKm && (
               <span>· {formatSpeed(parsePaceString(session.targetPacePerKm))}</span>
+            )}
+            {session.targetPacePer100m && <span>· {session.targetPacePer100m}/100 m</span>}
+            {session.targetPowerWatts && <span>· {session.targetPowerWatts} W</span>}
+            {session.title && (
+              <span className="truncate">
+                · {t(`planning.sessions.types.${session.sessionType}`)}
+              </span>
             )}
           </div>
         </div>
@@ -156,7 +166,8 @@ function GhostCard({ session, width }: { session: PlannedSession; width?: number
       />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-foreground leading-tight">
-          {t(`planning.sessions.types.${session.sessionType}`)}
+          {sportIcon(session.sportSlug)}{' '}
+          {session.title ?? t(`planning.sessions.types.${session.sessionType}`)}
         </div>
         <div className="text-xs text-muted-foreground">{session.targetDurationMinutes} min</div>
       </div>
@@ -201,17 +212,21 @@ function DroppableDaySlot({
 
 // ── Composant principal ───────────────────────────────────────────────────────
 
-export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = false }: Props) {
+export default function WeekDndView({
+  days,
+  selectedWeek,
+  sports,
+  onSessionUpdated,
+  showAcwrBadge = false,
+}: Props) {
   const { t, locale } = useTranslation()
   const [openSessionId, setOpenSessionId] = useState<number | null>(null)
   const [draggingSession, setDraggingSession] = useState<PlannedSession | null>(null)
   const [dragWidth, setDragWidth] = useState<number | undefined>()
-  const [editingSession, setEditingSession] = useState<PlannedSession | null>(null)
+  /** Éditeur : séance existante, ou création sur un jour donné */
+  const [editor, setEditor] = useState<{ session: PlannedSession | null; day: number } | null>(null)
 
-  // Jours qui ont déjà une séance — ne doivent pas être droppables
-  const occupiedDows = new Set(
-    days.filter((d) => d.session && d.session.sessionType !== 'rest').map((d) => d.dow)
-  )
+  const allSessions = days.flatMap((d) => d.sessions)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -237,8 +252,7 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
   }
 
   function handleDragStart(event: DragStartEvent) {
-    const session = days.find((d) => d.session?.id === event.active.id)?.session ?? null
-    setDraggingSession(session)
+    setDraggingSession(allSessions.find((s) => s.id === event.active.id) ?? null)
     setDragWidth(event.active.rect.current.translated?.width)
     setOpenSessionId(null)
   }
@@ -249,7 +263,7 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
     if (!over) return
 
     const targetDow = over.id as number
-    const session = days.find((d) => d.session?.id === active.id)?.session
+    const session = allSessions.find((s) => s.id === active.id)
     if (!session || session.dayOfWeek === targetDow) return
 
     // Optimistic update
@@ -258,9 +272,7 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
     router.put(
       `/planning/sessions/${session.id}`,
       { day_of_week: targetDow },
-      {
-        preserveScroll: true,
-      }
+      { preserveScroll: true }
     )
   }
 
@@ -282,9 +294,8 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
           {DAY_ORDER.map((dow) => {
             const slot = days.find((d) => d.dow === dow)
             if (!slot) return null
-            const { session, date, isToday } = slot
-            const hasRealSession = session && session.sessionType !== 'rest'
-            const isRestSlot = !hasRealSession
+            const { sessions, date, isToday } = slot
+            const canDrop = draggingSession !== null && draggingSession.dayOfWeek !== dow
 
             return (
               <div key={dow}>
@@ -302,40 +313,51 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
                       {t('planning.overview.today')}
                     </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => setEditor({ session: null, day: dow })}
+                    className="ml-auto inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label={t('planning.editor.session.addOn', { day: dayName(dow) })}
+                  >
+                    <Plus className="h-3 w-3" aria-hidden="true" />
+                    {t('planning.editor.session.add')}
+                  </button>
                 </div>
 
-                {/* Slot : draggable si séance, droppable si repos */}
-                {hasRealSession ? (
-                  <DraggableSessionCard
-                    session={session}
-                    isToday={isToday}
-                    isOpen={openSessionId === session.id}
-                    showAcwrBadge={showAcwrBadge}
-                    onClick={() =>
-                      setOpenSessionId(openSessionId === session.id ? null : session.id)
-                    }
-                    onEditClick={() => setEditingSession(session)}
-                  />
-                ) : draggingSession && !occupiedDows.has(dow) ? (
-                  <DroppableDaySlot dow={dow} isToday={isToday}>
-                    <span className="flex items-center gap-3">
-                      <span className="flex-shrink-0 w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />
-                      {t('planning.overview.rest')}
-                    </span>
-                  </DroppableDaySlot>
-                ) : (
-                  <div
-                    className={[
-                      'rounded-lg border px-3 py-2 min-h-[42px] flex items-center text-sm text-muted-foreground',
-                      isToday ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted/40',
-                    ].join(' ')}
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="flex-shrink-0 w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />
-                      {isRestSlot ? t('planning.overview.rest') : null}
-                    </span>
-                  </div>
-                )}
+                <div className="space-y-1.5">
+                  {sessions.map((session) => (
+                    <DraggableSessionCard
+                      key={session.id}
+                      session={session}
+                      isToday={isToday}
+                      isOpen={openSessionId === session.id}
+                      showAcwrBadge={showAcwrBadge}
+                      onClick={() =>
+                        setOpenSessionId(openSessionId === session.id ? null : session.id)
+                      }
+                      onEditClick={() => setEditor({ session, day: session.dayOfWeek })}
+                    />
+                  ))}
+                  {canDrop ? (
+                    <DroppableDaySlot dow={dow} isToday={isToday}>
+                      <span className="text-xs">{t('planning.overview.dropHere')}</span>
+                    </DroppableDaySlot>
+                  ) : (
+                    sessions.length === 0 && (
+                      <div
+                        className={[
+                          'rounded-lg border px-3 py-2 min-h-[42px] flex items-center text-sm text-muted-foreground',
+                          isToday ? 'border-primary/30 bg-primary/5' : 'border-border bg-muted/40',
+                        ].join(' ')}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="flex-shrink-0 w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />
+                          {t('planning.overview.rest')}
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
             )
           })}
@@ -346,14 +368,24 @@ export default function WeekDndView({ days, onSessionUpdated, showAcwrBadge = fa
         </DragOverlay>
       </DndContext>
 
-      {/* Dialog "Modifier" */}
-      <Dialog open={!!editingSession} onOpenChange={(open) => !open && setEditingSession(null)}>
-        <DialogContent className="max-w-sm">
+      {/* Éditeur de séance (création ou modification) */}
+      <Dialog open={editor !== null} onOpenChange={(open) => !open && setEditor(null)}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t('planning.overview.editTitle')}</DialogTitle>
+            <DialogTitle>
+              {editor?.session
+                ? t('planning.overview.editTitle')
+                : t('planning.editor.session.newTitle')}
+            </DialogTitle>
           </DialogHeader>
-          {editingSession && (
-            <EditSessionSheet session={editingSession} onClose={() => setEditingSession(null)} />
+          {editor && (
+            <SessionEditor
+              session={editor.session}
+              weekNumber={selectedWeek}
+              defaultDay={editor.day}
+              sports={sports}
+              onClose={() => setEditor(null)}
+            />
           )}
         </DialogContent>
       </Dialog>

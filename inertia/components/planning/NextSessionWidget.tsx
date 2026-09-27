@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react'
 import { useTranslation } from '~/hooks/use_translation'
 import { ZONE_COLORS } from '~/lib/planning_colors'
+import { sportIcon } from '~/lib/sports'
 import type { PlannedSession } from '~/types/planning'
 
 export type NextSessionResult =
@@ -91,7 +92,8 @@ function SessionSummary({ session, zoneColor, t }: SessionSummaryProps) {
       <span className={`block w-2.5 h-2.5 rounded-full flex-shrink-0 ${zoneColor}`} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground">
-          {t(`planning.sessions.types.${session.sessionType}`)}
+          <span aria-hidden="true">{sportIcon(session.sportSlug ?? 'running')} </span>
+          {session.title ?? t(`planning.sessions.types.${session.sessionType}`)}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">
           {session.targetDurationMinutes} min

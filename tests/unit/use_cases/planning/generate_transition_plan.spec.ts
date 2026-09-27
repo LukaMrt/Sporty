@@ -1,3 +1,5 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 import { test } from '@japa/runner'
 import { ImmediateUnitOfWork } from '#tests/helpers/base_mocks'
 import PlanPersister from '#use_cases/planning/plan_persister'
@@ -44,6 +46,9 @@ const COMPLETED_PLAN: TrainingPlan = {
   endDate: '2026-03-01',
   lastRecalibratedAt: null,
   pendingVdotDown: null,
+  source: PlanSource.Generated,
+  name: null,
+  notes: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -82,6 +87,7 @@ function makeWeeks(count: number, volumeMinutes = 300): PlannedWeek[] {
     phaseLabel: 'Affûtage',
     isRecoveryWeek: false,
     targetVolumeMinutes: volumeMinutes,
+    notes: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }))
@@ -138,6 +144,7 @@ function makePlanRepo(
         phaseLabel: 'Transition',
         isRecoveryWeek: false,
         targetVolumeMinutes: 150,
+        notes: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -152,6 +159,7 @@ function makePlanRepo(
         weekNumber: 1,
         dayOfWeek: 1,
         sessionType: SessionType.Easy,
+        ...SESSION_EXTRAS_DEFAULTS,
         targetDurationMinutes: 45,
         targetDistanceKm: null,
         targetPacePerKm: '6:00',
@@ -259,6 +267,7 @@ function makeEngine(
           phaseName: 'TRANS',
           isRecoveryWeek: false,
           targetVolumeMinutes: 150,
+          notes: null,
           sessions: [],
         })),
       }
@@ -337,6 +346,7 @@ test.group('GenerateTransitionPlan', () => {
         phaseLabel: 'Fondation',
         isRecoveryWeek: true,
         targetVolumeMinutes: 200,
+        notes: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },

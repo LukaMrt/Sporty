@@ -6,7 +6,6 @@ import {
   sameRoute,
   trackPreview,
 } from '#domain/services/analysis/route'
-import { parseImportedPlan } from '#domain/services/plan_import_parser'
 import { newRecords } from '#domain/services/analysis/report'
 import type { GpsPoint } from '#domain/value_objects/run_metrics'
 
@@ -46,34 +45,7 @@ test.group('Parcours', () => {
   })
 })
 
-test.group('Plan importé', () => {
-  test('liste Markdown : date, titre, durée, distance, notes', ({ assert }) => {
-    const r = parseImportedPlan(
-      '# Semaine 1\n- 2026-03-02 : Footing 45 min (Z2)\n- **04/03/2026** — Seuil 1h15 12,5 km'
-    )
-    assert.isTrue(r.ok)
-    if (!r.ok) return
-    assert.deepEqual(r.entries[0], {
-      date: '2026-03-02',
-      title: 'Footing 45 min',
-      targetDurationMinutes: 45,
-      targetDistanceKm: null,
-      notes: 'Z2',
-    })
-    assert.equal(r.entries[1].date, '2026-03-04')
-    assert.equal(r.entries[1].targetDurationMinutes, 75)
-    assert.equal(r.entries[1].targetDistanceKm, 12.5)
-  })
-
-  test('JSON et erreurs', ({ assert }) => {
-    const ok = parseImportedPlan('[{"date":"2026-03-02","title":"VMA","duration_minutes":50}]')
-    assert.isTrue(ok.ok)
-    assert.deepEqual(parseImportedPlan(''), { ok: false, error: 'empty' })
-    assert.deepEqual(parseImportedPlan('[{"date":"demain"}]'), { ok: false, error: 'invalid_date' })
-    assert.deepEqual(parseImportedPlan('pas de date ici'), { ok: false, error: 'no_entries' })
-    assert.deepEqual(parseImportedPlan('[oops'), { ok: false, error: 'invalid_json' })
-  })
-
+test.group('Bilan de période', () => {
   test('nouveaux records de la période', ({ assert }) => {
     const rec = (distance: 5000 | 10000, seconds: number) => ({
       distance,

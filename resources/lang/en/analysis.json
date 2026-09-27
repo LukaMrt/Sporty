@@ -208,7 +208,7 @@
   "links": {
     "report": "Weekly / monthly report",
     "map": "Map of my tracks",
-    "plan": "Plan imported from Claude",
+    "plan": "Create / revise my plan with Claude",
     "help": "Understanding my metrics"
   },
   "map": {

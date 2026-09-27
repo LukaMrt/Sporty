@@ -1,3 +1,4 @@
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 import { test } from '@japa/runner'
 import RecalibratePlan from '#use_cases/planning/recalibrate_plan'
 import PlanRecalibrator from '#use_cases/planning/plan_recalibrator'
@@ -23,6 +24,7 @@ async function setup(options: { autoRecalibrate?: boolean; sessionType?: Session
     startDate: '2026-01-05',
     weeks: 4,
     sessionType: options.sessionType ?? SessionType.Tempo,
+    ...SESSION_EXTRAS_DEFAULTS,
     autoRecalibrate: options.autoRecalibrate,
   })
   const useCase = new RecalibratePlan(

@@ -301,6 +301,8 @@ export type WeekSession = Pick<
 export type WeekPlanned = {
   date: string
   sessionType: string
+  sportSlug: string
+  title: string | null
   minutes: number
   tss: number
   intensityZone: string

@@ -208,7 +208,7 @@
   "links": {
     "report": "Bilan de la semaine / du mois",
     "map": "Carte de mes traces",
-    "plan": "Plan importé de Claude",
+    "plan": "Créer / réviser mon plan avec Claude",
     "help": "Comprendre mes métriques"
   },
   "map": {

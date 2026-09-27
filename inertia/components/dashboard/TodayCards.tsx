@@ -186,10 +186,10 @@ export function WeekCard({ week, today }: { week: TodayOverview['week']; today: 
                 pending.map((p, i) => (
                   <span
                     key={i}
-                    title={`${t(`planning.sessions.types.${p.sessionType}`)} · ${p.minutes} min`}
-                    className="flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-primary/60 text-[9px] text-primary"
+                    title={`${p.title ?? t(`planning.sessions.types.${p.sessionType}`)} · ${p.minutes} min`}
+                    className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-primary/60 text-xs opacity-70"
                   >
-                    {p.minutes}
+                    {sportIcon(p.sportSlug)}
                   </span>
                 ))}
             </li>

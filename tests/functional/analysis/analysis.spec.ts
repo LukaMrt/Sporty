@@ -4,7 +4,6 @@ import { getUser, getUser2 } from '#tests/helpers'
 import Session from '#models/session'
 import type User from '#models/user'
 import type { ApiClient } from '@japa/api-client'
-import ImportedPlanEntry from '#models/imported_plan_entry'
 
 test.group('Analyse', (group) => {
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
@@ -92,7 +91,7 @@ test.group('Analyse / vues complémentaires', (group) => {
     for (const [url, component] of [
       ['/analysis/map', 'Analysis/Map'],
       ['/analysis/report?period=month', 'Analysis/Report'],
-      ['/plan', 'Plan/Index'],
+      ['/planning/import', 'Planning/Import'],
     ]) {
       const response = await inertia(client, url, user)
       response.assertStatus(200)
@@ -111,15 +110,10 @@ test.group('Analyse / vues complémentaires', (group) => {
     response.assertStatus(404)
   })
 
-  test('import de plan puis affichage', async ({ client, assert }) => {
+  test('/plan redirige vers l’import Claude du planning', async ({ client }) => {
     const user = await getUser()
-    const response = await client
-      .post('/plan')
-      .form({ plan: '- 2026-03-02 : Footing 45 min' })
-      .loginAs(user)
-      .redirects(0)
+    const response = await client.get('/plan').loginAs(user).redirects(0)
     response.assertStatus(302)
-    const rows = await ImportedPlanEntry.query().where('userId', user.id)
-    assert.lengthOf(rows, 1)
+    response.assertHeader('location', '/planning/import')
   })
 })

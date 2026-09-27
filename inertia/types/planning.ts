@@ -14,7 +14,8 @@ export type TrainingGoal = {
   updatedAt: string
 }
 
-export type TrainingMethodology = 'polarized' | 'pyramidal' | 'threshold' | 'daniels'
+export type TrainingMethodology = 'polarized' | 'pyramidal' | 'threshold' | 'daniels' | 'custom'
+export type PlanSource = 'generated' | 'imported'
 export type PlanType = 'marathon' | 'half_marathon' | '10km' | '5km' | 'custom'
 export type PlanStatus = 'draft' | 'active' | 'completed' | 'abandoned'
 
@@ -34,6 +35,9 @@ export type TrainingPlan = {
   endDate: string
   lastRecalibratedAt: string | null
   pendingVdotDown: number | null
+  source: PlanSource
+  name: string | null
+  notes: string | null
   createdAt: string
   updatedAt: string
 }
@@ -46,6 +50,7 @@ export type PlannedWeek = {
   phaseLabel: string
   isRecoveryWeek: boolean
   targetVolumeMinutes: number
+  notes: string | null
   createdAt: string
   updatedAt: string
 }
@@ -60,6 +65,9 @@ export type SessionType =
   | 'recovery'
   | 'race'
   | 'cross_training'
+  | 'strength'
+  | 'mobility'
+  | 'technique'
   | 'rest'
 
 export type IntensityZone = 'z1' | 'z2' | 'z3' | 'z4' | 'z5'
@@ -74,7 +82,20 @@ export type IntervalBlock = {
   repetitions: number
   recoveryDurationMinutes: number | null
   recoveryType: 'jog' | 'rest' | null
+  targetPowerWatts?: number | null
+  notes?: string | null
 }
+
+export type StrengthExercise = {
+  name: string
+  sets: number | null
+  reps: string | null
+  load: string | null
+  restSeconds: number | null
+  notes: string | null
+}
+
+export type SportOption = { slug: string; name: string }
 
 export type PlannedSession = {
   id: number
@@ -82,9 +103,17 @@ export type PlannedSession = {
   weekNumber: number
   dayOfWeek: number
   sessionType: SessionType
+  sportSlug: string
+  title: string | null
+  description: string
   targetDurationMinutes: number
   targetDistanceKm: number | null
   targetPacePerKm: string | null
+  targetPacePer100m: string | null
+  targetPowerWatts: number | null
+  targetRpe: number | null
+  exercises: StrengthExercise[] | null
+  orderInDay: number
   intensityZone: IntensityZone
   intervals: IntervalBlock[] | null
   targetLoadTss: number | null

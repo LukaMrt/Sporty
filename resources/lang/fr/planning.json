@@ -238,15 +238,18 @@
   },
   "sessions": {
     "types": {
-      "easy": "Course facile",
+      "easy": "Endurance facile",
       "long_run": "Sortie longue",
-      "tempo": "Séance au seuil",
-      "marathon_pace": "Allure marathon",
-      "interval": "Intervalles VO₂max",
+      "tempo": "Seuil / tempo",
+      "marathon_pace": "Allure spécifique",
+      "interval": "Fractionné VO₂max",
       "repetition": "Répétitions vitesse",
       "recovery": "Récupération",
       "race": "Course / compétition",
       "cross_training": "Cross-training",
+      "strength": "Renforcement",
+      "mobility": "Mobilité",
+      "technique": "Technique / éducatifs",
       "rest": "Repos"
     },
     "withStrides": "{{session}} + strides"
@@ -399,5 +402,160 @@
     "dropped": "Séance déplacée à {day}.",
     "cancelled": "Déplacement annulé.",
     "instructions": "Pour déplacer une séance, appuie sur Espace, utilise les flèches pour choisir le jour, puis Espace pour déposer ou Échap pour annuler."
+  },
+  "editor": {
+    "createWithClaude": "Créer mon plan avec Claude",
+    "reviseWithClaude": "Réviser avec Claude",
+    "export": "Exporter le plan (JSON)",
+    "saved": "Modifications enregistrées",
+    "weekAdded": "Semaine ajoutée",
+    "weekDeleted": "Semaine supprimée",
+    "sessionAdded": "Séance ajoutée",
+    "sessionDeleted": "Séance supprimée",
+    "rpeValue": "RPE {rpe}/10",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "remove": "Retirer",
+    "zones": {
+      "z1": "Z1 · très facile",
+      "z2": "Z2 · endurance",
+      "z3": "Z3 · tempo",
+      "z4": "Z4 · seuil",
+      "z5": "Z5 · VO₂max"
+    },
+    "imported": {
+      "replace": "Plan importé : {weeks} semaines, {sessions} séances",
+      "merge": "Plan mis à jour : {weeks} semaines révisées"
+    },
+    "errors": {
+      "invalidDocument": "Le plan envoyé est invalide",
+      "weekNotFound": "Semaine introuvable dans le plan actif",
+      "unknownSport": "Sport inconnu",
+      "weekHasCompletedSessions": "Impossible de supprimer une semaine qui contient des séances réalisées"
+    },
+    "plan": {
+      "title": "Modifier le plan",
+      "name": "Nom du plan",
+      "notes": "Consignes générales",
+      "edit": "Modifier le plan",
+      "defaultName": "Mon plan",
+      "source": {
+        "generated": "Généré par Sporty",
+        "imported": "Rédigé avec Claude"
+      }
+    },
+    "week": {
+      "edit": "Modifier la semaine",
+      "phase": "Phase",
+      "phasePlaceholder": "Base, Développement, Affûtage…",
+      "notes": "Objectif et consignes de la semaine",
+      "delete": "Supprimer cette semaine",
+      "confirmDelete": "Supprimer la semaine {n} et ses séances ? Les semaines suivantes avanceront d’un cran.",
+      "add": "Ajouter une semaine",
+      "addTitle": "Nouvelle semaine",
+      "copyFrom": "Contenu",
+      "empty": "Semaine vide"
+    },
+    "session": {
+      "add": "Ajouter",
+      "addOn": "Ajouter une séance le {day}",
+      "newTitle": "Nouvelle séance",
+      "day": "Jour",
+      "sport": "Sport",
+      "type": "Type de séance",
+      "zone": "Intensité",
+      "title": "Titre",
+      "titlePlaceholder": "6 × 1000 m, Renfo haut du corps…",
+      "duration": "Durée (min)",
+      "distance": "Distance (km)",
+      "pacePerKm": "Allure (/km)",
+      "pacePer100m": "Allure (/100 m)",
+      "power": "Puissance (W)",
+      "rpe": "Effort perçu (1-10)",
+      "description": "Consignes",
+      "descriptionPlaceholder": "Déroulé, sensations recherchées, conseils…",
+      "delete": "Supprimer",
+      "confirmDelete": "Supprimer cette séance ?",
+      "errors": {
+        "duration": "Indique une durée d’au moins 1 minute.",
+        "pace": "Allure au format M:SS (ex. 5:30).",
+        "blockLength": "Chaque bloc a besoin d’une durée ou d’une distance.",
+        "exerciseName": "Chaque exercice a besoin d’un nom.",
+        "server": "Enregistrement impossible : vérifie les champs."
+      }
+    },
+    "blocks": {
+      "title": "Structure de la séance",
+      "empty": "Aucun bloc : séance continue. Ajoute des blocs pour un fractionné (échauffement, répétitions, retour au calme).",
+      "type": "Type de bloc",
+      "repeat": "Répétitions",
+      "duration": "Durée (min)",
+      "distance": "Distance (m)",
+      "recovery": "Récup (min)",
+      "recoveryType": "Récup",
+      "notes": "Consigne",
+      "add": "Ajouter un bloc"
+    },
+    "exercises": {
+      "title": "Exercices",
+      "name": "Exercice",
+      "sets": "Séries",
+      "reps": "Répétitions",
+      "load": "Charge",
+      "rest": "Récup (s)",
+      "add": "Ajouter un exercice",
+      "restValue": "récup {s} s"
+    },
+    "import": {
+      "title": "Plan avec Claude",
+      "intro": "Construis ou fais évoluer ton plan avec Claude : Sporty lui donne ton profil et le format exact à respecter, puis importe sa réponse en un clic.",
+      "modes": {
+        "create": "Créer un nouveau plan",
+        "revise": "Réviser mon plan actuel"
+      },
+      "step1": {
+        "title": "Copie le prompt dans Claude",
+        "create": "Le prompt contient ton profil (zones cardiaques, allures, CSS), ta forme, ton volume récent par sport et le format du plan attendu.",
+        "revise": "Le prompt contient en plus ton plan actuel et la semaine en cours : dis ensuite à Claude ce que tu veux changer (semaines, séances, sports…)."
+      },
+      "copyPrompt": "Copier le prompt",
+      "copied": "Copié !",
+      "showPrompt": "Voir le prompt",
+      "promptError": "Impossible de générer le prompt.",
+      "step2": {
+        "title": "Échange avec Claude",
+        "text": "Réponds à ses questions (objectif, disponibilités, blessures…). Sa réponse finale est un bloc JSON : copie-le en entier."
+      },
+      "step3": {
+        "title": "Colle la réponse de Claude",
+        "text": "Sporty vérifie le document avant de l’importer. En cas d’erreur, rien n’est modifié : renvoie la liste des corrections à Claude."
+      },
+      "detected": {
+        "replace": "Mode « replace » : le plan collé remplacera ton plan actuel (qui reste dans l’historique).",
+        "merge": "Mode « merge » : seules les semaines fournies seront mises à jour ; les séances déjà réalisées sont conservées."
+      },
+      "submit": "Vérifier et importer",
+      "importing": "Import…",
+      "invalid": "{count} point(s) à corriger — rien n’a été importé :",
+      "copyErrors": "Copier les corrections pour Claude",
+      "errorsIntro": "Sporty a refusé ton plan. Corrige ces points et renvoie le document JSON complet :",
+      "confirmReplace": "Ce plan va remplacer ton plan actuel (qui restera dans l’historique). Continuer ?",
+      "failed": "L’import a échoué. Réessaie.",
+      "codes": {
+        "invalid_json": "JSON illisible (bloc incomplet ou mal formé)",
+        "required": "champ obligatoire manquant {expected}",
+        "invalid_type": "type incorrect (attendu : {expected})",
+        "invalid_value": "valeur non autorisée (valeurs possibles : {expected})",
+        "invalid_date": "date invalide (format {expected})",
+        "not_monday": "la date de début doit être un lundi",
+        "invalid_pace": "allure invalide (format {expected})",
+        "invalid_time": "temps invalide (format {expected})",
+        "out_of_range": "valeur hors limites ({expected})",
+        "duplicate_week": "numéro de semaine en double",
+        "empty": "aucune semaine",
+        "unsupported_version": "version non gérée (attendu : {expected})",
+        "no_active_plan": "le mode « merge » demande un plan actif : utilise « replace »"
+      }
+    }
   }
 }

@@ -10,6 +10,7 @@ import GenerateMaintenancePlan from '#use_cases/planning/generate_maintenance_pl
 import AbandonPlan from '#use_cases/planning/abandon_plan'
 import GetPostPlanState from '#use_cases/planning/get_post_plan_state'
 import AdvancePlanLifecycle from '#use_cases/planning/advance_plan_lifecycle'
+import ListSports from '#use_cases/sports/list_sports'
 import { generatePlanValidator } from '#validators/planning/generate_plan_validator'
 import {
   adjustSessionValidator,
@@ -34,7 +35,8 @@ export default class PlanningController {
     private generateMaintenancePlanUseCase: GenerateMaintenancePlan,
     private abandonPlanUseCase: AbandonPlan,
     private getPostPlanStateUseCase: GetPostPlanState,
-    private advancePlanLifecycle: AdvancePlanLifecycle
+    private advancePlanLifecycle: AdvancePlanLifecycle,
+    private listSports: ListSports
   ) {}
 
   /** Traduit une erreur métier (clé i18n si disponible) */
@@ -47,7 +49,10 @@ export default class PlanningController {
     const user = auth.getUserOrFail()
     // Transitions explicites (idempotentes, sous verrou) avant la lecture
     await this.advancePlanLifecycle.execute(user.id)
-    const overview = await this.getPlanOverview.execute(user.id)
+    const [overview, sports] = await Promise.all([
+      this.getPlanOverview.execute(user.id),
+      this.listSports.execute(),
+    ])
 
     if (overview) {
       const { fitnessProfile, ...rest } = overview
@@ -66,11 +71,17 @@ export default class PlanningController {
           daysSinceLastSession: rest.daysSinceLastSession,
         },
         postPlanState: null,
+        // Sports planifiables (éditeur de séance)
+        sports: sports.map((s) => ({ slug: s.slug, name: s.name })),
       })
     }
 
     const postPlanState = await this.getPostPlanStateUseCase.execute(user.id)
-    return inertia.render('Planning/Index', { overview: null, postPlanState })
+    return inertia.render('Planning/Index', {
+      overview: null,
+      postPlanState,
+      sports: sports.map((s) => ({ slug: s.slug, name: s.name })),
+    })
   }
 
   async weekDetail({ params, auth, response }: HttpContext) {

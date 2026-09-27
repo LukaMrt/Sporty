@@ -1,7 +1,12 @@
 import { DateTime } from 'luxon'
-import type { TrainingPlan } from '#domain/entities/training_plan'
-import type { PlannedWeek } from '#domain/entities/planned_week'
-import type { PlannedSession } from '#domain/entities/planned_session'
+import type { NewTrainingPlan, TrainingPlan } from '#domain/entities/training_plan'
+import type { NewPlannedWeek, PlannedWeek } from '#domain/entities/planned_week'
+import {
+  SESSION_EXTRAS_DEFAULTS,
+  type NewPlannedSession,
+  type PlannedSession,
+} from '#domain/entities/planned_session'
+import { PlanSource } from '#domain/value_objects/planning_types'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import TrainingPlanModel from '#models/training_plan'
 import PlannedWeekModel from '#models/planned_week'
@@ -9,7 +14,7 @@ import PlannedSessionModel from '#models/planned_session'
 import { txOptions } from '#repositories/transaction_context'
 
 export default class LucidTrainingPlanRepository extends TrainingPlanRepository {
-  async create(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<TrainingPlan> {
+  async create(data: NewTrainingPlan): Promise<TrainingPlan> {
     const model = await TrainingPlanModel.create(
       {
         userId: data.userId,
@@ -27,6 +32,9 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
         lastRecalibratedAt: data.lastRecalibratedAt
           ? DateTime.fromISO(data.lastRecalibratedAt)
           : null,
+        source: data.source ?? PlanSource.Generated,
+        name: data.name ?? null,
+        notes: data.notes ?? null,
       },
       txOptions()
     )
@@ -98,6 +106,9 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
         ? DateTime.fromISO(data.lastRecalibratedAt)
         : null
     if (data.pendingVdotDown !== undefined) model.pendingVdotDown = data.pendingVdotDown ?? null
+    if (data.source !== undefined) model.source = data.source
+    if (data.name !== undefined) model.name = data.name
+    if (data.notes !== undefined) model.notes = data.notes
     await model.save()
     return this.#toEntity(model)
   }
@@ -106,18 +117,17 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     await TrainingPlanModel.query(txOptions()).where('id', id).delete()
   }
 
-  async createWeek(
-    data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<PlannedWeek> {
-    const model = await PlannedWeekModel.create(data, txOptions())
+  async createWeek(data: NewPlannedWeek): Promise<PlannedWeek> {
+    const model = await PlannedWeekModel.create({ notes: null, ...data }, txOptions())
     return this.#weekToEntity(model)
   }
 
-  async createWeeks(
-    data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>[]
-  ): Promise<PlannedWeek[]> {
+  async createWeeks(data: NewPlannedWeek[]): Promise<PlannedWeek[]> {
     if (data.length === 0) return []
-    const models = await PlannedWeekModel.createMany(data, txOptions())
+    const models = await PlannedWeekModel.createMany(
+      data.map((week) => ({ notes: null, ...week })),
+      txOptions()
+    )
     return models.map((m) => this.#weekToEntity(m))
   }
 
@@ -128,18 +138,20 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     return models.map((m) => this.#weekToEntity(m))
   }
 
-  async createSession(
-    data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<PlannedSession> {
-    const model = await PlannedSessionModel.create(data, txOptions())
+  async createSession(data: NewPlannedSession): Promise<PlannedSession> {
+    const model = await PlannedSessionModel.create(
+      { ...SESSION_EXTRAS_DEFAULTS, ...data },
+      txOptions()
+    )
     return this.#sessionToEntity(model)
   }
 
-  async createSessions(
-    data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>[]
-  ): Promise<PlannedSession[]> {
+  async createSessions(data: NewPlannedSession[]): Promise<PlannedSession[]> {
     if (data.length === 0) return []
-    const models = await PlannedSessionModel.createMany(data, txOptions())
+    const models = await PlannedSessionModel.createMany(
+      data.map((session) => ({ ...SESSION_EXTRAS_DEFAULTS, ...session })),
+      txOptions()
+    )
     return models.map((m) => this.#sessionToEntity(m))
   }
 
@@ -153,6 +165,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       .where('planId', planId)
       .orderBy('week_number', 'asc')
       .orderBy('day_of_week', 'asc')
+      .orderBy('order_in_day', 'asc')
     return models.map((m) => this.#sessionToEntity(m))
   }
 
@@ -164,6 +177,51 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
     Object.assign(model, data)
     await model.save()
     return this.#sessionToEntity(model)
+  }
+
+  async deleteSession(id: number): Promise<void> {
+    await PlannedSessionModel.query(txOptions()).where('id', id).delete()
+  }
+
+  async updateWeek(
+    id: number,
+    data: Partial<
+      Pick<
+        PlannedWeek,
+        'phaseName' | 'phaseLabel' | 'isRecoveryWeek' | 'targetVolumeMinutes' | 'notes'
+      >
+    >
+  ): Promise<PlannedWeek> {
+    const model = await PlannedWeekModel.findOrFail(id, txOptions())
+    Object.assign(model, data)
+    await model.save()
+    return this.#weekToEntity(model)
+  }
+
+  async deleteWeek(planId: number, weekNumber: number): Promise<void> {
+    await PlannedSessionModel.query(txOptions())
+      .where('planId', planId)
+      .where('week_number', weekNumber)
+      .delete()
+    await PlannedWeekModel.query(txOptions())
+      .where('planId', planId)
+      .where('week_number', weekNumber)
+      .delete()
+    // Renumérotation dans l'ordre croissant : l'index unique (plan, semaine)
+    // n'est jamais violé en cours de route
+    const following = await PlannedWeekModel.query(txOptions())
+      .where('planId', planId)
+      .where('week_number', '>', weekNumber)
+      .orderBy('week_number', 'asc')
+    for (const week of following) {
+      const previous = week.weekNumber
+      await PlannedSessionModel.query(txOptions())
+        .where('planId', planId)
+        .where('week_number', previous)
+        .update({ week_number: previous - 1 })
+      week.weekNumber = previous - 1
+      await week.save()
+    }
   }
 
   async deleteSessionsFromWeek(planId: number, fromWeekNumber: number): Promise<void> {
@@ -190,6 +248,9 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       endDate: model.endDate.toISODate() ?? '',
       lastRecalibratedAt: model.lastRecalibratedAt?.toISO() ?? null,
       pendingVdotDown: model.pendingVdotDown,
+      source: model.source,
+      name: model.name,
+      notes: model.notes,
       createdAt: model.createdAt.toISO() ?? '',
       updatedAt: model.updatedAt.toISO() ?? '',
     }
@@ -204,6 +265,7 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       phaseLabel: model.phaseLabel,
       isRecoveryWeek: model.isRecoveryWeek,
       targetVolumeMinutes: model.targetVolumeMinutes,
+      notes: model.notes,
       createdAt: model.createdAt.toISO() ?? '',
       updatedAt: model.updatedAt.toISO() ?? '',
     }
@@ -216,9 +278,17 @@ export default class LucidTrainingPlanRepository extends TrainingPlanRepository 
       weekNumber: model.weekNumber,
       dayOfWeek: model.dayOfWeek,
       sessionType: model.sessionType,
+      sportSlug: model.sportSlug,
+      title: model.title,
+      description: model.description ?? '',
       targetDurationMinutes: model.targetDurationMinutes,
       targetDistanceKm: model.targetDistanceKm,
       targetPacePerKm: model.targetPacePerKm,
+      targetPacePer100m: model.targetPacePer100m,
+      targetPowerWatts: model.targetPowerWatts,
+      targetRpe: model.targetRpe,
+      exercises: model.exercises,
+      orderInDay: model.orderInDay,
       intensityZone: model.intensityZone,
       intervals: model.intervals,
       targetLoadTss: model.targetLoadTss,

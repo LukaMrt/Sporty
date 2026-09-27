@@ -5,6 +5,7 @@ import type {
   TrainingMethodology,
   PlanType,
   PlanStatus,
+  PlanSource,
 } from '#domain/value_objects/planning_types'
 import TrainingGoal from '#models/training_goal'
 import PlannedWeek from '#models/planned_week'
@@ -59,6 +60,15 @@ export default class TrainingPlan extends BaseModel {
 
   @column()
   declare pendingVdotDown: number | null
+
+  @column()
+  declare source: PlanSource
+
+  @column()
+  declare name: string | null
+
+  @column()
+  declare notes: string | null
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

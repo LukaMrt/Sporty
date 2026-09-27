@@ -1,13 +1,13 @@
 import { inject } from '@adonisjs/core'
 import { TrainingPlanRepository } from '#domain/interfaces/training_plan_repository'
 import type { GeneratedWeek } from '#domain/interfaces/training_plan_engine'
-import type { TrainingPlan } from '#domain/entities/training_plan'
+import type { NewTrainingPlan, TrainingPlan } from '#domain/entities/training_plan'
 import type { PlannedWeek } from '#domain/entities/planned_week'
 import type { PlannedSession } from '#domain/entities/planned_session'
 import { PlannedSessionStatus } from '#domain/value_objects/planning_types'
 import { estimatePlannedTss } from '#domain/services/planned_load'
 
-export type NewPlanData = Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>
+export type NewPlanData = NewTrainingPlan
 
 /**
  * Persistance des plans générés, partagée par les use cases de génération et de

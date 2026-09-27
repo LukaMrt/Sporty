@@ -6,7 +6,7 @@ import type {
   IntensityZone,
   PlannedSessionStatus,
 } from '#domain/value_objects/planning_types'
-import type { IntervalBlock } from '#domain/entities/planned_session'
+import type { IntervalBlock, StrengthExercise } from '#domain/entities/planned_session'
 import TrainingPlan from '#models/training_plan'
 
 export default class PlannedSession extends BaseModel {
@@ -26,6 +26,15 @@ export default class PlannedSession extends BaseModel {
   declare sessionType: SessionType
 
   @column()
+  declare sportSlug: string
+
+  @column()
+  declare title: string | null
+
+  @column()
+  declare description: string
+
+  @column()
   declare targetDurationMinutes: number
 
   @column()
@@ -33,6 +42,26 @@ export default class PlannedSession extends BaseModel {
 
   @column()
   declare targetPacePerKm: string | null
+
+  // Nom explicite : la conversion snake_case donnerait `target_pace_per_100_m`
+  @column({ columnName: 'target_pace_per_100m' })
+  declare targetPacePer100m: string | null
+
+  @column()
+  declare targetPowerWatts: number | null
+
+  @column()
+  declare targetRpe: number | null
+
+  @column({
+    prepare: (value: StrengthExercise[] | null) => (value ? JSON.stringify(value) : null),
+    consume: (value: string | StrengthExercise[] | null) =>
+      typeof value === 'string' ? (JSON.parse(value) as StrengthExercise[]) : value,
+  })
+  declare exercises: StrengthExercise[] | null
+
+  @column()
+  declare orderInDay: number
 
   @column()
   declare intensityZone: IntensityZone

@@ -25,6 +25,9 @@ export default class PlannedWeek extends BaseModel {
   @column()
   declare targetVolumeMinutes: number
 
+  @column()
+  declare notes: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

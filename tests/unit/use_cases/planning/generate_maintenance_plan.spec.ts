@@ -1,3 +1,5 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 import { StaticGoalRepo } from '#tests/helpers/base_mocks'
 import CloseFinishedGoal from '#use_cases/planning/close_finished_goal'
 import { test } from '@japa/runner'
@@ -44,6 +46,9 @@ const COMPLETED_PREP_PLAN: TrainingPlan = {
   endDate: '2026-03-01',
   lastRecalibratedAt: null,
   pendingVdotDown: null,
+  source: PlanSource.Generated,
+  name: null,
+  notes: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 }
@@ -76,6 +81,7 @@ function makeWeeks(count: number, volume = 300, phaseName = 'FQ'): PlannedWeek[]
     phaseLabel: phaseName,
     isRecoveryWeek: i === count - 1,
     targetVolumeMinutes: volume,
+    notes: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }))
@@ -91,6 +97,7 @@ function makeMaintenanceWeeks(maintenanceVolume: number): PlannedWeek[] {
       phaseLabel: 'Maintenance',
       isRecoveryWeek: false,
       targetVolumeMinutes: maintenanceVolume,
+      notes: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -102,6 +109,7 @@ function makeMaintenanceWeeks(maintenanceVolume: number): PlannedWeek[] {
       phaseLabel: 'Maintenance',
       isRecoveryWeek: false,
       targetVolumeMinutes: maintenanceVolume,
+      notes: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -113,6 +121,7 @@ function makeMaintenanceWeeks(maintenanceVolume: number): PlannedWeek[] {
       phaseLabel: 'Maintenance',
       isRecoveryWeek: false,
       targetVolumeMinutes: maintenanceVolume,
+      notes: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -124,6 +133,7 @@ function makeMaintenanceWeeks(maintenanceVolume: number): PlannedWeek[] {
       phaseLabel: 'Maintenance',
       isRecoveryWeek: true,
       targetVolumeMinutes: Math.round(maintenanceVolume * 0.75),
+      notes: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
@@ -174,6 +184,7 @@ function makePlanRepo(
         phaseLabel: 'Maintenance',
         isRecoveryWeek: false,
         targetVolumeMinutes: 100,
+        notes: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -188,6 +199,7 @@ function makePlanRepo(
         weekNumber: 1,
         dayOfWeek: 1,
         sessionType: SessionType.Easy,
+        ...SESSION_EXTRAS_DEFAULTS,
         targetDurationMinutes: 45,
         targetDistanceKm: null,
         targetPacePerKm: '6:00',
@@ -267,6 +279,7 @@ function makeEngine(): TrainingPlanEngine & { capturedRequest: MaintenancePlanRe
           phaseName: 'MAINT',
           isRecoveryWeek: i === 3,
           targetVolumeMinutes: Math.round(req.currentWeeklyVolumeMinutes * 0.35),
+          notes: null,
           sessions: [],
         })),
       }

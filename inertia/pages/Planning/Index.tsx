@@ -4,24 +4,27 @@ import MainLayout from '~/layouts/MainLayout'
 import { Button } from '~/components/ui/button'
 import { useTranslation } from '~/hooks/use_translation'
 import { useTechMode } from '~/hooks/use_tech_mode'
-import type { PlanOverview, PlannedSession, PostPlanState } from '~/types/planning'
+import type { PlanOverview, PlannedSession, PostPlanState, SportOption } from '~/types/planning'
 import WeekDndView from '~/components/planning/WeekDndView'
 import AcwrWarningBanner from '~/components/planning/AcwrWarningBanner'
 import InactivityBanner from '~/components/planning/InactivityBanner'
 import RecalibrationDialog from '~/components/planning/RecalibrationDialog'
 import PostPlanProposal from '~/components/planning/PostPlanProposal'
 import WeekCard from '~/components/planning/WeekCard'
+import { AddWeekDialog, PlanInfoDialog, WeekDialog } from '~/components/planning/PlanEditorDialogs'
+import { Download, Pencil, Plus, Sparkles } from 'lucide-react'
 import { isDateToday, sessionDate } from '~/lib/planning_dates'
 
 type Props = {
   overview: PlanOverview | null
   postPlanState: PostPlanState | null
+  sports: SportOption[]
 }
 
 // Mon=1 … Sat=6, Sun=0 — displayed Mon→Sun
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]
 
-export default function PlanningIndex({ overview, postPlanState }: Props) {
+export default function PlanningIndex({ overview, postPlanState, sports }: Props) {
   const { t, locale } = useTranslation()
   const { techMode } = useTechMode()
   const [selectedWeek, setSelectedWeek] = useState(overview?.currentWeekNumber ?? 1)
@@ -48,6 +51,9 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
   }
   const [vdotToastVisible, setVdotToastVisible] = useState(false)
   const [recalibDialogOpen, setRecalibDialogOpen] = useState(false)
+  const [planDialogOpen, setPlanDialogOpen] = useState(false)
+  const [weekDialogOpen, setWeekDialogOpen] = useState(false)
+  const [addWeekOpen, setAddWeekOpen] = useState(false)
   const vdotToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // sessionsByWeek local — mis à jour de façon optimiste lors des ajustements
   const [localSessionsByWeek, setLocalSessionsByWeek] = useState(overview?.sessionsByWeek ?? {})
@@ -85,10 +91,11 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
     setLocalSessionsByWeek((prev) => {
       const weekKey = String(updated.weekNumber)
       const weekSessions = prev[weekKey] ?? []
-      // Retirer l'ancienne version, insérer la nouvelle
-      const without = weekSessions.filter((s) => s.id !== updated.id)
-      // Si la séance a changé de semaine (peu probable ici), gérer proprement
-      return { ...prev, [weekKey]: [...without, updated] }
+      // Remplace la séance en conservant l'ordre de la liste
+      return {
+        ...prev,
+        [weekKey]: weekSessions.map((s) => (s.id === updated.id ? updated : s)),
+      }
     })
   }
 
@@ -112,6 +119,10 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
           <p className="text-muted-foreground text-sm">{t('planning.noActivePlan')}</p>
           <Button onClick={() => router.visit('/planning/goal')}>
             {t('planning.defineGoalCta')}
+          </Button>
+          <Button variant="outline" onClick={() => router.visit('/planning/import')}>
+            <Sparkles className="mr-1.5 h-4 w-4" aria-hidden="true" />
+            {t('planning.editor.createWithClaude')}
           </Button>
           <Link
             href="/planning/history"
@@ -143,12 +154,17 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
     (a, b) => DAY_ORDER.indexOf(a.dayOfWeek) - DAY_ORDER.indexOf(b.dayOfWeek)
   )
 
+  // Plusieurs séances possibles par jour, dans l'ordre de la journée
   const allDays = DAY_ORDER.map((dow) => {
-    const session = weekSessions.find((s) => s.dayOfWeek === dow) ?? null
+    const sessions = weekSessions
+      .filter((s) => s.dayOfWeek === dow && s.sessionType !== 'rest')
+      .sort((a, b) => a.orderInDay - b.orderInDay)
     const date = sessionDate(plan.startDate, selectedWeek, dow)
     const isToday = isDateToday(date)
-    return { dow, session, date, isToday }
+    return { dow, sessions, date, isToday }
   })
+  const phaseName = (week: { phaseName: string; phaseLabel: string }) =>
+    week.phaseName === 'custom' ? week.phaseLabel : t(`planning.phases.${week.phaseName}`)
 
   const eventDaysLeft = goal?.eventDate
     ? Math.ceil((new Date(goal.eventDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -232,11 +248,23 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
                     </div>
                     {selectedWeekData && (
                       <div className="text-xs text-muted-foreground">
-                        {t(`planning.phases.${selectedWeekData.phaseName}`) ??
-                          selectedWeekData.phaseLabel}{' '}
-                        · {selectedWeekData.targetVolumeMinutes} min
-                        {selectedWeekData.isRecoveryWeek &&
-                          ` · ${t('planning.overview.recoveryWeek')}`}
+                        {[
+                          phaseName(selectedWeekData),
+                          `${selectedWeekData.targetVolumeMinutes} min`,
+                          selectedWeekData.isRecoveryWeek
+                            ? t('planning.overview.recoveryWeek')
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                        <button
+                          type="button"
+                          onClick={() => setWeekDialogOpen(true)}
+                          className="ml-1.5 inline-flex items-center rounded p-0.5 align-middle hover:bg-muted hover:text-foreground"
+                          aria-label={t('planning.editor.week.edit')}
+                        >
+                          <Pencil className="h-3 w-3" aria-hidden="true" />
+                        </button>
                       </div>
                     )}
                     {techMode && fitnessProfile && selectedWeek === currentWeekNumber && (
@@ -267,14 +295,31 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
                   </button>
                 </div>
 
+                {selectedWeekData?.notes && (
+                  <p className="whitespace-pre-line rounded-lg border bg-muted/30 px-3 py-2 text-sm text-foreground/80">
+                    {selectedWeekData.notes}
+                  </p>
+                )}
+
                 <WeekDndView
                   days={allDays}
                   planStartDate={plan.startDate}
                   selectedWeek={selectedWeek}
                   locale={locale}
+                  sports={sports}
                   onSessionUpdated={handleSessionUpdated}
                   showAcwrBadge={showAcwrBadgeOnCurrentWeek}
                 />
+
+                {selectedWeekData && (
+                  <WeekDialog
+                    key={`${selectedWeekData.id}-${weekDialogOpen}`}
+                    week={selectedWeekData}
+                    canDelete={weeks.length > 1}
+                    open={weekDialogOpen}
+                    onClose={() => setWeekDialogOpen(false)}
+                  />
+                )}
               </>
             )}
 
@@ -296,12 +341,72 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
                     }}
                   />
                 ))}
+                <Button variant="outline" className="w-full" onClick={() => setAddWeekOpen(true)}>
+                  <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                  {t('planning.editor.week.add')}
+                </Button>
+                <AddWeekDialog
+                  key={String(addWeekOpen)}
+                  weeks={weeks}
+                  open={addWeekOpen}
+                  onClose={() => setAddWeekOpen(false)}
+                />
               </div>
             )}
           </div>
 
           {/* ── Colonne latérale : résumé + actions ───────────────── */}
           <div className="w-full md:w-72 shrink-0 space-y-3">
+            {/* Plan : nom, consignes, Claude, export */}
+            <div className="rounded-xl border border-border bg-card px-4 py-3 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground">
+                    {plan.name ?? t('planning.editor.plan.defaultName')}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {t(`planning.editor.plan.source.${plan.source}`)}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPlanDialogOpen(true)}
+                  className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label={t('planning.editor.plan.edit')}
+                >
+                  <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+              {plan.notes && (
+                <details className="text-xs text-muted-foreground">
+                  <summary className="cursor-pointer">{t('planning.editor.plan.notes')}</summary>
+                  <p className="mt-1 whitespace-pre-line text-foreground/80">{plan.notes}</p>
+                </details>
+              )}
+              <div className="flex flex-col gap-1.5 pt-1">
+                <Link
+                  href="/planning/import"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  {t('planning.editor.reviseWithClaude')}
+                </Link>
+                <a
+                  href="/planning/export.json"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <Download className="h-4 w-4" aria-hidden="true" />
+                  {t('planning.editor.export')}
+                </a>
+              </div>
+            </div>
+            <PlanInfoDialog
+              key={`${plan.id}-${planDialogOpen}`}
+              plan={plan}
+              open={planDialogOpen}
+              onClose={() => setPlanDialogOpen(false)}
+            />
+
             {/* Bandeau objectif */}
             <div className="rounded-xl border border-border bg-card px-4 py-3">
               <div>
@@ -359,33 +464,35 @@ export default function PlanningIndex({ overview, postPlanState }: Props) {
               </div>
             </div>
 
-            {/* Toggle recalibration auto */}
-            <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-medium text-foreground">
-                  {t('planning.recalibration.autoToggleLabel')}
+            {/* Toggle recalibration auto (plans générés : un plan Claude n'est pas réécrit) */}
+            {plan.source === 'generated' && (
+              <div className="rounded-xl border border-border bg-card px-4 py-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-medium text-foreground">
+                    {t('planning.recalibration.autoToggleLabel')}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {t('planning.recalibration.autoToggleDesc')}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground mt-0.5">
-                  {t('planning.recalibration.autoToggleDesc')}
-                </div>
-              </div>
-              <button
-                onClick={handleToggleAutoRecalibrate}
-                className={[
-                  'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-                  plan.autoRecalibrate ? 'bg-primary' : 'bg-muted',
-                ].join(' ')}
-                role="switch"
-                aria-checked={plan.autoRecalibrate}
-              >
-                <span
+                <button
+                  onClick={handleToggleAutoRecalibrate}
                   className={[
-                    'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
-                    plan.autoRecalibrate ? 'translate-x-5' : 'translate-x-0',
+                    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
+                    plan.autoRecalibrate ? 'bg-primary' : 'bg-muted',
                   ].join(' ')}
-                />
-              </button>
-            </div>
+                  role="switch"
+                  aria-checked={plan.autoRecalibrate}
+                >
+                  <span
+                    className={[
+                      'pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
+                      plan.autoRecalibrate ? 'translate-x-5' : 'translate-x-0',
+                    ].join(' ')}
+                  />
+                </button>
+              </div>
+            )}
 
             {/* Lien historique */}
             <Link

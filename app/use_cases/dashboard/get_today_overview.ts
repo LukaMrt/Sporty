@@ -38,6 +38,8 @@ export default class GetTodayOverview {
         .map((p) => ({
           date: plannedSessionDate(plan.startDate, p.weekNumber, p.dayOfWeek),
           sessionType: p.sessionType,
+          sportSlug: p.sportSlug,
+          title: p.title,
           minutes: p.targetDurationMinutes,
           tss: p.targetLoadTss ?? estimatePlannedTss(p),
           intensityZone: p.intensityZone,

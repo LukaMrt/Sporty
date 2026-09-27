@@ -216,6 +216,8 @@ test.group('Semaine en cours', () => {
         {
           date: '2026-02-05',
           sessionType: 'easy',
+          sportSlug: 'running',
+          title: null,
           minutes: 50,
           tss: 45,
           intensityZone: 'z2',

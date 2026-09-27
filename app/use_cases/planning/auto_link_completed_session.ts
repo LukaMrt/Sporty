@@ -13,9 +13,10 @@ const MAX_DAY_GAP = 1
 const NON_LINKABLE: string[] = [SessionType.Rest]
 
 /**
- * Lie automatiquement une séance réalisée (course) à la séance planifiée en
- * attente la plus proche en date (± 1 jour). C'était le chaînon manquant de la
- * recalibration : aucune liaison n'était jamais faite depuis l'UI.
+ * Lie automatiquement une séance réalisée à la séance planifiée en attente du
+ * même sport la plus proche en date (± 1 jour). C'était le chaînon manquant de
+ * la recalibration : aucune liaison n'était jamais faite depuis l'UI. Les plans
+ * étant multisports, une sortie vélo se lie à la séance de vélo prévue.
  */
 @inject()
 export default class AutoLinkCompletedSession {
@@ -27,7 +28,7 @@ export default class AutoLinkCompletedSession {
   async execute(userId: number, sessionId: number): Promise<PlannedSession | null> {
     const session = await this.sessionRepository.findById(sessionId)
     if (!session || session.userId !== userId) return null
-    if (session.sportSlug !== undefined && session.sportSlug !== RUNNING_SLUG) return null
+    const sport = session.sportSlug ?? RUNNING_SLUG
 
     const plan = await this.planRepository.findActiveByUserId(userId)
     if (!plan) return null
@@ -39,6 +40,7 @@ export default class AutoLinkCompletedSession {
     const candidates = planned
       .filter((ps) => ps.status === PlannedSessionStatus.Pending)
       .filter((ps) => !NON_LINKABLE.includes(ps.sessionType))
+      .filter((ps) => ps.sportSlug === sport)
       .map((ps) => ({
         ps,
         gap: Math.abs(

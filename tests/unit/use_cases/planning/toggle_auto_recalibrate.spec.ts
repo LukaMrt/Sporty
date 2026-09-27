@@ -1,3 +1,4 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
 import { test } from '@japa/runner'
 import { BaseMockPlanRepo } from '#tests/helpers/base_mocks'
 import ToggleAutoRecalibrate, {
@@ -25,6 +26,9 @@ const makePlan = (autoRecalibrate: boolean): TrainingPlan => ({
   endDate: '2026-06-01',
   lastRecalibratedAt: null,
   pendingVdotDown: null,
+  source: PlanSource.Generated,
+  name: null,
+  notes: null,
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 })

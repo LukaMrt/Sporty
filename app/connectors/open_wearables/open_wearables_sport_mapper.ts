@@ -24,6 +24,14 @@ const SUPPORTED: Record<string, { slug: SportySportSlug; subType?: string; label
   },
   walking: { slug: 'walking', label: 'Marche' },
   hiking: { slug: 'hiking', label: 'Randonnée' },
+  strength_training: { slug: 'strength', label: 'Renforcement' },
+  weight_training: { slug: 'strength', label: 'Musculation' },
+  functional_strength_training: {
+    slug: 'strength',
+    subType: 'functional',
+    label: 'Renfo fonctionnel',
+  },
+  crossfit: { slug: 'strength', subType: 'crossfit', label: 'CrossFit' },
 }
 
 export class OpenWearablesSportMapper {

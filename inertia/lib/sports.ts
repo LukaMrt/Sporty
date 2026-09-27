@@ -4,6 +4,7 @@ export const SPORT_ICONS: Record<string, string> = {
   swimming: '🏊',
   walking: '🚶',
   hiking: '🥾',
+  strength: '🏋️',
 }
 
 export function sportIcon(slug: string): string {

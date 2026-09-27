@@ -1,3 +1,5 @@
+import { PlanSource } from '#domain/value_objects/planning_types'
+import { SESSION_EXTRAS_DEFAULTS } from '#domain/entities/planned_session'
 /**
  * Classes de base des mocks de ports : implémentations neutres de toutes les
  * méthodes, pour que les mocks locaux des tests n'aient à surcharger que ce
@@ -12,9 +14,9 @@ import { Logger } from '#domain/interfaces/logger'
 import { TrainingLoadCalculator } from '#domain/interfaces/training_load_calculator'
 import { SportRepository } from '#domain/interfaces/sport_repository'
 import type { SportSummary } from '#domain/interfaces/sport_repository'
-import type { TrainingPlan } from '#domain/entities/training_plan'
-import type { PlannedWeek } from '#domain/entities/planned_week'
-import type { PlannedSession } from '#domain/entities/planned_session'
+import type { NewTrainingPlan, TrainingPlan } from '#domain/entities/training_plan'
+import type { NewPlannedWeek, PlannedWeek } from '#domain/entities/planned_week'
+import type { NewPlannedSession, PlannedSession } from '#domain/entities/planned_session'
 import type { TrainingSession } from '#domain/entities/training_session'
 import type { PaginatedResult } from '#domain/entities/pagination'
 import type { TrainingLoad } from '#domain/value_objects/training_load'
@@ -25,8 +27,16 @@ const NOW = () => new Date().toISOString()
 export class BaseMockPlanRepo extends TrainingPlanRepository {
   #nextId = 1000
 
-  async create(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<TrainingPlan> {
-    return { ...data, id: this.#nextId++, createdAt: NOW(), updatedAt: NOW() }
+  async create(data: NewTrainingPlan): Promise<TrainingPlan> {
+    return {
+      source: PlanSource.Generated,
+      name: null,
+      notes: null,
+      ...data,
+      id: this.#nextId++,
+      createdAt: NOW(),
+      updatedAt: NOW(),
+    }
   }
   async findById(_id: number): Promise<TrainingPlan | null> {
     return null
@@ -54,14 +64,10 @@ export class BaseMockPlanRepo extends TrainingPlanRepository {
     return { ...(existing as TrainingPlan), ...data, id }
   }
   async delete(_id: number): Promise<void> {}
-  async createWeek(
-    data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<PlannedWeek> {
-    return { ...data, id: this.#nextId++, createdAt: NOW(), updatedAt: NOW() }
+  async createWeek(data: NewPlannedWeek): Promise<PlannedWeek> {
+    return { notes: null, ...data, id: this.#nextId++, createdAt: NOW(), updatedAt: NOW() }
   }
-  async createWeeks(
-    data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>[]
-  ): Promise<PlannedWeek[]> {
+  async createWeeks(data: NewPlannedWeek[]): Promise<PlannedWeek[]> {
     const out: PlannedWeek[] = []
     for (const week of data) out.push(await this.createWeek(week))
     return out
@@ -69,14 +75,16 @@ export class BaseMockPlanRepo extends TrainingPlanRepository {
   async findWeeksByPlanId(_planId: number): Promise<PlannedWeek[]> {
     return []
   }
-  async createSession(
-    data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<PlannedSession> {
-    return { ...data, id: this.#nextId++, createdAt: NOW(), updatedAt: NOW() }
+  async createSession(data: NewPlannedSession): Promise<PlannedSession> {
+    return {
+      ...SESSION_EXTRAS_DEFAULTS,
+      ...data,
+      id: this.#nextId++,
+      createdAt: NOW(),
+      updatedAt: NOW(),
+    }
   }
-  async createSessions(
-    data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>[]
-  ): Promise<PlannedSession[]> {
+  async createSessions(data: NewPlannedSession[]): Promise<PlannedSession[]> {
     const out: PlannedSession[] = []
     for (const session of data) out.push(await this.createSession(session))
     return out
@@ -95,6 +103,11 @@ export class BaseMockPlanRepo extends TrainingPlanRepository {
     return { ...(existing as PlannedSession), ...data, id }
   }
   async deleteSessionsFromWeek(_planId: number, _fromWeekNumber: number): Promise<void> {}
+  async deleteSession(_id: number): Promise<void> {}
+  async updateWeek(id: number, data: Partial<PlannedWeek>): Promise<PlannedWeek> {
+    return { ...(data as PlannedWeek), id }
+  }
+  async deleteWeek(_planId: number, _weekNumber: number): Promise<void> {}
 }
 
 export class BaseMockSessionRepo extends SessionRepository {
@@ -301,8 +314,16 @@ export class InMemoryPlanRepo extends BaseMockPlanRepo {
   sessions: PlannedSession[] = []
   #id = 1
 
-  async create(data: Omit<TrainingPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<TrainingPlan> {
-    const plan = { ...data, id: this.#id++, createdAt: NOW(), updatedAt: NOW() }
+  async create(data: NewTrainingPlan): Promise<TrainingPlan> {
+    const plan = {
+      source: PlanSource.Generated,
+      name: null,
+      notes: null,
+      ...data,
+      id: this.#id++,
+      createdAt: NOW(),
+      updatedAt: NOW(),
+    }
     this.plans.push(plan)
     return plan
   }
@@ -338,16 +359,22 @@ export class InMemoryPlanRepo extends BaseMockPlanRepo {
     Object.assign(plan, data)
     return plan
   }
-  async createWeek(data: Omit<PlannedWeek, 'id' | 'createdAt' | 'updatedAt'>) {
-    const week = { ...data, id: this.#id++, createdAt: NOW(), updatedAt: NOW() }
+  async createWeek(data: NewPlannedWeek) {
+    const week = { notes: null, ...data, id: this.#id++, createdAt: NOW(), updatedAt: NOW() }
     this.weeks.push(week)
     return week
   }
   async findWeeksByPlanId(planId: number) {
     return this.weeks.filter((w) => w.planId === planId).sort((a, b) => a.weekNumber - b.weekNumber)
   }
-  async createSession(data: Omit<PlannedSession, 'id' | 'createdAt' | 'updatedAt'>) {
-    const session = { ...data, id: this.#id++, createdAt: NOW(), updatedAt: NOW() }
+  async createSession(data: NewPlannedSession) {
+    const session = {
+      ...SESSION_EXTRAS_DEFAULTS,
+      ...data,
+      id: this.#id++,
+      createdAt: NOW(),
+      updatedAt: NOW(),
+    }
     this.sessions.push(session)
     return session
   }
@@ -357,8 +384,28 @@ export class InMemoryPlanRepo extends BaseMockPlanRepo {
   async findSessionsByPlanId(planId: number) {
     return this.sessions
       .filter((s) => s.planId === planId)
-      .sort((a, b) => a.weekNumber - b.weekNumber || a.dayOfWeek - b.dayOfWeek)
+      .sort(
+        (a, b) =>
+          a.weekNumber - b.weekNumber || a.dayOfWeek - b.dayOfWeek || a.orderInDay - b.orderInDay
+      )
       .map((s) => ({ ...s }))
+  }
+  async deleteSession(id: number) {
+    this.sessions = this.sessions.filter((s) => s.id !== id)
+  }
+  async updateWeek(id: number, data: Partial<PlannedWeek>) {
+    const week = this.weeks.find((w) => w.id === id)!
+    Object.assign(week, data)
+    return { ...week }
+  }
+  async deleteWeek(planId: number, weekNumber: number) {
+    this.sessions = this.sessions.filter(
+      (s) => !(s.planId === planId && s.weekNumber === weekNumber)
+    )
+    this.weeks = this.weeks.filter((w) => !(w.planId === planId && w.weekNumber === weekNumber))
+    for (const w of this.weeks) if (w.planId === planId && w.weekNumber > weekNumber) w.weekNumber--
+    for (const s of this.sessions)
+      if (s.planId === planId && s.weekNumber > weekNumber) s.weekNumber--
   }
   async updateSession(id: number, data: Partial<PlannedSession>) {
     const session = this.sessions.find((s) => s.id === id)!
@@ -399,6 +446,9 @@ export class InMemoryPlanRepo extends BaseMockPlanRepo {
         .slice(0, 10),
       lastRecalibratedAt: null,
       pendingVdotDown: null,
+      source: PlanSource.Generated,
+      name: null,
+      notes: null,
     })
     for (let w = 1; w <= options.weeks; w++) {
       await this.createWeek({
@@ -408,6 +458,7 @@ export class InMemoryPlanRepo extends BaseMockPlanRepo {
         phaseLabel: 'EQ',
         isRecoveryWeek: false,
         targetVolumeMinutes: 180,
+        notes: null,
       })
       for (const day of options.days ?? [2, 4, 6]) {
         await this.createSession({
@@ -415,6 +466,7 @@ export class InMemoryPlanRepo extends BaseMockPlanRepo {
           weekNumber: w,
           dayOfWeek: day,
           sessionType: options.sessionType ?? SessionType.Easy,
+          ...SESSION_EXTRAS_DEFAULTS,
           targetDurationMinutes: 60,
           targetDistanceKm: null,
           targetPacePerKm: null,
@@ -454,6 +506,7 @@ export class EchoPlanEngine extends TrainingPlanEngine {
             {
               dayOfWeek: 2,
               sessionType: SessionType.Easy,
+              ...SESSION_EXTRAS_DEFAULTS,
               targetDurationMinutes: 40,
               targetDistanceKm: null,
               targetPacePerKm: null,
