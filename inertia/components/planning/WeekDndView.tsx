@@ -340,7 +340,14 @@ export default function WeekDndView({
                   ))}
                   {canDrop ? (
                     <DroppableDaySlot dow={dow} isToday={isToday}>
-                      <span className="text-xs">{t('planning.overview.dropHere')}</span>
+                      {sessions.length === 0 ? (
+                        <span className="flex items-center gap-3">
+                          <span className="flex-shrink-0 w-2 h-2 rounded-full bg-muted-foreground/40 inline-block" />
+                          {t('planning.overview.rest')}
+                        </span>
+                      ) : (
+                        <span className="text-xs">{t('planning.overview.dropHere')}</span>
+                      )}
                     </DroppableDaySlot>
                   ) : (
                     sessions.length === 0 && (
