@@ -61,6 +61,10 @@ COPY docker/entrypoint.sh /entrypoint.sh
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh && \
     mkdir -p /app/storage && chown node:node /app/storage
 
+# npm/npx ne servent pas au runtime (l'entrypoint lance node directement) :
+# on les retire pour réduire la surface d'attaque et les CVE de l'image de base
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+
 USER node
 
 EXPOSE 3333
