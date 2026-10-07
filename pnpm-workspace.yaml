@@ -7,3 +7,11 @@ overrides:
   axios: '>=1.18.0'
   qs: '>=6.16.0'
   esbuild: '>=0.28.1'
+  source-map-js: '>=1.2.2'
+
+# braces (GHSA-vfj7-8cjw-p6xm) : aucune version corrigee publiee, tire uniquement par
+# l'outillage de build (@adonisjs/assembler > fast-glob > micromatch), absent du runtime.
+# A retirer des qu'un correctif existe.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
